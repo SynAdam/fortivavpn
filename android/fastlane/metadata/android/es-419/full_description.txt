@@ -31,8 +31,8 @@ Fortiva VPN usa el VpnService de Android para crear un túnel seguro y cifrado e
 • Política de privacidad completa en fortivavpn.com/privacy
 
 Licencia de código abierto
-Fortiva VPN es software libre, con licencia GNU General Public License versión 3. Se basa en v2rayNG y otros proyectos de código abierto.
+La app de Fortiva VPN para Android es software libre, con licencia GNU General Public License versión 3 o posterior. El código fuente de cada versión se publica en https://github.com/SynAdam/fortivavpn
 
-Tienes derecho al código fuente completo de la versión que tienes instalada. Para solicitarlo, escribe a admin@fortivavpn.com indicando el número de versión de la app. Esta oferta es válida durante tres años a partir de la fecha en que recibiste esta versión. El código fuente se entrega sin ningún cargo aparte del costo de envío.
+La copia publicada omite algunas direcciones y claves que la app usa para conectarse a nuestro servicio. También puedes obtener el código fuente completo de la versión que tienes, con esos valores. Escribe a admin@fortivavpn.com e indica la versión. Esta oferta es válida durante tres años a partir de la fecha en que recibiste esa versión.
 
 El texto completo de la licencia está en gnu.org/licenses/gpl-3.0.html

@@ -31,8 +31,8 @@ Fortiva VPN, cihazınız ile uzak sunucularımız arasında güvenli ve şifreli
 • Gizlilik politikasının tamamı: fortivavpn.com/privacy
 
 Açık kaynak lisansı
-Fortiva VPN özgür bir yazılımdır ve GNU General Public License sürüm 3 ile lisanslanmıştır. v2rayNG ve diğer açık kaynak projeleri üzerine kuruludur.
+Fortiva VPN Android uygulaması özgür bir yazılımdır ve GNU General Public License sürüm 3 veya daha sonraki bir sürümle lisanslanmıştır. Her sürümün kaynak kodu https://github.com/SynAdam/fortivavpn adresinde yayımlanır.
 
-Yüklediğiniz sürümün eksiksiz kaynak kodunu alma hakkınız vardır. Talep etmek için uygulamanın sürüm numarasını belirterek admin@fortivavpn.com adresine e-posta gönderin. Bu teklif, bu sürümü aldığınız tarihten itibaren üç yıl geçerlidir. Kaynak kodu, gönderim masrafı dışında ücretsiz olarak sağlanır.
+Yayımlanan kopya, uygulamanın hizmetimize bağlanmak için kullandığı birkaç adresi ve anahtarı içermez. Elinizdeki sürümün eksiksiz kaynak kodunu bu değerlerle birlikte de alabilirsiniz. Sürümü belirterek admin@fortivavpn.com adresine e-posta gönderin. Bu teklif, o sürümü aldığınız tarihten itibaren üç yıl geçerlidir.
 
 Lisansın tam metni: gnu.org/licenses/gpl-3.0.html

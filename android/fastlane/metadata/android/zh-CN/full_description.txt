@@ -31,8 +31,8 @@ Fortiva VPN 使用 Android 的 VpnService，在您的设备与我们的远程服
 • 完整隐私政策：fortivavpn.com/privacy
 
 【开源许可】
-Fortiva VPN 是自由软件，依据 GNU General Public License 第 3 版授权。它构建于 v2rayNG 和其他开源项目之上。
+Fortiva VPN 的 Android 应用是自由软件，依据 GNU General Public License 第 3 版或任何更新的版本授权。每个版本的源代码都发布在 https://github.com/SynAdam/fortivavpn 上。
 
-您有权获得您所安装版本的完整对应源代码。如需索取，请发送邮件至 admin@fortivavpn.com 并注明应用版本号。此承诺自您收到此版本之日起三年内有效。除寄送费用外，源代码免费提供。
+公开的代码中省略了应用连接我们的服务所用的少量地址和密钥。您也可以获取您所用版本包含这些值的完整源代码。请发送邮件至 admin@fortivavpn.com 并注明版本号。此承诺自您收到该版本之日起三年内有效。
 
 完整许可证文本：gnu.org/licenses/gpl-3.0.html

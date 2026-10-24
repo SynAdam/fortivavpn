@@ -31,8 +31,8 @@ Fortiva VPN menggunakan VpnService Android untuk membuat terowongan yang aman da
 • Kebijakan privasi lengkap di fortivavpn.com/privacy
 
 Lisensi sumber terbuka
-Fortiva VPN adalah perangkat lunak bebas yang dilisensikan di bawah GNU General Public License versi 3. Aplikasi ini dibangun di atas v2rayNG dan proyek sumber terbuka lainnya.
+Aplikasi Android Fortiva VPN adalah perangkat lunak bebas yang dilisensikan di bawah GNU General Public License versi 3 atau versi yang lebih baru. Kode sumber setiap versi diterbitkan di https://github.com/SynAdam/fortivavpn
 
-Anda berhak mendapatkan kode sumber lengkap untuk versi yang Anda pasang. Untuk memintanya, kirim email ke admin@fortivavpn.com dengan menyebutkan nomor versi aplikasi. Penawaran ini berlaku selama tiga tahun sejak tanggal Anda menerima versi ini. Kode sumber diberikan tanpa biaya selain biaya pengiriman.
+Salinan yang diterbitkan tidak menyertakan beberapa alamat dan kunci yang digunakan aplikasi untuk terhubung ke layanan kami. Anda juga bisa mendapatkan kode sumber lengkap untuk versi yang Anda miliki, beserta nilai-nilai tersebut. Kirim email ke admin@fortivavpn.com dan sebutkan versinya. Penawaran ini berlaku selama tiga tahun sejak tanggal Anda menerima versi tersebut.
 
 Teks lengkap lisensi tersedia di gnu.org/licenses/gpl-3.0.html

@@ -31,8 +31,8 @@ Fortiva VPN은 Android의 VpnService를 사용해 기기와 Fortiva 원격 서�
 • 개인정보 처리방침 전문: fortivavpn.com/privacy
 
 ■ 오픈소스 라이선스
-Fortiva VPN은 GNU General Public License 버전 3에 따라 배포되는 자유 소프트웨어입니다. v2rayNG와 다른 오픈소스 프로젝트를 기반으로 만들어졌습니다.
+Fortiva VPN Android 앱은 GNU General Public License 버전 3 또는 그 이후 버전에 따라 배포되는 자유 소프트웨어입니다. 각 버전의 소스 코드는 다음 주소에서 공개합니다: https://github.com/SynAdam/fortivavpn
 
-설치한 버전에 해당하는 전체 소스 코드를 받을 권리가 있습니다. 요청하려면 앱 버전 번호를 적어 admin@fortivavpn.com 주소로 이메일을 보내 주세요. 이 제안은 이 버전을 받은 날로부터 3년 동안 유효합니다. 소스 코드는 전달 비용 외에는 무료로 제공됩니다.
+공개된 코드에는 앱이 Fortiva 서비스에 연결할 때 쓰는 일부 주소와 키가 빠져 있습니다. 사용 중인 버전의 전체 소스 코드를 이 값들까지 포함해 받을 수도 있습니다. 요청하려면 버전을 적어 admin@fortivavpn.com 주소로 이메일을 보내 주세요. 이 제안은 그 버전을 받은 날로부터 3년 동안 유효합니다.
 
 라이선스 전문: gnu.org/licenses/gpl-3.0.html

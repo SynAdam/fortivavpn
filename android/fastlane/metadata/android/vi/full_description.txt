@@ -31,8 +31,8 @@ Fortiva VPN dùng VpnService của Android để tạo một đường hầm an 
 • Chính sách quyền riêng tư đầy đủ tại fortivavpn.com/privacy
 
 Giấy phép mã nguồn mở
-Fortiva VPN là phần mềm tự do, được cấp phép theo GNU General Public License phiên bản 3. Ứng dụng được xây dựng dựa trên v2rayNG và các dự án mã nguồn mở khác.
+Ứng dụng Android của Fortiva VPN là phần mềm tự do, được cấp phép theo GNU General Public License phiên bản 3 hoặc bất kỳ phiên bản nào mới hơn. Mã nguồn của mỗi phiên bản được công bố tại https://github.com/SynAdam/fortivavpn
 
-Bạn có quyền nhận toàn bộ mã nguồn tương ứng của phiên bản bạn đã cài. Để yêu cầu, hãy gửi email đến admin@fortivavpn.com kèm số phiên bản ứng dụng. Đề nghị này có hiệu lực trong ba năm kể từ ngày bạn nhận được phiên bản này. Mã nguồn được cung cấp miễn phí, chỉ tính chi phí gửi.
+Bản được công bố không chứa một số địa chỉ và khóa mà ứng dụng dùng để kết nối tới dịch vụ của chúng tôi. Bạn cũng có thể nhận toàn bộ mã nguồn của phiên bản bạn đang có, kèm các giá trị đó. Hãy gửi email đến admin@fortivavpn.com và ghi rõ phiên bản. Đề nghị này có hiệu lực trong ba năm kể từ ngày bạn nhận được phiên bản đó.
 
 Toàn văn giấy phép có tại gnu.org/licenses/gpl-3.0.html

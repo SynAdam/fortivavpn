@@ -20,8 +20,8 @@ Fortiva VPN uses Android's VpnService to create a secure, encrypted tunnel betwe
 • Full privacy policy at fortivavpn.com/privacy
 
 OPEN SOURCE LICENCE
-Fortiva VPN is free software, licensed under the GNU General Public License version 3. It builds on v2rayNG and other open-source projects.
+The FortivaVPN Android app is free software, licensed under the GNU General Public License version 3 or later. The source of each version is published at https://github.com/SynAdam/fortivavpn
 
-You are entitled to the complete corresponding source code for the version you have installed. To request it, email admin@fortivavpn.com with the app version number. This offer is valid for three years from the date you received this version. Source is provided at no charge beyond the cost of delivery.
+The published copy leaves out a few addresses and keys that the app uses to reach our service. You can also get the complete source of the version you have, with those values. Email admin@fortivavpn.com and name the version. This offer is valid for three years from the date you received that version.
 
 The full licence text is available at gnu.org/licenses/gpl-3.0.html
