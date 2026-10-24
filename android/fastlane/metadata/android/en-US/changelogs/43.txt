@@ -1,0 +1,3 @@
+When a connection fails, the app now checks several paths one by one and connects through the first one that is open, while you watch each step. It remembers the path that worked on your network, so the next connection is instant.
+
+If every path is blocked, the app says so plainly instead of leaving you waiting, and your own server is always tried first.

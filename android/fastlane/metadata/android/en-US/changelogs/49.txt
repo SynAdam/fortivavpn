@@ -1,0 +1,5 @@
+- A more stable connection that drops less while you use it.
+- Instagram, WhatsApp and other apps start working sooner after you connect.
+- The update prompt can now take you to our Telegram channel as well as Google Play.
+- The first connection after installing no longer fails while you read Android's permission prompt.
+- The Private DNS warning now appears only when your Private DNS really is not working.

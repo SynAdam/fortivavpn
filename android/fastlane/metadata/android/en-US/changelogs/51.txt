@@ -1,0 +1,1 @@
+- Internal reliability fixes. No change to how the app connects.

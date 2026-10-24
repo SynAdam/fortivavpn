@@ -1,0 +1,5 @@
+Improvements
+- On networks that restrict connections, the app now tries a new way to get through.
+
+Fixes
+- The app installs and runs properly on newer Android phones.

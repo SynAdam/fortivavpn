@@ -1,0 +1,4 @@
+- Connecting on home internet and wifi is more reliable: the app now tries every server before it says that nothing works.
+- A route that worked for you a few minutes ago is tried first.
+- Problem reports reach us more reliably on weak connections, so we can fix issues faster.
+- Small fixes.

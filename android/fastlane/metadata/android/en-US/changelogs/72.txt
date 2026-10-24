@@ -1,0 +1,5 @@
+- A fresh new look across the whole app, with a new connect button.
+- The speed test, Check my IP and History screens are now fully in your language.
+- You no longer need to sign in. Everyone gets the same free daily data without an account.
+- Fortiva can now get better at connecting without an app update.
+- On days when the internet is very hard to use, the app connects you sooner.

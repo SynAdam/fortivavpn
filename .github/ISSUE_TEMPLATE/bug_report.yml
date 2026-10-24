@@ -1,0 +1,65 @@
+name: Bug or connection problem
+description: Something in the app does not work as it should.
+body:
+  - type: markdown
+    attributes:
+      value: |
+        **Issues are public.** Anyone can read what you write here. Do not post:
+
+        - your name or your phone number;
+        - a server address, or your own IP address;
+        - a log, or a screenshot of the Check my IP screen;
+        - a link from Copy link, your Premium key, a code from Help a friend connect, or a screenshot that shows one. Anyone who has one can use it.
+
+        For your account or a payment, open Settings in the app and tap Contact Us.
+
+        <div dir="rtl">
+
+        این صفحه عمومی است و همه می‌توانند نوشته‌ی شما را ببینند. نام، شماره تلفن، آدرس سرور، آی‌پی خودتان، لاگ یا عکس صفحه‌ی «بررسی آی‌پی من» را این‌جا نگذارید. لینکی که با «کپی لینک» گرفته‌اید، کلید پریمیوم و کدهای «کمک به اتصال دوست» را هم نگذارید، چون هر کس آن‌ها را داشته باشد می‌تواند از آن‌ها استفاده کند. برای حساب یا پرداخت، در برنامه به «تنظیمات» بروید و «تماس با ما» را بزنید. می‌توانید فارسی بنویسید.
+
+        </div>
+  - type: input
+    id: version
+    attributes:
+      label: App version
+      description: Settings shows it.
+    validations:
+      required: true
+  - type: dropdown
+    id: installed-from
+    attributes:
+      label: Installed from
+      options:
+        - Google Play
+        - Website
+        - Telegram
+    validations:
+      required: true
+  - type: dropdown
+    id: platform
+    attributes:
+      label: Platform
+      options:
+        - Android phone
+        - Android TV
+        - iPhone or iPad
+        - Windows
+    validations:
+      required: true
+  - type: input
+    id: device
+    attributes:
+      label: Device and system version
+      placeholder: Samsung A54, Android 14
+  - type: input
+    id: network
+    attributes:
+      label: Network, for a connection problem
+      placeholder: MCI mobile data, Iran
+  - type: textarea
+    id: what
+    attributes:
+      label: What happened
+      description: What you did, what you expected, and what happened instead.
+    validations:
+      required: true

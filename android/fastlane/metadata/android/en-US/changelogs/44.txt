@@ -1,0 +1,3 @@
+Improvements
+- When your connection is working, the app now checks your network once a day too. Knowing what a healthy connection looks like on your network lets us spot a problem sooner and fix it faster.
+- The report sent when something goes wrong is more complete, so the cause of a dropped connection is easier to trace.

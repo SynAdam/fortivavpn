@@ -1,0 +1,1679 @@
+{
+  "@@locale": "en",
+  "appTitle": "Fortiva",
+  "statusDisconnected": "Not connected",
+  "statusConnecting": "Connecting",
+  "statusConnected": "Connected",
+  "statusDisconnecting": "Terminating...",
+  "statusError": "Error",
+  "statusVerifying": "Verifying...",
+  "disconnect": "Terminate",
+  "connectBtn": "Connect",
+  "disconnectBtn": "Disconnect",
+  "pleaseWait": "PLEASE WAIT",
+  "locationLabel": "Location",
+  "selectServer": "Choose a location",
+  "serverLocation": "Location",
+  "searchServers": "Search servers",
+  "locationsTitle": "Locations",
+  "sortLatency": "Sort: Latency",
+  "sortAZ": "Sort: A-Z",
+  "sortedByLatency": "Sorted by latency",
+  "sortedAZ": "Sorted A–Z",
+  "pingAll": "Test all",
+  "pinging": "Pinging...",
+  "ping": "Ping",
+  "stop": "Stop",
+  "fastestServer": "Fastest",
+  "timeout": "timeout",
+  "tabCommunity": "Community",
+  "tabFree": "Free",
+  "tabPremium": "Premium",
+  "noCommunityServers": "No community servers yet",
+  "communityLoadFailed": "Could not load this list",
+  "communityRetry": "Try again",
+  "officialTabExplainer": "Run by Fortiva and kept online by us. Shared by everyone who uses the app. Start here.",
+  "communityTabExplainer": "Extra connection options. Speed and availability vary.",
+  "noFreeServers": "No free servers yet",
+  "noPremiumServers": "No premium servers yet",
+  "noResultsFor": "No results for \"{query}\"",
+  "@noResultsFor": {
+    "placeholders": {
+      "query": {
+        "type": "String"
+      }
+    }
+  },
+  "proBadge": "PREMIUM",
+  "freeBadge": "FREE",
+  "settings": "Settings",
+  "connection": "Network",
+  "dnsConfiguration": "DNS",
+  "customDns": "Use your own DNS servers",
+  "about": "About",
+  "privacyPolicy": "Privacy Policy",
+  "contactUs": "Contact Us",
+  "rateOnGooglePlay": "Rate Fortiva on Google Play",
+  "@rateOnGooglePlay": {
+    "description": "Settings item that opens the app's Google Play page so the user can rate it. Shown only when the app was installed from Google Play."
+  },
+  "website": "Website",
+  "copyright": "© 2026 NimusAI",
+  "version": "Version",
+  "language": "Language",
+  "languageSubtitle": "Interface language",
+  "whatIsDns": "What is DNS?",
+  "dnsExplanation": "DNS turns website names into addresses your phone can reach. Using a different DNS can make sites load faster and can help reach sites your provider blocks.",
+  "configuration": "Settings",
+  "primaryDns": "Primary DNS",
+  "primaryDnsHint": "Default: 1.1.1.1",
+  "secondaryDns": "Secondary DNS (optional)",
+  "secondaryDnsHint": "Default: 8.8.8.8",
+  "saveConfiguration": "Save",
+  "dnsSaved": "DNS settings saved",
+  "invalidPrimaryDns": "That primary DNS address is not valid",
+  "invalidSecondaryDns": "That secondary DNS address is not valid",
+  "statistics": "History",
+  "overview": "OVERVIEW",
+  "connectionsLabel": "Sessions",
+  "totalTime": "Time connected",
+  "dataUsage": "Data used",
+  "uploaded": "Uploaded",
+  "downloaded": "Downloaded",
+  "total": "Total",
+  "lastUpdated": "Last updated: {date}",
+  "@lastUpdated": {
+    "placeholders": {
+      "date": {
+        "type": "String"
+      }
+    }
+  },
+  "today": "Today at {time}",
+  "@today": {
+    "placeholders": {
+      "time": {
+        "type": "String"
+      }
+    }
+  },
+  "yesterday": "Yesterday",
+  "daysAgo": "{count} days ago",
+  "@daysAgo": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "noDataYet": "No session data",
+  "connectToStart": "Connect to start tracking",
+  "errorConnectionFailed": "Could not connect",
+  "errorServerNotWorking": "This location is not working. Try another one.",
+  "errorServerNotForwarding": "This location is not passing traffic. Try another one.",
+  "errorUnexpected": "Unexpected error",
+  "errorDisconnectionFailed": "Could not disconnect",
+  "errorFailedToRegister": "Failed to register device",
+  "ipInformation": "Check my IP",
+  "connectionAnalytics": "History",
+  "recentSessions": "Recent connections",
+  "speedTest": "Speed test",
+  "startTest": "RUN DIAGNOSTICS",
+  "download": "Download",
+  "upload": "Upload",
+  "testingViaVpn": "Testing via tunnel",
+  "testingDirect": "Testing direct connection",
+  "splitTunneling": "Route Configuration",
+  "splitTunnelingDescription": "Choose which app categories bypass the tunnel. Excluded apps use your direct network connection.",
+  "enableSplitTunneling": "Enable Route Splitting",
+  "splitTunnelActive": "Selected apps bypass tunnel",
+  "splitTunnelInactive": "All traffic routed through tunnel",
+  "bypassVpnFor": "Bypass tunnel for",
+  "tools": "Diagnostics",
+  "settingsGeneral": "General",
+  "shareDiagnosticsTitle": "Share connection diagnostics",
+  "shareDiagnosticsBody": "Sends connection reports, your carrier and country, phone model and Android version, the names of sites you reach through the VPN with a daily count, and whether you saw or tapped our messages, Premium offers and invite card. We never see the pages you open or what you send.",
+  "@shareDiagnosticsBody": {
+    "description": "Under the Share connection diagnostics switch in Settings. It names what the switch sends, so it must change when the switch starts or stops sending something."
+  },
+  "security": "Compliance",
+  "privacyDashboard": "Endpoint Analysis",
+  "privacyDashboardSubtitle": "IP transparency & leak monitoring",
+  "connectionAnalyticsSubtitle": "Session history & reports",
+  "speedTestSubtitle": "Throughput measurement",
+  "splitTunnelingSubtitle": "Configure route policies",
+  "splashTagline": "Private access, wherever you are",
+  "openSourceLicence": "Open source licence",
+  "sourceOfferTitle": "Open source licence",
+  "sourceOfferBody": "Fortiva VPN is free software under the GNU General Public License v3. It builds on Xray-core and other open-source projects.\n\nYou are entitled to the complete source code for the version you have installed. To request it, email admin@fortivavpn.com with your app version. This offer is valid for three years from the date you received this version.",
+  "close": "Close",
+  "account": "Account",
+  "deleteAccount": "Delete account",
+  "deleteAccountSubtitle": "Permanently remove this device and your data",
+  "deleteAccountConfirmTitle": "Delete your account?",
+  "deleteAccountConfirmBody": "This removes your device registration, any linked Google account, the personal servers created for you, and your support chat messages. Your connection history on this phone is erased too.\n\nThis cannot be undone. You can start again at any time by reopening the app.",
+  "deleteAccountConfirmRetention": "Your account record is removed immediately. Copies in backups and anonymous server logs are cleared within {days, plural, one{{days} day} other{{days} days}}.",
+  "@deleteAccountConfirmRetention": {
+    "description": "Shown when GET /api/v1/app/config sends deleted_data_retention_days.",
+    "placeholders": {
+      "days": {
+        "type": "int"
+      }
+    }
+  },
+  "deleteAccountConfirmRetentionNoDays": "Your account record is removed immediately. Copies in backups and anonymous server logs are cleared later, on the schedule in our privacy policy.",
+  "@deleteAccountConfirmRetentionNoDays": {
+    "description": "Shown when the backend sends no retention period. Names no number."
+  },
+  "deleteAccountCancel": "Keep my account",
+  "deleteAccountConfirm": "Delete",
+  "deleteAccountInProgress": "Deleting your account",
+  "deleteAccountDone": "Your account has been deleted.",
+  "deleteAccountFailed": "Could not delete your account. Check your connection and try again.",
+  "homeTapToConnect": "Tap to connect",
+  "homeChecking": "Checking connection",
+  "homePreparing": "Setting up your server",
+  "homeDisconnecting": "Disconnecting",
+  "homeFindingPath": "Finding a path",
+  "diagCheckingInternet": "Checking your internet",
+  "diagInternationalCut": "International internet is cut on this network",
+  "diagPathRow": "{city}, path {n}",
+  "@diagPathRow": {
+    "placeholders": {
+      "city": {
+        "type": "String"
+      },
+      "n": {
+        "type": "int"
+      }
+    }
+  },
+  "diagOpen": "open",
+  "diagBlocked": "blocked",
+  "diagSkipped": "skipped today",
+  "diagConnectingThrough": "Connecting through {city}",
+  "@diagConnectingThrough": {
+    "placeholders": {
+      "city": {
+        "type": "String"
+      }
+    }
+  },
+  "diagVerifying": "Verifying traffic",
+  "diagNoInternet": "Your phone has no internet right now.",
+  "diagCutOff": "Your network cannot reach the international internet right now. Tap to try again.",
+  "diagNothingOpen": "Every path is blocked right now. Tap to try again.",
+  "homeTryingAgain": "Every path is blocked right now. Trying again soon.",
+  "homeCutOffTryingAgain": "Your network cannot reach the international internet right now. Trying again soon.",
+  "homeOfflineTryingAgain": "Your phone has no internet right now. Trying again soon.",
+  "diagPathFailed": "The path was open but the tunnel did not come up. Tap to try again.",
+  "openVpnSettings": "Open VPN settings",
+  "yourServer": "YOUR SERVER",
+  "yourServerCaption": "Yours alone. No one else connects through it.",
+  "ourServer": "OUR SERVER",
+  "ourServerCaption": "Run by Fortiva and shared with everyone. Used until your own server is ready.",
+  "communityServer": "COMMUNITY SERVER",
+  "communityServerCaption": "An extra connection option. It may stop working at any time.",
+  "communityServerNumber": "Community server {n}",
+  "@communityServerNumber": {
+    "description": "Title of a community link that names no country; n is its position in the list, already in the phone's digits.",
+    "placeholders": {
+      "n": {
+        "type": "String"
+      }
+    }
+  },
+  "myServersTitle": "Your servers",
+  "myServersExplainer": "Every Fortiva device is given its own server in each location, with credentials that belong to this install alone. No account is needed.",
+  "myServersInUse": "In use",
+  "myServersEmpty": "No servers assigned yet",
+  "myServersRetry": "Try again",
+  "myServersBlockedTitle": "You have used today's data",
+  "myServersBlockedWait": "Your allowance resets automatically. Check back soon.",
+  "myServersMoved": "Now using {place}",
+  "@myServersMoved": {
+    "placeholders": {
+      "place": {
+        "type": "String"
+      }
+    }
+  },
+  "copyLink": "Copy link",
+  "linkCopied": "Link copied",
+  "quotaUsedToday": "{used} of {limit} used today",
+  "@quotaUsedToday": {
+    "placeholders": {
+      "used": {
+        "type": "String"
+      },
+      "limit": {
+        "type": "String"
+      }
+    }
+  },
+  "quotaUsedUp": "Daily data used up",
+  "quotaUnlimited": "Unlimited data",
+  "quotaDaily": "Daily data",
+  "quotaLimitReached": "Daily limit reached",
+  "quotaLeftOf": "{left} of {limit} left",
+  "@quotaLeftOf": {
+    "placeholders": {
+      "left": {
+        "type": "String"
+      },
+      "limit": {
+        "type": "String"
+      }
+    }
+  },
+  "quotaResetsShortly": "Resets shortly",
+  "quotaResetsInHours": "Resets in {hours}h",
+  "@quotaResetsInHours": {
+    "placeholders": {
+      "hours": {
+        "type": "int"
+      }
+    }
+  },
+  "quotaResetsInMinutes": "Resets in {minutes}m",
+  "@quotaResetsInMinutes": {
+    "placeholders": {
+      "minutes": {
+        "type": "int"
+      }
+    }
+  },
+  "myServersSubtitle": "The servers provisioned for this device",
+  "sharedServersTitle": "Shared servers",
+  "sharedServersSubtitle": "Public locations, used as a fallback",
+  "tabOfficial": "Our servers",
+  "noOfficialServers": "No Fortiva servers right now",
+  "inviteTitle": "Invite friends",
+  "inviteSubtitle": "Earn extra daily data",
+  "inviteYourCode": "Your invite code",
+  "inviteShareAction": "Share invite",
+  "inviteCopyAction": "Copy code",
+  "inviteCodeCopied": "Code copied",
+  "inviteShareMessage": "A free VPN that works well for me: Fortiva. No sign-up needed.\nInstall it from this link:\n{url}\nMy invite code: {code}",
+  "@inviteShareMessage": {
+    "placeholders": {
+      "code": {
+        "type": "String"
+      },
+      "url": {
+        "type": "String"
+      }
+    }
+  },
+  "inviteHowItWorks": "How it works",
+  "inviteHowItWorksBody": "Share your code. When someone installs the app, enters it, and uses the VPN on {days, plural, one{{days} day} other{{days} different days}}, you get {amount} added to your daily data. It stays on your account.",
+  "@inviteHowItWorksBody": {
+    "description": "Shown when the referral status sends bonus_per_referral_bytes and confirm_active_days.",
+    "placeholders": {
+      "amount": {
+        "type": "String"
+      },
+      "days": {
+        "type": "int"
+      }
+    }
+  },
+  "inviteHowItWorksBodyNoAmount": "Share your code. When someone installs the app, enters it, and uses the VPN on {days, plural, one{{days} day} other{{days} different days}}, you get more data every day. It stays on your account.",
+  "@inviteHowItWorksBodyNoAmount": {
+    "description": "Shown when the referral status sends confirm_active_days but no bonus_per_referral_bytes.",
+    "placeholders": {
+      "days": {
+        "type": "int"
+      }
+    }
+  },
+  "inviteHowItWorksBodyNoDays": "Share your code. When someone installs the app, enters it, and uses the VPN for a while, you get {amount} added to your daily data. It stays on your account.",
+  "@inviteHowItWorksBodyNoDays": {
+    "description": "Shown when the referral status sends bonus_per_referral_bytes but no confirm_active_days.",
+    "placeholders": {
+      "amount": {
+        "type": "String"
+      }
+    }
+  },
+  "inviteHowItWorksBodyNoAmountNoDays": "Share your code. When someone installs the app, enters it, and uses the VPN for a while, you get more data every day. It stays on your account.",
+  "inviteHowItWorksCap": "You can earn up to {max} a day from invites.",
+  "@inviteHowItWorksCap": {
+    "placeholders": {
+      "max": {
+        "type": "String"
+      }
+    }
+  },
+  "inviteStatInvited": "Invited",
+  "inviteStatEarning": "Qualified",
+  "inviteStatBonus": "Bonus data",
+  "inviteBonusPerDay": "+{amount} every day",
+  "@inviteBonusPerDay": {
+    "placeholders": {
+      "amount": {
+        "type": "String"
+      }
+    }
+  },
+  "inviteNoBonusYet": "No bonus yet",
+  "invitePendingNote": "{count, plural, =0{} =1{1 invite has not qualified yet} other{{count} invites have not qualified yet}}",
+  "@invitePendingNote": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "inviteJoinedWith": "You joined with code {code}",
+  "@inviteJoinedWith": {
+    "placeholders": {
+      "code": {
+        "type": "String"
+      }
+    }
+  },
+  "inviteLoadFailed": "Could not load your invite code",
+  "inviteRetry": "Try again",
+  "inviteHaveCodeTitle": "Have an invite code?",
+  "inviteHaveCodeSubtitle": "{hours, plural, one{Enter it in your first hour} other{Enter it in your first {hours} hours}}",
+  "@inviteHaveCodeSubtitle": {
+    "description": "Shown when the referral status sends claim_window_hours.",
+    "placeholders": {
+      "hours": {
+        "type": "int"
+      }
+    }
+  },
+  "inviteHaveCodeSubtitleNoHours": "Enter it soon after installing",
+  "inviteEnterCodeHint": "Invite code",
+  "inviteApplyAction": "Apply",
+  "inviteNotNowAction": "Not now",
+  "inviteClaimAccepted": "Invite accepted. Your friend earns bonus data once you have used the VPN on {days, plural, one{{days} day} other{{days} different days}}.",
+  "@inviteClaimAccepted": {
+    "description": "Shown when the referral status sends confirm_active_days.",
+    "placeholders": {
+      "days": {
+        "type": "int"
+      }
+    }
+  },
+  "inviteClaimAcceptedNoDays": "Invite accepted. Your friend earns bonus data once you have used the VPN for a while.",
+  "inviteClaimAlready": "This device has already used an invite code",
+  "inviteClaimRejected": "That code did not work. Check it and try again",
+  "inviteClaimNetwork": "Could not reach the server. Try again",
+  "inviteCardTitle": "Is Fortiva working well for you? Send it to a friend",
+  "@inviteCardTitle": {
+    "description": "The title of the invite card on the home screen, shown after good connection days."
+  },
+  "inviteCardBody": "Send your friend the install link so they can connect for free too.",
+  "inviteCardReward": "{days, plural, one{When your friend starts using Fortiva, you get {days} day of Premium.} other{When your friend starts using Fortiva, you get {days} days of Premium.}}",
+  "@inviteCardReward": {
+    "description": "The invite card's reward line, shown when the backend sends reward_premium_days.",
+    "placeholders": {
+      "days": {
+        "type": "int"
+      }
+    }
+  },
+  "inviteCardRewardNoAmount": "When your friend starts using Fortiva, you get Premium as a gift.",
+  "@inviteCardRewardNoAmount": {
+    "description": "The invite card's reward line when the backend says the device earns but sends no number."
+  },
+  "inviteSendTelegram": "Telegram",
+  "inviteSendWhatsApp": "WhatsApp",
+  "inviteCopyLink": "Copy link",
+  "inviteOtherApps": "Other apps",
+  "inviteLinkCopied": "Invite message copied",
+  "@inviteLinkCopied": {
+    "description": "Shown after Copy link on Android 12 and older. Android 13 and later show their own notice."
+  },
+  "invitePasteBody": "Copy the code from your friend's message and paste it here.",
+  "invitePasteAction": "Paste",
+  "@invitePasteAction": {
+    "description": "Reads the clipboard only when tapped. The website's invite page names this label, so keep both the same."
+  },
+  "inviteErrorTooLate": "The time to enter an invite code on this phone has passed.",
+  "inviteErrorUnknown": "We could not find this code. Copy it again from your friend's message.",
+  "inviteErrorOwnCode": "This is your own code. Enter your friend's code.",
+  "inviteErrorMutual": "You and your friend cannot invite each other.",
+  "inviteHowItWorksPremium": "{days, plural, one{Each friend who starts using Fortiva also gives you {days} day of Premium.} other{Each friend who starts using Fortiva also gives you {days} days of Premium.}}",
+  "@inviteHowItWorksPremium": {
+    "placeholders": {
+      "days": {
+        "type": "int"
+      }
+    }
+  },
+  "inviteHowItWorksPremiumCap": "{max, plural, one{You can earn up to {max} day of Premium from invites.} other{You can earn up to {max} days of Premium from invites.}}",
+  "@inviteHowItWorksPremiumCap": {
+    "placeholders": {
+      "max": {
+        "type": "int"
+      }
+    }
+  },
+  "premiumSourceInvite": "From your invites",
+  "@premiumSourceInvite": {
+    "description": "How Premium was paid: days earned by inviting friends (source referral)."
+  },
+  "quotaBonusIncluded": "includes {amount} invite bonus",
+  "@quotaBonusIncluded": {
+    "placeholders": {
+      "amount": {
+        "type": "String"
+      }
+    }
+  },
+  "updateTitle": "Update available",
+  "updateRequiredTitle": "Update required",
+  "updateBody": "Fortiva {version} is out. Update for the newest fixes.",
+  "updateRequiredBody": "This version is no longer supported. Update to keep using Fortiva.",
+  "updateNow": "Update",
+  "updateLater": "Later",
+  "updateFromPlay": "Google Play",
+  "updateFromTelegram": "Telegram channel",
+  "updateConnect": "Connect",
+  "updateConnectHint": "If Google Play or Telegram does not open, tap Connect first.",
+  "updateConnected": "You are connected. Download the update now.",
+  "updateReconnect": "Not working? Reconnect",
+  "updateDisconnect": "Disconnect",
+  "updateDisconnectHint": "Tap Disconnect to download the update over your normal internet.",
+  "updateNotCarrying": "You are connected, but nothing is getting through. Try Reconnect, or tap Disconnect to use your normal internet.",
+  "@updateBody": {
+    "placeholders": {
+      "version": {
+        "type": "String"
+      }
+    }
+  },
+  "diagVerdictNoInternet": "Your phone has no internet connection. Fortiva cannot connect until that is back.",
+  "diagVerdictCutOff": "Your network cannot reach the international internet right now. Try again in a few minutes.",
+  "diagVerdictNeedsPermission": "Fortiva does not have permission to run a VPN, or another VPN app is set to always on.",
+  "diagVerdictServerUnreachable": "This server cannot be reached from your network. It is either blocked here or down.",
+  "diagVerdictBlockedTls": "The connection to this server is being cut while it is being set up. That is what filtering looks like.",
+  "diagVerdictThrottled": "The server answered every check and the tunnel still carried nothing. The connection is being slowed.",
+  "diagCheckInternet": "Check your internet",
+  "diagTryServer": "Start a new search on {server}",
+  "diagTryAnotherServer": "Try another server",
+  "diagDetails": "Details",
+  "diagDetailsHide": "Hide details",
+  "@diagTryServer": {
+    "placeholders": {
+      "server": {
+        "type": "String"
+      }
+    }
+  },
+  "privateDnsWarning": "Private DNS is on ({host}), so some sites may not open. Turn Private DNS off in your phone's settings.",
+  "@privateDnsWarning": {
+    "description": "Shown while connected when the phone has Private DNS set to a hostname and name lookups fail through it. Android keeps using that DNS server even with a VPN on, and some providers in Iran do not answer phones that reach them from abroad.",
+    "placeholders": {
+      "host": {
+        "type": "String"
+      }
+    }
+  },
+  "openNetworkSettings": "Open network settings",
+  "testPointStatus": "Test point · last check {time} · {open} of {total} doors open",
+  "@testPointStatus": {
+    "placeholders": {
+      "time": {"type": "String"},
+      "open": {"type": "int"},
+      "total": {"type": "int"}
+    }
+  },
+  "messagesTooltip": "Messages",
+  "@messagesTooltip": {
+    "description": "Tooltip of the bell on the home screen that opens the messages from the Fortiva team."
+  },
+  "inboxTitle": "Messages",
+  "@inboxTitle": {
+    "description": "Title of the screen that lists the messages from the Fortiva team."
+  },
+  "inboxEmpty": "No messages right now.",
+  "@inboxEmpty": {
+    "description": "Shown on the messages screen when there is no message."
+  },
+  "messageClose": "Close",
+  "@messageClose": {
+    "description": "Closes a message from the Fortiva team that popped up."
+  },
+  "supportTitle": "Support",
+  "@supportTitle": {
+    "description": "Title of the in-app support chat screen. Also the name the support assistant uses for the chat."
+  },
+  "supportTooltip": "Chat with support",
+  "@supportTooltip": {
+    "description": "Tooltip and screen reader label of the round chatbot button on the home screen that opens the support chat."
+  },
+  "supportAskAction": "Ask support",
+  "@supportAskAction": {
+    "description": "Line under a failed connection on the home screen that opens the support chat."
+  },
+  "supportContactSubtitle": "Chat with us in the app",
+  "@supportContactSubtitle": {
+    "description": "Subtitle of Contact Us in Settings when it opens the support chat."
+  },
+  "supportAutomaticNotice": "Answers are written automatically and can be wrong.",
+  "@supportAutomaticNotice": {
+    "description": "Short line at the top of the support chat saying the answers are written automatically."
+  },
+  "supportStaffNotice": "Automatic answers are off for now. Your messages go to our team.",
+  "@supportStaffNotice": {
+    "description": "Line at the top of the support chat while automatic answers are switched off and every message goes to people on the Fortiva team."
+  },
+  "supportInputHint": "Write your question",
+  "@supportInputHint": {
+    "description": "Hint in the support chat's input box."
+  },
+  "supportInputHintTeam": "Write to our team",
+  "@supportInputHintTeam": {
+    "description": "Hint in the support chat's input box when the message will go to people on the Fortiva team."
+  },
+  "supportSend": "Send",
+  "@supportSend": {
+    "description": "Tooltip of the send button in the support chat."
+  },
+  "supportQuotaLeft": "{remaining} of {limit} questions left today",
+  "@supportQuotaLeft": {
+    "description": "How many questions the user can still ask the assistant today.",
+    "placeholders": {
+      "remaining": {
+        "type": "int"
+      },
+      "limit": {
+        "type": "int"
+      }
+    }
+  },
+  "supportWaitIn": "You can ask again in {time}.",
+  "@supportWaitIn": {
+    "description": "When the user can ask the assistant again. {time} is a duration such as '5 h 20 min'.",
+    "placeholders": {
+      "time": {
+        "type": "String"
+      }
+    }
+  },
+  "supportDurationHours": "{hours} h {minutes} min",
+  "@supportDurationHours": {
+    "description": "A duration of hours and minutes, short form.",
+    "placeholders": {
+      "hours": {
+        "type": "int"
+      },
+      "minutes": {
+        "type": "int"
+      }
+    }
+  },
+  "supportDurationMinutes": "{minutes} min",
+  "@supportDurationMinutes": {
+    "description": "A duration of minutes, short form.",
+    "placeholders": {
+      "minutes": {
+        "type": "int"
+      }
+    }
+  },
+  "supportNewConversation": "New conversation",
+  "@supportNewConversation": {
+    "description": "Starts a new conversation in the support chat; also the mark where a new conversation starts."
+  },
+  "supportSending": "Sending",
+  "@supportSending": {
+    "description": "Under a message that is being sent."
+  },
+  "supportNotSent": "Not sent. Tap to try again.",
+  "@supportNotSent": {
+    "description": "Under a message that could not be sent yet. Tapping it tries again."
+  },
+  "supportRateUp": "Helpful",
+  "@supportRateUp": {
+    "description": "Tooltip of the thumbs up under an answer."
+  },
+  "supportRateDown": "Not helpful",
+  "@supportRateDown": {
+    "description": "Tooltip of the thumbs down under an answer."
+  },
+  "supportRatedDown": "Thanks. Our team will look at this answer.",
+  "@supportRatedDown": {
+    "description": "Shown after the user marks an answer as not helpful."
+  },
+  "supportTeamLabel": "Fortiva team",
+  "@supportTeamLabel": {
+    "description": "Label above a reply written by a person on the Fortiva team."
+  },
+  "supportUnavailable": "Chat is not available right now.",
+  "@supportUnavailable": {
+    "description": "Shown when the support chat is switched off."
+  },
+  "supportOpenTelegram": "Message us on Telegram",
+  "@supportOpenTelegram": {
+    "description": "Button that opens the Fortiva Telegram channel when the chat is switched off."
+  },
+  "supportGenericError": "Something went wrong. Please try again.",
+  "@supportGenericError": {
+    "description": "Shown when a message could not be sent for a reason the app cannot name."
+  },
+  "supportCodeTooLong": "Your message is too long. Keep it under {max} characters.",
+  "@supportCodeTooLong": {
+    "description": "The message is longer than the limit.",
+    "placeholders": {
+      "max": {
+        "type": "int"
+      }
+    }
+  },
+  "supportCodeEmpty": "Your message is empty.",
+  "@supportCodeEmpty": {
+    "description": "The message had no text."
+  },
+  "supportCodeWaitReply": "Please wait for the answer to your last question.",
+  "@supportCodeWaitReply": {
+    "description": "The user tried to ask while the previous question is still being answered."
+  },
+  "supportCodeSlowDown": "You are sending messages too quickly. Please wait a little.",
+  "@supportCodeSlowDown": {
+    "description": "The user sent too many messages in a short time."
+  },
+  "supportCodeQuotaDay": "You have used all of today's questions.",
+  "@supportCodeQuotaDay": {
+    "description": "The user has asked all of today's questions."
+  },
+  "supportCodePaused": "Automatic answers are paused for now.",
+  "@supportCodePaused": {
+    "description": "Automatic answers are paused for a while."
+  },
+  "supportCodeBusy": "Our assistant is busy right now. Please try again in a few minutes.",
+  "@supportCodeBusy": {
+    "description": "Too many people are asking at once."
+  },
+  "supportCodeGreeting": "Hi! How can I help you with Fortiva?",
+  "@supportCodeGreeting": {
+    "description": "Friendly reply when the user only said hello or thanks."
+  },
+  "supportCodeGibberish": "Sorry, I did not understand that. Please write your question again.",
+  "@supportCodeGibberish": {
+    "description": "The message could not be read as a question."
+  },
+  "supportCodeRedacted": "We removed personal details and links from your message.",
+  "@supportCodeRedacted": {
+    "description": "Personal details or links were removed from the user's message before it was answered."
+  },
+  "supportCodeRedactedEmpty": "Your message only had personal details or links, so it was not sent. Please describe the problem in words.",
+  "@supportCodeRedactedEmpty": {
+    "description": "The message was only personal details or links, so nothing was left to send."
+  },
+  "supportCodeOffTopic": "I can only help with questions about using Fortiva.",
+  "@supportCodeOffTopic": {
+    "description": "The question is not about using Fortiva."
+  },
+  "supportCodeAbuse": "Let's keep it respectful. I am here to help you with Fortiva.",
+  "@supportCodeAbuse": {
+    "description": "The message was rude."
+  },
+  "supportCodeAiUnavailable": "The assistant could not answer this time. Please try again in a little while.",
+  "@supportCodeAiUnavailable": {
+    "description": "The assistant could not answer this time."
+  },
+  "supportCodeToStaff": "Sent to our team. Their reply will show up here.",
+  "@supportCodeToStaff": {
+    "description": "The message went to people on the Fortiva team."
+  },
+  "supportCodeTicketOpened": "We passed your question to our team. Their reply will show up here.",
+  "@supportCodeTicketOpened": {
+    "description": "The question was passed to people on the Fortiva team."
+  },
+  "supportCodeNotSent": "This message could not be sent. Write it again if you still need help.",
+  "@supportCodeNotSent": {
+    "description": "Under a message that waited on the phone for a day without reaching us. It will not be sent."
+  },
+  "supportAssistantSubtitle": "AI assistant",
+  "@supportAssistantSubtitle": {
+    "description": "Under the title of the support chat: who answers there. Short."
+  },
+  "supportThinkingReading": "Reading your question",
+  "@supportThinkingReading": {
+    "description": "Shown with animated dots in the first seconds after the user asked the assistant a question."
+  },
+  "supportThinkingSearching": "Looking for the answer",
+  "@supportThinkingSearching": {
+    "description": "Shown with animated dots a few seconds after the question, while the answer is being looked for."
+  },
+  "supportThinkingWriting": "Writing the answer",
+  "@supportThinkingWriting": {
+    "description": "Shown with animated dots once the assistant has been working on the answer for a while."
+  },
+  "supportThinkingStill": "Still on it, thanks for waiting",
+  "@supportThinkingStill": {
+    "description": "Shown with animated dots when the answer takes unusually long."
+  },
+  "supportSuggestConnect": "I can't connect",
+  "@supportSuggestConnect": {
+    "description": "Suggested question on the empty support chat. Tapping it asks it. The user speaks."
+  },
+  "supportSuggestData": "How much data do I have today?",
+  "@supportSuggestData": {
+    "description": "Suggested question on the empty support chat, about how much data the user has left today. The user speaks."
+  },
+  "supportSuggestSlow": "My connection is slow",
+  "@supportSuggestSlow": {
+    "description": "Suggested question on the empty support chat. The user speaks."
+  },
+  "supportWithTeam": "This conversation is now with our team.",
+  "@supportWithTeam": {
+    "description": "Above the input box once people on the Fortiva team took over the conversation and the user is writing to them."
+  },
+  "supportTryAgainSoon": "Try again in a few minutes.",
+  "@supportTryAgainSoon": {
+    "description": "Hint in the disabled input box while the assistant is too busy to take questions."
+  },
+  "supportDurationWholeHours": "{hours} h",
+  "@supportDurationWholeHours": {
+    "description": "A duration of a whole number of hours, short form, in the same style as supportDurationHours.",
+    "placeholders": {
+      "hours": {
+        "type": "int"
+      }
+    }
+  },
+  "supportUnreadReply": "New reply",
+  "@supportUnreadReply": {
+    "description": "Read by a screen reader on the home screen chat button when a reply in the support chat has not been seen yet. Short."
+  },
+  "premiumTitle": "Premium",
+  "@premiumTitle": {
+    "description": "Name of the paid tier that lifts the daily data limit. Title of the Premium screen and of its tile in Settings."
+  },
+  "premiumTileSubtitle": "Unlimited data with no daily limit",
+  "premiumTileActive": "Premium is on",
+  "premiumGetUnlimited": "Get unlimited",
+  "@premiumGetUnlimited": {
+    "description": "Short action on the quota card and the spent-allowance notice that opens the Premium screen."
+  },
+  "premiumHeadline": "Get unlimited data",
+  "premiumPitch": "Premium lifts the daily limit, so you can use as much data as you like until it ends.",
+  "premiumActiveTitle": "Premium is on",
+  "premiumActiveUntil": "Unlimited data until {date}",
+  "@premiumActiveUntil": {
+    "description": "Premium status line. {date} is the end date, already formatted for the language.",
+    "placeholders": {
+      "date": {
+        "type": "String"
+      }
+    }
+  },
+  "premiumActiveNoDate": "Unlimited data",
+  "@premiumActiveNoDate": {
+    "description": "Premium status line when the backend sent no end date. Names no date."
+  },
+  "premiumRenews": "Renews automatically through Google Play",
+  "@premiumRenews": {
+    "description": "Shown under the status of a Google Play subscription that renews by itself."
+  },
+  "premiumSourceKey": "Activated with a key",
+  "@premiumSourceKey": {
+    "description": "How Premium was paid: an access key typed into the app."
+  },
+  "premiumSourceCrypto": "Paid with crypto",
+  "premiumSourceStars": "Paid with Telegram Stars",
+  "premiumSourceGooglePlay": "Paid through Google Play",
+  "premiumSourceManual": "A gift from the Fortiva team",
+  "@premiumSourceManual": {
+    "description": "How Premium was paid: the team gave it by hand."
+  },
+  "premiumYourKey": "Your key",
+  "premiumKeyHint": "Keep this key safe. Enter it on another phone to move Premium there.",
+  "premiumKeyMoves": "A key can move to another phone {count, plural, =1{once} other{up to {count} times}} in {days, plural, one{{days} day} other{{days} days}}.",
+  "@premiumKeyMoves": {
+    "description": "Shown under the access key when the backend sends move_limit and move_window_days.",
+    "placeholders": {
+      "count": {
+        "type": "int"
+      },
+      "days": {
+        "type": "int"
+      }
+    }
+  },
+  "premiumKeyMovesNoNumber": "A key can move to another phone only a limited number of times.",
+  "@premiumKeyMovesNoNumber": {
+    "description": "Shown under the access key when the backend sends no move limit. Names no number."
+  },
+  "premiumCopy": "Copy",
+  "premiumCopied": "Copied",
+  "premiumChoosePlan": "Choose a plan",
+  "premiumPlanDays": "{days, plural, one{{days} day of unlimited data} other{{days} days of unlimited data}}",
+  "@premiumPlanDays": {
+    "description": "Title of a plan. {days} is the plan length the backend sends.",
+    "placeholders": {
+      "days": {
+        "type": "int"
+      }
+    }
+  },
+  "premiumPlanNoDays": "Unlimited data",
+  "@premiumPlanNoDays": {
+    "description": "Title of a plan when the backend sent no length. Names no number."
+  },
+  "premiumBuy": "Buy",
+  "premiumPlayUnavailable": "Google Play is not available right now. Try again later.",
+  "premiumPlayPending": "Your payment is pending in Google Play. Premium starts as soon as it goes through.",
+  "premiumPlayConfirming": "Confirming your purchase...",
+  "premiumPlayRetrying": "Your payment went through, but we could not confirm it yet. We will keep trying, so you do not need to pay again.",
+  "@premiumPlayRetrying": {
+    "description": "Google Play took the money but our server could not confirm it yet. The app keeps the purchase and sends it again by itself."
+  },
+  "premiumPlayRefused": "We could not confirm this purchase. If you were charged, contact support.",
+  "premiumPlayNotAvailable": "Premium is not available on this phone right now. If you were charged, contact support.",
+  "premiumNotAvailable": "Premium is not available on this phone right now.",
+  "premiumPlayFailed": "The purchase did not go through. Try again.",
+  "premiumNowOn": "Premium is on. Enjoy unlimited data.",
+  "premiumRestore": "Restore purchases",
+  "premiumRestoreDone": "Your purchase is restored on this phone.",
+  "premiumRestoreNone": "This Google account has no purchase to restore.",
+  "premiumRestoreFailed": "Could not restore your purchase. Try again later.",
+  "premiumRenewsDays": "{count, plural, =1{Billed every day. Renews automatically until you cancel.} other{Billed every {count} days. Renews automatically until you cancel.}}",
+  "@premiumRenewsDays": {
+    "description": "Under a Google Play plan's price: how often Play bills and that it renews until cancelled. {count} is the number of days in Play's own billing period, never a number from the app.",
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "premiumRenewsWeeks": "{count, plural, =1{Billed every week. Renews automatically until you cancel.} other{Billed every {count} weeks. Renews automatically until you cancel.}}",
+  "@premiumRenewsWeeks": {
+    "description": "As premiumRenewsDays, for a billing period in weeks.",
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "premiumRenewsMonths": "{count, plural, =1{Billed every month. Renews automatically until you cancel.} other{Billed every {count} months. Renews automatically until you cancel.}}",
+  "@premiumRenewsMonths": {
+    "description": "As premiumRenewsDays, for a billing period in months.",
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "premiumRenewsYears": "{count, plural, =1{Billed every year. Renews automatically until you cancel.} other{Billed every {count} years. Renews automatically until you cancel.}}",
+  "@premiumRenewsYears": {
+    "description": "As premiumRenewsDays, for a billing period in years.",
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "premiumRenewsNoPeriod": "Renews automatically until you cancel.",
+  "@premiumRenewsNoPeriod": {
+    "description": "Under a Google Play plan's price when Play gave no billing period that could be read. Names no number."
+  },
+  "premiumPlayCancelNote": "You can cancel anytime in Google Play. Premium stays on until the end of the time you paid for.",
+  "@premiumPlayCancelNote": {
+    "description": "Under the Google Play plans: how to cancel, and what happens after. Names no number."
+  },
+  "premiumManageSubscription": "Manage or cancel subscription",
+  "@premiumManageSubscription": {
+    "description": "Button that opens Google Play's page for managing or cancelling the subscription."
+  },
+  "premiumCurrentPlan": "Current plan",
+  "@premiumCurrentPlan": {
+    "description": "In place of the Buy button on the Google Play plan this phone already subscribes to."
+  },
+  "premiumPlaySubscribed": "You already have a Google Play subscription. Manage or cancel it in Google Play.",
+  "@premiumPlaySubscribed": {
+    "description": "Under the Google Play plans when this phone already has a Google Play subscription, so another plan of it is not sold here."
+  },
+  "premiumEnterCode": "Enter a code",
+  "premiumNeedsPlayVersion": "To buy through Google Play, you need the Google Play version of Fortiva.",
+  "@premiumNeedsPlayVersion": {
+    "description": "On the Premium screen of a copy of the app that was not installed from Google Play, where Google Play cannot sell. Names no other way to pay: no Telegram, Stars, crypto or website."
+  },
+  "premiumOff": "Premium is not on sale right now.",
+  "premiumLoadFailed": "Could not load Premium. Check your connection and try again.",
+  "premiumRetry": "Try again",
+  "premiumPriceUsdt": "{price} USDT",
+  "@premiumPriceUsdt": {
+    "description": "A plan's price in the USDT stablecoin. {price} is the amount the backend sends, such as a decimal number.",
+    "placeholders": {
+      "price": {
+        "type": "String"
+      }
+    }
+  },
+  "premiumPriceStars": "{stars} Telegram Stars",
+  "@premiumPriceStars": {
+    "description": "A plan's price in Telegram Stars, the in-app currency of Telegram. {stars} is the amount the backend sends.",
+    "placeholders": {
+      "stars": {
+        "type": "String"
+      }
+    }
+  },
+  "premiumPayCrypto": "Pay with crypto",
+  "premiumTelegramTitle": "Pay in Telegram",
+  "premiumTelegramBody": "Pay with Telegram Stars in our bot. You get a key, and Premium starts on this phone right away.",
+  "premiumTelegramButton": "Buy in Telegram",
+  "premiumTelegramFailed": "Could not open Telegram. Try again.",
+  "checkoutTitle": "Pay with crypto",
+  "checkoutChooseNetwork": "Choose the network you will send from",
+  "checkoutContinue": "Continue",
+  "checkoutSendExactly": "Send exactly",
+  "checkoutNetwork": "Network",
+  "checkoutAddress": "To this address",
+  "checkoutMemo": "With this memo",
+  "@checkoutMemo": {
+    "description": "Label above the memo (a short text some networks need with a transfer so it can be matched to the order)."
+  },
+  "checkoutMemoWarning": "Put this memo in your transfer, or we cannot match the payment to you.",
+  "checkoutExactWarning": "Send the exact amount, on this network only. A different amount or network may not reach us.",
+  "checkoutTimeLeft": "Time left: {time}",
+  "@checkoutTimeLeft": {
+    "description": "Countdown until the crypto order expires. {time} is minutes and seconds, such as a clock reading.",
+    "placeholders": {
+      "time": {
+        "type": "String"
+      }
+    }
+  },
+  "checkoutWaiting": "Waiting for your payment. This page updates by itself.",
+  "checkoutPaidTitle": "Payment received",
+  "checkoutPaidKeyOnly": "Your key is ready. Enter it on the phone that should get Premium.",
+  "checkoutDone": "Done",
+  "checkoutExpired": "This order has expired. If you already paid, contact support.",
+  "checkoutUnderpaid": "We received less than the full amount. Contact support and give them this order number:",
+  "@checkoutUnderpaid": {
+    "description": "The order number is shown under this text, with a Copy button."
+  },
+  "checkoutCanceled": "This order was canceled.",
+  "checkoutStartAgain": "Start again",
+  "checkoutUnavailable": "Crypto payments are not available right now.",
+  "checkoutTooManyOpen": "You have too many unpaid orders. Pay one of them or wait until they expire.",
+  "checkoutUnknownPlan": "This plan is no longer on sale. Go back and choose another.",
+  "checkoutFailed": "Could not start the payment. Check your connection and try again.",
+  "redeemTitle": "Enter a code",
+  "redeemSubtitle": "A Premium key or a gift code",
+  "@redeemSubtitle": {
+    "description": "Under the title of the code dialog. A key is what a Premium purchase outside Google Play gives; a gift code adds data."
+  },
+  "redeemHint": "Code",
+  "redeemApply": "Apply",
+  "redeemCancel": "Cancel",
+  "redeemInvalid": "That does not look like a code. Check it and try again.",
+  "redeemUnknown": "We do not know this code. Check it and try again.",
+  "redeemExpired": "This code has expired.",
+  "redeemRevoked": "This code is no longer valid.",
+  "redeemMovedTooOften": "This key has moved between phones too often lately. Try again later.",
+  "redeemExhausted": "This code has been used up.",
+  "redeemAlreadyUsed": "This phone has already used this code.",
+  "redeemUnmetered": "This phone already has unlimited data, so it does not need this code.",
+  "redeemRateLimited": "Too many tries. Wait a little and try again.",
+  "redeemUnavailable": "This is not available right now. Try again later.",
+  "redeemNetwork": "Could not reach the server. Check your connection and try again.",
+  "redeemFailed": "That code did not work. Check it and try again.",
+  "redeemMoved": "Premium moved to this phone.",
+  "redeemPromo": "Code accepted. {amount} of extra data added.",
+  "@redeemPromo": {
+    "description": "After a gift code worked. {amount} is the data it added, such as a size with its unit.",
+    "placeholders": {
+      "amount": {
+        "type": "String"
+      }
+    }
+  },
+  "redeemPromoNoAmount": "Code accepted. Extra data added.",
+  "@redeemPromoNoAmount": {
+    "description": "After a gift code worked, when the backend did not say how much it added. Names no number."
+  },
+  "tvScanTitle": "Open on your phone",
+  "@tvScanTitle": {
+    "description": "Title over a QR code a TV shows for a link it cannot open, such as Telegram or a website. The user scans it with their phone."
+  },
+  "tvScanBody": "Point your phone's camera at this code.",
+  "@tvScanBody": {
+    "description": "Under that title: how to open the link on a phone."
+  },
+  "refresh": "Refresh",
+  "@refresh": {
+    "description": "Tooltip of the refresh button a list shows on a TV, where it cannot be pulled down to refresh."
+  },
+  "premiumNotNow": "Not now",
+  "@premiumNotNow": {
+    "description": "Closes an offer of Premium without buying. Short."
+  },
+  "premiumLimitSheetTitle": "Today's data is used up",
+  "@premiumLimitSheetTitle": {
+    "description": "Title of the sheet that opens when the user taps Connect after the daily data is used up."
+  },
+  "premiumLimitWait": "Wait for the reset",
+  "@premiumLimitWait": {
+    "description": "First row of that sheet: the free way back, waiting until the daily data resets. The reset time is shown under it."
+  },
+  "premiumLimitInvite": "Invite friends for more data",
+  "@premiumLimitInvite": {
+    "description": "Row of that sheet that opens the invite screen. Names no amount."
+  },
+  "premiumNoDailyLimit": "Premium has no daily limit.",
+  "@premiumNoDailyLimit": {
+    "description": "Under Get unlimited on that sheet: what Premium gives. Never says faster."
+  },
+  "premiumCalmTitle": "Want no daily limit?",
+  "@premiumCalmTitle": {
+    "description": "Title of a quiet card on the home screen offering Premium, shown only while the connection works."
+  },
+  "premiumCalmBody": "Premium gives you unlimited data. Your free plan stays as it is.",
+  "@premiumCalmBody": {
+    "description": "Body of that card. Says the free plan does not change."
+  },
+  "premiumNextStepTitle": "The next step is Premium",
+  "@premiumNextStepTitle": {
+    "description": "Title of a card on My servers, shown once invites can add no more daily data, so the phone has the most free data there is."
+  },
+  "premiumNextStepBody": "You already have the most free data. Premium has no daily limit.",
+  "@premiumNextStepBody": {
+    "description": "Body of that card. Names no amount."
+  },
+  "premiumLockedTag": "Premium",
+  "@premiumLockedTag": {
+    "description": "Small tag on a location only Premium can use, in the list of servers. Same word as the Premium name."
+  },
+  "premiumLockedTitle": "Unlock {place} with Premium",
+  "@premiumLockedTitle": {
+    "description": "Title of the sheet opened from a locked location. {place} is a city name.",
+    "placeholders": {
+      "place": {
+        "type": "String"
+      }
+    }
+  },
+  "premiumLockedBody": "This location is for Premium. Your free servers stay the same.",
+  "@premiumLockedBody": {
+    "description": "Body of that sheet. Says the free servers do not change."
+  },
+  "premiumHeadlineLimit": "No daily limit",
+  "@premiumHeadlineLimit": {
+    "description": "Headline of the Premium screen when the user came from the daily limit."
+  },
+  "premiumHeadlineLocked": "Unlock {place} with Premium",
+  "@premiumHeadlineLocked": {
+    "description": "Headline of the Premium screen when the user came from a locked location. {place} is a city name.",
+    "placeholders": {
+      "place": {
+        "type": "String"
+      }
+    }
+  },
+  "premiumFreeStays": "The free plan keeps working without Premium.",
+  "@premiumFreeStays": {
+    "description": "Line under the plans on the Premium screen, as Google Play asks: the free plan still works without buying."
+  },
+  "premiumEndsOn": "Premium ends on {date}",
+  "@premiumEndsOn": {
+    "description": "Reminder on the home screen before Premium that does not renew by itself ends. {date} is the end date, already formatted for the language.",
+    "placeholders": {
+      "date": {
+        "type": "String"
+      }
+    }
+  },
+  "premiumRenewBody": "Renew to keep unlimited data. Renewing adds time to your current end date.",
+  "@premiumRenewBody": {
+    "description": "Under that reminder, only in the build that sells keys, where renewing adds the new time after the current end, so nothing paid is lost."
+  },
+  "premiumEndedOn": "Premium ended on {date}. Your free plan is back.",
+  "@premiumEndedOn": {
+    "description": "Note on the home screen after Premium ended. {date} is the end date, already formatted for the language.",
+    "placeholders": {
+      "date": {
+        "type": "String"
+      }
+    }
+  },
+  "premiumRenew": "Renew",
+  "@premiumRenew": {
+    "description": "Button that opens the Premium screen to buy more time. Short."
+  },
+  "noticeChannelName": "Messages from Fortiva",
+  "@noticeChannelName": {
+    "description": "Name of the Android notification channel for messages from the Fortiva team, shown in the system notification settings. Short."
+  },
+  "noticeChannelDescription": "News and messages from the Fortiva team",
+  "@noticeChannelDescription": {
+    "description": "Description of that notification channel, shown under its name in the system notification settings."
+  },
+  "noticesSettingTitle": "Notifications",
+  "@noticesSettingTitle": {
+    "description": "Title of the Settings row about notifications for messages from the Fortiva team. Short."
+  },
+  "noticesSettingOn": "On. Messages from the Fortiva team can reach you even when the app is closed.",
+  "@noticesSettingOn": {
+    "description": "Under that row while notifications are allowed."
+  },
+  "noticesSettingOff": "Off. Turn them on to get messages from the Fortiva team even when the app is closed.",
+  "@noticesSettingOff": {
+    "description": "Under that row while notifications are not allowed. Tapping the row turns them on."
+  },
+  "noticesOffCard": "Turn on notifications to get messages from the Fortiva team even when the app is closed.",
+  "@noticesOffCard": {
+    "description": "A short card at the top of the Messages screen while notifications are off."
+  },
+  "noticesTurnOn": "Turn on",
+  "@noticesTurnOn": {
+    "description": "Button on that card that turns notifications on. Short."
+  },
+  "backgroundCard": "Your phone may hold back messages from the Fortiva team while the app is closed. Let Fortiva run in the background so they reach you.",
+  "@backgroundCard": {
+    "description": "A card on the Messages screen, shown only when something on the phone may stop messages arriving while the app is closed."
+  },
+  "backgroundHint": "On the next screen, choose Fortiva (if it is not listed, show all apps). Then set its battery use to Unrestricted, or allow it to start and run in the background.",
+  "@backgroundHint": {
+    "description": "Under that card: what to do on the system screen the button opens."
+  },
+  "backgroundAllow": "Allow",
+  "@backgroundAllow": {
+    "description": "Button on that card that opens the phone's settings. Short."
+  },
+  "backgroundNotNow": "Not now",
+  "@backgroundNotNow": {
+    "description": "Button on that card that closes it for a while. Short."
+  },
+  "backgroundSettingTitle": "Messages while closed",
+  "@backgroundSettingTitle": {
+    "description": "Title of the Settings row that opens the phone's background settings. Short."
+  },
+  "backgroundSettingSubtitle": "Let Fortiva run in the background so messages reach you while the app is closed.",
+  "@backgroundSettingSubtitle": {
+    "description": "Under that row."
+  },
+  "backgroundCardData": "Data Saver on your phone may stop messages from the Fortiva team while the app is closed.",
+  "@backgroundCardData": {
+    "description": "The same card when Data Saver is what holds messages back."
+  },
+  "backgroundHintData": "On the next screen, turn on Unrestricted data.",
+  "@backgroundHintData": {
+    "description": "Under that card: what to do on the Data Saver page the button opens."
+  },
+  "apnGuideTitle": "A steadier connection on this SIM",
+  "@apnGuideTitle": {
+    "description": "Title of the home screen card that shows how to turn on IPv6 for the SIM. Shown only on mobile data from operators the backend names, on phones with no IPv6 route. Short."
+  },
+  "apnGuideBody": "Your phone is not using IPv6 on this SIM. Turning it on helps Fortiva stay connected.",
+  "@apnGuideBody": {
+    "description": "One sentence under that title. IPv6 is not translated."
+  },
+  "apnGuideShowMe": "Show me how",
+  "@apnGuideShowMe": {
+    "description": "Button on that card that opens the steps. Short."
+  },
+  "apnGuideNotNow": "Not now",
+  "@apnGuideNotNow": {
+    "description": "Button on that card that hides it for 14 days. Short."
+  },
+  "apnGuideSheetTitle": "Turn on IPv6 for this SIM",
+  "@apnGuideSheetTitle": {
+    "description": "Title of the sheet with the steps. IPv6 is not translated."
+  },
+  "apnGuideStepOpen": "Tap \"{button}\" (or go to Settings > Connections > Mobile networks > Access Point Names).",
+  "@apnGuideStepOpen": {
+    "description": "Step 1. {button} is the label of the button at the bottom of the sheet (apnGuideOpenSettings). The path is the one on Samsung phones; use the names Samsung shows in the language.",
+    "placeholders": {
+      "button": {
+        "type": "String"
+      }
+    }
+  },
+  "apnGuideStepAccessPoint": "Tap the access point in use ({apn}).",
+  "@apnGuideStepAccessPoint": {
+    "description": "Step 2. {apn} is the access point the SIM uses, such as mcinet or mtnirancell, and is not translated.",
+    "placeholders": {
+      "apn": {
+        "type": "String"
+      }
+    }
+  },
+  "apnGuideStepAccessPointAny": "Tap the access point in use.",
+  "@apnGuideStepAccessPointAny": {
+    "description": "Step 2 when the app does not know the access point's name."
+  },
+  "apnGuideStepProtocol": "Tap \"APN protocol\" and choose \"IPv4/IPv6\".",
+  "@apnGuideStepProtocol": {
+    "description": "Step 3. APN protocol is the setting's name on the phone; IPv4/IPv6 is the value to pick and is not translated."
+  },
+  "apnGuideStepSave": "Save (on Samsung: the three-dot menu, then Save).",
+  "@apnGuideStepSave": {
+    "description": "Step 4. On Samsung, Save is in the menu behind the three dots."
+  },
+  "apnGuideStepRestart": "Turn mobile data off and on again.",
+  "@apnGuideStepRestart": {
+    "description": "Step 5."
+  },
+  "apnGuideUndo": "If mobile data stops working, set APN protocol back to IPv4.",
+  "@apnGuideUndo": {
+    "description": "Reassurance under the steps: how to undo the change. IPv4 is not translated."
+  },
+  "apnGuideOpenSettings": "Open APN settings",
+  "@apnGuideOpenSettings": {
+    "description": "Button that opens the phone's list of access points (APNs). APN is not translated."
+  },
+  "homeStallSearching": "The connection stopped working. Finding another path.",
+  "@homeStallSearching": {
+    "description": "Status line under the connect button while the app, on its own, looks for another server because the connected tunnel stopped carrying any data."
+  },
+  "homeStalled": "Connected, but no data is getting through",
+  "@homeStalled": {
+    "description": "Status line under the connect button when the tunnel is up but the app found that no data gets through it."
+  },
+  "peerShareTitle": "Help a friend connect",
+  "@peerShareTitle": {
+    "description": "Settings row and screen title. The screen shows codes that a friend's phone can photograph, so a friend whose Fortiva cannot connect gets what it needs from this phone. Also named inside peerReceiveBody, so keep it short."
+  },
+  "peerShareSubtitle": "Pass what Fortiva needs to a friend's phone",
+  "@peerShareSubtitle": {
+    "description": "Under that Settings row."
+  },
+  "peerShareBody": "If a friend's Fortiva cannot connect, their phone can get what it needs from yours. This works without internet.",
+  "@peerShareBody": {
+    "description": "First text on that screen. Says what the user gets, never how it works."
+  },
+  "peerShareSteps": "In Fortiva on their phone, open Settings and tap {action}. Then show them these codes one at a time, or send this to them.",
+  "@peerShareSteps": {
+    "description": "Under the first text, when there is something to pass on. {action} is the name of the other phone's button, peerReceiveTitle, already translated.",
+    "placeholders": {
+      "action": {
+        "type": "String"
+      }
+    }
+  },
+  "peerShareLoading": "Getting the newest copy",
+  "@peerShareLoading": {
+    "description": "Under a spinner while the screen gets the newest copy before showing the codes."
+  },
+  "peerShareNothing": "This phone has nothing recent to pass on. Try again later.",
+  "@peerShareNothing": {
+    "description": "Shown instead of the codes when this phone has nothing recent enough to pass on, even after trying to get a newer copy. The user may already be connected, so never tell them to connect."
+  },
+  "peerShareCodeOf": "Code {current} of {total}",
+  "@peerShareCodeOf": {
+    "description": "Under the code on screen, when there are several. Digits are filled in by the app.",
+    "placeholders": {
+      "current": {
+        "type": "int"
+      },
+      "total": {
+        "type": "int"
+      }
+    }
+  },
+  "peerSharePrevious": "Back",
+  "@peerSharePrevious": {
+    "description": "Button that shows the previous code. Short."
+  },
+  "peerShareNext": "Next",
+  "@peerShareNext": {
+    "description": "Button that shows the next code. Short."
+  },
+  "peerShareCopy": "Copy",
+  "@peerShareCopy": {
+    "description": "Button that copies what the friend needs, to paste into a message. Short."
+  },
+  "peerShareSend": "Send",
+  "@peerShareSend": {
+    "description": "Button that opens the phone's share sheet (Quick Share, Bluetooth, messengers) to send it to the friend. Short."
+  },
+  "peerShareCopied": "Copied. Paste it in a message to your friend.",
+  "@peerShareCopied": {
+    "description": "Short note after Copy."
+  },
+  "peerReceiveTitle": "Get help from a friend",
+  "@peerReceiveTitle": {
+    "description": "Settings row, screen title, and the button under the home screen's offer. Opens the screen where this phone takes what it needs from a friend's phone. Also named inside peerShareSteps, so keep it short."
+  },
+  "peerReceiveSubtitle": "When nothing else connects",
+  "@peerReceiveSubtitle": {
+    "description": "Under that Settings row."
+  },
+  "peerReceiveBody": "Ask a friend whose Fortiva connects to open Settings in Fortiva and tap {action}. Then get it from their phone in one of these ways.",
+  "@peerReceiveBody": {
+    "description": "First text on that screen. {action} is the name of the friend's Settings row, peerShareTitle, already translated.",
+    "placeholders": {
+      "action": {
+        "type": "String"
+      }
+    }
+  },
+  "peerReceivePhotograph": "Photograph their codes",
+  "@peerReceivePhotograph": {
+    "description": "Button that opens the phone's camera app to take a photo of the code on the friend's screen."
+  },
+  "peerReceivePhotographNext": "Photograph the next code",
+  "@peerReceivePhotographNext": {
+    "description": "The same button once some codes are read and more are needed."
+  },
+  "peerReceiveProgress": "{have} of {total} codes read",
+  "@peerReceiveProgress": {
+    "description": "Under that button while codes are being read. Digits are filled in by the app.",
+    "placeholders": {
+      "have": {
+        "type": "int"
+      },
+      "total": {
+        "type": "int"
+      }
+    }
+  },
+  "peerReceiveFile": "Open a file they sent",
+  "@peerReceiveFile": {
+    "description": "Button that opens the file picker, for a file the friend sent by Quick Share, Bluetooth or a messenger."
+  },
+  "peerReceivePaste": "Paste what they sent",
+  "@peerReceivePaste": {
+    "description": "Button that reads what the user copied from a message the friend sent."
+  },
+  "peerReceiveNoCode": "No code found in that photo. Hold the phone closer, with the whole code in view.",
+  "@peerReceiveNoCode": {
+    "description": "After a photo in which no code could be read."
+  },
+  "peerReceiveRefused": "Fortiva cannot use that. Ask your friend to send it again.",
+  "@peerReceiveRefused": {
+    "description": "After a photo, file or paste that is not something Fortiva can use, or is incomplete."
+  },
+  "peerReceiveNotNewer": "You already have this, or something newer. Try connecting again, or ask another friend.",
+  "@peerReceiveNotNewer": {
+    "description": "After a photo, file or paste of something this phone already has."
+  },
+  "peerReceiveTaken": "Done. Tap the button to connect.",
+  "@peerReceiveTaken": {
+    "description": "Short note after it worked. The screen closes and the user is back where the connect button is."
+  },
+  "peerReceiveUnavailable": "This phone cannot do that. Try another way.",
+  "@peerReceiveUnavailable": {
+    "description": "When the phone has no camera app or no file picker to open."
+  },
+  "peerReceiveNothingToPaste": "Nothing copied yet. Copy what your friend sent, then tap here again.",
+  "@peerReceiveNothingToPaste": {
+    "description": "After Paste when nothing was copied."
+  },
+  "peerOfferBody": "Still cannot connect? A friend whose Fortiva works can help from their phone.",
+  "@peerOfferBody": {
+    "description": "Note on the home screen when connecting failed and the app could not get anything newer by itself. The button under it is peerReceiveTitle."
+  },
+  "peerReceiveAgain": "You already have this code. Ask your friend to show the next one.",
+  "@peerReceiveAgain": {
+    "description": "After a photo of a code this phone has already read."
+  },
+  "peerReceivePasteNotOurs": "What you copied is not from Fortiva. Copy your friend's whole message, then try again.",
+  "@peerReceivePasteNotOurs": {
+    "description": "After Paste when the copied text is not something Fortiva can use."
+  },
+  "peerReceiveNoPhoto": "The camera did not hand the photo back. Take the photo with the camera app, then tap {action}.",
+  "@peerReceiveNoPhoto": {
+    "description": "When the camera app said it took a photo but gave none back. {action} is the name of the Open a file button (peerReceiveFile), already translated.",
+    "placeholders": {
+      "action": {
+        "type": "String"
+      }
+    }
+  },
+  "peerReceiveFileHint": "A file from a messenger may need to be saved to Downloads first.",
+  "@peerReceiveFileHint": {
+    "description": "Small hint under the Open a file button."
+  },
+  "homeTryingBackup": "Nothing else connected. Trying a backup network now.",
+  "@homeTryingBackup": {
+    "description": "Home status line while the app dials the backup network by itself, after our servers and the community links did not connect. Do not name the network."
+  },
+  "homeConnectedBackup": "Connected through a backup network",
+  "@homeConnectedBackup": {
+    "description": "Home status line while connected through the backup network, in place of statusConnected."
+  },
+  "backupNetwork": "BACKUP NETWORK",
+  "@backupNetwork": {
+    "description": "Heading of the home server card while connected through the backup network. In capitals, like yourServer and communityServer."
+  },
+  "backupNetworkTitle": "Backup network",
+  "@backupNetworkTitle": {
+    "description": "What the checklist row and the session history call the backup network."
+  },
+  "backupNetworkCaption": "Used when nothing else connects. It can be slower than our servers.",
+  "@backupNetworkCaption": {
+    "description": "Caption of the home server card while connected through the backup network."
+  },
+  "backupNetworkPlace": "Location picked automatically",
+  "@backupNetworkPlace": {
+    "description": "Place line of the home server card on the backup network when its country is not known."
+  },
+  "speedTestStart": "Start test",
+  "@speedTestStart": {
+    "description": "Button that starts the speed test."
+  },
+  "speedTestAgain": "Test again",
+  "@speedTestAgain": {
+    "description": "Button that starts the speed test again after a result."
+  },
+  "speedTestRunning": "Testing",
+  "@speedTestRunning": {
+    "description": "Button label while the speed test runs."
+  },
+  "speedTestIdle": "See how fast your connection is right now.",
+  "@speedTestIdle": {
+    "description": "Line under the speed gauge before a test has run."
+  },
+  "speedTestPhasePing": "Checking response time",
+  "@speedTestPhasePing": {
+    "description": "Line under the speed gauge while the first step of the test runs."
+  },
+  "speedTestPhaseDownload": "Measuring download speed",
+  "@speedTestPhaseDownload": {
+    "description": "Line under the speed gauge while the download speed is measured."
+  },
+  "speedTestPhaseUpload": "Measuring upload speed",
+  "@speedTestPhaseUpload": {
+    "description": "Line under the speed gauge while the upload speed is measured."
+  },
+  "speedTestDone": "Test finished",
+  "@speedTestDone": {
+    "description": "Line under the speed gauge once a result is shown."
+  },
+  "speedTestFailed": "The test could not finish. Check your internet and try again.",
+  "@speedTestFailed": {
+    "description": "Line under the speed gauge when the test stopped without a result."
+  },
+  "speedTestUnit": "Mbps",
+  "@speedTestUnit": {
+    "description": "Unit of the speed numbers: megabits per second, short form."
+  },
+  "ipAddressLabel": "IP address",
+  "@ipAddressLabel": {
+    "description": "Check my IP: heading over the address."
+  },
+  "ipCopied": "Address copied",
+  "@ipCopied": {
+    "description": "Check my IP: message after the address was copied."
+  },
+  "ipLocation": "Location",
+  "@ipLocation": {
+    "description": "Check my IP: label of the country and city row."
+  },
+  "ipProvider": "Internet provider",
+  "@ipProvider": {
+    "description": "Check my IP: label of the internet provider row."
+  },
+  "ipOrganization": "Organization",
+  "@ipOrganization": {
+    "description": "Check my IP: label of the organization row."
+  },
+  "ipTimeZone": "Time zone",
+  "@ipTimeZone": {
+    "description": "Check my IP: label of the time zone row."
+  },
+  "ipCoordinates": "Coordinates",
+  "@ipCoordinates": {
+    "description": "Check my IP: label of the map coordinates row."
+  },
+  "ipCheckFailed": "Could not check your address",
+  "@ipCheckFailed": {
+    "description": "Check my IP: shown when the address could not be read."
+  },
+  "historyAverage": "Average connection",
+  "@historyAverage": {
+    "description": "History: label of the average length of one connection."
+  },
+  "historyRecentDays": "Recent days",
+  "@historyRecentDays": {
+    "description": "History: heading over the chart of time connected on each of the most recent days. Not the calendar week: the chart ends today."
+  },
+  "yesterdayAt": "Yesterday at {time}",
+  "@yesterdayAt": {
+    "description": "History: when a connection started, for yesterday. {time} is a clock time.",
+    "placeholders": {
+      "time": {
+        "type": "String"
+      }
+    }
+  },
+  "dateAt": "{date} at {time}",
+  "@dateAt": {
+    "description": "History: when a connection started, for an earlier day. {date} is a date and {time} a clock time.",
+    "placeholders": {
+      "date": {
+        "type": "String"
+      },
+      "time": {
+        "type": "String"
+      }
+    }
+  },
+  "durationSeconds": "{seconds} s",
+  "@durationSeconds": {
+    "description": "A duration of seconds, short form, in the same style as supportDurationMinutes.",
+    "placeholders": {
+      "seconds": {
+        "type": "int"
+      }
+    }
+  },
+  "stageOwn": "Fortiva servers",
+  "@stageOwn": {
+    "description": "Name of the first stage of the connect search: this device's own servers, run by Fortiva."
+  },
+  "stageCommunity": "Community servers",
+  "@stageCommunity": {
+    "description": "Name of the second stage of the connect search: the community servers, in the app's usual name for them."
+  },
+  "stageProgress": "Stage {n} of {total}",
+  "@stageProgress": {
+    "description": "Small line over the search: which stage runs now. n and total are already in the phone's digits. No percentage.",
+    "placeholders": {
+      "n": {
+        "type": "int"
+      },
+      "total": {
+        "type": "int"
+      }
+    }
+  },
+  "stageTryingOwn": "Trying Fortiva servers",
+  "@stageTryingOwn": {
+    "description": "Home status line while the app tries this device's own servers."
+  },
+  "stageTryingCommunity": "Trying community servers",
+  "@stageTryingCommunity": {
+    "description": "Home status line while the app tries community servers, when our own servers were not tried first."
+  },
+  "stageOwnFailedTryingCommunity": "Fortiva servers did not connect here. Trying community servers.",
+  "@stageOwnFailedTryingCommunity": {
+    "description": "Home status line once our own servers did not connect and the app tries community servers. Do not name how they are blocked."
+  },
+  "stageLastWorked": "Last server that worked: {server}",
+  "@stageLastWorked": {
+    "description": "Checklist row while the app dials the server that worked last time on this network, before any check. server is a place name.",
+    "placeholders": {
+      "server": {
+        "type": "String"
+      }
+    }
+  },
+  "stageTriedBlocked": "{count, plural, one{{count} path tried, blocked here} other{{count} paths tried, blocked here}}",
+  "@stageTriedBlocked": {
+    "description": "One line for a finished stage of the search whose paths all read blocked. count is how many paths were tried.",
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "stageTriedFailed": "{count, plural, one{{count} path tried, it did not connect} other{{count} paths tried, none connected}}",
+  "@stageTriedFailed": {
+    "description": "One line for a finished stage of the search where a path was open but nothing connected. count is how many paths were tried.",
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "stageNotConnected": "Did not connect",
+  "@stageNotConnected": {
+    "description": "One line for a finished stage of the search that did not connect, when no path count is known."
+  },
+  "stageConnected": "Connected here",
+  "@stageConnected": {
+    "description": "One line for the stage of the search that connected."
+  },
+  "stageSkipped": "Skipped this time",
+  "@stageSkipped": {
+    "description": "One line for a stage of the search that was not tried on this try."
+  },
+  "stageMoreToCheck": "{count, plural, one{{count} more path to check} other{{count} more paths to check}}",
+  "@stageMoreToCheck": {
+    "description": "One line in the stage of the search that runs now, in place of the paths it has not checked yet when they do not all fit on screen. count is how many.",
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "stageNextTry": "Next try starts with {stage} in {time}",
+  "@stageNextTry": {
+    "description": "While the app waits to try again by itself: when, and the stage it starts with. time is a countdown such as 0:42, stage a stage name.",
+    "placeholders": {
+      "stage": {
+        "type": "String"
+      },
+      "time": {
+        "type": "String"
+      }
+    }
+  },
+  "searchSlowHint": "This can take a minute or two. Tap the button to stop the search.",
+  "@searchSlowHint": {
+    "description": "Second line under the status after about 15 seconds of searching. Says the search can take a while and that the power button stops it. No exact time."
+  },
+  "searchStopped": "Search stopped",
+  "@searchStopped": {
+    "description": "Home status line for a moment after the user stopped a search with the power button."
+  },
+  "homeConnectedCommunity": "Connected through a community server",
+  "@homeConnectedCommunity": {
+    "description": "Home status line while connected through a community server, in place of statusConnected."
+  },
+  "stageGettingServers": "Getting your servers",
+  "@stageGettingServers": {
+    "description": "Row under the first stage of the search while the app asks for this device's own servers before its first try, on a phone that has none yet."
+  },
+  "stageNextTryStarting": "Starting the next try with {stage}",
+  "@stageNextTryStarting": {
+    "description": "Small line over the search once the wait before the next try is over and that try is being made ready. stage is a stage name.",
+    "placeholders": {
+      "stage": {
+        "type": "String"
+      }
+    }
+  }
+}

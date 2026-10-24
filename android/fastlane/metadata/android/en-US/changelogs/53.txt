@@ -1,0 +1,3 @@
+- Connecting works better on networks where every route used to show as blocked.
+- The daily data card now shows how much you have left, not how much you used.
+- Connection steps are numbered correctly instead of all showing 1.

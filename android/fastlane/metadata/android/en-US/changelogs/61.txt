@@ -1,0 +1,5 @@
+- Fortiva now runs on Android TV and Google TV, and everything works with the TV remote.
+- On a TV, links such as our Telegram channel show as a QR code you can open on your phone.
+- When your daily data is used up, tapping Connect now shows when it refills and how to get more.
+- Short notices at the bottom of the screen are easier to read.
+- In Persian, dates now use the Iranian calendar.

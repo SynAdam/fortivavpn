@@ -1,0 +1,38 @@
+Fortiva adalah VPN gratis, cepat, dan aman untuk Android. Terhubung gratis setiap hari tanpa daftar, tanpa email, dan tanpa nomor HP. Cukup pasang dan terhubung dengan sekali ketuk.
+
+✓ Gratis setiap hari, dengan kuota data harian
+✓ Tanpa daftar: tanpa email, tanpa nomor HP, tanpa kata sandi
+✓ Sekali ketuk langsung terhubung, tanpa config dan tanpa pengaturan
+✓ Tanpa iklan dan tanpa pelacak
+✓ Uji kecepatan bawaan: bandingkan kecepatan dengan dan tanpa VPN
+✓ Kami tidak pernah mencatat halaman yang Anda buka
+
+VPN gratis setiap hari
+Pasang Fortiva dan langsung terhubung. Anda mendapat data gratis setiap hari tanpa perlu akun. Kuota Anda terisi ulang otomatis setiap hari.
+
+Dibuat untuk jaringan yang dibatasi
+Fortiva dibuat untuk jaringan tempat VPN biasa gagal terhubung. Server sudah ada di dalam aplikasi dan diperbarui otomatis, jadi Anda tidak perlu mencari config atau menempelkan kunci. Buka Reddit, Vimeo, Telegram, dan situs lain yang diblokir, lewat data seluler maupun Wi-Fi.
+
+Privasi di jaringan mana pun
+Wi-Fi publik, jaringan hotel dan kampus, data seluler: lalu lintas Anda dienkripsi antara ponsel Anda dan server kami. Fortiva tidak memakai SDK iklan atau pelacak, dan tidak pernah mencatat halaman yang Anda buka.
+
+Undang teman Anda
+Kirim tautan pemasangan ke teman Anda agar mereka juga bisa terhubung gratis. Saat teman Anda mulai memakai Fortiva, Anda mendapat hadiah Premium.
+
+Premium
+Premium menghapus batas harian, jadi Anda bisa memakai data sebanyak yang Anda mau sampai masa aktifnya habis.
+
+Cara kerja Fortiva
+Fortiva VPN menggunakan VpnService Android untuk membuat terowongan yang aman dan terenkripsi antara perangkat Anda dan server jarak jauh kami. Semua lalu lintas jaringan dienkripsi dengan TLS, sehingga data Anda tetap pribadi dan terlindungi.
+• Membuat terowongan VPN yang aman di tingkat perangkat
+• Mengenkripsi semua data antara perangkat Anda dan server VPN dengan TLS
+• Tidak mengumpulkan, tidak membagikan, dan tidak mengalihkan lalu lintas pengguna untuk monetisasi
+• Tidak memanipulasi lalu lintas dari aplikasi lain
+• Kebijakan privasi lengkap di fortivavpn.com/privacy
+
+Lisensi sumber terbuka
+Fortiva VPN adalah perangkat lunak bebas yang dilisensikan di bawah GNU General Public License versi 3. Aplikasi ini dibangun di atas v2rayNG dan proyek sumber terbuka lainnya.
+
+Anda berhak mendapatkan kode sumber lengkap untuk versi yang Anda pasang. Untuk memintanya, kirim email ke admin@fortivavpn.com dengan menyebutkan nomor versi aplikasi. Penawaran ini berlaku selama tiga tahun sejak tanggal Anda menerima versi ini. Kode sumber diberikan tanpa biaya selain biaya pengiriman.
+
+Teks lengkap lisensi tersedia di gnu.org/licenses/gpl-3.0.html

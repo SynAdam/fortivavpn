@@ -1,0 +1,2 @@
+- The app now prefers the connection that stays up on your network, not only the one that answers fastest.
+- Fewer short drops in the middle of use, especially on mobile data.

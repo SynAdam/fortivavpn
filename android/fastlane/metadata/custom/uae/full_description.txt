@@ -1,0 +1,27 @@
+Fortiva VPN is a free VPN that keeps you private on public Wi-Fi. Connect in one tap, with no sign-up, no email, no phone number and nothing to set up.
+
+• One tap to connect
+• No sign-up: no email, no phone number, no password
+• Servers built in, nothing to set up
+• Your traffic is encrypted on any Wi-Fi network
+• We never record the pages you open
+• Free every day, with a daily data allowance
+• Premium removes the daily limit
+
+SAFER ON PUBLIC WI-FI
+Wi-Fi in malls, airports, hotels and cafes is shared with people you do not know. Fortiva encrypts your traffic between your phone and our servers, so other people on the same network cannot read what you send and receive. It works the same on mobile data.
+
+HOW FORTIVA WORKS
+Fortiva VPN uses Android's VpnService to create a secure, encrypted tunnel between your device and our remote servers. All network traffic is encrypted with TLS, so your data stays private and protected.
+• Creates a secure device-level VPN tunnel
+• Encrypts all data between your device and VPN servers using TLS
+• Does not collect, share, or redirect user traffic for monetization
+• Does not manipulate traffic from other apps
+• Full privacy policy at fortivavpn.com/privacy
+
+OPEN SOURCE LICENCE
+Fortiva VPN is free software, licensed under the GNU General Public License version 3. It builds on v2rayNG and other open-source projects.
+
+You are entitled to the complete corresponding source code for the version you have installed. To request it, email admin@fortivavpn.com with the app version number. This offer is valid for three years from the date you received this version. Source is provided at no charge beyond the cost of delivery.
+
+The full licence text is available at gnu.org/licenses/gpl-3.0.html

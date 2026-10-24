@@ -1,0 +1,7 @@
+- Fortiva can now connect in more ways, so it gets you online on more networks.
+- The connect button is now the Fortiva shield. Its eyes light up when you connect.
+- While connecting, the app shows each step of the search.
+- Connecting is quicker, and a blocked path is not tried first again.
+- Fewer wrong "no internet" messages, and no pointless retries with no network.
+- A slow connection is switched only when a faster one is found.
+- In-app support understands connection problems better.

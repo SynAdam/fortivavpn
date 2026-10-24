@@ -1,0 +1,40 @@
+# Format, analyze and test the Flutter app, and check the one native
+# binary nothing in this repository builds (android/tun2socks/README.md).
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  static:
+    name: format, analyze, test
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: subosito/flutter-action@v2
+        with:
+          flutter-version: 3.38.7
+          channel: stable
+          cache: true
+
+      - run: flutter pub get
+
+      - name: dart format
+        run: dart format --output=none --set-exit-if-changed lib/ test/
+
+      - name: flutter analyze
+        run: flutter analyze --fatal-infos
+
+      - name: flutter test
+        run: flutter test
+
+      - name: verify libtun2socks.so
+        run: ./android/tun2socks/verify.sh

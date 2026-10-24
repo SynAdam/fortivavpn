@@ -1,0 +1,364 @@
+Xray-core: closing a WireGuard outbound no longer panics a sender
+
+The WireGuard outbound without a kernel TUN (noKernelTun, or any phone,
+which has no CAP_NET_ADMIN) runs a gVisor stack on netTun. The stack hands
+each packet it sends to netTun.WriteNotify, on the sender's own goroutine,
+and WriteNotify waits on the unbuffered incomingPacket channel until
+wireguard-go's TUN reader takes it. netTun.Close closed that channel. A
+sender still waiting there when the outbound closed under traffic panicked
+with "send on closed channel" (netstack.go:169) on a goroutine of the stack
+or of wireguard-go, where nothing recovers, and the process ended. On
+2026-10-19 that ended the app's main process during a WireGuard lab test on
+the emulator: wireguard-go's receive routine handed in data for a
+connection the check had closed, and the stack's reset waited in
+WriteNotify. A TCP sender waiting there also holds its endpoint's lock,
+which stack.Close takes, so with no reader Close could wait for ever.
+
+incomingPacket is no longer closed. Close closes a new channel, closed,
+first and once. WriteNotify drops its packet when it sees it, and Read
+returns os.ErrClosed as before, so wireguard-go's reader stops and
+device.Close returns. Upstream Xray-core later rewrote netTun with the same
+closed channel in 8703fdb10147 (#7156, 2026-10-15), which also replaced
+gVisor with Xray-core's own TCP/IP stack. That commit is in v26.10.17
+(92ccc939aaf4) and later, and needs Go 1.27, so this core cannot take it.
+
+Handler.init also set the bind's listen and resolve functions after
+device.NewDevice, whose TUN event reader opens the bind at once on its own
+goroutine (bind.Open calls listenFunc). They are now set before it.
+
+Base:    github.com/xtls/xray-core v1.260327.1-0.20260728075948-5ca6f4b7d4dc
+         (v26.7.28). Touches no file the other patches touch.
+Licence: netstack.go: MIT, the licence it carries (its SPDX line).
+         client.go and the new netstack_close_test.go: MPL-2.0, the same
+         as Xray-core. The test was written for Fortiva.
+
+  proxy/wireguard/netstack.go             closed, closeOnce; Read,
+                                          WriteNotify, Close
+  proxy/wireguard/netstack_close_test.go  a sender waiting in WriteNotify
+                                          when the device closes
+  proxy/wireguard/client.go               the bind's functions are set
+                                          before NewDevice
+
+Apply with: patch -p1 < xray-wireguard-close.patch   (stage-xray.sh does this)
+
+diff --color -ruN xray-base/proxy/wireguard/client.go xray-patched/proxy/wireguard/client.go
+--- xray-base/proxy/wireguard/client.go	2026-10-19 01:38:00
++++ xray-patched/proxy/wireguard/client.go	2026-10-19 01:38:00
+@@ -294,7 +294,13 @@
+ 		}
+ 		return pktConn, nil
+ 	}
+-	bind := &bind{}
++	// Set before NewDevice: its TUN event reader takes the EventUp that
++	// CreateNetTUN queued and opens the bind at once, on its own goroutine.
++	bind := &bind{
++		resolveFunc: resolveFunc,
++		listenFunc:  listenFunc,
++		reserved:    h.conf.Reserved,
++	}
+ 	logger := &device.Logger{
+ 		Verbosef: func(format string, args ...any) {
+ 			log.Record(&log.GeneralMessage{
+@@ -310,10 +316,7 @@
+ 		},
+ 	}
+ 	dev := device.NewDevice(h.tun, bind, logger)
+-	bind.resolveFunc = resolveFunc
+-	bind.listenFunc = listenFunc
+ 	bind.downFunc = dev.Down
+-	bind.reserved = h.conf.Reserved
+ 	var cfg strings.Builder
+ 	cfg.WriteString("private_key=" + h.conf.SecretKey + "\n")
+ 	for _, peer := range h.conf.Peers {
+diff --color -ruN xray-base/proxy/wireguard/netstack.go xray-patched/proxy/wireguard/netstack.go
+--- xray-base/proxy/wireguard/netstack.go	2026-10-19 01:38:00
++++ xray-patched/proxy/wireguard/netstack.go	2026-10-19 01:38:00
+@@ -16,6 +16,7 @@
+ 	"net/netip"
+ 	"os"
+ 	"strings"
++	"sync"
+ 	"syscall"
+ 	"time"
+ 
+@@ -45,6 +46,11 @@
+ 	mtu            int
+ 	dnsServers     []netip.Addr
+ 	hasV4, hasV6   bool
++	// closed is closed by Close. incomingPacket is never closed, because a
++	// sender of the stack can be waiting in WriteNotify when the device
++	// closes, on a goroutine where nothing recovers a panic.
++	closed    chan struct{}
++	closeOnce sync.Once
+ }
+ 
+ func CreateNetTUN(localAddresses, dnsServers []netip.Addr, mtu int, handleLocal bool) (tun.Device, *Net, *stack.Stack, error) {
+@@ -58,6 +64,7 @@
+ 		stack:          stack.New(opts),
+ 		events:         make(chan tun.Event, 10),
+ 		incomingPacket: make(chan *buffer.View),
++		closed:         make(chan struct{}),
+ 		dnsServers:     dnsServers,
+ 		mtu:            mtu,
+ 	}
+@@ -124,8 +131,10 @@
+ }
+ 
+ func (tun *netTun) Read(buf [][]byte, sizes []int, offset int) (int, error) {
+-	view, ok := <-tun.incomingPacket
+-	if !ok {
++	var view *buffer.View
++	select {
++	case view = <-tun.incomingPacket:
++	case <-tun.closed:
+ 		return 0, os.ErrClosed
+ 	}
+ 
+@@ -166,23 +175,27 @@
+ 	view := pkt.ToView()
+ 	pkt.DecRef()
+ 
+-	tun.incomingPacket <- view
++	select {
++	case tun.incomingPacket <- view:
++	case <-tun.closed:
++		view.Release()
++	}
+ }
+ 
+ func (tun *netTun) Close() error {
+-	tun.stack.RemoveNIC(1)
+-	tun.stack.Close()
+-	tun.ep.RemoveNotify(tun.notifyHandle)
+-	tun.ep.Close()
++	tun.closeOnce.Do(func() {
++		// First: a sender waiting in WriteNotify lets go of its packet, and a
++		// TCP sender of the lock on its endpoint, which stack.Close takes.
++		close(tun.closed)
++		tun.stack.RemoveNIC(1)
++		tun.stack.Close()
++		tun.ep.RemoveNotify(tun.notifyHandle)
++		tun.ep.Close()
+ 
+-	if tun.events != nil {
+-		close(tun.events)
+-	}
+-
+-	if tun.incomingPacket != nil {
+-		close(tun.incomingPacket)
+-	}
+-
++		if tun.events != nil {
++			close(tun.events)
++		}
++	})
+ 	return nil
+ }
+ 
+diff --color -ruN xray-base/proxy/wireguard/netstack_close_test.go xray-patched/proxy/wireguard/netstack_close_test.go
+--- xray-base/proxy/wireguard/netstack_close_test.go	1969-12-31 17:00:00
++++ xray-patched/proxy/wireguard/netstack_close_test.go	2026-10-19 01:38:00
+@@ -0,0 +1,203 @@
++package wireguard
++
++import (
++	"context"
++	"errors"
++	"net/netip"
++	"os"
++	"runtime"
++	"strings"
++	"sync"
++	"testing"
++	"time"
++
++	"gvisor.dev/gvisor/pkg/buffer"
++	"gvisor.dev/gvisor/pkg/tcpip/header"
++)
++
++// The stack's own address in these tests, and a peer behind the device.
++var (
++	closeTestLocal = netip.MustParseAddr("10.9.0.2")
++	closeTestPeer  = netip.MustParseAddrPort("10.9.0.1:9")
++)
++
++func newCloseTestTUN(t *testing.T) (*netTun, *Net) {
++	t.Helper()
++	dev, tnet, _, err := CreateNetTUN([]netip.Addr{closeTestLocal}, nil, 1420, true)
++	if err != nil {
++		t.Fatal(err)
++	}
++	return dev.(*netTun), tnet
++}
++
++// waitParkedInWriteNotify waits until n goroutines are in netTun.WriteNotify,
++// holding a packet the device's reader has not taken. Nothing reads the
++// device in these tests, as when wireguard-go's TUN reader is busy handing
++// the previous packet on, so a sender stays there.
++func waitParkedInWriteNotify(t *testing.T, n int) {
++	t.Helper()
++	stacks := make([]byte, 1<<22)
++	deadline := time.Now().Add(5 * time.Second)
++	for time.Now().Before(deadline) {
++		got := strings.Count(string(stacks[:runtime.Stack(stacks, true)]), ".(*netTun).WriteNotify(")
++		if got >= n {
++			return
++		}
++		time.Sleep(5 * time.Millisecond)
++	}
++	t.Fatalf("fewer than %d goroutines reached netTun.WriteNotify", n)
++}
++
++// sendOff runs send on a goroutine of its own, as the stack's senders run,
++// and reports what it panicked with, or nil.
++func sendOff(send func()) <-chan any {
++	done := make(chan any, 1)
++	go func() {
++		defer func() { done <- recover() }()
++		send()
++	}()
++	return done
++}
++
++func expectReturned(t *testing.T, what string, done <-chan any) {
++	t.Helper()
++	select {
++	case r := <-done:
++		if r != nil {
++			t.Fatalf("%s panicked when the device closed: %v", what, r)
++		}
++	case <-time.After(5 * time.Second):
++		t.Fatalf("%s still waits 5 s after the device closed", what)
++	}
++}
++
++// A packet the stack sends while the device closes. Before the fix Close
++// closed incomingPacket under the parked sender, which panicked with "send
++// on closed channel" on the stack's goroutine (netstack.go:169), where no
++// recover runs.
++func TestNetTUNCloseWhileRawSendWaits(t *testing.T) {
++	dev, _ := newCloseTestTUN(t)
++	packet := make([]byte, header.IPv4MinimumSize)
++	header.IPv4(packet).Encode(&header.IPv4Fields{
++		TotalLength: header.IPv4MinimumSize,
++		TTL:         64,
++		SrcAddr:     header.IPv4Any,
++		DstAddr:     header.IPv4Broadcast,
++	})
++	done := sendOff(func() {
++		dev.stack.WriteRawPacket(1, header.IPv4ProtocolNumber, buffer.MakeWithData(packet))
++	})
++	waitParkedInWriteNotify(t, 1)
++	dev.Close()
++	expectReturned(t, "the raw send", done)
++}
++
++// The same through a UDP socket of the stack, which is how the WireGuard
++// outbound sends a UDP request (DialUDPAddrPort).
++func TestNetTUNCloseWhileUDPSendWaits(t *testing.T) {
++	dev, tnet := newCloseTestTUN(t)
++	conn, err := tnet.DialUDPAddrPort(netip.AddrPort{}, closeTestPeer)
++	if err != nil {
++		t.Fatal(err)
++	}
++	defer conn.Close()
++	done := sendOff(func() { conn.Write([]byte("ping")) })
++	waitParkedInWriteNotify(t, 1)
++	dev.Close()
++	expectReturned(t, "the UDP send", done)
++}
++
++// A TCP connect whose SYN waits in WriteNotify holds its endpoint's lock,
++// which the stack's Close takes to abort it. Close has to let the SYN go
++// first, or it waits for a reader that will never come.
++func TestNetTUNCloseWhileTCPConnectWaits(t *testing.T) {
++	dev, tnet := newCloseTestTUN(t)
++	ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
++	defer cancel()
++	done := sendOff(func() {
++		if conn, err := tnet.DialContextTCPAddrPort(ctx, closeTestPeer); err == nil {
++			conn.Close()
++		}
++	})
++	waitParkedInWriteNotify(t, 1)
++	closed := sendOff(func() { dev.Close() })
++	expectReturned(t, "Close", closed)
++	expectReturned(t, "the TCP connect", done)
++}
++
++// After Close the device reads as closed, so wireguard-go's TUN reader
++// stops and device.Close, which waits for it, returns. A second Close is
++// harmless.
++func TestNetTUNReadAfterClose(t *testing.T) {
++	dev, _ := newCloseTestTUN(t)
++	dev.Close()
++	bufs := [][]byte{make([]byte, 1500)}
++	sizes := []int{0}
++	if _, err := dev.Read(bufs, sizes, 0); !errors.Is(err, os.ErrClosed) {
++		t.Fatalf("Read after Close: %v, want os.ErrClosed", err)
++	}
++	dev.Close()
++}
++
++// Many senders and a reader that keeps reading, as wireguard-go's does,
++// when the device closes: no sender may panic, and every one returns.
++func TestNetTUNCloseUnderTraffic(t *testing.T) {
++	for round := 0; round < 20; round++ {
++		dev, tnet := newCloseTestTUN(t)
++		go func() {
++			bufs := [][]byte{make([]byte, 1500)}
++			sizes := []int{0}
++			for {
++				if _, err := dev.Read(bufs, sizes, 0); err != nil {
++					return
++				}
++				time.Sleep(50 * time.Microsecond)
++			}
++		}()
++		const senders = 16
++		var wg sync.WaitGroup
++		panics := make(chan any, senders)
++		stop := make(chan struct{})
++		for i := 0; i < senders; i++ {
++			conn, err := tnet.DialUDPAddrPort(netip.AddrPort{}, closeTestPeer)
++			if err != nil {
++				t.Fatal(err)
++			}
++			wg.Add(1)
++			go func() {
++				defer wg.Done()
++				defer conn.Close()
++				defer func() {
++					if r := recover(); r != nil {
++						panics <- r
++					}
++				}()
++				for {
++					select {
++					case <-stop:
++						return
++					default:
++					}
++					if _, err := conn.Write([]byte("ping")); err != nil {
++						return
++					}
++				}
++			}()
++		}
++		time.Sleep(20 * time.Millisecond)
++		dev.Close()
++		close(stop)
++		finished := make(chan struct{})
++		go func() { wg.Wait(); close(finished) }()
++		select {
++		case <-finished:
++		case <-time.After(5 * time.Second):
++			t.Fatalf("round %d: senders still running 5 s after Close", round)
++		}
++		select {
++		case r := <-panics:
++			t.Fatalf("round %d: a sender panicked when the device closed: %v", round, r)
++		default:
++		}
++	}
++}

@@ -1,0 +1,11 @@
+# libtun2socks.so, as shipped in android/app/libs/<abi>/.
+#
+# These are the binaries extracted from the v2rayNG 1.10.8 APK, recorded so
+# that a swap is visible in a diff. They are NOT yet reproducible: nothing
+# here builds them. See issue #31 and README.md in this directory.
+#
+# sha256                                                            abi
+ecd1ea61db76a3bd3fd0c9f91ddad5248ad932a1c57a9ca71174a09137d91123  arm64-v8a
+37e8fc0440a1329fc9622e91b4965bb0e16ff841b1b9d8f03e3687e0f9d3e975  armeabi-v7a
+015baa47c8f40cabd9b4876156b89a7b1d62a08672b123aff0d34ab9191745bd  x86
+426e4af5c00f8accb6613f370bdf8898209891347210ef9f90452a6a9e4429cc  x86_64

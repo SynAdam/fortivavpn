@@ -1,0 +1,5 @@
+- The update screen has a Disconnect button, so you can get the update over your normal internet.
+- The update screen now tells you when the connection is not working or your daily data is used up.
+- Connecting works better on networks where it used to fail.
+- The Community server list stays on screen when it cannot be refreshed, with a Try again button.
+- The Google sign-in card shows the right amount of daily data.

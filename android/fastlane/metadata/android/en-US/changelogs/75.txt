@@ -1,0 +1,5 @@
+- When your internet comes back, Fortiva now reconnects by itself soon after, instead of waiting minutes.
+- It reconnects the way that worked before, so you are connected faster.
+- When a connection opens but nothing gets through, Fortiva tries another way in the same tap.
+- With no internet, the app now says so instead of asking you to try another server.
+- Better backup ways are ready if your connection is blocked while you use it.

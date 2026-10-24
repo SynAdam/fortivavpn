@@ -1,0 +1,8 @@
+framework module "LibXray" {
+	header "ref.h"
+    header "LibXray.objc.h"
+    header "Universe.objc.h"
+    header "LibXray.h"
+
+    export *
+}

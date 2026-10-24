@@ -1,0 +1,3 @@
+- New: messages from the Fortiva team now appear inside the app, in your language. Tap the bell at the top to read them.
+- The update screen now has a Connect button, so you can open Google Play or Telegram to get the update.
+- The app starts more reliably on networks where it used to get stuck.

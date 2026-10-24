@@ -1,0 +1,126 @@
+Psiphon-Labs/quic-go: build http3 against quic-go/qpack v0.6
+
+Psiphon's quic-go fork calls the qpack v0.4 decoder: NewDecoder takes a
+callback and the Decoder has DecodeFull. Xray-core needs qpack v0.6.0, where
+NewDecoder takes no argument and DecodeFull is gone. One Go build holds one
+version of a module, so without this patch the fork's http3 package does not
+compile next to Xray-core.
+
+The patch changes only those calls. The new http3/qpack_compat.go adds
+decodeFull, which does what v0.4's DecodeFull did, using v0.6's Decode. The
+encoder API is the same in both versions. Inside psiphon-tunnel-core this
+code runs only for meek over QUIC (psiphon/common/quic/quic.go, the
+http3.RoundTripper that psiphon/meekConn.go uses).
+
+Base:    github.com/Psiphon-Labs/quic-go v0.0.0-20250527153145-79fe45fb83b1
+         (commit 79fe45fb83b1), the version psiphon-tunnel-core v2.0.41
+         (commit 96f782c6f662) requires.
+Source:  written for Fortiva.
+Licence: MIT, the same as quic-go and Psiphon's fork of it.
+
+  http3/client.go        NewDecoder() without the callback
+  http3/conn.go          NewDecoder() without the callback, one decodeFull
+  http3/http_stream.go   one decodeFull
+  http3/server.go        one decodeFull
+  http3/qpack_compat.go  decodeFull (new file)
+
+The fork's own http3 tests still use the v0.4 API and do not compile, so
+the test for this patch lives outside the fork, in android/core/psiphonquic/:
+one HTTP/3 request on 127.0.0.1 that goes through every changed call.
+
+Apply with: patch -p1 < qpack-v0.6.patch   (stage-psiphon.sh does this)
+
+diff -ruN quic-go-base/http3/client.go quic-go-patched/http3/client.go
+--- quic-go-base/http3/client.go	2026-10-16 16:08:57
++++ quic-go-patched/http3/client.go	2026-10-16 16:09:11
+@@ -95,7 +95,7 @@
+ 	} else {
+ 		c.maxResponseHeaderBytes = uint64(maxResponseHeaderBytes)
+ 	}
+-	c.decoder = qpack.NewDecoder(func(hf qpack.HeaderField) {})
++	c.decoder = qpack.NewDecoder()
+ 	c.requestWriter = newRequestWriter()
+ 	c.connection = *newConnection(
+ 		conn.Context(),
+diff -ruN quic-go-base/http3/conn.go quic-go-patched/http3/conn.go
+--- quic-go-base/http3/conn.go	2026-10-16 16:08:57
++++ quic-go-patched/http3/conn.go	2026-10-16 16:09:11
+@@ -75,7 +75,7 @@
+ 		logger:           logger,
+ 		idleTimeout:      idleTimeout,
+ 		enableDatagrams:  enableDatagrams,
+-		decoder:          qpack.NewDecoder(func(hf qpack.HeaderField) {}),
++		decoder:          qpack.NewDecoder(),
+ 		receivedSettings: make(chan struct{}),
+ 		streams:          make(map[protocol.StreamID]*datagrammer),
+ 	}
+@@ -137,7 +137,7 @@
+ 	if _, err := io.ReadFull(r, b); err != nil {
+ 		return nil, err
+ 	}
+-	fields, err := c.decoder.DecodeFull(b)
++	fields, err := decodeFull(c.decoder, b)
+ 	if err != nil {
+ 		return nil, err
+ 	}
+diff -ruN quic-go-base/http3/http_stream.go quic-go-patched/http3/http_stream.go
+--- quic-go-base/http3/http_stream.go	2026-10-16 16:08:57
++++ quic-go-patched/http3/http_stream.go	2026-10-16 16:09:11
+@@ -231,7 +231,7 @@
+ 		s.Stream.CancelWrite(quic.StreamErrorCode(ErrCodeRequestIncomplete))
+ 		return nil, fmt.Errorf("http3: failed to read response headers: %w", err)
+ 	}
+-	hfs, err := s.decoder.DecodeFull(headerBlock)
++	hfs, err := decodeFull(s.decoder, headerBlock)
+ 	if err != nil {
+ 		// TODO: use the right error code
+ 		s.conn.CloseWithError(quic.ApplicationErrorCode(ErrCodeGeneralProtocolError), "")
+diff -ruN quic-go-base/http3/qpack_compat.go quic-go-patched/http3/qpack_compat.go
+--- quic-go-base/http3/qpack_compat.go	1969-12-31 17:00:00
++++ quic-go-patched/http3/qpack_compat.go	2026-10-16 16:09:11
+@@ -0,0 +1,33 @@
++package http3
++
++// [Fortiva] Psiphon's fork was written against quic-go/qpack v0.4, whose
++// Decoder had DecodeFull. Xray-core needs qpack v0.6, and a Go build can
++// hold only one version of a module, so this fork is built against v0.6.
++// decodeFull does what v0.4's DecodeFull did, using v0.6's Decode.
++
++import (
++	"errors"
++	"io"
++
++	"github.com/quic-go/qpack"
++)
++
++// decodeFull decodes a whole header block. Like v0.4's DecodeFull, an empty
++// block gives an empty slice and no error.
++func decodeFull(d *qpack.Decoder, p []byte) ([]qpack.HeaderField, error) {
++	if len(p) == 0 {
++		return []qpack.HeaderField{}, nil
++	}
++	next := d.Decode(p)
++	var fields []qpack.HeaderField
++	for {
++		hf, err := next()
++		if errors.Is(err, io.EOF) {
++			return fields, nil
++		}
++		if err != nil {
++			return nil, err
++		}
++		fields = append(fields, hf)
++	}
++}
+diff -ruN quic-go-base/http3/server.go quic-go-patched/http3/server.go
+--- quic-go-base/http3/server.go	2026-10-16 16:08:57
++++ quic-go-patched/http3/server.go	2026-10-16 16:09:11
+@@ -626,7 +626,7 @@
+ 		str.CancelWrite(quic.StreamErrorCode(ErrCodeRequestIncomplete))
+ 		return
+ 	}
+-	hfs, err := decoder.DecodeFull(headerBlock)
++	hfs, err := decodeFull(decoder, headerBlock)
+ 	if err != nil {
+ 		// TODO: use the right error code
+ 		conn.CloseWithError(quic.ApplicationErrorCode(ErrCodeGeneralProtocolError), "expected first frame to be a HEADERS frame")

@@ -1,0 +1,3 @@
+When a connection fails, the app now reports what went wrong so we can find and fix the cause faster. The report contains only the network type and mobile operator, never your IP address or what you do online. You can turn it off in Settings.
+
+Also: contact us on Telegram straight from Settings, and a tidier menu.

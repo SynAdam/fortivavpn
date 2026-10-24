@@ -1,0 +1,5 @@
+The shared and community server lists are reachable again from Your servers, so you always have somewhere to switch to when your own servers are slow.
+
+The community list no longer repeats the servers already shown on Your servers. It now shows only servers shared by other people.
+
+Signing in with Google now sticks. The app remembers it after a restart instead of asking you again.

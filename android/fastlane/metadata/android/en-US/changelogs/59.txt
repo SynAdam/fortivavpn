@@ -1,0 +1,5 @@
+- The Community list shows far fewer servers that do not work, and you can test every server on it.
+- A tap while connecting or checking the connection now stops it at once.
+- If your server stops working, the app moves to another server more easily.
+- On Android 16 and 17 the keyboard no longer pushes the whole page up.
+- The invite screen shows the right reward for each friend you invite.

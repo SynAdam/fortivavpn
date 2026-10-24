@@ -1,0 +1,3 @@
+The app now tells you when a newer version has been released, so you are not left on an old build without knowing. Tap Update to go straight to the store, or Later to be reminded by the next release.
+
+If the version you are on is too old to work properly, the app will say so and ask you to update before carrying on.

@@ -1,0 +1,137 @@
+name: fortiva_vpn
+description: "Fortiva VPN clients for Android, iOS and Windows."
+publish_to: 'none'
+
+# Single source of truth for the app version: android/app/build.gradle.kts
+# reads versionName/versionCode from here, and iOS takes CFBundleVersion
+# from it through the Flutter build.
+version: 2.2.0+77
+
+environment:
+  sdk: ^3.10.7
+
+dependencies:
+  flutter:
+    sdk: flutter
+  flutter_localizations:
+    sdk: flutter
+
+  # State management
+  provider: ^6.1.1
+
+  # Utilities
+  intl: ^0.20.2
+  url_launcher: ^6.2.2
+  shared_preferences: ^2.2.2
+  # Reads single keys of the app's stored values from the platform
+  # (StoredFromBackground). Already in the lock file through
+  # shared_preferences.
+  shared_preferences_android: ^2.4.20
+
+  # Network. 1.5.0 is the first with AbortableRequest, which closes a
+  # file download that has run out of time (ApiClient.getBytes). The lock
+  # file already has 1.6.0.
+  http: ^1.5.0
+  # Tells a failure on wifi apart from one on mobile data. The backend
+  # resolves the carrier from the address a report arrives on, and that
+  # address is the SIM's carrier only when the device is on mobile; on
+  # wifi it is whatever fixed-line ISP the router uses.
+  connectivity_plus: ^7.3.1
+  # Device identity + version. package_info_plus replaces a hardcoded
+  # version string; device_info_plus and flutter_secure_storage together
+  # give an install ID that survives a reinstall, so a user does not get a
+  # fresh free quota (and a fresh set of orphaned panel clients) every
+  # time they clear app data.
+  package_info_plus: ^10.2.1
+  device_info_plus: ^13.2.0
+  flutter_secure_storage: ^10.3.1
+  crypto: ^3.0.6
+  # The folder the backup network's server list is kept in
+  # (lib/services/psiphon_entries.dart). getApplicationSupportDirectory is
+  # Android's Context.getFilesDir, which the tunnel's process reads too.
+  # Already in the lock file through other plugins.
+  path_provider: ^2.1.6
+
+  # Referrals. share_plus opens the platform share sheet for the invite
+  # link; play_install_referrer reads the code Google Play carried
+  # through the install, which is the only free install attribution
+  # left on either platform. It is Android-only and throws on iOS, so
+  # every call sits behind a Platform check.
+  share_plus: ^13.3.0
+  play_install_referrer: ^0.5.0
+
+  # Windows. The tunnel there is a service the app reaches over a named
+  # pipe (lib/services/tunnel_pipe.dart), and the install ID is the PC's
+  # MachineGuid from the registry. All three were already in the lock file
+  # through other plugins; nothing calls them off Windows.
+  ffi: ^2.2.0
+  win32: ^6.4.0
+  win32_registry: ^3.0.3
+
+  # Google Play Billing, on Android only and only in the copy Google Play
+  # signed. Every call sits behind the signature check in
+  # lib/services/play_signature.dart and a Platform.isAndroid check
+  # (lib/services/play_billing.dart), because Play sells in no other copy
+  # and Windows has no implementation. The Android half is
+  # named too, for the base plan of a subscription and the purchases query
+  # that only Play has. 3.3.1 and 0.5.0 are the newest that Flutter 3.38
+  # accepts.
+  in_app_purchase: ^3.3.1
+  in_app_purchase_android: ^0.5.0
+  cryptography: ^2.9.0
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+  # Fake time for the connect watchdog tests, which wait out 20 seconds.
+  # Already in the lock file through flutter_test.
+  fake_async: ^1.3.3
+  # A preferences store that takes time per write, for the account deletion
+  # race tests. Already in the lock file through shared_preferences.
+  shared_preferences_platform_interface: ^2.4.1
+  flutter_lints: ^6.0.0
+  # Configured in flutter_launcher_icons.yaml.
+  flutter_launcher_icons: "^0.14.4"
+
+flutter:
+  # Generates lib/l10n/generated from the .arb files (see l10n.yaml).
+  generate: true
+  uses-material-design: true
+
+  assets:
+    - assets/icon/
+    # The home screen's power button: the shield and its light, drawn by
+    # tool/hero_art.py.
+    - assets/hero/
+    - assets/fallback/
+
+  fonts:
+    # Static instances cut from Inter's variable font at the text optical
+    # size. Flutter does not move a variable font's weight axis from
+    # fontWeight, so with the variable file medium and bold text came out at
+    # regular or as a faked bold.
+    - family: Inter
+      fonts:
+        - asset: assets/fonts/Inter/Inter-Regular.ttf
+          weight: 400
+        - asset: assets/fonts/Inter/Inter-Medium.ttf
+          weight: 500
+        - asset: assets/fonts/Inter/Inter-SemiBold.ttf
+          weight: 600
+        - asset: assets/fonts/Inter/Inter-Bold.ttf
+          weight: 700
+    - family: Vazirmatn
+      fonts:
+        - asset: assets/fonts/Vazirmatn/Vazirmatn-Light.ttf
+          weight: 300
+        - asset: assets/fonts/Vazirmatn/Vazirmatn-Regular.ttf
+          weight: 400
+        - asset: assets/fonts/Vazirmatn/Vazirmatn-Medium.ttf
+          weight: 500
+        - asset: assets/fonts/Vazirmatn/Vazirmatn-SemiBold.ttf
+          weight: 600
+        - asset: assets/fonts/Vazirmatn/Vazirmatn-Bold.ttf
+          weight: 700
+    - family: NotoSansDevanagari
+      fonts:
+        - asset: assets/fonts/NotoSansDevanagari/NotoSansDevanagari-Variable.ttf

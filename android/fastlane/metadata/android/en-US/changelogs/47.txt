@@ -1,0 +1,6 @@
+Improvements
+- If a shared server you picked does not work, the app now moves to your own server by itself instead of stopping with an error.
+- If your servers had not loaded when you opened the app, tapping connect now fetches them first.
+
+Fixes
+- A connection that comes up but carries no internet is no longer counted as working, so the app moves on to one that does.

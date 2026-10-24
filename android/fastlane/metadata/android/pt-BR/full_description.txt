@@ -1,0 +1,38 @@
+O Fortiva é uma VPN grátis, rápida e segura para Android. Conecte grátis todos os dias, sem cadastro, sem e-mail e sem número de celular. É só instalar e conectar com um toque.
+
+✓ Grátis todo dia, com uma franquia diária de dados
+✓ Sem cadastro: sem e-mail, sem número de celular, sem senha
+✓ Conexão com um toque, sem configurações e nada para ajustar
+✓ Sem anúncios e sem rastreadores
+✓ Teste de velocidade integrado: compare sua velocidade com e sem VPN
+✓ Nunca registramos as páginas que você abre
+
+VPN grátis, todo dia
+Instale o Fortiva e conecte na hora. Você ganha dados grátis todos os dias, sem precisar de conta. Sua franquia se renova sozinha todo dia.
+
+Feito para redes filtradas
+O Fortiva foi feito para redes em que as VPNs comuns não conseguem conectar. Os servidores já vêm no app e se atualizam sozinhos, então você não precisa procurar configurações nem colar chaves.
+
+Privacidade em qualquer rede
+Wi-Fi público em cafés, hotéis e aeroportos, redes de faculdade, dados móveis: o seu tráfego é criptografado entre o seu celular e os nossos servidores, em todos os apps e não só no navegador. O Fortiva não tem SDKs de anúncios nem de rastreamento e nunca registra as páginas que você abre.
+
+Convide seus amigos
+Envie o link de instalação para seus amigos, para que eles também conectem grátis. Quando um amigo começa a usar o Fortiva, você ganha Premium de presente.
+
+Premium
+O Premium tira o limite diário, então você usa quantos dados quiser até ele acabar.
+
+Como o Fortiva funciona
+O Fortiva VPN usa o VpnService do Android para criar um túnel seguro e criptografado entre o seu dispositivo e os nossos servidores remotos. Todo o tráfego de rede é criptografado com TLS, para que os seus dados continuem privados e protegidos.
+• Cria um túnel VPN seguro no nível do dispositivo
+• Criptografa todos os dados entre o seu dispositivo e os servidores VPN com TLS
+• Não coleta, não compartilha e não redireciona o tráfego dos usuários para monetização
+• Não manipula o tráfego de outros aplicativos
+• Política de privacidade completa em fortivavpn.com/privacy
+
+Licença de código aberto
+O Fortiva VPN é software livre, licenciado sob a GNU General Public License versão 3. Ele é construído sobre o v2rayNG e outros projetos de código aberto.
+
+Você tem direito ao código-fonte completo da versão que instalou. Para pedi-lo, envie um e-mail para admin@fortivavpn.com com o número da versão do aplicativo. Esta oferta vale por três anos a partir da data em que você recebeu esta versão. O código-fonte é fornecido sem cobrança, exceto o custo de envio.
+
+O texto completo da licença está em gnu.org/licenses/gpl-3.0.html

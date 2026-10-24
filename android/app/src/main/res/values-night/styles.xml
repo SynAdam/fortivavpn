@@ -1,0 +1,27 @@
+<resources>
+
+    <style name="AppThemeDayNight" parent="Theme.MaterialComponents.DayNight.DarkActionBar">
+        <item name="colorPrimary">@color/colorPrimary</item>
+        <item name="colorPrimaryDark">@color/colorPrimaryDark</item>
+        <item name="colorAccent">@color/colorAccent</item>
+        <item name="colorMainBg">@color/colorBg</item>
+        <item name="colorMainText">@color/colorText</item>
+        <item name="android:statusBarColor">@color/colorPrimary</item>
+        <item name="android:navigationBarColor">@color/colorPrimary</item>
+        <!-- Prevent system "force dark" from double-applying on our custom night palette -->
+        <item name="android:forceDarkAllowed">false</item>
+        <!-- Dark mode uses a dark status/nav background, so use light icons -->
+        <item name="android:windowLightStatusBar">false</item>
+        <item name="android:windowLightNavigationBar">false</item>
+        <item name="android:fontFamily">@font/vazir</item>
+    </style>
+
+    <style name="AppThemeDayNight.NoActionBar" parent="AppThemeDayNight">
+        <item name="windowActionBar">false</item>
+        <item name="windowNoTitle">true</item>
+        <!-- Ensure text on the toolbar is visible -->
+        <item name="android:textColorPrimary">@color/colorText</item>
+        <item name="android:fontFamily">@font/vazir</item>
+    </style>
+
+</resources>

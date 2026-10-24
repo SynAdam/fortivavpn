@@ -1,0 +1,2 @@
+- Fortiva now runs on Android TV and Google TV, and everything works with the TV remote.
+- On a TV, links such as our Telegram channel show as a QR code you can open on your phone.

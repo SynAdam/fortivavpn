@@ -1,0 +1,7 @@
+The app now asks which language you want the first time you open it, and suggests one for where you are. Every choice is written in its own script, so you do not have to read English first.
+
+A language button now sits on the home screen, so you can change it any time.
+
+The shared and community server lists open again from Your servers, and the community list no longer repeats servers you already have.
+
+Signing in with Google sticks after a restart.

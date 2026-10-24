@@ -1,0 +1,11 @@
+New
+- Your own server: every device now connects through a server set up just for it
+- Invite friends: share your invite code and get more daily data
+- Delete your account from Settings
+
+Improvements
+- The connection timer now counts correctly
+- A simpler server list
+- More reliable traffic routing
+- Improved privacy for the IP check
+- Several small fixes and improvements

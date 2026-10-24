@@ -1,0 +1,1 @@
+- Steadier connection on weak or unstable mobile networks.

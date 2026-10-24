@@ -1,0 +1,4 @@
+- Six new languages: Spanish, Indonesian, Vietnamese, Ukrainian, Uzbek and Chinese.
+- When our servers cannot be reached, the app now finds a working community server faster.
+- Community servers are now named by their country or by a number.
+- The daily data card now says when your data resets.

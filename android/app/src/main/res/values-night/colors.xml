@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Adjusted primary and dark primary colors for dark mode -->
+    <color name="colorPrimary">#03045E</color>
+    <color name="colorPrimaryDark">#000000</color>
+
+    <color name="colorAccent">#00B4D8</color>
+    <color name="colorBg">#03045E</color>
+    <color name="colorText">#CAF0F8</color>
+
+    <!-- Badge Colors for dark mode -->
+
+    <!-- Day/Night-aware UI surfaces (night overrides) -->
+
+    <!-- Drawer icon tint (requested: black and highly visible) -->
+</resources>

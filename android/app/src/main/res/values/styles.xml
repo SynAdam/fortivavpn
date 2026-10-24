@@ -1,0 +1,49 @@
+<resources>
+    <style name="AppThemeDayNight" parent="Theme.MaterialComponents.DayNight.DarkActionBar">
+        <item name="colorPrimary">@color/colorPrimary</item>
+        <item name="colorPrimaryDark">@color/colorPrimaryDark</item>
+        <item name="colorAccent">@color/colorAccent</item>
+        <item name="colorMainBg">@color/colorBg</item>
+        <item name="colorMainText">@color/colorText</item>
+        <item name="android:statusBarColor">@color/colorPrimary</item>
+        <item name="android:navigationBarColor">@color/colorPrimary</item>
+        <!-- Prevent system "force dark" from double-applying on our custom night palette -->
+        <item name="android:forceDarkAllowed">false</item>
+        <!-- Light mode uses a light status/nav background, so use dark icons -->
+        <item name="android:windowLightStatusBar">true</item>
+        <item name="android:windowLightNavigationBar">true</item>
+        <item name="android:fontFamily">@font/vazir</item>
+    </style>
+
+    <style name="AppThemeDayNight.NoActionBar" parent="AppThemeDayNight">
+        <item name="windowActionBar">false</item>
+        <item name="windowNoTitle">true</item>
+        <!-- Primary brand color. -->
+        <item name="colorPrimary">@color/colorPrimary</item>
+        <item name="colorPrimaryDark">@color/colorPrimary</item>
+        <item name="colorAccent">@color/colorAccent</item>
+        <!-- Ensure text on the toolbar is visible -->
+        <item name="android:textColorPrimary">@color/colorText</item>
+        <!-- Inherits windowLightStatusBar/windowLightNavigationBar from AppThemeDayNight -->
+        <item name="android:fontFamily">@font/vazir</item>
+    </style>
+
+    <!-- Flutter's launch/normal themes, referenced from the manifest. -->
+    <style name="LaunchTheme" parent="@android:style/Theme.Black.NoTitleBar">
+        <!-- Show a splash screen on the activity. Automatically removed when
+             Flutter draws its first frame -->
+        <item name="android:windowBackground">@drawable/launch_background</item>
+        <!-- Until Flutter makes the bars transparent (main.dart), so the
+             navigation bar is not black during launch. -->
+        <item name="android:navigationBarColor">@color/canvas</item>
+    </style>
+
+    <!-- The window behind the Flutter view. It shows wherever Flutter does
+         not draw, such as behind a transparent navigation bar on phones
+         that cannot draw edge to edge, so it is the app's canvas rather
+         than the theme's black. -->
+    <style name="NormalTheme" parent="@android:style/Theme.Black.NoTitleBar">
+        <item name="android:windowBackground">@color/canvas</item>
+        <item name="android:navigationBarColor">@color/canvas</item>
+    </style>
+</resources>

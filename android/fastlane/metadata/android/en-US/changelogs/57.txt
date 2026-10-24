@@ -1,0 +1,2 @@
+- New: if you installed Fortiva from Google Play, you can now rate it from Settings.
+- After a few days of good connections, the app may ask you to rate it on Google Play. Your rating helps other people find Fortiva.

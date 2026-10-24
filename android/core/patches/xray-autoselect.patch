@@ -1,0 +1,3968 @@
+Xray-core: the "autoselect" outbound
+
+A group outbound that sends each connection through the healthiest of its
+member outbounds, retries a failed connection on the next member, and keeps
+probing the members. See proxy/autoselect/settings.go for the full description.
+
+Source:  https://github.com/CluvexStudio/Xray-core, branch zedsecure,
+         commit f07d48ab7cbb2aac7c231bde9e7c0fa8aff0beba (written for ZedSecure
+         by CluvexStudio).
+Licence: MPL-2.0, the same as Xray-core. The files below stay under MPL-2.0.
+Base:    github.com/xtls/xray-core v1.260327.1-0.20260728075948-5ca6f4b7d4dc
+         (v26.7.28), the version AndroidLibXrayLite v26.8.20 requires.
+
+Taken from that fork, unchanged:
+  proxy/autoselect/                    the outbound and its tests
+  infra/conf/autoselect.go             its JSON settings
+  app/proxyman/outbound/handler.go     Handler.ProcessLink
+One line each, to register it:
+  infra/conf/xray.go, main/distro/all/all.go
+
+Left out: the fork's sing-box outbound, AmneziaWG, the metrics page entry and
+its other changes. None of them is needed by this outbound.
+
+Apply with: patch -p1 < xray-autoselect.patch   (stage-xray.sh does this)
+
+diff --color -ruN xray-base/app/proxyman/outbound/handler.go xray-patched/app/proxyman/outbound/handler.go
+--- xray-base/app/proxyman/outbound/handler.go	2026-10-01 14:47:25
++++ xray-patched/app/proxyman/outbound/handler.go	2026-10-01 14:47:25
+@@ -264,6 +264,44 @@
+ 	common.Interrupt(link.Reader)
+ }
+ 
++// ProcessLink runs one connection through this handler's proxy without taking ownership of the
++// link: on return the link is neither closed nor interrupted, and the error is handed back instead
++// of being logged. It is what lets the autoselect group (proxy/autoselect) move a client connection
++// to another member after this one failed.
++//
++// Target resolution and the UDP endpoint override are applied as in Dispatch. Mux and XUDP are
++// deliberately bypassed: their dispatch is asynchronous, so a failure could never be handed back,
++// and a group member has no use for them anyway.
++func (h *Handler) ProcessLink(ctx context.Context, link *transport.Link) error {
++	outbounds := session.OutboundsFromContext(ctx)
++	ob := outbounds[len(outbounds)-1]
++	content := session.ContentFromContext(ctx)
++	if h.senderSettings != nil && h.senderSettings.TargetStrategy.HasStrategy() && ob.Target.Address.Family().IsDomain() && (content == nil || !content.SkipDNSResolve) {
++		strategy := h.senderSettings.TargetStrategy
++		if ob.Target.Network == net.Network_UDP && ob.OriginalTarget.Address != nil {
++			strategy = strategy.GetDynamicStrategy(ob.OriginalTarget.Address.Family())
++		}
++		ips, err := internet.LookupForIP(ob.Target.Address.Domain(), strategy, nil)
++		if err != nil {
++			if h.senderSettings.TargetStrategy.ForceIP() {
++				return errors.New("failed to resolve ip for target ", ob.Target.Address.Domain()).Base(err)
++			}
++			errors.LogInfoInner(ctx, err, "failed to resolve ip for target ", ob.Target.Address.Domain())
++		} else {
++			unchangedDomain := ob.Target.Address.Domain()
++			ob.Target.Address = net.IPAddress(ips[dice.Roll(len(ips))])
++			errors.LogInfo(ctx, "target: ", unchangedDomain, " resolved to: ", ob.Target.Address.String())
++		}
++	}
++	if ob.Target.Network == net.Network_UDP && ob.OriginalTarget.Address != nil && ob.OriginalTarget.Address != ob.Target.Address {
++		link = &transport.Link{
++			Reader: &buf.EndpointOverrideReader{Reader: link.Reader, Dest: ob.Target.Address, OriginalDest: ob.OriginalTarget.Address},
++			Writer: &buf.EndpointOverrideWriter{Writer: link.Writer, Dest: ob.Target.Address, OriginalDest: ob.OriginalTarget.Address},
++		}
++	}
++	return h.proxy.Process(ctx, link, h)
++}
++
+ func (h *Handler) DestIpAddress() net.IP {
+ 	return internet.DestIpAddress()
+ }
+diff --color -ruN xray-base/infra/conf/autoselect.go xray-patched/infra/conf/autoselect.go
+--- xray-base/infra/conf/autoselect.go	1969-12-31 17:00:00
++++ xray-patched/infra/conf/autoselect.go	2026-10-01 02:15:03
+@@ -0,0 +1,72 @@
++package conf
++
++import (
++	"github.com/xtls/xray-core/common/errors"
++	"github.com/xtls/xray-core/infra/conf/cfgcommon/duration"
++	"github.com/xtls/xray-core/proxy/autoselect"
++	"google.golang.org/protobuf/proto"
++)
++
++// AutoSelectConfig is the JSON form of the "autoselect" outbound settings.
++//
++//	{ "tag": "proxy", "protocol": "autoselect",
++//	  "settings": { "outbounds": ["proxy@0", "proxy@1"], "probeURL": "https://…/generate_204" } }
++type AutoSelectConfig struct {
++	Outbounds        []string          `json:"outbounds"`
++	Selector         []string          `json:"selector"`
++	ProbeURL         string            `json:"probeURL"`
++	FallbackProbeURL string            `json:"fallbackProbeURL"`
++	ProbeTimeout     duration.Duration `json:"probeTimeout"`
++	ActiveInterval   duration.Duration `json:"activeInterval"`
++	StandbyInterval  duration.Duration `json:"standbyInterval"`
++	StandbyCount     int32             `json:"standbyCount"`
++	SweepInterval    duration.Duration `json:"sweepInterval"`
++	IdleAfter        duration.Duration `json:"idleAfter"`
++	SwitchRatio      float32           `json:"switchRatio"`
++	SwitchMinGain    duration.Duration `json:"switchMinGain"`
++	MinDwell         duration.Duration `json:"minDwell"`
++	Retry            *bool             `json:"retry"`
++	MaxAttempts      int32             `json:"maxAttempts"`
++	MaxReplayBytes   int32             `json:"maxReplayBytes"`
++	AttemptBudget    duration.Duration `json:"attemptBudget"`
++	Initial          string            `json:"initial"`
++	InterruptStalled *bool             `json:"interruptStalled"`
++	Concurrency      int32             `json:"concurrency"`
++}
++
++func (c *AutoSelectConfig) Build() (proto.Message, error) {
++	if len(c.Outbounds) == 0 && len(c.Selector) == 0 {
++		return nil, errors.New("autoselect: no member outbounds (set outbounds or selector)")
++	}
++	if c.SwitchRatio < 0 || c.SwitchRatio >= 1 {
++		return nil, errors.New("autoselect: switchRatio must be in [0, 1)")
++	}
++	ms := func(d duration.Duration) int64 {
++		if d < 0 {
++			return 0
++		}
++		return int64(d) / 1e6
++	}
++	return &autoselect.Config{
++		Outbounds:               c.Outbounds,
++		Selector:                c.Selector,
++		ProbeUrl:                c.ProbeURL,
++		FallbackProbeUrl:        c.FallbackProbeURL,
++		ProbeTimeoutMs:          ms(c.ProbeTimeout),
++		ActiveIntervalMs:        ms(c.ActiveInterval),
++		StandbyIntervalMs:       ms(c.StandbyInterval),
++		StandbyCount:            c.StandbyCount,
++		SweepIntervalMs:         ms(c.SweepInterval),
++		IdleAfterMs:             ms(c.IdleAfter),
++		SwitchRatio:             c.SwitchRatio,
++		SwitchMinGainMs:         ms(c.SwitchMinGain),
++		MinDwellMs:              ms(c.MinDwell),
++		DisableRetry:            c.Retry != nil && !*c.Retry,
++		MaxAttempts:             c.MaxAttempts,
++		MaxReplayBytes:          c.MaxReplayBytes,
++		AttemptBudgetMs:         ms(c.AttemptBudget),
++		Initial:                 c.Initial,
++		DisableInterruptStalled: c.InterruptStalled != nil && !*c.InterruptStalled,
++		Concurrency:             c.Concurrency,
++	}, nil
++}
+diff --color -ruN xray-base/infra/conf/xray.go xray-patched/infra/conf/xray.go
+--- xray-base/infra/conf/xray.go	2026-10-01 14:47:25
++++ xray-patched/infra/conf/xray.go	2026-10-01 14:47:25
+@@ -49,6 +49,7 @@
+ 		"hysteria":    func() interface{} { return new(HysteriaClientConfig) },
+ 		"dns":         func() interface{} { return new(DNSOutboundConfig) },
+ 		"wireguard":   func() interface{} { return &WireGuardConfig{IsClient: true} },
++		"autoselect":  func() interface{} { return new(AutoSelectConfig) },
+ 	}, "protocol", "settings")
+ )
+ 
+diff --color -ruN xray-base/main/distro/all/all.go xray-patched/main/distro/all/all.go
+--- xray-base/main/distro/all/all.go	2026-10-01 14:47:25
++++ xray-patched/main/distro/all/all.go	2026-10-01 14:47:25
+@@ -35,6 +35,7 @@
+ 	_ "github.com/xtls/xray-core/app/observatory"
+ 
+ 	// Inbound and outbound proxies.
++	_ "github.com/xtls/xray-core/proxy/autoselect"
+ 	_ "github.com/xtls/xray-core/proxy/blackhole"
+ 	_ "github.com/xtls/xray-core/proxy/dns"
+ 	_ "github.com/xtls/xray-core/proxy/dokodemo"
+diff --color -ruN xray-base/proxy/autoselect/config.pb.go xray-patched/proxy/autoselect/config.pb.go
+--- xray-base/proxy/autoselect/config.pb.go	1969-12-31 17:00:00
++++ xray-patched/proxy/autoselect/config.pb.go	2026-10-01 02:15:03
+@@ -0,0 +1,318 @@
++// Code generated by protoc-gen-go. DO NOT EDIT.
++// versions:
++// 	protoc-gen-go v1.36.11
++// 	protoc        v7.36.1
++// source: proxy/autoselect/config.proto
++
++package autoselect
++
++import (
++	protoreflect "google.golang.org/protobuf/reflect/protoreflect"
++	protoimpl "google.golang.org/protobuf/runtime/protoimpl"
++	reflect "reflect"
++	sync "sync"
++	unsafe "unsafe"
++)
++
++const (
++	// Verify that this generated code is sufficiently up-to-date.
++	_ = protoimpl.EnforceVersion(20 - protoimpl.MinVersion)
++	// Verify that runtime/protoimpl is sufficiently up-to-date.
++	_ = protoimpl.EnforceVersion(protoimpl.MaxVersion - 20)
++)
++
++// Config of the "autoselect" outbound: a group that forwards every connection through the
++// healthiest of its member outbounds, fails over without the client noticing, and keeps probing
++// the members so it knows where to go next.
++//
++// Durations are milliseconds. Every zero value means "use the built-in default", which is why the
++// switches are phrased as disable_* — a proto3 bool cannot tell "unset" from "false".
++type Config struct {
++	state protoimpl.MessageState `protogen:"open.v1"`
++	// Member outbound tags, in the caller's order of preference. Ties in health are broken by it.
++	Outbounds []string `protobuf:"bytes,1,rep,name=outbounds,proto3" json:"outbounds,omitempty"`
++	// Tag prefixes resolved against the outbound manager at runtime, appended after `outbounds`.
++	Selector []string `protobuf:"bytes,2,rep,name=selector,proto3" json:"selector,omitempty"`
++	ProbeUrl string   `protobuf:"bytes,3,opt,name=probe_url,json=probeUrl,proto3" json:"probe_url,omitempty"`
++	// Tried once when a probe of probe_url fails, so a member whose own routing blocks the probe
++	// host is not declared dead.
++	FallbackProbeUrl string `protobuf:"bytes,4,opt,name=fallback_probe_url,json=fallbackProbeUrl,proto3" json:"fallback_probe_url,omitempty"`
++	ProbeTimeoutMs   int64  `protobuf:"varint,5,opt,name=probe_timeout_ms,json=probeTimeoutMs,proto3" json:"probe_timeout_ms,omitempty"`
++	// How often the selected member is probed while traffic flows. Skipped whenever real traffic
++	// through it succeeded within the same interval.
++	ActiveIntervalMs int64 `protobuf:"varint,6,opt,name=active_interval_ms,json=activeIntervalMs,proto3" json:"active_interval_ms,omitempty"`
++	// How often the best alternatives (the failover targets) are probed.
++	StandbyIntervalMs int64 `protobuf:"varint,7,opt,name=standby_interval_ms,json=standbyIntervalMs,proto3" json:"standby_interval_ms,omitempty"`
++	StandbyCount      int32 `protobuf:"varint,8,opt,name=standby_count,json=standbyCount,proto3" json:"standby_count,omitempty"`
++	// How often every other member is probed.
++	SweepIntervalMs int64 `protobuf:"varint,9,opt,name=sweep_interval_ms,json=sweepIntervalMs,proto3" json:"sweep_interval_ms,omitempty"`
++	// No connection for this long pauses probing until traffic resumes.
++	IdleAfterMs int64 `protobuf:"varint,10,opt,name=idle_after_ms,json=idleAfterMs,proto3" json:"idle_after_ms,omitempty"`
++	// A healthy selection is only replaced by a member that is at least this much faster
++	// (0.3 = 30%) AND by at least switch_min_gain_ms, and only after min_dwell_ms on the current one.
++	SwitchRatio     float32 `protobuf:"fixed32,11,opt,name=switch_ratio,json=switchRatio,proto3" json:"switch_ratio,omitempty"`
++	SwitchMinGainMs int64   `protobuf:"varint,12,opt,name=switch_min_gain_ms,json=switchMinGainMs,proto3" json:"switch_min_gain_ms,omitempty"`
++	MinDwellMs      int64   `protobuf:"varint,13,opt,name=min_dwell_ms,json=minDwellMs,proto3" json:"min_dwell_ms,omitempty"`
++	// Transparent retry of a failed connection on the next member.
++	DisableRetry bool  `protobuf:"varint,14,opt,name=disable_retry,json=disableRetry,proto3" json:"disable_retry,omitempty"`
++	MaxAttempts  int32 `protobuf:"varint,15,opt,name=max_attempts,json=maxAttempts,proto3" json:"max_attempts,omitempty"`
++	// Upper bound of client data kept for replaying a connection onto another member.
++	MaxReplayBytes int32 `protobuf:"varint,16,opt,name=max_replay_bytes,json=maxReplayBytes,proto3" json:"max_replay_bytes,omitempty"`
++	// First response budget of an attempt; 0 derives it from the member's measured delay.
++	AttemptBudgetMs int64 `protobuf:"varint,17,opt,name=attempt_budget_ms,json=attemptBudgetMs,proto3" json:"attempt_budget_ms,omitempty"`
++	// Member to start on before any probe has answered (the caller's cached best).
++	Initial string `protobuf:"bytes,18,opt,name=initial,proto3" json:"initial,omitempty"`
++	// Leave connections that stopped receiving data on a member that was found dead alone.
++	DisableInterruptStalled bool  `protobuf:"varint,19,opt,name=disable_interrupt_stalled,json=disableInterruptStalled,proto3" json:"disable_interrupt_stalled,omitempty"`
++	Concurrency             int32 `protobuf:"varint,20,opt,name=concurrency,proto3" json:"concurrency,omitempty"`
++	unknownFields           protoimpl.UnknownFields
++	sizeCache               protoimpl.SizeCache
++}
++
++func (x *Config) Reset() {
++	*x = Config{}
++	mi := &file_proxy_autoselect_config_proto_msgTypes[0]
++	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
++	ms.StoreMessageInfo(mi)
++}
++
++func (x *Config) String() string {
++	return protoimpl.X.MessageStringOf(x)
++}
++
++func (*Config) ProtoMessage() {}
++
++func (x *Config) ProtoReflect() protoreflect.Message {
++	mi := &file_proxy_autoselect_config_proto_msgTypes[0]
++	if x != nil {
++		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
++		if ms.LoadMessageInfo() == nil {
++			ms.StoreMessageInfo(mi)
++		}
++		return ms
++	}
++	return mi.MessageOf(x)
++}
++
++// Deprecated: Use Config.ProtoReflect.Descriptor instead.
++func (*Config) Descriptor() ([]byte, []int) {
++	return file_proxy_autoselect_config_proto_rawDescGZIP(), []int{0}
++}
++
++func (x *Config) GetOutbounds() []string {
++	if x != nil {
++		return x.Outbounds
++	}
++	return nil
++}
++
++func (x *Config) GetSelector() []string {
++	if x != nil {
++		return x.Selector
++	}
++	return nil
++}
++
++func (x *Config) GetProbeUrl() string {
++	if x != nil {
++		return x.ProbeUrl
++	}
++	return ""
++}
++
++func (x *Config) GetFallbackProbeUrl() string {
++	if x != nil {
++		return x.FallbackProbeUrl
++	}
++	return ""
++}
++
++func (x *Config) GetProbeTimeoutMs() int64 {
++	if x != nil {
++		return x.ProbeTimeoutMs
++	}
++	return 0
++}
++
++func (x *Config) GetActiveIntervalMs() int64 {
++	if x != nil {
++		return x.ActiveIntervalMs
++	}
++	return 0
++}
++
++func (x *Config) GetStandbyIntervalMs() int64 {
++	if x != nil {
++		return x.StandbyIntervalMs
++	}
++	return 0
++}
++
++func (x *Config) GetStandbyCount() int32 {
++	if x != nil {
++		return x.StandbyCount
++	}
++	return 0
++}
++
++func (x *Config) GetSweepIntervalMs() int64 {
++	if x != nil {
++		return x.SweepIntervalMs
++	}
++	return 0
++}
++
++func (x *Config) GetIdleAfterMs() int64 {
++	if x != nil {
++		return x.IdleAfterMs
++	}
++	return 0
++}
++
++func (x *Config) GetSwitchRatio() float32 {
++	if x != nil {
++		return x.SwitchRatio
++	}
++	return 0
++}
++
++func (x *Config) GetSwitchMinGainMs() int64 {
++	if x != nil {
++		return x.SwitchMinGainMs
++	}
++	return 0
++}
++
++func (x *Config) GetMinDwellMs() int64 {
++	if x != nil {
++		return x.MinDwellMs
++	}
++	return 0
++}
++
++func (x *Config) GetDisableRetry() bool {
++	if x != nil {
++		return x.DisableRetry
++	}
++	return false
++}
++
++func (x *Config) GetMaxAttempts() int32 {
++	if x != nil {
++		return x.MaxAttempts
++	}
++	return 0
++}
++
++func (x *Config) GetMaxReplayBytes() int32 {
++	if x != nil {
++		return x.MaxReplayBytes
++	}
++	return 0
++}
++
++func (x *Config) GetAttemptBudgetMs() int64 {
++	if x != nil {
++		return x.AttemptBudgetMs
++	}
++	return 0
++}
++
++func (x *Config) GetInitial() string {
++	if x != nil {
++		return x.Initial
++	}
++	return ""
++}
++
++func (x *Config) GetDisableInterruptStalled() bool {
++	if x != nil {
++		return x.DisableInterruptStalled
++	}
++	return false
++}
++
++func (x *Config) GetConcurrency() int32 {
++	if x != nil {
++		return x.Concurrency
++	}
++	return 0
++}
++
++var File_proxy_autoselect_config_proto protoreflect.FileDescriptor
++
++const file_proxy_autoselect_config_proto_rawDesc = "" +
++	"\n" +
++	"\x1dproxy/autoselect/config.proto\x12\x15xray.proxy.autoselect\"\x92\x06\n" +
++	"\x06Config\x12\x1c\n" +
++	"\toutbounds\x18\x01 \x03(\tR\toutbounds\x12\x1a\n" +
++	"\bselector\x18\x02 \x03(\tR\bselector\x12\x1b\n" +
++	"\tprobe_url\x18\x03 \x01(\tR\bprobeUrl\x12,\n" +
++	"\x12fallback_probe_url\x18\x04 \x01(\tR\x10fallbackProbeUrl\x12(\n" +
++	"\x10probe_timeout_ms\x18\x05 \x01(\x03R\x0eprobeTimeoutMs\x12,\n" +
++	"\x12active_interval_ms\x18\x06 \x01(\x03R\x10activeIntervalMs\x12.\n" +
++	"\x13standby_interval_ms\x18\a \x01(\x03R\x11standbyIntervalMs\x12#\n" +
++	"\rstandby_count\x18\b \x01(\x05R\fstandbyCount\x12*\n" +
++	"\x11sweep_interval_ms\x18\t \x01(\x03R\x0fsweepIntervalMs\x12\"\n" +
++	"\ridle_after_ms\x18\n" +
++	" \x01(\x03R\vidleAfterMs\x12!\n" +
++	"\fswitch_ratio\x18\v \x01(\x02R\vswitchRatio\x12+\n" +
++	"\x12switch_min_gain_ms\x18\f \x01(\x03R\x0fswitchMinGainMs\x12 \n" +
++	"\fmin_dwell_ms\x18\r \x01(\x03R\n" +
++	"minDwellMs\x12#\n" +
++	"\rdisable_retry\x18\x0e \x01(\bR\fdisableRetry\x12!\n" +
++	"\fmax_attempts\x18\x0f \x01(\x05R\vmaxAttempts\x12(\n" +
++	"\x10max_replay_bytes\x18\x10 \x01(\x05R\x0emaxReplayBytes\x12*\n" +
++	"\x11attempt_budget_ms\x18\x11 \x01(\x03R\x0fattemptBudgetMs\x12\x18\n" +
++	"\ainitial\x18\x12 \x01(\tR\ainitial\x12:\n" +
++	"\x19disable_interrupt_stalled\x18\x13 \x01(\bR\x17disableInterruptStalled\x12 \n" +
++	"\vconcurrency\x18\x14 \x01(\x05R\vconcurrencyBa\n" +
++	"\x19com.xray.proxy.autoselectP\x01Z*github.com/xtls/xray-core/proxy/autoselect\xaa\x02\x15Xray.Proxy.Autoselectb\x06proto3"
++
++var (
++	file_proxy_autoselect_config_proto_rawDescOnce sync.Once
++	file_proxy_autoselect_config_proto_rawDescData []byte
++)
++
++func file_proxy_autoselect_config_proto_rawDescGZIP() []byte {
++	file_proxy_autoselect_config_proto_rawDescOnce.Do(func() {
++		file_proxy_autoselect_config_proto_rawDescData = protoimpl.X.CompressGZIP(unsafe.Slice(unsafe.StringData(file_proxy_autoselect_config_proto_rawDesc), len(file_proxy_autoselect_config_proto_rawDesc)))
++	})
++	return file_proxy_autoselect_config_proto_rawDescData
++}
++
++var file_proxy_autoselect_config_proto_msgTypes = make([]protoimpl.MessageInfo, 1)
++var file_proxy_autoselect_config_proto_goTypes = []any{
++	(*Config)(nil), // 0: xray.proxy.autoselect.Config
++}
++var file_proxy_autoselect_config_proto_depIdxs = []int32{
++	0, // [0:0] is the sub-list for method output_type
++	0, // [0:0] is the sub-list for method input_type
++	0, // [0:0] is the sub-list for extension type_name
++	0, // [0:0] is the sub-list for extension extendee
++	0, // [0:0] is the sub-list for field type_name
++}
++
++func init() { file_proxy_autoselect_config_proto_init() }
++func file_proxy_autoselect_config_proto_init() {
++	if File_proxy_autoselect_config_proto != nil {
++		return
++	}
++	type x struct{}
++	out := protoimpl.TypeBuilder{
++		File: protoimpl.DescBuilder{
++			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
++			RawDescriptor: unsafe.Slice(unsafe.StringData(file_proxy_autoselect_config_proto_rawDesc), len(file_proxy_autoselect_config_proto_rawDesc)),
++			NumEnums:      0,
++			NumMessages:   1,
++			NumExtensions: 0,
++			NumServices:   0,
++		},
++		GoTypes:           file_proxy_autoselect_config_proto_goTypes,
++		DependencyIndexes: file_proxy_autoselect_config_proto_depIdxs,
++		MessageInfos:      file_proxy_autoselect_config_proto_msgTypes,
++	}.Build()
++	File_proxy_autoselect_config_proto = out.File
++	file_proxy_autoselect_config_proto_goTypes = nil
++	file_proxy_autoselect_config_proto_depIdxs = nil
++}
+diff --color -ruN xray-base/proxy/autoselect/config.proto xray-patched/proxy/autoselect/config.proto
+--- xray-base/proxy/autoselect/config.proto	1969-12-31 17:00:00
++++ xray-patched/proxy/autoselect/config.proto	2026-10-01 02:15:03
+@@ -0,0 +1,57 @@
++syntax = "proto3";
++
++package xray.proxy.autoselect;
++option csharp_namespace = "Xray.Proxy.Autoselect";
++option go_package = "github.com/xtls/xray-core/proxy/autoselect";
++option java_package = "com.xray.proxy.autoselect";
++option java_multiple_files = true;
++
++// Config of the "autoselect" outbound: a group that forwards every connection through the
++// healthiest of its member outbounds, fails over without the client noticing, and keeps probing
++// the members so it knows where to go next.
++//
++// Durations are milliseconds. Every zero value means "use the built-in default", which is why the
++// switches are phrased as disable_* — a proto3 bool cannot tell "unset" from "false".
++message Config {
++  // Member outbound tags, in the caller's order of preference. Ties in health are broken by it.
++  repeated string outbounds = 1;
++  // Tag prefixes resolved against the outbound manager at runtime, appended after `outbounds`.
++  repeated string selector = 2;
++
++  string probe_url = 3;
++  // Tried once when a probe of probe_url fails, so a member whose own routing blocks the probe
++  // host is not declared dead.
++  string fallback_probe_url = 4;
++  int64 probe_timeout_ms = 5;
++
++  // How often the selected member is probed while traffic flows. Skipped whenever real traffic
++  // through it succeeded within the same interval.
++  int64 active_interval_ms = 6;
++  // How often the best alternatives (the failover targets) are probed.
++  int64 standby_interval_ms = 7;
++  int32 standby_count = 8;
++  // How often every other member is probed.
++  int64 sweep_interval_ms = 9;
++  // No connection for this long pauses probing until traffic resumes.
++  int64 idle_after_ms = 10;
++
++  // A healthy selection is only replaced by a member that is at least this much faster
++  // (0.3 = 30%) AND by at least switch_min_gain_ms, and only after min_dwell_ms on the current one.
++  float switch_ratio = 11;
++  int64 switch_min_gain_ms = 12;
++  int64 min_dwell_ms = 13;
++
++  // Transparent retry of a failed connection on the next member.
++  bool disable_retry = 14;
++  int32 max_attempts = 15;
++  // Upper bound of client data kept for replaying a connection onto another member.
++  int32 max_replay_bytes = 16;
++  // First response budget of an attempt; 0 derives it from the member's measured delay.
++  int64 attempt_budget_ms = 17;
++
++  // Member to start on before any probe has answered (the caller's cached best).
++  string initial = 18;
++  // Leave connections that stopped receiving data on a member that was found dead alone.
++  bool disable_interrupt_stalled = 19;
++  int32 concurrency = 20;
++}
+diff --color -ruN xray-base/proxy/autoselect/conn.go xray-patched/proxy/autoselect/conn.go
+--- xray-base/proxy/autoselect/conn.go	1969-12-31 17:00:00
++++ xray-patched/proxy/autoselect/conn.go	2026-10-01 02:15:03
+@@ -0,0 +1,814 @@
++package autoselect
++
++import (
++	"context"
++	goerrors "errors"
++	"io"
++	"strings"
++	"sync"
++	"sync/atomic"
++	"time"
++
++	"github.com/xtls/xray-core/common"
++	"github.com/xtls/xray-core/common/buf"
++	"github.com/xtls/xray-core/common/errors"
++	"github.com/xtls/xray-core/common/net"
++	"github.com/xtls/xray-core/common/session"
++	"github.com/xtls/xray-core/transport"
++)
++
++// linkProcessor runs one connection through an outbound without taking ownership of the link: the
++// link is neither closed nor interrupted when it returns, and the error comes back to the caller.
++// app/proxyman/outbound.Handler implements it in this fork; it is what lets one client connection
++// be moved to another member after a failure.
++type linkProcessor interface {
++	ProcessLink(ctx context.Context, link *transport.Link) error
++}
++
++// step is one member of a connection's plan, with its handler resolved while the group was locked.
++type step struct {
++	m  *member
++	lp linkProcessor
++}
++
++var errNoResponse = errors.New("no response in time")
++
++// payloadKind classifies the first bytes a client sent, which decides whether they may be sent
++// again through another member.
++type payloadKind uint8
++
++const (
++	payloadNone payloadKind = iota
++	// Anything we cannot prove harmless to repeat, e.g. a plaintext HTTP request.
++	payloadOpaque
++	// A TLS ClientHello: no application data can precede the server's reply, so repeating it on
++	// a fresh connection is invisible to the application.
++	payloadTLSHello
++	// QUIC long-header packets: the handshake, which a server always answers.
++	payloadQUIC
++	// DNS queries, which are idempotent and always answered.
++	payloadDNS
++)
++
++func (k payloadKind) replaySafe() bool {
++	return k == payloadTLSHello || k == payloadQUIC || k == payloadDNS
++}
++
++func classifyPayload(target net.Destination, head []byte) payloadKind {
++	if target.Port == 53 {
++		return payloadDNS
++	}
++	if target.Network == net.Network_UDP {
++		// Long header bit set and a non-zero version: an Initial/0-RTT/Handshake packet.
++		if len(head) >= 5 && head[0]&0x80 != 0 && (head[1]|head[2]|head[3]|head[4]) != 0 {
++			return payloadQUIC
++		}
++		return payloadOpaque
++	}
++	// TLS record header (type 22 = handshake) followed by handshake type 1 = ClientHello.
++	if len(head) >= 6 && head[0] == 0x16 && head[5] == 0x01 {
++		return payloadTLSHello
++	}
++	return payloadOpaque
++}
++
++type eventKind uint8
++
++const (
++	evWon eventKind = iota
++	evDone
++	evBudget
++	evHedge
++)
++
++type event struct {
++	kind eventKind
++	a    *attempt
++}
++
++// conn is one client connection being forwarded through the group.
++type conn struct {
++	g   *Group
++	ctx context.Context
++	// The group's own outbound metadata. Its CanSpliceCopy gates kernel splicing for every
++	// attempt: a spliced response goes from socket to socket and never passes the attempt's writer,
++	// so the connection would never count as answered and would be abandoned at its budget while
++	// data flowed. Splicing is held back until an attempt has won, then allowed.
++	group  *session.Outbound
++	src    buf.Reader
++	srcT   buf.TimeoutReader
++	dst    buf.Writer
++	target net.Destination
++	events chan event
++
++	winner atomic.Pointer[attempt]
++
++	// Held by whoever is reading the client while no attempt has won, so chunks enter the
++	// history in the order the client sent them.
++	readMu sync.Mutex
++
++	mu           sync.Mutex
++	history      buf.MultiBuffer // everything the client sent before an attempt won; owned here
++	historyBytes int32
++	head         []byte
++	kind         payloadKind
++	overflow     bool
++	srcErr       error
++	// With data that must not reach two servers, only this attempt may consume it.
++	owner    *attempt
++	released bool
++}
++
++type attempt struct {
++	c       *conn
++	m       *member
++	index   int
++	ctx     context.Context
++	cancel  context.CancelFunc
++	started time.Time
++	budget  *time.Timer
++
++	pos     int  // history entries already handed over (guarded by c.mu)
++	drained bool // winner only, touched by its reading goroutine alone
++
++	consumed atomic.Bool
++	aborted  atomic.Bool
++	lastDown atomic.Int64
++
++	won      chan struct{}
++	done     chan struct{}
++	late     chan struct{}
++	lateOnce sync.Once
++	err      error
++}
++
++func (c *conn) send(ev event) {
++	select {
++	case c.events <- ev:
++	default:
++		// The buffer holds every event a plan can produce; running out means forward has
++		// already returned and nobody is listening any more.
++	}
++}
++
++// forward sends one connection through plan, moving it to the next member when that is both
++// needed and safe.
++func (g *Group) forward(ctx context.Context, link *transport.Link, ob *session.Outbound, plan []step) error {
++	srcT, canTime := link.Reader.(buf.TimeoutReader)
++	if !g.cfg.retry || !canTime || len(plan) < 2 {
++		return g.single(ctx, link, plan[0])
++	}
++	pristine := *ob
++	pristine.CanSpliceCopy = 0
++	// 2 = "not yet, but maybe later": CopyRawConnIfExist re-reads it on every round, where 3 would
++	// rule splicing out for the whole connection.
++	ob.CanSpliceCopy = 2
++	c := &conn{
++		g:      g,
++		ctx:    ctx,
++		group:  ob,
++		src:    link.Reader,
++		srcT:   srcT,
++		dst:    link.Writer,
++		target: ob.Target,
++		events: make(chan event, 4*len(plan)+4),
++	}
++	defer c.release()
++
++	var (
++		live    []*attempt
++		next    int
++		lastErr error
++	)
++	launch := func() *attempt {
++		st := plan[next]
++		a := c.begin(st, pristine, next)
++		next++
++		live = append(live, a)
++		if next < len(plan) {
++			// The last member gets no budget: there is nowhere left to move the connection to,
++			// so it may take as long as it takes.
++			budget, _ := g.timings(st.m)
++			a.budget = time.AfterFunc(budget, func() { c.send(event{evBudget, a}) })
++		}
++		return a
++	}
++	drop := func(a *attempt) {
++		for i, x := range live {
++			if x == a {
++				live = append(live[:i], live[i+1:]...)
++				break
++			}
++		}
++		if a.budget != nil {
++			a.budget.Stop()
++		}
++	}
++	isLive := func(a *attempt) bool {
++		for _, x := range live {
++			if x == a {
++				return true
++			}
++		}
++		return false
++	}
++
++	defer func() {
++		for _, a := range live {
++			c.abort(a)
++		}
++	}()
++
++	primary := launch()
++	_, hedgeDelay := g.timings(primary.m)
++	hedge := time.AfterFunc(hedgeDelay, func() { c.send(event{evHedge, primary}) })
++	defer hedge.Stop()
++
++	for {
++		var ev event
++		select {
++		case ev = <-c.events:
++		case <-ctx.Done():
++			for _, a := range live {
++				c.abort(a)
++			}
++			return ctx.Err()
++		}
++		a := ev.a
++		switch ev.kind {
++		case evWon:
++			hedge.Stop()
++			for _, other := range append([]*attempt(nil), live...) {
++				if other == a {
++					continue
++				}
++				drop(other)
++				if other.index == 0 {
++					// The first member lost a race it was given a head start in. Whether it was
++					// merely slow or dead is worth knowing, and costs nothing but a short wait.
++					go g.shadow(other)
++				} else {
++					c.abort(other)
++				}
++			}
++			drop(a)
++			g.recordOutcome(a.m, outcomeSuccess, nil)
++			g.track(a)
++			<-a.done
++			g.untrack(a)
++			return a.err
++
++		case evDone:
++			if !isLive(a) || c.winner.Load() == a {
++				continue
++			}
++			drop(a)
++			if c.clientGone() {
++				// The client ended the connection; whatever the member did is not its fault.
++				for _, other := range live {
++					c.abort(other)
++				}
++				return a.err
++			}
++			if a.err == nil || isBenign(a.err) {
++				if !c.expectsResponse() {
++					// Finished cleanly without answering, and nothing about the traffic says it
++					// should have: a legitimate end, not a failure.
++					if len(live) == 0 {
++						return a.err
++					}
++					continue
++				}
++				a.err = errNoResponse
++			}
++			g.recordOutcome(a.m, failureKind(a), a.err)
++			lastErr = a.err
++			if c.isOwner(a) {
++				// It consumed data that must not reach a second server; nobody else can take over.
++				for _, other := range live {
++					c.abort(other)
++				}
++				return lastErr
++			}
++			if len(live) > 0 {
++				continue
++			}
++			if next >= len(plan) || !c.retryable(a) {
++				return lastErr
++			}
++			errors.LogInfo(ctx, "autoselect: ", a.m.tag, " failed (", shortError(a.err), "), moving the connection to ", plan[next].m.tag)
++			launch()
++
++		case evBudget:
++			if !isLive(a) || c.winner.Load() == a || !c.abortable(a) {
++				continue
++			}
++			c.abort(a)
++			drop(a)
++			g.recordOutcome(a.m, outcomeStall, errNoResponse)
++			lastErr = errNoResponse
++			if len(live) > 0 {
++				continue
++			}
++			if next >= len(plan) {
++				return lastErr
++			}
++			errors.LogInfo(ctx, "autoselect: ", a.m.tag, " did not answer in time, moving the connection to ", plan[next].m.tag)
++			launch()
++
++		case evHedge:
++			if len(live) != 1 || live[0] != a || next >= len(plan) || c.winner.Load() != nil {
++				continue
++			}
++			if !c.hedgeable() || !g.canHedgeTo(plan[next].m) {
++				continue
++			}
++			launch()
++		}
++	}
++}
++
++// single forwards without the ability to retry, still learning from the outcome.
++func (g *Group) single(ctx context.Context, link *transport.Link, st step) error {
++	if st.lp == nil {
++		err := errors.New("autoselect: outbound [", st.m.tag, "] is unavailable")
++		g.recordOutcome(st.m, outcomeDialFailure, err)
++		return err
++	}
++	w := &observedWriter{Writer: link.Writer, onFirst: func() { g.recordOutcome(st.m, outcomeSuccess, nil) }}
++	err := st.lp.ProcessLink(ctx, &transport.Link{Reader: link.Reader, Writer: w})
++	if !w.wrote.Load() && err != nil && !isBenign(err) && ctx.Err() == nil {
++		if isDialFailure(err) {
++			g.recordOutcome(st.m, outcomeDialFailure, err)
++		} else {
++			g.recordOutcome(st.m, outcomeFailure, err)
++		}
++	}
++	return err
++}
++
++// shadow keeps a losing first attempt alive for the rest of its budget to learn why it lost.
++func (g *Group) shadow(a *attempt) {
++	budget, _ := g.timings(a.m)
++	left := budget - time.Since(a.started)
++	if left < 0 {
++		left = 0
++	}
++	t := time.NewTimer(left)
++	defer t.Stop()
++	select {
++	case <-a.late:
++		g.recordOutcome(a.m, outcomeSlow, nil)
++	case <-a.done:
++		if a.err != nil && !isBenign(a.err) {
++			g.recordOutcome(a.m, failureKind(a), a.err)
++		}
++	case <-t.C:
++		g.recordOutcome(a.m, outcomeStall, errNoResponse)
++	case <-g.ctx.Done():
++	}
++	a.c.abort(a)
++}
++
++func (c *conn) begin(st step, pristine session.Outbound, index int) *attempt {
++	// Each attempt runs as a further hop after the group, with its own copy of the metadata as it
++	// was before anyone touched it: proxies write to their outbound (Name, Conn, CanSpliceCopy), an
++	// earlier attempt may still be unwinding, and the group's entry must stay the group's so it can
++	// gate splicing (see conn.group).
++	outbounds := session.OutboundsFromContext(c.ctx)
++	hops := make([]*session.Outbound, len(outbounds), len(outbounds)+1)
++	copy(hops, outbounds)
++	cp := pristine
++	ctx := session.ContextWithOutbounds(c.ctx, append(hops, &cp))
++	ctx, cancel := context.WithCancel(ctx)
++	a := &attempt{
++		c:       c,
++		m:       st.m,
++		index:   index,
++		ctx:     ctx,
++		cancel:  cancel,
++		started: time.Now(),
++		won:     make(chan struct{}),
++		done:    make(chan struct{}),
++		late:    make(chan struct{}),
++	}
++	go func() {
++		defer func() {
++			cancel()
++			close(a.done)
++			c.send(event{evDone, a})
++		}()
++		if st.lp == nil {
++			a.err = errors.New("autoselect: outbound [", st.m.tag, "] is unavailable")
++			return
++		}
++		a.err = st.lp.ProcessLink(ctx, &transport.Link{Reader: &attemptReader{a}, Writer: &attemptWriter{a}})
++	}()
++	return a
++}
++
++// commit makes a the winner: from now on it owns the client connection.
++func (c *conn) commit(a *attempt) bool {
++	c.mu.Lock()
++	defer c.mu.Unlock()
++	return c.commitLocked(a)
++}
++
++func (c *conn) commitLocked(a *attempt) bool {
++	if w := c.winner.Load(); w != nil {
++		return w == a
++	}
++	if a.aborted.Load() || c.released {
++		return false
++	}
++	c.winner.Store(a)
++	// From here on nothing will be retried, so the winner may splice. This runs on the attempt's
++	// downlink goroutine, which is also the one that decides whether to splice.
++	c.group.CanSpliceCopy = 1
++	close(a.won)
++	c.send(event{evWon, a})
++	return true
++}
++
++func (c *conn) abort(a *attempt) {
++	c.mu.Lock()
++	if c.winner.Load() == a {
++		c.mu.Unlock()
++		return
++	}
++	a.aborted.Store(true)
++	c.mu.Unlock()
++	a.cancel()
++}
++
++func (c *conn) release() {
++	c.mu.Lock()
++	c.released = true
++	buf.ReleaseMulti(c.history)
++	c.history = nil
++	c.mu.Unlock()
++}
++
++func (c *conn) isOwner(a *attempt) bool {
++	c.mu.Lock()
++	defer c.mu.Unlock()
++	return c.owner == a
++}
++
++func (c *conn) expectsResponse() bool {
++	c.mu.Lock()
++	defer c.mu.Unlock()
++	return c.kind.replaySafe()
++}
++
++// clientGone reports that the client side ended the connection (as opposed to merely finishing
++// sending, which is io.EOF and still expects an answer).
++func (c *conn) clientGone() bool {
++	if c.ctx.Err() != nil {
++		return true
++	}
++	c.mu.Lock()
++	defer c.mu.Unlock()
++	return c.clientGoneLocked()
++}
++
++func (c *conn) clientGoneLocked() bool {
++	return c.srcErr != nil && !goerrors.Is(c.srcErr, io.EOF)
++}
++
++// retryable reports whether a connection whose attempt a failed may be moved to another member.
++func (c *conn) retryable(a *attempt) bool {
++	if c.ctx.Err() != nil {
++		return false
++	}
++	c.mu.Lock()
++	defer c.mu.Unlock()
++	if c.overflow || c.winner.Load() != nil || c.clientGoneLocked() {
++		return false
++	}
++	if !a.consumed.Load() || isDialFailure(a.err) {
++		return true
++	}
++	return c.kind.replaySafe()
++}
++
++// abortable reports whether attempt a, still running, may be given up on.
++func (c *conn) abortable(a *attempt) bool {
++	if c.ctx.Err() != nil {
++		return false
++	}
++	c.mu.Lock()
++	defer c.mu.Unlock()
++	if c.overflow || c.clientGoneLocked() {
++		return false
++	}
++	return !a.consumed.Load() || c.kind.replaySafe()
++}
++
++// hedgeable reports whether a second attempt may run beside the current one.
++func (c *conn) hedgeable() bool {
++	c.mu.Lock()
++	defer c.mu.Unlock()
++	if c.overflow || c.clientGoneLocked() {
++		return false
++	}
++	return len(c.history) == 0 || c.kind.replaySafe()
++}
++
++// pull reads the client once on behalf of a while nobody has won. Every chunk enters the history
++// before anyone sees it, so a chunk read by an attempt that is abandoned the next moment is still
++// there for the one that replaces it.
++func (c *conn) pull(a *attempt, wait time.Duration) {
++	c.readMu.Lock()
++	defer c.readMu.Unlock()
++	if c.winner.Load() != nil || a.aborted.Load() {
++		return
++	}
++	c.mu.Lock()
++	pending := a.pos < len(c.history) || c.srcErr != nil
++	c.mu.Unlock()
++	if pending {
++		return
++	}
++	mb, err := c.srcT.ReadMultiBufferTimeout(wait)
++	c.mu.Lock()
++	defer c.mu.Unlock()
++	if c.released {
++		buf.ReleaseMulti(mb)
++		return
++	}
++	if !mb.IsEmpty() {
++		c.recordLocked(mb, a)
++	}
++	if err != nil && err != buf.ErrReadTimeout {
++		c.srcErr = err
++	}
++}
++
++func (c *conn) recordLocked(mb buf.MultiBuffer, puller *attempt) {
++	if c.kind == payloadNone {
++		for _, b := range mb {
++			need := 6 - len(c.head)
++			if need <= 0 {
++				break
++			}
++			bs := b.Bytes()
++			if len(bs) > need {
++				bs = bs[:need]
++			}
++			c.head = append(c.head, bs...)
++		}
++		if c.target.Network == net.Network_UDP || len(c.head) >= 6 || c.target.Port == 53 {
++			c.kind = classifyPayload(c.target, c.head)
++		}
++	}
++	c.history = append(c.history, mb...)
++	c.historyBytes += mb.Len()
++	if c.historyBytes > c.g.cfg.maxReplayBytes && !c.overflow {
++		// Too much to keep for a replay. The attempt reading right now is the only one this
++		// connection will get, so it wins immediately and reads the client directly from here on.
++		c.overflow = true
++		c.commitLocked(puller)
++	}
++}
++
++type attemptReader struct{ a *attempt }
++
++func (r *attemptReader) ReadMultiBuffer() (buf.MultiBuffer, error) {
++	return r.a.read(-1)
++}
++
++func (r *attemptReader) ReadMultiBufferTimeout(d time.Duration) (buf.MultiBuffer, error) {
++	return r.a.read(d)
++}
++
++// Interrupt only reaches the client when it comes from the winner.
++func (r *attemptReader) Interrupt() {
++	if r.a.c.winner.Load() == r.a {
++		common.Interrupt(r.a.c.src)
++	}
++}
++
++func (a *attempt) read(timeout time.Duration) (buf.MultiBuffer, error) {
++	c := a.c
++	if c.winner.Load() == a {
++		if !a.drained {
++			if mb := a.drain(); !mb.IsEmpty() {
++				return mb, nil
++			}
++		}
++		if timeout < 0 {
++			return c.src.ReadMultiBuffer()
++		}
++		return c.srcT.ReadMultiBufferTimeout(timeout)
++	}
++	var deadline time.Time
++	if timeout >= 0 {
++		deadline = time.Now().Add(timeout)
++	}
++	for {
++		if a.aborted.Load() {
++			return nil, io.ErrClosedPipe
++		}
++		mb, err, ok, blocked := a.fromHistory()
++		if ok {
++			return mb, err
++		}
++		if w := c.winner.Load(); w != nil {
++			if w == a {
++				return a.read(remaining(deadline, timeout))
++			}
++			return nil, io.ErrClosedPipe
++		}
++		wait := pollInterval
++		if timeout >= 0 {
++			left := time.Until(deadline)
++			if left <= 0 {
++				return nil, buf.ErrReadTimeout
++			}
++			if left < wait {
++				wait = left
++			}
++		}
++		if !blocked && a.mayConsume() {
++			c.pull(a, wait)
++		} else {
++			time.Sleep(wait)
++		}
++	}
++}
++
++func remaining(deadline time.Time, timeout time.Duration) time.Duration {
++	if timeout < 0 {
++		return -1
++	}
++	left := time.Until(deadline)
++	if left < 0 {
++		return 0
++	}
++	return left
++}
++
++// fromHistory hands over client data a has not seen, as a copy: the history must stay intact for a
++// replay. blocked means data exists but belongs to another attempt.
++func (a *attempt) fromHistory() (mb buf.MultiBuffer, err error, ok bool, blocked bool) {
++	c := a.c
++	c.mu.Lock()
++	defer c.mu.Unlock()
++	if a.pos < len(c.history) {
++		if !c.kind.replaySafe() && c.owner != nil && c.owner != a {
++			return nil, nil, false, true
++		}
++		if !c.kind.replaySafe() {
++			c.owner = a
++		}
++		mb = copyMulti(c.history[a.pos:])
++		a.pos = len(c.history)
++		a.consumed.Store(true)
++		return mb, nil, true, false
++	}
++	if c.srcErr != nil {
++		return nil, c.srcErr, true, false
++	}
++	if c.released {
++		return nil, io.ErrClosedPipe, true, false
++	}
++	return nil, nil, false, false
++}
++
++// mayConsume reports whether a may read new client data: always, unless another attempt already
++// holds data that must not be sent twice.
++func (a *attempt) mayConsume() bool {
++	c := a.c
++	c.mu.Lock()
++	defer c.mu.Unlock()
++	return c.owner == nil || c.owner == a || c.kind.replaySafe()
++}
++
++// drain is the winner's switch to reading the client directly: it waits out a read another
++// attempt may still have in flight, takes whatever it has not been handed yet, and frees the rest.
++func (a *attempt) drain() buf.MultiBuffer {
++	c := a.c
++	c.readMu.Lock()
++	c.mu.Lock()
++	if c.released {
++		// forward already returned (the client went away while this attempt was winning) and
++		// freed the history; there is nothing left to hand over.
++		a.drained = true
++		c.mu.Unlock()
++		c.readMu.Unlock()
++		return nil
++	}
++	var mb buf.MultiBuffer
++	if a.pos < len(c.history) {
++		mb = append(mb, c.history[a.pos:]...)
++	}
++	buf.ReleaseMulti(c.history[:a.pos])
++	c.history = nil
++	c.historyBytes = 0
++	a.pos = 0
++	a.drained = true
++	if !mb.IsEmpty() {
++		a.consumed.Store(true)
++	}
++	c.mu.Unlock()
++	c.readMu.Unlock()
++	return mb
++}
++
++func copyMulti(src buf.MultiBuffer) buf.MultiBuffer {
++	out := make(buf.MultiBuffer, 0, len(src))
++	for _, b := range src {
++		nb := buf.New()
++		if b.Len() > nb.Cap() {
++			nb.Release()
++			nb = buf.NewWithSize(b.Len())
++		}
++		nb.Write(b.Bytes())
++		if b.UDP != nil {
++			dest := *b.UDP
++			nb.UDP = &dest
++		}
++		out = append(out, nb)
++	}
++	return out
++}
++
++type attemptWriter struct{ a *attempt }
++
++func (w *attemptWriter) WriteMultiBuffer(mb buf.MultiBuffer) error {
++	a := w.a
++	c := a.c
++	if c.winner.Load() == a {
++		a.lastDown.Store(time.Now().UnixNano())
++		return c.dst.WriteMultiBuffer(mb)
++	}
++	if mb.IsEmpty() {
++		return nil
++	}
++	if !c.commit(a) {
++		buf.ReleaseMulti(mb)
++		a.lateOnce.Do(func() { close(a.late) })
++		return io.ErrClosedPipe
++	}
++	a.lastDown.Store(time.Now().UnixNano())
++	return c.dst.WriteMultiBuffer(mb)
++}
++
++// Close and Interrupt reach the client only from the winner; a losing attempt ending is not the
++// client's business.
++func (w *attemptWriter) Close() error {
++	if w.a.c.winner.Load() == w.a {
++		return common.Close(w.a.c.dst)
++	}
++	return nil
++}
++
++func (w *attemptWriter) Interrupt() {
++	if w.a.c.winner.Load() == w.a {
++		common.Interrupt(w.a.c.dst)
++	}
++}
++
++// interrupt cuts a won connection whose member was found dead.
++func (a *attempt) interrupt() {
++	a.cancel()
++	common.Interrupt(a.c.dst)
++	common.Interrupt(a.c.src)
++}
++
++// observedWriter reports the first response byte of a connection that cannot be retried.
++type observedWriter struct {
++	buf.Writer
++	onFirst func()
++	wrote   atomic.Bool
++}
++
++func (w *observedWriter) WriteMultiBuffer(mb buf.MultiBuffer) error {
++	if !mb.IsEmpty() && w.wrote.CompareAndSwap(false, true) {
++		w.onFirst()
++	}
++	return w.Writer.WriteMultiBuffer(mb)
++}
++
++func (w *observedWriter) Close() error { return common.Close(w.Writer) }
++
++func (w *observedWriter) Interrupt() { common.Interrupt(w.Writer) }
++
++func failureKind(a *attempt) outcome {
++	if !a.consumed.Load() || isDialFailure(a.err) {
++		return outcomeDialFailure
++	}
++	return outcomeFailure
++}
++
++// isDialFailure recognises the error every proxy in this core returns when it could not reach its
++// own server — before any client data was sent anywhere.
++func isDialFailure(err error) bool {
++	return err != nil && strings.Contains(err.Error(), "failed to find an available destination")
++}
++
++func isBenign(err error) bool {
++	cause := errors.Cause(err)
++	return goerrors.Is(cause, io.EOF) || goerrors.Is(cause, io.ErrClosedPipe) || goerrors.Is(cause, context.Canceled)
++}
+diff --color -ruN xray-base/proxy/autoselect/export_test.go xray-patched/proxy/autoselect/export_test.go
+--- xray-base/proxy/autoselect/export_test.go	1969-12-31 17:00:00
++++ xray-patched/proxy/autoselect/export_test.go	2026-10-01 02:15:03
+@@ -0,0 +1,10 @@
++package autoselect
++
++import "time"
++
++// SetStalledAfter shortens the stall threshold for a test and returns the restore function.
++func SetStalledAfter(d time.Duration) func() {
++	old := stalledAfter
++	stalledAfter = d
++	return func() { stalledAfter = old }
++}
+diff --color -ruN xray-base/proxy/autoselect/group.go xray-patched/proxy/autoselect/group.go
+--- xray-base/proxy/autoselect/group.go	1969-12-31 17:00:00
++++ xray-patched/proxy/autoselect/group.go	2026-10-01 02:15:03
+@@ -0,0 +1,761 @@
++package autoselect
++
++import (
++	"context"
++	"math"
++	"math/rand"
++	"sort"
++	"strings"
++	"sync"
++	"sync/atomic"
++	"time"
++
++	"github.com/xtls/xray-core/common"
++	"github.com/xtls/xray-core/common/errors"
++	"github.com/xtls/xray-core/common/session"
++	"github.com/xtls/xray-core/core"
++	"github.com/xtls/xray-core/features/outbound"
++	"github.com/xtls/xray-core/features/routing"
++	"github.com/xtls/xray-core/features/stats"
++	"github.com/xtls/xray-core/transport"
++	"github.com/xtls/xray-core/transport/internet"
++)
++
++// Why the selection changed. Surfaced to the app, so these are part of the status format.
++const (
++	reasonStartup   = "startup"
++	reasonFailover  = "failover"
++	reasonFaster    = "faster"
++	reasonPinned    = "pinned"
++	reasonRecovered = "recovered"
++)
++
++// Group is the autoselect outbound.
++type Group struct {
++	cfg        settings
++	ctx        context.Context
++	cancel     context.CancelFunc
++	tag        string
++	ohm        outbound.Manager
++	dispatcher routing.Dispatcher
++	stats      stats.Manager
++	now        func() time.Time
++
++	mu                sync.Mutex
++	members           []*member
++	byTag             map[string]*member
++	membersResolvedAt time.Time
++	selected          *member
++	pinned            string
++	graceStart        time.Time
++	lastSwitch        time.Time
++	switches          int
++	events            []SwitchEvent
++	hedgeTokens       float64
++	hedgeRefill       time.Time
++
++	lastTraffic atomic.Int64 // unix nanos of the last connection
++	idle        atomic.Bool
++
++	wake     chan struct{}
++	sem      chan struct{}
++	startOne sync.Once
++}
++
++// New creates the group. Probing starts together with the Xray instance.
++func New(ctx context.Context, config *Config) (*Group, error) {
++	g := &Group{
++		cfg:   newSettings(config),
++		now:   time.Now,
++		byTag: make(map[string]*member),
++		wake:  make(chan struct{}, 1),
++	}
++	g.sem = make(chan struct{}, g.cfg.concurrency)
++	if h := session.FullHandlerFromContext(ctx); h != nil {
++		g.tag = h.Tag()
++	}
++	if err := core.RequireFeatures(ctx, func(om outbound.Manager, d routing.Dispatcher) error {
++		g.ohm = om
++		g.dispatcher = d
++		return nil
++	}); err != nil {
++		return nil, errors.New("autoselect: missing features").Base(err)
++	}
++	core.OptionalFeatures(ctx, func(sm stats.Manager) {
++		g.stats = sm
++	})
++	g.ctx, g.cancel = context.WithCancel(ctx)
++	now := g.now()
++	g.graceStart = now
++	g.hedgeTokens = hedgeBurst
++	g.hedgeRefill = now
++	g.lastTraffic.Store(now.UnixNano())
++	// The members are other outbounds of the same instance, and probing them means dispatching
++	// through it, so nothing may run before the instance has started. A feature is the one hook
++	// the instance offers for that; it is also closed together with the instance.
++	if err := core.MustFromContext(ctx).AddFeature(&starter{g: g}); err != nil {
++		return nil, err
++	}
++	return g, nil
++}
++
++// starter ties the group's background work to the instance lifecycle.
++type starter struct{ g *Group }
++
++func (s *starter) Type() interface{} { return (*starter)(nil) }
++
++func (s *starter) Start() error {
++	s.g.start()
++	return nil
++}
++
++func (s *starter) Close() error { return s.g.Close() }
++
++func (g *Group) start() {
++	g.startOne.Do(func() {
++		register(g)
++		go g.monitor()
++	})
++}
++
++// Close stops probing and forgets the group.
++func (g *Group) Close() error {
++	unregister(g)
++	if g.cancel != nil {
++		g.cancel()
++	}
++	return nil
++}
++
++// Process implements proxy.Outbound.
++func (g *Group) Process(ctx context.Context, link *transport.Link, _ internet.Dialer) error {
++	outbounds := session.OutboundsFromContext(ctx)
++	ob := outbounds[len(outbounds)-1]
++	if !ob.Target.IsValid() {
++		return errors.New("target not specified").AtError()
++	}
++	ob.Name = "autoselect"
++	g.noteTraffic()
++	plan := g.plan()
++	if len(plan) == 0 {
++		return errors.New("autoselect: no member outbound is configured").AtWarning()
++	}
++	return g.forward(ctx, link, ob, plan)
++}
++
++// noteTraffic marks the group busy. Leaving idle restarts the probes of the members that matter
++// right now, so a network that changed while nobody was using it is re-measured immediately.
++func (g *Group) noteTraffic() {
++	now := g.now()
++	g.lastTraffic.Store(now.UnixNano())
++	if !g.idle.Load() {
++		return
++	}
++	g.mu.Lock()
++	if g.idle.CompareAndSwap(true, false) {
++		for _, m := range g.members {
++			if m == g.selected || g.isStandbyLocked(m, now) || m.state == stateUnknown {
++				m.nextProbeAt = now
++			}
++		}
++	}
++	g.mu.Unlock()
++	g.poke()
++}
++
++func (g *Group) poke() {
++	select {
++	case g.wake <- struct{}{}:
++	default:
++	}
++}
++
++// plan returns the members to try for one connection, best first.
++func (g *Group) plan() []step {
++	g.mu.Lock()
++	defer g.mu.Unlock()
++	now := g.now()
++	g.refreshMembersLocked(now)
++	if len(g.members) == 0 {
++		return nil
++	}
++	sel := g.selectLocked(now)
++	out := make([]step, 0, g.cfg.maxAttempts)
++	add := func(m *member) {
++		lp, _ := m.handler.(linkProcessor)
++		out = append(out, step{m: m, lp: lp})
++	}
++	add(sel)
++	for _, m := range g.alternativesLocked(now, sel) {
++		if len(out) >= g.cfg.maxAttempts {
++			break
++		}
++		add(m)
++	}
++	return out
++}
++
++// refreshMembersLocked keeps the member list in step with the outbound manager. Handlers can be
++// added after the group is created (it is usually the first outbound) or replaced through the API.
++func (g *Group) refreshMembersLocked(now time.Time) {
++	if len(g.members) > 0 && now.Sub(g.membersResolvedAt) < membersRefreshEvery {
++		return
++	}
++	if g.ohm == nil {
++		return
++	}
++	g.membersResolvedAt = now
++	var tags []string
++	seen := make(map[string]bool)
++	add := func(tag string) {
++		if tag == "" || tag == g.tag || seen[tag] {
++			return
++		}
++		seen[tag] = true
++		tags = append(tags, tag)
++	}
++	for _, t := range g.cfg.outbounds {
++		add(t)
++	}
++	if len(g.cfg.selectors) > 0 {
++		if hs, ok := g.ohm.(outbound.HandlerSelector); ok {
++			for _, t := range hs.Select(g.cfg.selectors) {
++				add(t)
++			}
++		}
++	}
++	members := make([]*member, 0, len(tags))
++	byTag := make(map[string]*member, len(tags))
++	for i, t := range tags {
++		m := g.byTag[t]
++		if m == nil {
++			m = newMember(t, i)
++		}
++		m.order = i
++		m.handler = g.ohm.GetHandler(t)
++		members = append(members, m)
++		byTag[t] = m
++	}
++	if g.selected != nil && byTag[g.selected.tag] == nil {
++		g.selected = nil
++	}
++	g.members = members
++	g.byTag = byTag
++}
++
++func (g *Group) inGraceLocked(now time.Time) bool {
++	return now.Sub(g.graceStart) < startupGrace
++}
++
++// selectLocked applies the selection policy and returns the member new connections go to.
++func (g *Group) selectLocked(now time.Time) *member {
++	if len(g.members) == 0 {
++		return nil
++	}
++	if g.pinned != "" {
++		if m := g.byTag[g.pinned]; m != nil {
++			g.setSelectedLocked(m, reasonPinned, now)
++			return m
++		}
++	}
++	cur := g.selected
++	best := g.bestAliveLocked(now)
++	switch {
++	case cur == nil:
++		pick := g.byTag[g.cfg.initial]
++		if pick != nil && pick.state == stateDead {
++			pick = nil
++		}
++		if pick == nil {
++			pick = best
++		}
++		if pick == nil {
++			pick = g.firstUsableLocked(nil)
++		}
++		g.setSelectedLocked(pick, reasonStartup, now)
++	case cur.state == stateDead || cur.state == stateSuspect:
++		if best != nil && best != cur {
++			g.setSelectedLocked(best, reasonFailover, now)
++		} else if cur.state == stateDead {
++			// Nothing measured alive: move to a member not known dead, if there is one. When
++			// every member is dead the selection stays put rather than rotating among them.
++			if alt := g.firstUsableLocked(cur); alt != nil && alt.state != stateDead {
++				g.setSelectedLocked(alt, reasonFailover, now)
++			}
++		}
++	case best != nil && best != cur && g.shouldPreferLocked(cur, best, now):
++		reason := reasonFaster
++		if _, ok := cur.score(now); !ok {
++			reason = reasonStartup
++		} else if cur.failStreak > 0 {
++			// Its failures are what cost it the lead, so that is the reason worth telling.
++			reason = reasonFailover
++		}
++		g.setSelectedLocked(best, reason, now)
++	}
++	return g.selected
++}
++
++// shouldPreferLocked is the hysteresis: a working selection is only replaced by a member that is
++// faster by a real margin, and not more often than min_dwell — otherwise two similar servers would
++// trade places on every probe and the exit address would keep changing under the user.
++func (g *Group) shouldPreferLocked(cur, best *member, now time.Time) bool {
++	bestScore, ok := best.score(now)
++	if !ok {
++		return false
++	}
++	grace := g.inGraceLocked(now)
++	curScore, curRanked := cur.score(now)
++	if !curRanked {
++		// The current pick was a guess that has not been measured yet. Give its own first probe
++		// the chance to answer before trading it for whoever answered first.
++		if cur.probing && now.Sub(cur.probeStarted) < g.cfg.probeTimeout {
++			return false
++		}
++		return true
++	}
++	if len(best.delays) < 2 && !grace {
++		return false
++	}
++	if bestScore > curScore*(1-g.cfg.switchRatio) {
++		return false
++	}
++	if curScore-bestScore < float64(g.cfg.switchMinGain)/float64(time.Millisecond) {
++		return false
++	}
++	if !grace && now.Sub(g.lastSwitch) < g.cfg.minDwell {
++		return false
++	}
++	return true
++}
++
++func (g *Group) bestAliveLocked(now time.Time) *member {
++	var best *member
++	bestScore := math.Inf(1)
++	for _, m := range g.members {
++		if m.state != stateAlive {
++			continue
++		}
++		s, ok := m.score(now)
++		if !ok {
++			continue
++		}
++		if s < bestScore || (s == bestScore && best != nil && m.order < best.order) {
++			best, bestScore = m, s
++		}
++	}
++	return best
++}
++
++// firstUsableLocked picks a member when nothing has been measured alive: the first one that is not
++// known dead, else the dead one that worked most recently.
++func (g *Group) firstUsableLocked(except *member) *member {
++	for _, m := range g.members {
++		if m != except && m.state != stateDead {
++			return m
++		}
++	}
++	var pick *member
++	for _, m := range g.members {
++		if m == except {
++			continue
++		}
++		if pick == nil || m.lastSuccessAt.After(pick.lastSuccessAt) {
++			pick = m
++		}
++	}
++	return pick
++}
++
++// alternativesLocked orders the members a failing connection falls back to: measured alive ones by
++// score, then never measured ones in configured order, then suspects. Dead members are only
++// offered when nothing else is left.
++func (g *Group) alternativesLocked(now time.Time, sel *member) []*member {
++	type ranked struct {
++		m     *member
++		tier  int
++		score float64
++	}
++	var list []ranked
++	for _, m := range g.members {
++		if m == sel {
++			continue
++		}
++		s, ok := m.score(now)
++		switch {
++		case m.state == stateAlive && ok:
++			list = append(list, ranked{m, 0, s})
++		case m.state == stateAlive || m.state == stateUnknown:
++			list = append(list, ranked{m, 1, float64(m.order)})
++		case m.state == stateSuspect:
++			list = append(list, ranked{m, 2, s})
++		}
++	}
++	if len(list) == 0 {
++		for _, m := range g.members {
++			if m != sel {
++				list = append(list, ranked{m, 3, -float64(m.lastSuccessAt.UnixNano())})
++			}
++		}
++	}
++	sort.SliceStable(list, func(i, j int) bool {
++		if list[i].tier != list[j].tier {
++			return list[i].tier < list[j].tier
++		}
++		return list[i].score < list[j].score
++	})
++	out := make([]*member, len(list))
++	for i, r := range list {
++		out[i] = r.m
++	}
++	return out
++}
++
++func (g *Group) isStandbyLocked(m *member, now time.Time) bool {
++	if m == g.selected || m.state == stateDead {
++		return false
++	}
++	for i, alt := range g.alternativesLocked(now, g.selected) {
++		if i >= g.cfg.standbyCount {
++			break
++		}
++		if alt == m {
++			return true
++		}
++	}
++	return false
++}
++
++func (g *Group) setSelectedLocked(m *member, reason string, now time.Time) {
++	if m == nil || m == g.selected {
++		return
++	}
++	from := ""
++	if g.selected != nil {
++		from = g.selected.tag
++	}
++	if reason == reasonFailover && from == "" {
++		reason = reasonStartup
++	}
++	g.selected = m
++	g.lastSwitch = now
++	g.switches++
++	g.events = append(g.events, SwitchEvent{From: from, To: m.tag, Reason: reason, AtMs: now.UnixMilli()})
++	if len(g.events) > eventsKept {
++		g.events = g.events[len(g.events)-eventsKept:]
++	}
++	errors.LogInfo(g.ctx, "autoselect[", g.tag, "]: ", reason, " -> ", m.tag, " (was ", from, ")")
++	// A change of selection changes who counts as standby, so bring the new neighbours forward.
++	m.nextProbeAt = minTime(m.nextProbeAt, now.Add(g.cfg.activeInterval))
++}
++
++// recordOutcome feeds what a real connection taught about a member back into the selection.
++func (g *Group) recordOutcome(m *member, o outcome, err error) {
++	g.mu.Lock()
++	defer g.mu.Unlock()
++	now := g.now()
++	switch o {
++	case outcomeSuccess:
++		m.pushOutcome(now, 0)
++		m.lastSuccessAt, m.lastPassiveOK = now, now
++		m.failStreak = 0
++		if m.state != stateAlive {
++			// Real traffic just went through, which outranks any probe verdict. It carries no
++			// delay sample, though, so measure it again soon.
++			wasDown := m.state == stateDead
++			m.state = stateAlive
++			m.probeFailStreak = 0
++			m.nextProbeAt = now
++			if wasDown && g.selected != nil && g.selected.state == stateDead {
++				g.setSelectedLocked(m, reasonRecovered, now)
++			}
++			g.poke()
++		}
++		return
++	case outcomeSlow:
++		m.pushOutcome(now, 0.5)
++		g.selectLocked(now)
++		return
++	}
++	m.pushOutcome(now, 1)
++	m.failStreak++
++	if err != nil {
++		m.lastError = shortError(err)
++	}
++	recent := m.noteHardFailure(now)
++	switch m.state {
++	case stateAlive, stateUnknown:
++		if recent >= 2 {
++			m.state = stateSuspect
++			m.nextProbeAt = now
++		} else if now.Before(m.nextProbeAt) {
++			// One failure is not a verdict, but it is a reason not to wait for the schedule.
++			m.nextProbeAt = now
++		}
++		g.poke()
++	case stateSuspect:
++		if recent >= 3 {
++			g.markDeadLocked(m, now)
++		}
++	}
++	g.selectLocked(now)
++}
++
++// recordProbe folds one probe result into the member.
++func (g *Group) recordProbe(m *member, d time.Duration, err error) {
++	g.mu.Lock()
++	defer g.mu.Unlock()
++	now := g.now()
++	m.probing = false
++	m.lastProbeAt = now
++	if err == nil {
++		m.addDelay(d)
++		m.lastProbeOKAt, m.lastSuccessAt = now, now
++		m.failStreak, m.probeFailStreak = 0, 0
++		m.recentFailures = m.recentFailures[:0]
++		m.lastError = ""
++		wasDown := m.state == stateDead
++		m.state = stateAlive
++		if wasDown && g.selected != nil && g.selected.state == stateDead {
++			g.setSelectedLocked(m, reasonRecovered, now)
++		}
++	} else {
++		m.probeFailStreak++
++		m.failStreak++
++		m.lastError = shortError(err)
++		switch m.state {
++		case stateAlive:
++			m.state = stateSuspect
++		case stateSuspect, stateUnknown:
++			// Real traffic that went through moments ago says the probe host is the problem, not
++			// the member, so stop short of declaring it dead.
++			if !m.lastPassiveOK.IsZero() && now.Sub(m.lastPassiveOK) < g.cfg.activeInterval {
++				m.state = stateSuspect
++			} else {
++				g.markDeadLocked(m, now)
++			}
++		}
++	}
++	m.nextProbeAt = g.nextProbeLocked(m, now)
++	g.selectLocked(now)
++}
++
++func (g *Group) markDeadLocked(m *member, now time.Time) {
++	if m.state == stateDead {
++		return
++	}
++	if !m.lastBytesAt.IsZero() && now.Sub(m.lastBytesAt) < stalledAfter {
++		// Data is still arriving through it, so whatever just failed, the member is not dead.
++		m.state = stateSuspect
++		return
++	}
++	m.state = stateDead
++	if !g.cfg.interruptStalled {
++		return
++	}
++	// The member has delivered nothing for stalledAfter, so every connection still open on it is
++	// hanging — spliced ones included, since their bytes would have shown in the counter. Cut
++	// them, so their applications reconnect through the new selection instead of waiting for a
++	// timeout. Connections that did receive something recently are left alone.
++	for a := range m.active {
++		if now.Sub(time.Unix(0, a.lastDown.Load())) >= stalledAfter {
++			a.interrupt()
++		}
++	}
++}
++
++// sampleCountersLocked notes when bytes last arrived through each member. The app reads and
++// resets the counters, so any non-zero value that differs from the last sample is new traffic.
++func (g *Group) sampleCountersLocked(now time.Time) {
++	if g.stats == nil {
++		return
++	}
++	for _, m := range g.members {
++		if m.downCounter == nil {
++			m.downCounter = g.stats.GetCounter("outbound>>>" + m.tag + ">>>traffic>>>downlink")
++			if m.downCounter == nil {
++				continue
++			}
++		}
++		if v := m.downCounter.Value(); v != m.counterValue {
++			if v > 0 {
++				m.lastBytesAt = now
++			}
++			m.counterValue = v
++		}
++	}
++}
++
++func (g *Group) nextProbeLocked(m *member, now time.Time) time.Time {
++	switch {
++	case m.state == stateUnknown:
++		return now
++	case m.state == stateSuspect:
++		return now.Add(suspectRecheck)
++	case m.state == stateDead:
++		table := deadBackoff
++		if g.allDownLocked() {
++			table = allDownBackoff
++		}
++		i := m.probeFailStreak - 1
++		if i < 0 {
++			i = 0
++		}
++		if i >= len(table) {
++			i = len(table) - 1
++		}
++		return now.Add(jittered(table[i]))
++	case m == g.selected:
++		return now.Add(g.cfg.activeInterval)
++	case g.isStandbyLocked(m, now):
++		return now.Add(jittered(g.cfg.standbyInterval))
++	default:
++		return now.Add(jittered(g.cfg.sweepInterval))
++	}
++}
++
++func (g *Group) allDownLocked() bool {
++	for _, m := range g.members {
++		if m.state == stateAlive || m.state == stateSuspect {
++			return false
++		}
++	}
++	return true
++}
++
++// timings returns how long an attempt on m may go without a response before it is abandoned, and
++// after how long a second attempt is raced against it.
++func (g *Group) timings(m *member) (budget, hedge time.Duration) {
++	g.mu.Lock()
++	d := m.typicalDelay()
++	g.mu.Unlock()
++	budget = g.cfg.attemptBudget
++	if budget <= 0 {
++		budget = defaultAttemptBudget
++		if d > 0 {
++			budget = clampDuration(time.Duration(float64(d)*2.5)+time.Second, minAttemptBudget, maxAttemptBudget)
++		}
++	}
++	hedge = defaultHedgeDelay
++	if d > 0 {
++		hedge = clampDuration(d+300*time.Millisecond, minHedgeDelay, maxHedgeDelay)
++	}
++	if hedge >= budget {
++		hedge = budget / 2
++	}
++	return budget, hedge
++}
++
++// canHedgeTo reports whether a racing attempt may be started on m, spending one hedge token. Races
++// are only run against members measured alive, and at a bounded rate, so a slow network does not
++// turn every connection into two.
++func (g *Group) canHedgeTo(m *member) bool {
++	g.mu.Lock()
++	defer g.mu.Unlock()
++	if m.state != stateAlive {
++		return false
++	}
++	now := g.now()
++	g.hedgeTokens = math.Min(hedgeBurst, g.hedgeTokens+now.Sub(g.hedgeRefill).Seconds()*hedgeRate)
++	g.hedgeRefill = now
++	if g.hedgeTokens < 1 {
++		return false
++	}
++	g.hedgeTokens--
++	return true
++}
++
++func (g *Group) track(a *attempt) {
++	g.mu.Lock()
++	a.m.active[a] = struct{}{}
++	g.mu.Unlock()
++}
++
++func (g *Group) untrack(a *attempt) {
++	g.mu.Lock()
++	delete(a.m.active, a)
++	g.mu.Unlock()
++}
++
++// Kick tells the group the network changed: every member is re-measured now, dead ones included,
++// and the next pick may be made on fresh data without waiting out min_dwell.
++func (g *Group) Kick() {
++	g.mu.Lock()
++	now := g.now()
++	g.graceStart = now
++	for _, m := range g.members {
++		m.nextProbeAt = now
++		if m.state == stateDead {
++			m.probeFailStreak = 0
++		}
++	}
++	g.lastTraffic.Store(now.UnixNano())
++	g.idle.Store(false)
++	g.mu.Unlock()
++	g.poke()
++}
++
++// Pin forces every new connection onto one member; an empty tag returns to automatic selection.
++func (g *Group) Pin(tag string) bool {
++	g.mu.Lock()
++	defer g.mu.Unlock()
++	if tag != "" && g.byTag[tag] == nil {
++		return false
++	}
++	g.pinned = tag
++	g.selectLocked(g.now())
++	return true
++}
++
++// shortError reduces an Xray error chain to the part that names the cause. Errors nest every layer
++// ("failed to process outbound traffic > … > dial tcp …: connection refused"), so the innermost
++// segment is usually it — except for wrappers like the retry helper's sentinel, which are skipped.
++func shortError(err error) string {
++	parts := strings.Split(err.Error(), " > ")
++	s := parts[len(parts)-1]
++	for i := len(parts) - 1; i >= 0; i-- {
++		p := strings.TrimSpace(parts[i])
++		if p == "" || strings.HasSuffix(p, "all retry attempts failed") {
++			continue
++		}
++		s = p
++		break
++	}
++	// Drop the package prefix ("common/retry: ") and the brackets the retry helper puts around
++	// the errors it collected.
++	if i := strings.Index(s, ": "); i > 0 && strings.Contains(s[:i], "/") && !strings.Contains(s[:i], " ") {
++		s = s[i+2:]
++	}
++	s = strings.TrimSuffix(strings.TrimPrefix(s, "["), "]")
++	if len(s) > 200 {
++		s = s[:200]
++	}
++	return s
++}
++
++func jittered(d time.Duration) time.Duration {
++	return d + time.Duration((rand.Float64()*0.2-0.1)*float64(d))
++}
++
++func clampDuration(d, lo, hi time.Duration) time.Duration {
++	if d < lo {
++		return lo
++	}
++	if d > hi {
++		return hi
++	}
++	return d
++}
++
++func minTime(a, b time.Time) time.Time {
++	if a.IsZero() || b.Before(a) {
++		return b
++	}
++	return a
++}
++
++func init() {
++	common.Must(common.RegisterConfig((*Config)(nil), func(ctx context.Context, config interface{}) (interface{}, error) {
++		return New(ctx, config.(*Config))
++	}))
++}
+diff --color -ruN xray-base/proxy/autoselect/integration_test.go xray-patched/proxy/autoselect/integration_test.go
+--- xray-base/proxy/autoselect/integration_test.go	1969-12-31 17:00:00
++++ xray-patched/proxy/autoselect/integration_test.go	2026-10-01 02:15:03
+@@ -0,0 +1,642 @@
++package autoselect_test
++
++import (
++	"bytes"
++	"context"
++	"encoding/binary"
++	"fmt"
++	"io"
++	gonet "net"
++	"net/http"
++	"net/http/httptest"
++	"strings"
++	"sync"
++	"sync/atomic"
++	"testing"
++	"time"
++
++	"github.com/xtls/xray-core/common/net"
++	"github.com/xtls/xray-core/core"
++	"github.com/xtls/xray-core/infra/conf/serial"
++	_ "github.com/xtls/xray-core/main/distro/all"
++	"github.com/xtls/xray-core/proxy/autoselect"
++)
++
++// fakeSocks is a SOCKS5 server whose behaviour a test can change while it runs.
++type fakeSocks struct {
++	ln      gonet.Listener
++	mode    atomic.Value // "ok", "blackhole", "drop"
++	latency atomic.Int64 // added before each handshake reply
++	accepts atomic.Int32
++}
++
++func newFakeSocks(t *testing.T, mode string, latency time.Duration) *fakeSocks {
++	t.Helper()
++	ln, err := gonet.Listen("tcp", "127.0.0.1:0")
++	if err != nil {
++		t.Fatal(err)
++	}
++	f := &fakeSocks{ln: ln}
++	f.set(mode, latency)
++	go func() {
++		for {
++			c, err := ln.Accept()
++			if err != nil {
++				return
++			}
++			f.accepts.Add(1)
++			go f.handle(c)
++		}
++	}()
++	t.Cleanup(func() { ln.Close() })
++	return f
++}
++
++func (f *fakeSocks) set(mode string, latency time.Duration) {
++	f.mode.Store(mode)
++	f.latency.Store(int64(latency))
++}
++
++func (f *fakeSocks) port() int { return f.ln.Addr().(*gonet.TCPAddr).Port }
++
++func (f *fakeSocks) handle(c gonet.Conn) {
++	defer c.Close()
++	mode := f.mode.Load().(string)
++	lat := time.Duration(f.latency.Load())
++	if mode == "blackhole" || mode == "freeze" {
++		io.Copy(io.Discard, c)
++		return
++	}
++	hdr := make([]byte, 2)
++	if _, err := io.ReadFull(c, hdr); err != nil {
++		return
++	}
++	if _, err := io.ReadFull(c, make([]byte, hdr[1])); err != nil {
++		return
++	}
++	time.Sleep(lat)
++	c.Write([]byte{5, 0})
++	req := make([]byte, 4)
++	if _, err := io.ReadFull(c, req); err != nil {
++		return
++	}
++	var host string
++	switch req[3] {
++	case 1:
++		ip := make([]byte, 4)
++		io.ReadFull(c, ip)
++		host = gonet.IP(ip).String()
++	case 3:
++		l := make([]byte, 1)
++		io.ReadFull(c, l)
++		d := make([]byte, l[0])
++		io.ReadFull(c, d)
++		host = string(d)
++	case 4:
++		ip := make([]byte, 16)
++		io.ReadFull(c, ip)
++		host = gonet.IP(ip).String()
++	}
++	pb := make([]byte, 2)
++	io.ReadFull(c, pb)
++	port := binary.BigEndian.Uint16(pb)
++	time.Sleep(lat)
++	ok := []byte{5, 0, 0, 1, 0, 0, 0, 0, 0, 0}
++	if mode == "freeze" {
++		return
++	}
++	if mode == "drop" {
++		// Takes the request and the first client bytes, then dies without answering.
++		c.Write(ok)
++		c.Read(make([]byte, 4096))
++		return
++	}
++	upstream, err := gonet.Dial("tcp", gonet.JoinHostPort(host, fmt.Sprint(port)))
++	if err != nil {
++		c.Write([]byte{5, 5, 0, 1, 0, 0, 0, 0, 0, 0})
++		return
++	}
++	defer upstream.Close()
++	c.Write(ok)
++	go f.relay(upstream, c)
++	f.relay(c, upstream)
++}
++
++// relay copies until either side closes, holding data back for as long as the server is frozen:
++// a server that stops forwarding without closing anything, the way a blocked one does.
++func (f *fakeSocks) relay(dst, src gonet.Conn) {
++	defer dst.Close()
++	b := make([]byte, 32<<10)
++	for {
++		n, err := src.Read(b)
++		for n > 0 && f.mode.Load().(string) == "freeze" {
++			time.Sleep(20 * time.Millisecond)
++		}
++		if n > 0 {
++			if _, werr := dst.Write(b[:n]); werr != nil {
++				return
++			}
++		}
++		if err != nil {
++			return
++		}
++	}
++}
++
++// echoServer counts connections and the bytes it received.
++type echoServer struct {
++	ln    gonet.Listener
++	conns atomic.Int32
++	mu    sync.Mutex
++	got   bytes.Buffer
++}
++
++func newEchoServer(t *testing.T) *echoServer {
++	t.Helper()
++	ln, err := gonet.Listen("tcp", "127.0.0.1:0")
++	if err != nil {
++		t.Fatal(err)
++	}
++	e := &echoServer{ln: ln}
++	go func() {
++		for {
++			c, err := ln.Accept()
++			if err != nil {
++				return
++			}
++			e.conns.Add(1)
++			go func() {
++				defer c.Close()
++				b := make([]byte, 4096)
++				for {
++					n, err := c.Read(b)
++					if n > 0 {
++						e.mu.Lock()
++						e.got.Write(b[:n])
++						e.mu.Unlock()
++						c.Write(b[:n])
++					}
++					if err != nil {
++						return
++					}
++				}
++			}()
++		}
++	}()
++	t.Cleanup(func() { ln.Close() })
++	return e
++}
++
++func (e *echoServer) received() []byte {
++	e.mu.Lock()
++	defer e.mu.Unlock()
++	return append([]byte(nil), e.got.Bytes()...)
++}
++
++type rig struct {
++	t      *testing.T
++	inst   *core.Instance
++	probes atomic.Int32
++	echo   *echoServer
++	socks  []*fakeSocks
++}
++
++func newRig(t *testing.T, settings string, members ...*fakeSocks) *rig {
++	t.Helper()
++	r := &rig{t: t, echo: newEchoServer(t), socks: members}
++	probe := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, _ *http.Request) {
++		r.probes.Add(1)
++		w.WriteHeader(http.StatusNoContent)
++	}))
++	t.Cleanup(probe.Close)
++
++	var tags, outbounds []string
++	for i, m := range members {
++		tag := fmt.Sprintf("m%d", i)
++		tags = append(tags, `"`+tag+`"`)
++		outbounds = append(outbounds, fmt.Sprintf(
++			`{"tag":%q,"protocol":"socks","settings":{"servers":[{"address":"127.0.0.1","port":%d}]}}`, tag, m.port()))
++	}
++	if settings != "" {
++		settings = "," + settings
++	}
++	config := fmt.Sprintf(`{
++	  "log": {"loglevel": "none"},
++	  "policy": {"levels": {"0": {"handshake": 3}}, "system": {"statsOutboundUplink": true, "statsOutboundDownlink": true}},
++	  "stats": {},
++	  "outbounds": [
++	    {"tag": "auto", "protocol": "autoselect", "settings": {
++	      "outbounds": [%s], "probeURL": %q, "probeTimeout": "1s",
++	      "activeInterval": "1s", "standbyInterval": "1s", "sweepInterval": "2s"%s}},
++	    %s
++	  ]}`, strings.Join(tags, ","), probe.URL+"/generate_204", settings, strings.Join(outbounds, ",\n"))
++	cfg, err := serial.LoadJSONConfig(strings.NewReader(config))
++	if err != nil {
++		t.Fatalf("config: %v\n%s", err, config)
++	}
++	inst, err := core.New(cfg)
++	if err != nil {
++		t.Fatal(err)
++	}
++	if err := inst.Start(); err != nil {
++		t.Fatal(err)
++	}
++	t.Cleanup(func() { inst.Close() })
++	r.inst = inst
++	return r
++}
++
++func (r *rig) status() autoselect.GroupStatus {
++	for _, s := range autoselect.Statuses() {
++		if s.Tag == "auto" {
++			return s
++		}
++	}
++	return autoselect.GroupStatus{}
++}
++
++func (r *rig) waitFor(what string, timeout time.Duration, ok func(autoselect.GroupStatus) bool) autoselect.GroupStatus {
++	r.t.Helper()
++	deadline := time.Now().Add(timeout)
++	for {
++		s := r.status()
++		if ok(s) {
++			return s
++		}
++		if time.Now().After(deadline) {
++			r.t.Fatalf("timed out waiting for %s; status: %+v", what, s)
++		}
++		time.Sleep(50 * time.Millisecond)
++	}
++}
++
++func member(s autoselect.GroupStatus, tag string) autoselect.MemberStatus {
++	for _, m := range s.Members {
++		if m.Tag == tag {
++			return m
++		}
++	}
++	return autoselect.MemberStatus{}
++}
++
++// exchange opens a connection through the group, sends payload and returns what came back.
++func (r *rig) exchange(payload []byte, timeout time.Duration) ([]byte, time.Duration, error) {
++	ctx, cancel := context.WithTimeout(context.Background(), timeout)
++	defer cancel()
++	start := time.Now()
++	c, err := core.Dial(ctx, r.inst, net.TCPDestination(net.LocalHostIP, net.Port(r.echo.ln.Addr().(*gonet.TCPAddr).Port)))
++	if err != nil {
++		return nil, 0, err
++	}
++	defer c.Close()
++	c.SetDeadline(time.Now().Add(timeout))
++	if _, err := c.Write(payload); err != nil {
++		return nil, time.Since(start), err
++	}
++	got := make([]byte, len(payload))
++	_, err = io.ReadFull(c, got)
++	return got, time.Since(start), err
++}
++
++// A TLS ClientHello record header: replaying it on a fresh connection is invisible to the app.
++var clientHello = append([]byte{0x16, 0x03, 0x01, 0x00, 0x40, 0x01}, bytes.Repeat([]byte{0xab}, 64)...)
++
++func TestPicksTheFastestMember(t *testing.T) {
++	r := newRig(t, "",
++		newFakeSocks(t, "ok", 120*time.Millisecond),
++		newFakeSocks(t, "ok", 5*time.Millisecond),
++		newFakeSocks(t, "ok", 60*time.Millisecond),
++	)
++	s := r.waitFor("m1 selected", 5*time.Second, func(s autoselect.GroupStatus) bool {
++		return s.Selected == "m1" && member(s, "m0").Samples > 0 && member(s, "m2").Samples > 0
++	})
++	if s.State != "ok" {
++		t.Fatalf("state = %q, want ok", s.State)
++	}
++	got, _, err := r.exchange(clientHello, 3*time.Second)
++	if err != nil || !bytes.Equal(got, clientHello) {
++		t.Fatalf("exchange: %v", err)
++	}
++}
++
++func TestHedgesOffADeadSelectionAndFailsOver(t *testing.T) {
++	m0 := newFakeSocks(t, "ok", 2*time.Millisecond)
++	m1 := newFakeSocks(t, "ok", 30*time.Millisecond)
++	r := newRig(t, `"initial":"m0"`, m0, m1)
++	r.waitFor("both measured, m0 selected", 5*time.Second, func(s autoselect.GroupStatus) bool {
++		return s.Selected == "m0" && member(s, "m1").Samples > 0 && member(s, "m0").Samples > 0
++	})
++
++	m0.set("blackhole", 0)
++	got, took, err := r.exchange(clientHello, 6*time.Second)
++	if err != nil || !bytes.Equal(got, clientHello) {
++		t.Fatalf("exchange through a dead selection failed: %v", err)
++	}
++	// m0's budget floor is 2.5s; the race against m1 must have answered well before that.
++	if took > 2*time.Second {
++		t.Fatalf("connection took %v; the hedge should have carried it", took)
++	}
++	s := r.waitFor("failover to m1", 6*time.Second, func(s autoselect.GroupStatus) bool {
++		return s.Selected == "m1"
++	})
++	last := s.Events[len(s.Events)-1]
++	if last.Reason != "failover" || last.From != "m0" {
++		t.Fatalf("last event = %+v, want failover from m0", last)
++	}
++	// Now straight to m1, no racing needed.
++	_, took, err = r.exchange(clientHello, 3*time.Second)
++	if err != nil || took > time.Second {
++		t.Fatalf("after failover: err=%v took=%v", err, took)
++	}
++}
++
++func TestReplaysAConnectionWhoseMemberDied(t *testing.T) {
++	m0 := newFakeSocks(t, "ok", time.Millisecond)
++	m1 := newFakeSocks(t, "ok", 40*time.Millisecond)
++	r := newRig(t, `"initial":"m0"`, m0, m1)
++	r.waitFor("both measured", 5*time.Second, func(s autoselect.GroupStatus) bool {
++		return s.Selected == "m0" && member(s, "m1").Samples > 0 && member(s, "m0").Samples > 0
++	})
++	m0.set("drop", 0)
++	got, _, err := r.exchange(clientHello, 6*time.Second)
++	if err != nil || !bytes.Equal(got, clientHello) {
++		t.Fatalf("replayed exchange failed: %v", err)
++	}
++	if n := r.echo.conns.Load(); n != 1 {
++		t.Fatalf("destination saw %d connections, want exactly 1", n)
++	}
++	if rec := r.echo.received(); !bytes.Equal(rec, clientHello) {
++		t.Fatalf("destination received %d bytes, want the ClientHello exactly once", len(rec))
++	}
++}
++
++func TestNeverReplaysDataThatIsNotSafeToRepeat(t *testing.T) {
++	m0 := newFakeSocks(t, "ok", time.Millisecond)
++	m1 := newFakeSocks(t, "ok", 40*time.Millisecond)
++	r := newRig(t, `"initial":"m0"`, m0, m1)
++	r.waitFor("both measured", 5*time.Second, func(s autoselect.GroupStatus) bool {
++		return s.Selected == "m0" && member(s, "m1").Samples > 0 && member(s, "m0").Samples > 0
++	})
++	m0.set("drop", 0)
++	post := []byte("POST /pay HTTP/1.1\r\nHost: shop\r\nContent-Length: 0\r\n\r\n")
++	_, _, err := r.exchange(post, 4*time.Second)
++	if err == nil {
++		t.Fatalf("a non-idempotent request was silently retried on another member")
++	}
++	if n := r.echo.conns.Load(); n != 0 {
++		t.Fatalf("the request reached the destination %d time(s) through another member", n)
++	}
++}
++
++func TestRecoversWhenEverythingWasDown(t *testing.T) {
++	m0 := newFakeSocks(t, "blackhole", 0)
++	m1 := newFakeSocks(t, "blackhole", 0)
++	r := newRig(t, "", m0, m1)
++	r.waitFor("down", 8*time.Second, func(s autoselect.GroupStatus) bool {
++		return member(s, "m0").State == "dead" && member(s, "m1").State == "dead"
++	})
++	m1.set("ok", time.Millisecond)
++	for _, g := range autoselect.Statuses() {
++		_ = g
++	}
++	autoselect.KickAll()
++	s := r.waitFor("m1 back", 5*time.Second, func(s autoselect.GroupStatus) bool {
++		return s.Selected == "m1" && member(s, "m1").State == "alive"
++	})
++	if s.State != "ok" {
++		t.Fatalf("state = %q after recovery", s.State)
++	}
++}
++
++func TestIdleStopsProbing(t *testing.T) {
++	r := newRig(t, `"idleAfter":"1500ms"`,
++		newFakeSocks(t, "ok", time.Millisecond),
++		newFakeSocks(t, "ok", time.Millisecond),
++	)
++	r.waitFor("idle", 6*time.Second, func(s autoselect.GroupStatus) bool { return s.State == "idle" })
++	before := r.probes.Load()
++	time.Sleep(2500 * time.Millisecond)
++	if after := r.probes.Load(); after != before {
++		t.Fatalf("probed %d times while idle", after-before)
++	}
++	if _, _, err := r.exchange(clientHello, 3*time.Second); err != nil {
++		t.Fatalf("exchange after idle: %v", err)
++	}
++	r.waitFor("probing again", 3*time.Second, func(autoselect.GroupStatus) bool { return r.probes.Load() > before })
++}
++
++func TestPinning(t *testing.T) {
++	r := newRig(t, "",
++		newFakeSocks(t, "ok", time.Millisecond),
++		newFakeSocks(t, "ok", 80*time.Millisecond),
++	)
++	r.waitFor("m0 selected", 5*time.Second, func(s autoselect.GroupStatus) bool { return s.Selected == "m0" })
++	if !autoselect.PinMember("auto", "m1") {
++		t.Fatal("pin failed")
++	}
++	if s := r.status(); s.Selected != "m1" || s.Pinned != "m1" {
++		t.Fatalf("after pin: selected=%q pinned=%q", s.Selected, s.Pinned)
++	}
++	autoselect.PinMember("auto", "")
++	r.waitFor("m0 again", 3*time.Second, func(s autoselect.GroupStatus) bool { return s.Selected == "m0" })
++}
++
++func TestCutsConnectionsStuckOnADeadMember(t *testing.T) {
++	defer autoselect.SetStalledAfter(time.Second)()
++	m0 := newFakeSocks(t, "ok", time.Millisecond)
++	m1 := newFakeSocks(t, "ok", 40*time.Millisecond)
++	r := newRig(t, `"initial":"m0"`, m0, m1)
++	r.waitFor("both measured", 5*time.Second, func(s autoselect.GroupStatus) bool {
++		return s.Selected == "m0" && member(s, "m1").Samples > 0 && member(s, "m0").Samples > 0
++	})
++
++	ctx, cancel := context.WithTimeout(context.Background(), 20*time.Second)
++	defer cancel()
++	c, err := core.Dial(ctx, r.inst, net.TCPDestination(net.LocalHostIP, net.Port(r.echo.ln.Addr().(*gonet.TCPAddr).Port)))
++	if err != nil {
++		t.Fatal(err)
++	}
++	defer c.Close()
++	c.Write(clientHello)
++	if _, err := io.ReadFull(c, make([]byte, len(clientHello))); err != nil {
++		t.Fatalf("first exchange: %v", err)
++	}
++
++	m0.set("freeze", 0)
++	start := time.Now()
++	c.Write(clientHello) // never answered while frozen
++	c.SetReadDeadline(time.Now().Add(15 * time.Second))
++	_, err = io.ReadFull(c, make([]byte, len(clientHello)))
++	if err == nil {
++		t.Fatal("a connection on a frozen member got an answer")
++	}
++	if took := time.Since(start); took > 12*time.Second {
++		t.Fatalf("the hung connection was only released after %v (read error: %v)", took, err)
++	}
++	r.waitFor("m0 dead, m1 selected", 5*time.Second, func(s autoselect.GroupStatus) bool {
++		return s.Selected == "m1" && member(s, "m0").State == "dead"
++	})
++}
++
++func TestLargeUploadBeforeAnyResponse(t *testing.T) {
++	ln, err := gonet.Listen("tcp", "127.0.0.1:0")
++	if err != nil {
++		t.Fatal(err)
++	}
++	defer ln.Close()
++	const size = 300 << 10
++	go func() {
++		c, err := ln.Accept()
++		if err != nil {
++			return
++		}
++		defer c.Close()
++		io.CopyN(io.Discard, c, size)
++		c.Write([]byte("done"))
++	}()
++	r := newRig(t, "",
++		newFakeSocks(t, "ok", time.Millisecond),
++		newFakeSocks(t, "ok", 20*time.Millisecond),
++	)
++	r.waitFor("selected", 5*time.Second, func(s autoselect.GroupStatus) bool { return s.Selected != "" })
++	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
++	defer cancel()
++	c, err := core.Dial(ctx, r.inst, net.TCPDestination(net.LocalHostIP, net.Port(ln.Addr().(*gonet.TCPAddr).Port)))
++	if err != nil {
++		t.Fatal(err)
++	}
++	defer c.Close()
++	c.SetDeadline(time.Now().Add(10 * time.Second))
++	if _, err := c.Write(bytes.Repeat([]byte("x"), size)); err != nil {
++		t.Fatalf("upload: %v", err)
++	}
++	got := make([]byte, 4)
++	if _, err := io.ReadFull(c, got); err != nil || string(got) != "done" {
++		t.Fatalf("response after a %d byte upload: %q %v", size, got, err)
++	}
++}
++
++func TestConcurrentConnectionsWhileAMemberFlaps(t *testing.T) {
++	m0 := newFakeSocks(t, "ok", time.Millisecond)
++	m1 := newFakeSocks(t, "ok", 15*time.Millisecond)
++	m2 := newFakeSocks(t, "ok", 30*time.Millisecond)
++	r := newRig(t, `"initial":"m0"`, m0, m1, m2)
++	r.waitFor("measured", 5*time.Second, func(s autoselect.GroupStatus) bool {
++		return member(s, "m0").Samples > 0 && member(s, "m1").Samples > 0 && member(s, "m2").Samples > 0
++	})
++	stop := make(chan struct{})
++	go func() {
++		modes := []string{"blackhole", "ok", "drop", "ok"}
++		for i := 0; ; i++ {
++			select {
++			case <-stop:
++				return
++			case <-time.After(300 * time.Millisecond):
++				m0.set(modes[i%len(modes)], time.Millisecond)
++			}
++		}
++	}()
++	defer close(stop)
++
++	var wg sync.WaitGroup
++	var failures atomic.Int32
++	for w := 0; w < 24; w++ {
++		wg.Add(1)
++		go func() {
++			defer wg.Done()
++			for i := 0; i < 6; i++ {
++				got, _, err := r.exchange(clientHello, 10*time.Second)
++				if err != nil || !bytes.Equal(got, clientHello) {
++					failures.Add(1)
++				}
++			}
++		}()
++	}
++	wg.Wait()
++	if n := failures.Load(); n != 0 {
++		t.Fatalf("%d of 144 replayable connections failed while one of three members flapped; status %+v", n, r.status())
++	}
++}
++
++// A freedom member reached through a SOCKS inbound can splice its response straight from socket to
++// socket, bypassing the group's writer. The group must still see the connection as answered, or it
++// abandons a healthy stream at its budget and replays it elsewhere.
++func TestLongStreamThroughARealInboundIsNotAbandoned(t *testing.T) {
++	streamer, err := gonet.Listen("tcp", "127.0.0.1:0")
++	if err != nil {
++		t.Fatal(err)
++	}
++	defer streamer.Close()
++	var streamConns atomic.Int32
++	go func() {
++		for {
++			c, err := streamer.Accept()
++			if err != nil {
++				return
++			}
++			streamConns.Add(1)
++			go func() {
++				defer c.Close()
++				c.Read(make([]byte, 1024))
++				for i := 0; i < 20; i++ {
++					if _, err := c.Write(bytes.Repeat([]byte{byte(i)}, 1024)); err != nil {
++						return
++					}
++					time.Sleep(150 * time.Millisecond)
++				}
++			}()
++		}
++	}()
++	probe := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, _ *http.Request) {
++		w.WriteHeader(http.StatusNoContent)
++	}))
++	defer probe.Close()
++	portLn, _ := gonet.Listen("tcp", "127.0.0.1:0")
++	inPort := portLn.Addr().(*gonet.TCPAddr).Port
++	portLn.Close()
++
++	config := fmt.Sprintf(`{
++	  "log": {"loglevel": "none"},
++	  "inbounds": [{"tag": "in", "listen": "127.0.0.1", "port": %d, "protocol": "socks", "settings": {"udp": false}}],
++	  "outbounds": [
++	    {"tag": "auto", "protocol": "autoselect", "settings": {
++	      "outbounds": ["direct-a", "dead-b"], "initial": "direct-a", "probeURL": %q,
++	      "probeTimeout": "1s", "attemptBudget": "600ms"}},
++	    {"tag": "direct-a", "protocol": "freedom"},
++	    {"tag": "dead-b", "protocol": "socks", "settings": {"servers": [{"address": "127.0.0.1", "port": 1}]}}
++	  ]}`, inPort, probe.URL+"/generate_204")
++	cfg, err := serial.LoadJSONConfig(strings.NewReader(config))
++	if err != nil {
++		t.Fatal(err)
++	}
++	inst, err := core.New(cfg)
++	if err != nil {
++		t.Fatal(err)
++	}
++	if err := inst.Start(); err != nil {
++		t.Fatal(err)
++	}
++	defer inst.Close()
++
++	c, err := gonet.DialTimeout("tcp", fmt.Sprintf("127.0.0.1:%d", inPort), time.Second)
++	if err != nil {
++		t.Fatal(err)
++	}
++	defer c.Close()
++	c.SetDeadline(time.Now().Add(10 * time.Second))
++	c.Write([]byte{5, 1, 0})
++	io.ReadFull(c, make([]byte, 2))
++	sp := streamer.Addr().(*gonet.TCPAddr).Port
++	c.Write([]byte{5, 1, 0, 1, 127, 0, 0, 1, byte(sp >> 8), byte(sp)})
++	if _, err := io.ReadFull(c, make([]byte, 10)); err != nil {
++		t.Fatalf("socks handshake: %v", err)
++	}
++	c.Write(clientHello)
++	got, err := io.ReadAll(c)
++	if len(got) != 20*1024 {
++		t.Fatalf("stream delivered %d of %d bytes (err %v); the connection was cut or replayed", len(got), 20*1024, err)
++	}
++	if n := streamConns.Load(); n != 1 {
++		t.Fatalf("the destination saw %d connections, want 1", n)
++	}
++}
+diff --color -ruN xray-base/proxy/autoselect/leak_test.go xray-patched/proxy/autoselect/leak_test.go
+--- xray-base/proxy/autoselect/leak_test.go	1969-12-31 17:00:00
++++ xray-patched/proxy/autoselect/leak_test.go	2026-10-01 02:15:03
+@@ -0,0 +1,113 @@
++package autoselect_test
++
++import (
++	"bytes"
++	"context"
++	"io"
++	gonet "net"
++	"runtime"
++	"sync"
++	"sync/atomic"
++	"testing"
++	"time"
++
++	"github.com/xtls/xray-core/common/net"
++	"github.com/xtls/xray-core/core"
++	"github.com/xtls/xray-core/proxy/autoselect"
++)
++
++func settle(d time.Duration) int {
++	best := runtime.NumGoroutine()
++	deadline := time.Now().Add(d)
++	for time.Now().Before(deadline) {
++		time.Sleep(50 * time.Millisecond)
++		runtime.GC()
++		if n := runtime.NumGoroutine(); n < best {
++			best = n
++		}
++	}
++	return best
++}
++
++func TestEndedConnectionsLeaveNothingPolling(t *testing.T) {
++	sink, err := gonet.Listen("tcp", "127.0.0.1:0")
++	if err != nil {
++		t.Fatal(err)
++	}
++	defer sink.Close()
++	const upload = 300 << 10
++	go func() {
++		for {
++			c, err := sink.Accept()
++			if err != nil {
++				return
++			}
++			go func() {
++				defer c.Close()
++				io.CopyN(io.Discard, c, upload)
++				c.Write([]byte("done"))
++			}()
++		}
++	}()
++
++	m0 := newFakeSocks(t, "ok", time.Millisecond)
++	m1 := newFakeSocks(t, "ok", 20*time.Millisecond)
++	r := newRig(t, `"initial":"m0"`, m0, m1)
++	r.waitFor("a selection", 10*time.Second, func(s autoselect.GroupStatus) bool { return s.Selected != "" })
++
++	runBatch(t, r, sink, upload, 4)
++	base := settle(2 * time.Second)
++
++	stop := make(chan struct{})
++	go func() {
++		modes := []string{"blackhole", "drop", "ok"}
++		for i := 0; ; i++ {
++			select {
++			case <-stop:
++				return
++			case <-time.After(250 * time.Millisecond):
++				m0.set(modes[i%len(modes)], time.Millisecond)
++			}
++		}
++	}()
++	runBatch(t, r, sink, upload, 40)
++	close(stop)
++	m0.set("ok", time.Millisecond)
++
++	after := settle(6 * time.Second)
++	t.Logf("goroutines: base=%d after=%d delta=%+d", base, after, after-base)
++	if after > base+16 {
++		t.Fatalf("goroutines did not come back after the connections ended: %d before, %d after "+
++			"(+%d for 40 connections)", base, after, after-base)
++	}
++}
++
++func runBatch(t *testing.T, r *rig, sink gonet.Listener, upload, n int) {
++	t.Helper()
++	port := net.Port(sink.Addr().(*gonet.TCPAddr).Port)
++	payload := bytes.Repeat([]byte("x"), upload)
++	var wg sync.WaitGroup
++	var failed atomic.Int32
++	for i := 0; i < n; i++ {
++		wg.Add(1)
++		go func() {
++			defer wg.Done()
++			ctx, cancel := context.WithTimeout(context.Background(), 15*time.Second)
++			defer cancel()
++			c, err := core.Dial(ctx, r.inst, net.TCPDestination(net.LocalHostIP, port))
++			if err != nil {
++				failed.Add(1)
++				return
++			}
++			defer c.Close()
++			c.SetDeadline(time.Now().Add(15 * time.Second))
++			if _, err := c.Write(payload); err != nil {
++				failed.Add(1)
++				return
++			}
++			got := make([]byte, 4)
++			io.ReadFull(c, got)
++		}()
++	}
++	wg.Wait()
++}
+diff --color -ruN xray-base/proxy/autoselect/member.go xray-patched/proxy/autoselect/member.go
+--- xray-base/proxy/autoselect/member.go	1969-12-31 17:00:00
++++ xray-patched/proxy/autoselect/member.go	2026-10-01 02:15:03
+@@ -0,0 +1,210 @@
++package autoselect
++
++import (
++	"math"
++	"sort"
++	"time"
++
++	"github.com/xtls/xray-core/features/outbound"
++	"github.com/xtls/xray-core/features/stats"
++)
++
++type memberState uint8
++
++const (
++	// Never measured and never carried traffic.
++	stateUnknown memberState = iota
++	stateAlive
++	// Recent failures; still usable, but anything alive is preferred and a confirming probe is due.
++	stateSuspect
++	stateDead
++)
++
++func (s memberState) String() string {
++	switch s {
++	case stateAlive:
++		return "alive"
++	case stateSuspect:
++		return "suspect"
++	case stateDead:
++		return "dead"
++	default:
++		return "unknown"
++	}
++}
++
++// outcome is what one real connection attempt taught us about a member.
++type outcome uint8
++
++const (
++	outcomeSuccess outcome = iota
++	// The member never took the connection: it could not reach its server at all.
++	outcomeDialFailure
++	// The member took the connection but produced no response within its budget.
++	outcomeStall
++	// The member failed after taking the connection.
++	outcomeFailure
++	// The member did respond, only later than another member racing it. A soft signal: it lowers
++	// the member's standing without making it suspect.
++	outcomeSlow
++)
++
++func (o outcome) hard() bool {
++	return o == outcomeDialFailure || o == outcomeStall || o == outcomeFailure
++}
++
++type outcomeRecord struct {
++	at     time.Time
++	weight float64 // 0 success, 1 hard failure, 0.5 slow
++}
++
++// member is one outbound of the group together with everything learned about it. All fields are
++// guarded by Group.mu.
++type member struct {
++	tag     string
++	order   int
++	handler outbound.Handler
++
++	state memberState
++
++	delays        []time.Duration // recent successful probe delays, oldest first
++	lastDelay     time.Duration
++	lastProbeAt   time.Time
++	lastProbeOKAt time.Time
++	probeStarted  time.Time
++	probing       bool
++	nextProbeAt   time.Time
++
++	lastSuccessAt time.Time // probe or real traffic
++	lastPassiveOK time.Time // real traffic only
++
++	// The member's downlink traffic counter. Bytes arriving through a member are the most direct
++	// proof it works — including on spliced connections, which bypass the group's own writers.
++	downCounter  stats.Counter
++	counterValue int64
++	lastBytesAt  time.Time
++
++	failStreak      int // hard failures, probe or traffic, since the last success
++	probeFailStreak int
++	recentFailures  []time.Time
++	outcomes        []outcomeRecord
++	lastError       string
++
++	active map[*attempt]struct{}
++}
++
++func newMember(tag string, order int) *member {
++	return &member{tag: tag, order: order, active: make(map[*attempt]struct{})}
++}
++
++func (m *member) addDelay(d time.Duration) {
++	m.lastDelay = d
++	m.delays = append(m.delays, d)
++	if len(m.delays) > delaySamples {
++		m.delays = m.delays[len(m.delays)-delaySamples:]
++	}
++}
++
++func (m *member) pushOutcome(now time.Time, weight float64) {
++	m.outcomes = append(m.outcomes, outcomeRecord{at: now, weight: weight})
++	if len(m.outcomes) > outcomeSamples {
++		m.outcomes = m.outcomes[len(m.outcomes)-outcomeSamples:]
++	}
++}
++
++// noteHardFailure records a failure and reports how many happened inside failureWindow.
++func (m *member) noteHardFailure(now time.Time) int {
++	kept := m.recentFailures[:0]
++	for _, t := range m.recentFailures {
++		if now.Sub(t) < failureWindow {
++			kept = append(kept, t)
++		}
++	}
++	m.recentFailures = append(kept, now)
++	return len(m.recentFailures)
++}
++
++// failRatio is the share of recent outcomes that went wrong. It never reaches 1 on thin evidence:
++// the denominator is at least four, so a single failed connection costs a member standing, not
++// its place.
++func (m *member) failRatio(now time.Time) float64 {
++	var total, bad float64
++	for _, o := range m.outcomes {
++		if now.Sub(o.at) > outcomeLifetime {
++			continue
++		}
++		total++
++		bad += o.weight
++	}
++	if total == 0 {
++		return 0
++	}
++	return bad / math.Max(total, 4)
++}
++
++// typicalDelay is the median of the recent probe delays, or 0 when none is known.
++func (m *member) typicalDelay() time.Duration {
++	if len(m.delays) == 0 {
++		return 0
++	}
++	return time.Duration(medianMs(m.delays) * float64(time.Millisecond))
++}
++
++func (m *member) jitter() time.Duration {
++	if len(m.delays) < 2 {
++		return 0
++	}
++	return time.Duration(meanAbsDevMs(m.delays, medianMs(m.delays)) * float64(time.Millisecond))
++}
++
++// score is the expected cost, in milliseconds, of sending the next connection through m. ok is
++// false when m cannot be ranked at all: it is dead or has never been measured.
++func (m *member) score(now time.Time) (float64, bool) {
++	if m.state == stateDead || len(m.delays) == 0 {
++		return math.Inf(1), false
++	}
++	med := medianMs(m.delays)
++	s := med + 0.5*meanAbsDevMs(m.delays, med)
++	s += 800 * m.failRatio(now)
++	if m.state == stateSuspect {
++		s += 1500
++	}
++	// Old numbers are trusted a little less than fresh ones — but evidence of any kind counts as
++	// fresh: a selection that carried traffic all along skips its probes and must not look stale
++	// next to an idle alternative that was just measured.
++	fresh := m.lastProbeOKAt
++	if m.lastPassiveOK.After(fresh) {
++		fresh = m.lastPassiveOK
++	}
++	if m.lastBytesAt.After(fresh) {
++		fresh = m.lastBytesAt
++	}
++	if now.Sub(fresh) > staleAfter {
++		s += 150
++	}
++	return s, true
++}
++
++func medianMs(ds []time.Duration) float64 {
++	v := make([]float64, len(ds))
++	for i, d := range ds {
++		v[i] = float64(d) / float64(time.Millisecond)
++	}
++	sort.Float64s(v)
++	n := len(v)
++	if n%2 == 1 {
++		return v[n/2]
++	}
++	return (v[n/2-1] + v[n/2]) / 2
++}
++
++func meanAbsDevMs(ds []time.Duration, center float64) float64 {
++	if len(ds) == 0 {
++		return 0
++	}
++	var sum float64
++	for _, d := range ds {
++		sum += math.Abs(float64(d)/float64(time.Millisecond) - center)
++	}
++	return sum / float64(len(ds))
++}
+diff --color -ruN xray-base/proxy/autoselect/monitor.go xray-patched/proxy/autoselect/monitor.go
+--- xray-base/proxy/autoselect/monitor.go	1969-12-31 17:00:00
++++ xray-patched/proxy/autoselect/monitor.go	2026-10-01 02:15:03
+@@ -0,0 +1,159 @@
++package autoselect
++
++import (
++	"context"
++	"io"
++	"net/http"
++	"sync"
++	"time"
++
++	"github.com/xtls/xray-core/common/net"
++	"github.com/xtls/xray-core/common/session"
++	"github.com/xtls/xray-core/common/utils"
++	"github.com/xtls/xray-core/transport/internet/tagged"
++)
++
++// monitor schedules probes. Each member carries its own next-probe time, set from its role and
++// health (see nextProbeLocked); this loop only launches whatever is due.
++func (g *Group) monitor() {
++	t := time.NewTicker(monitorTick)
++	defer t.Stop()
++	for {
++		g.tick()
++		select {
++		case <-g.ctx.Done():
++			return
++		case <-t.C:
++		case <-g.wake:
++		}
++	}
++}
++
++func (g *Group) tick() {
++	now := g.now()
++	g.mu.Lock()
++	g.refreshMembersLocked(now)
++	g.sampleCountersLocked(now)
++	if now.Sub(time.Unix(0, g.lastTraffic.Load())) >= g.cfg.idleAfter {
++		// Nobody is using the tunnel, so nobody benefits from fresh numbers; probing would only
++		// spend the battery and the data plan. noteTraffic brings the probes back.
++		g.idle.Store(true)
++		g.mu.Unlock()
++		return
++	}
++	var due []*member
++	for _, m := range g.members {
++		if m.probing || now.Before(m.nextProbeAt) {
++			continue
++		}
++		if m == g.selected && m.state == stateAlive &&
++			(now.Sub(m.lastPassiveOK) < g.cfg.activeInterval || now.Sub(m.lastBytesAt) < g.cfg.activeInterval) {
++			// Real traffic already proved it works; a probe would add nothing but bytes.
++			m.nextProbeAt = now.Add(g.cfg.activeInterval)
++			continue
++		}
++		m.probing = true
++		m.probeStarted = now
++		due = append(due, m)
++	}
++	g.mu.Unlock()
++	for _, m := range due {
++		select {
++		case g.sem <- struct{}{}:
++			go func(m *member) {
++				defer func() { <-g.sem }()
++				d, err := g.probe(m)
++				if g.ctx.Err() != nil {
++					return
++				}
++				g.recordProbe(m, d, err)
++			}(m)
++		default:
++			// Too many probes in flight; it stays due and goes out on a later tick.
++			g.mu.Lock()
++			m.probing = false
++			g.mu.Unlock()
++		}
++	}
++}
++
++func (g *Group) probe(m *member) (time.Duration, error) {
++	d, err := g.probeURL(m, g.cfg.probeURL)
++	if err != nil && g.cfg.fallbackProbeURL != "" && g.ctx.Err() == nil {
++		if d2, err2 := g.probeURL(m, g.cfg.fallbackProbeURL); err2 == nil {
++			return d2, nil
++		}
++	}
++	return d, err
++}
++
++// probeURL measures one request through m on a fresh connection: the "real delay" a new
++// application connection would see, handshake included. Any HTTP response counts — getting one
++// at all proves the path through the member works.
++func (g *Group) probeURL(m *member, url string) (time.Duration, error) {
++	ctx, cancel := context.WithTimeout(g.ctx, g.cfg.probeTimeout)
++	defer cancel()
++	collector := &errorCollector{}
++	// The dial context is derived from ctx rather than taken from net/http, because it must carry
++	// the Xray instance; cancelling it when the probe ends also stops the member's dial retries.
++	dialCtx := session.TrackedConnectionError(ctx, collector)
++	tr := &http.Transport{
++		Proxy:             nil,
++		DisableKeepAlives: true,
++		DialContext: func(_ context.Context, network, addr string) (net.Conn, error) {
++			dest, err := net.ParseDestination(network + ":" + addr)
++			if err != nil {
++				return nil, err
++			}
++			return tagged.Dialer(dialCtx, g.dispatcher, dest, m.tag)
++		},
++		TLSHandshakeTimeout:   g.cfg.probeTimeout,
++		ResponseHeaderTimeout: g.cfg.probeTimeout,
++	}
++	defer tr.CloseIdleConnections()
++	client := &http.Client{
++		Transport: tr,
++		Timeout:   g.cfg.probeTimeout,
++		CheckRedirect: func(*http.Request, []*http.Request) error {
++			return http.ErrUseLastResponse
++		},
++	}
++	req, err := http.NewRequestWithContext(ctx, http.MethodGet, url, nil)
++	if err != nil {
++		return 0, err
++	}
++	utils.TryDefaultHeadersWith(req.Header, "nav")
++	start := time.Now()
++	resp, err := client.Do(req)
++	if err != nil {
++		// The member's own report ("dial tcp …: i/o timeout", a REALITY rejection) says far more
++		// than the client's "context deadline exceeded".
++		if inner := collector.get(); inner != nil {
++			return 0, inner
++		}
++		return 0, err
++	}
++	d := time.Since(start)
++	io.Copy(io.Discard, io.LimitReader(resp.Body, 64<<10))
++	resp.Body.Close()
++	return d, nil
++}
++
++type errorCollector struct {
++	mu  sync.Mutex
++	err error
++}
++
++func (c *errorCollector) SubmitError(err error) {
++	c.mu.Lock()
++	if c.err == nil {
++		c.err = err
++	}
++	c.mu.Unlock()
++}
++
++func (c *errorCollector) get() error {
++	c.mu.Lock()
++	defer c.mu.Unlock()
++	return c.err
++}
+diff --color -ruN xray-base/proxy/autoselect/policy_test.go xray-patched/proxy/autoselect/policy_test.go
+--- xray-base/proxy/autoselect/policy_test.go	1969-12-31 17:00:00
++++ xray-patched/proxy/autoselect/policy_test.go	2026-10-01 02:15:03
+@@ -0,0 +1,326 @@
++package autoselect
++
++import (
++	"context"
++	"errors"
++	"testing"
++	"time"
++
++	"github.com/xtls/xray-core/common/net"
++)
++
++type fakeClock struct{ t time.Time }
++
++func (c *fakeClock) now() time.Time           { return c.t }
++func (c *fakeClock) advance(d time.Duration)  { c.t = c.t.Add(d) }
++func ms(v int) time.Duration                  { return time.Duration(v) * time.Millisecond }
++func probeOK(g *Group, tag string, delay int) { g.recordProbe(g.byTag[tag], ms(delay), nil) }
++func probeFail(g *Group, tag string) {
++	g.recordProbe(g.byTag[tag], 0, errors.New("dial tcp: i/o timeout"))
++}
++func (g *Group) selectedTag() string {
++	g.mu.Lock()
++	defer g.mu.Unlock()
++	if g.selected == nil {
++		return ""
++	}
++	return g.selected.tag
++}
++
++func newPolicyGroup(t *testing.T, cfg *Config, tags ...string) (*Group, *fakeClock) {
++	t.Helper()
++	clock := &fakeClock{t: time.Unix(1_700_000_000, 0)}
++	g := &Group{
++		cfg:   newSettings(cfg),
++		ctx:   context.Background(),
++		now:   clock.now,
++		byTag: make(map[string]*member),
++		wake:  make(chan struct{}, 1),
++		tag:   "auto",
++	}
++	for i, tag := range tags {
++		m := newMember(tag, i)
++		g.members = append(g.members, m)
++		g.byTag[tag] = m
++	}
++	g.membersResolvedAt = clock.t
++	g.graceStart = clock.t
++	g.hedgeTokens = hedgeBurst
++	g.hedgeRefill = clock.t
++	return g, clock
++}
++
++func (g *Group) pick() string {
++	plan := g.plan()
++	if len(plan) == 0 {
++		return ""
++	}
++	return plan[0].m.tag
++}
++
++func TestStartsOnInitialAndWaitsForItsOwnProbe(t *testing.T) {
++	g, clock := newPolicyGroup(t, &Config{Initial: "b"}, "a", "b")
++	if got := g.pick(); got != "b" {
++		t.Fatalf("first pick = %q, want the initial hint b", got)
++	}
++	// Both are being probed; a answers first.
++	g.byTag["b"].probing = true
++	g.byTag["b"].probeStarted = clock.t
++	clock.advance(ms(100))
++	probeOK(g, "a", 100)
++	if got := g.selectedTag(); got != "b" {
++		t.Fatalf("switched to %q before the initial member's own probe answered", got)
++	}
++	clock.advance(ms(200))
++	probeOK(g, "b", 300)
++	if got := g.selectedTag(); got != "a" {
++		t.Fatalf("selected %q, want a: 100ms beats 300ms by a wide margin", got)
++	}
++}
++
++func TestHysteresisKeepsAWorkingSelection(t *testing.T) {
++	g, clock := newPolicyGroup(t, &Config{Initial: "a"}, "a", "b")
++	for i := 0; i < 3; i++ {
++		probeOK(g, "a", 100)
++		probeOK(g, "b", 85)
++	}
++	g.pick()
++	clock.advance(time.Hour) // past grace and min_dwell
++	probeOK(g, "a", 100)
++	probeOK(g, "b", 85)
++	if got := g.selectedTag(); got != "a" {
++		t.Fatalf("switched to %q for a 15%% gain", got)
++	}
++
++	// 60ms is 40% faster but only 40ms better: under the absolute margin.
++	for i := 0; i < delaySamples; i++ {
++		probeOK(g, "b", 60)
++	}
++	if got := g.selectedTag(); got != "a" {
++		t.Fatalf("switched to %q for a 40ms gain", got)
++	}
++
++	for i := 0; i < delaySamples; i++ {
++		probeOK(g, "b", 20)
++	}
++	if got := g.selectedTag(); got != "b" {
++		t.Fatalf("selected %q, want b once it is clearly faster", got)
++	}
++
++	// A 10ms gain never justifies moving back, however long we wait.
++	for i := 0; i < delaySamples; i++ {
++		probeOK(g, "a", 10)
++	}
++	clock.advance(2 * time.Minute)
++	probeOK(g, "a", 10)
++	if got := g.selectedTag(); got != "b" {
++		t.Fatalf("selected %q for a 10ms gain", got)
++	}
++
++	// A big gain does — but not within min_dwell of the previous switch.
++	g.mu.Lock()
++	g.lastSwitch = clock.t
++	g.mu.Unlock()
++	for i := 0; i < delaySamples; i++ {
++		probeOK(g, "b", 200)
++	}
++	probeOK(g, "a", 10)
++	if got := g.selectedTag(); got != "b" {
++		t.Fatalf("selected %q right after a switch; min_dwell should hold", got)
++	}
++	clock.advance(2 * time.Minute)
++	probeOK(g, "a", 10)
++	probeOK(g, "b", 200)
++	if got := g.selectedTag(); got != "a" {
++		t.Fatalf("selected %q, want a once min_dwell has passed", got)
++	}
++}
++
++func TestTwoFailedConnectionsFailOverImmediately(t *testing.T) {
++	g, clock := newPolicyGroup(t, &Config{Initial: "a"}, "a", "b")
++	probeOK(g, "a", 50)
++	probeOK(g, "b", 80)
++	clock.advance(time.Hour)
++	if got := g.pick(); got != "a" {
++		t.Fatalf("pick = %q, want a", got)
++	}
++	a := g.byTag["a"]
++	g.recordOutcome(a, outcomeStall, errNoResponse)
++	if got := g.selectedTag(); got != "a" {
++		t.Fatalf("one failure moved the selection to %q", got)
++	}
++	if a.nextProbeAt.After(clock.t) {
++		t.Fatalf("one failure should make a's probe due now, not at %v", a.nextProbeAt)
++	}
++	clock.advance(ms(300))
++	g.recordOutcome(a, outcomeDialFailure, errors.New("failed to find an available destination"))
++	if a.state != stateSuspect {
++		t.Fatalf("a is %v after two failures, want suspect", a.state)
++	}
++	if got := g.selectedTag(); got != "b" {
++		t.Fatalf("selected %q after two failures, want failover to b", got)
++	}
++	g.mu.Lock()
++	last := g.events[len(g.events)-1]
++	g.mu.Unlock()
++	if last.Reason != reasonFailover || last.From != "a" || last.To != "b" {
++		t.Fatalf("last event = %+v, want failover a -> b", last)
++	}
++}
++
++func TestProbeVerdicts(t *testing.T) {
++	g, clock := newPolicyGroup(t, &Config{}, "a", "b")
++	probeOK(g, "a", 50)
++	probeOK(g, "b", 60)
++	a := g.byTag["a"]
++
++	probeFail(g, "a")
++	if a.state != stateSuspect {
++		t.Fatalf("one failed probe left a %v, want suspect", a.state)
++	}
++	if !a.nextProbeAt.Equal(clock.t.Add(suspectRecheck)) {
++		t.Fatalf("suspect a is not re-probed quickly")
++	}
++	probeFail(g, "a")
++	if a.state != stateDead {
++		t.Fatalf("two failed probes left a %v, want dead", a.state)
++	}
++
++	// Bytes still arriving through b make a failed probe mean "probe host blocked", not dead.
++	b := g.byTag["b"]
++	b.lastBytesAt = clock.t
++	probeFail(g, "b")
++	probeFail(g, "b")
++	if b.state != stateSuspect {
++		t.Fatalf("b is %v while its traffic flows, want suspect", b.state)
++	}
++}
++
++func TestRealTrafficRevivesAndRecovers(t *testing.T) {
++	g, clock := newPolicyGroup(t, &Config{Initial: "a"}, "a", "b")
++	g.pick()
++	probeFail(g, "a")
++	probeFail(g, "b")
++	if !g.allDownLocked() {
++		t.Fatalf("expected every member down")
++	}
++	switches := g.switches
++	for i := 0; i < 5; i++ {
++		clock.advance(ms(100))
++		g.pick()
++	}
++	if g.switches != switches {
++		t.Fatalf("selection rotated among dead members: %d switches", g.switches-switches)
++	}
++	g.recordOutcome(g.byTag["b"], outcomeSuccess, nil)
++	if got := g.selectedTag(); got != "b" {
++		t.Fatalf("selected %q, want b the moment its traffic went through", got)
++	}
++	if g.byTag["b"].state != stateAlive {
++		t.Fatalf("b not alive after carrying traffic")
++	}
++}
++
++func TestPinOverridesAndReleases(t *testing.T) {
++	g, _ := newPolicyGroup(t, &Config{}, "a", "b", "c")
++	probeOK(g, "a", 10)
++	probeOK(g, "b", 200)
++	probeOK(g, "c", 300)
++	g.pick()
++	if !g.Pin("c") {
++		t.Fatalf("pin rejected")
++	}
++	if got := g.pick(); got != "c" {
++		t.Fatalf("pick = %q while pinned to c", got)
++	}
++	if g.Pin("nope") {
++		t.Fatalf("pinning an unknown member must fail")
++	}
++	g.Pin("")
++	if got := g.pick(); got != "a" {
++		t.Fatalf("pick = %q after unpinning, want the best member a", got)
++	}
++}
++
++func TestPlanOrdersAlternatives(t *testing.T) {
++	g, clock := newPolicyGroup(t, &Config{Initial: "a", MaxAttempts: 4}, "a", "b", "c", "d", "e")
++	probeOK(g, "a", 50)
++	probeOK(g, "b", 400)
++	probeOK(g, "c", 100)
++	probeFail(g, "d") // unknown -> dead
++	clock.advance(time.Second)
++	plan := g.plan()
++	var got []string
++	for _, st := range plan {
++		got = append(got, st.m.tag)
++	}
++	want := []string{"a", "c", "b", "e"} // selected, alive by score, then never measured; dead d left out
++	if len(got) != len(want) {
++		t.Fatalf("plan = %v, want %v", got, want)
++	}
++	for i := range want {
++		if got[i] != want[i] {
++			t.Fatalf("plan = %v, want %v", got, want)
++		}
++	}
++}
++
++func TestTimingsFollowMeasuredDelay(t *testing.T) {
++	g, _ := newPolicyGroup(t, &Config{}, "a", "b", "c")
++	budget, hedge := g.timings(g.byTag["a"])
++	if budget != defaultAttemptBudget || hedge != defaultHedgeDelay {
++		t.Fatalf("unmeasured timings = %v/%v", budget, hedge)
++	}
++	probeOK(g, "b", 400)
++	budget, hedge = g.timings(g.byTag["b"])
++	if budget != minAttemptBudget || hedge != minHedgeDelay {
++		t.Fatalf("400ms member timings = %v/%v, want %v/%v", budget, hedge, minAttemptBudget, minHedgeDelay)
++	}
++	probeOK(g, "c", 2000)
++	budget, hedge = g.timings(g.byTag["c"])
++	if budget != 6*time.Second || hedge != 2300*time.Millisecond {
++		t.Fatalf("2s member timings = %v/%v", budget, hedge)
++	}
++}
++
++func TestClassifyPayload(t *testing.T) {
++	tcp443 := net.TCPDestination(net.LocalHostIP, 443)
++	udp443 := net.UDPDestination(net.LocalHostIP, 443)
++	cases := []struct {
++		name string
++		dest net.Destination
++		head []byte
++		want payloadKind
++	}{
++		{"tls client hello", tcp443, []byte{0x16, 0x03, 0x01, 0x01, 0x2c, 0x01}, payloadTLSHello},
++		{"tls but not a hello", tcp443, []byte{0x16, 0x03, 0x01, 0x00, 0x10, 0x02}, payloadOpaque},
++		{"plain http", net.TCPDestination(net.LocalHostIP, 80), []byte("GET / "), payloadOpaque},
++		{"dns over tcp", net.TCPDestination(net.LocalHostIP, 53), []byte{0, 1}, payloadDNS},
++		{"dns over udp", net.UDPDestination(net.LocalHostIP, 53), []byte{0xab}, payloadDNS},
++		{"quic initial", udp443, []byte{0xc3, 0, 0, 0, 1}, payloadQUIC},
++		{"udp short header", udp443, []byte{0x43, 1, 2, 3, 4}, payloadOpaque},
++	}
++	for _, c := range cases {
++		if got := classifyPayload(c.dest, c.head); got != c.want {
++			t.Errorf("%s: got %v, want %v", c.name, got, c.want)
++		}
++	}
++}
++
++func TestFailRatioNeedsEvidence(t *testing.T) {
++	m := newMember("a", 0)
++	now := time.Now()
++	m.pushOutcome(now, 1)
++	if r := m.failRatio(now); r != 0.25 {
++		t.Fatalf("one failure alone rates %v, want 0.25", r)
++	}
++	for i := 0; i < 7; i++ {
++		m.pushOutcome(now, 0)
++	}
++	if r := m.failRatio(now); r != 0.125 {
++		t.Fatalf("ratio = %v, want 0.125", r)
++	}
++	if r := m.failRatio(now.Add(outcomeLifetime + time.Second)); r != 0 {
++		t.Fatalf("expired outcomes still count: %v", r)
++	}
++}
+diff --color -ruN xray-base/proxy/autoselect/settings.go xray-patched/proxy/autoselect/settings.go
+--- xray-base/proxy/autoselect/settings.go	1969-12-31 17:00:00
++++ xray-patched/proxy/autoselect/settings.go	2026-10-01 02:15:03
+@@ -0,0 +1,153 @@
++// Package autoselect implements the "autoselect" outbound: a group of member outbounds that sends
++// each connection through the healthiest member, retries a failed connection on the next member
++// without the client noticing, and keeps probing the members so the next choice is ready before it
++// is needed.
++//
++// Where it differs from the balancers in app/router:
++//   - It is an outbound, so routing rules, DNS and the default handler keep pointing at one tag and
++//     never learn that a group exists.
++//   - Real traffic is evidence. A member whose connections fail is suspected immediately and the
++//     failing connection itself is moved to another member, instead of waiting for the next probe.
++//   - A healthy selection is sticky: it is only replaced by a member that is clearly faster, so the
++//     exit address does not flap between two similar servers.
++//   - Switching never closes working connections. Only connections that stopped receiving data on
++//     a member that was found dead are cut, so their applications reconnect at once.
++package autoselect
++
++import "time"
++
++const (
++	defaultProbeURL        = "https://www.gstatic.com/generate_204"
++	defaultProbeTimeout    = 5 * time.Second
++	defaultActiveInterval  = 30 * time.Second
++	defaultStandbyInterval = 2 * time.Minute
++	defaultStandbyCount    = 2
++	defaultSweepInterval   = 10 * time.Minute
++	defaultIdleAfter       = 3 * time.Minute
++	defaultSwitchRatio     = 0.3
++	defaultSwitchMinGain   = 60 * time.Millisecond
++	defaultMinDwell        = time.Minute
++	defaultMaxAttempts     = 3
++	defaultMaxReplayBytes  = 64 << 10
++	defaultConcurrency     = 8
++
++	// A connection is given this long to produce its first response byte before it is abandoned
++	// for the next member, when nothing better is known about the member.
++	defaultAttemptBudget = 5 * time.Second
++	minAttemptBudget     = 2500 * time.Millisecond
++	maxAttemptBudget     = 8 * time.Second
++
++	// A second attempt is raced against a slow first one after roughly the member's usual latency.
++	defaultHedgeDelay = 1500 * time.Millisecond
++	minHedgeDelay     = 700 * time.Millisecond
++	maxHedgeDelay     = 3 * time.Second
++	hedgeRate         = 4 // hedges per second, sustained
++	hedgeBurst        = 8
++
++	// Until this long after start (or after a network change) the first pick is known to be a
++	// guess, so better information replaces it without waiting out min_dwell.
++	startupGrace = 20 * time.Second
++
++	// Two hard failures inside this window make a member suspect.
++	failureWindow = 30 * time.Second
++	// A suspect member is re-probed this soon, to confirm or clear the suspicion.
++	suspectRecheck = 1500 * time.Millisecond
++	// Probe results older than this are trusted a little less than fresh ones.
++	staleAfter = 15 * time.Minute
++
++	delaySamples    = 6
++	outcomeSamples  = 12
++	outcomeLifetime = 5 * time.Minute
++	eventsKept      = 16
++
++	monitorTick         = 500 * time.Millisecond
++	membersRefreshEvery = 10 * time.Second
++	pollInterval        = 200 * time.Millisecond
++)
++
++// A committed connection that has received nothing for this long on a dead member is cut. A
++// variable only so tests can shorten it.
++var stalledAfter = 8 * time.Second
++
++// Backoff between probes of a dead member. When every member is down the network itself is the
++// likely culprit, so members are retried much sooner to notice the moment it comes back.
++var (
++	deadBackoff    = []time.Duration{15 * time.Second, 30 * time.Second, time.Minute, 2 * time.Minute, 5 * time.Minute, 10 * time.Minute}
++	allDownBackoff = []time.Duration{5 * time.Second, 10 * time.Second, 20 * time.Second, 30 * time.Second}
++)
++
++// settings is Config with every default applied, in the units the code works with.
++type settings struct {
++	outbounds        []string
++	selectors        []string
++	probeURL         string
++	fallbackProbeURL string
++	probeTimeout     time.Duration
++	activeInterval   time.Duration
++	standbyInterval  time.Duration
++	standbyCount     int
++	sweepInterval    time.Duration
++	idleAfter        time.Duration
++	switchRatio      float64
++	switchMinGain    time.Duration
++	minDwell         time.Duration
++	retry            bool
++	maxAttempts      int
++	maxReplayBytes   int32
++	attemptBudget    time.Duration // 0 = derived from the member's measured delay
++	initial          string
++	interruptStalled bool
++	concurrency      int
++}
++
++func newSettings(c *Config) settings {
++	ms := func(v int64, def time.Duration) time.Duration {
++		if v <= 0 {
++			return def
++		}
++		return time.Duration(v) * time.Millisecond
++	}
++	s := settings{
++		outbounds:        c.GetOutbounds(),
++		selectors:        c.GetSelector(),
++		probeURL:         c.GetProbeUrl(),
++		fallbackProbeURL: c.GetFallbackProbeUrl(),
++		probeTimeout:     ms(c.GetProbeTimeoutMs(), defaultProbeTimeout),
++		activeInterval:   ms(c.GetActiveIntervalMs(), defaultActiveInterval),
++		standbyInterval:  ms(c.GetStandbyIntervalMs(), defaultStandbyInterval),
++		standbyCount:     int(c.GetStandbyCount()),
++		sweepInterval:    ms(c.GetSweepIntervalMs(), defaultSweepInterval),
++		idleAfter:        ms(c.GetIdleAfterMs(), defaultIdleAfter),
++		switchRatio:      float64(c.GetSwitchRatio()),
++		switchMinGain:    ms(c.GetSwitchMinGainMs(), defaultSwitchMinGain),
++		minDwell:         ms(c.GetMinDwellMs(), defaultMinDwell),
++		retry:            !c.GetDisableRetry(),
++		maxAttempts:      int(c.GetMaxAttempts()),
++		maxReplayBytes:   c.GetMaxReplayBytes(),
++		initial:          c.GetInitial(),
++		interruptStalled: !c.GetDisableInterruptStalled(),
++		concurrency:      int(c.GetConcurrency()),
++	}
++	if c.GetAttemptBudgetMs() > 0 {
++		s.attemptBudget = time.Duration(c.GetAttemptBudgetMs()) * time.Millisecond
++	}
++	if s.probeURL == "" {
++		s.probeURL = defaultProbeURL
++	}
++	if s.standbyCount <= 0 {
++		s.standbyCount = defaultStandbyCount
++	}
++	if s.switchRatio <= 0 || s.switchRatio >= 1 {
++		s.switchRatio = defaultSwitchRatio
++	}
++	if s.maxAttempts <= 0 {
++		s.maxAttempts = defaultMaxAttempts
++	}
++	if s.maxReplayBytes <= 0 {
++		s.maxReplayBytes = defaultMaxReplayBytes
++	}
++	if s.concurrency <= 0 {
++		s.concurrency = defaultConcurrency
++	}
++	return s
++}
+diff --color -ruN xray-base/proxy/autoselect/status.go xray-patched/proxy/autoselect/status.go
+--- xray-base/proxy/autoselect/status.go	1969-12-31 17:00:00
++++ xray-patched/proxy/autoselect/status.go	2026-10-01 02:15:03
+@@ -0,0 +1,186 @@
++package autoselect
++
++import (
++	"encoding/json"
++	"math"
++	"sort"
++	"sync"
++	"time"
++)
++
++// SwitchEvent records one change of selection.
++type SwitchEvent struct {
++	From   string `json:"from"`
++	To     string `json:"to"`
++	Reason string `json:"reason"`
++	AtMs   int64  `json:"atMs"`
++}
++
++// MemberStatus is what the group currently knows about one member.
++type MemberStatus struct {
++	Tag              string  `json:"tag"`
++	State            string  `json:"state"`
++	DelayMs          int64   `json:"delayMs"`
++	LastDelayMs      int64   `json:"lastDelayMs"`
++	JitterMs         int64   `json:"jitterMs"`
++	Samples          int     `json:"samples"`
++	Score            float64 `json:"score"`
++	FailRatio        float64 `json:"failRatio"`
++	Connections      int     `json:"connections"`
++	LastProbeAgoMs   int64   `json:"lastProbeAgoMs"`
++	LastSuccessAgoMs int64   `json:"lastSuccessAgoMs"`
++	LastError        string  `json:"lastError,omitempty"`
++}
++
++// GroupStatus is a snapshot of one autoselect outbound.
++type GroupStatus struct {
++	Tag      string `json:"tag"`
++	Selected string `json:"selected"`
++	Pinned   string `json:"pinned,omitempty"`
++	// starting | ok | degraded | down | idle
++	State    string         `json:"state"`
++	Switches int            `json:"switches"`
++	Events   []SwitchEvent  `json:"events"`
++	Members  []MemberStatus `json:"members"`
++}
++
++// Status returns a snapshot of the group.
++func (g *Group) Status() GroupStatus {
++	g.mu.Lock()
++	defer g.mu.Unlock()
++	now := g.now()
++	st := GroupStatus{
++		Tag:      g.tag,
++		Pinned:   g.pinned,
++		Switches: g.switches,
++		Events:   append([]SwitchEvent{}, g.events...),
++		Members:  make([]MemberStatus, 0, len(g.members)),
++		State:    g.stateLocked(now),
++	}
++	if g.selected != nil {
++		st.Selected = g.selected.tag
++	}
++	ago := func(t time.Time) int64 {
++		if t.IsZero() {
++			return -1
++		}
++		return now.Sub(t).Milliseconds()
++	}
++	for _, m := range g.members {
++		ms := MemberStatus{
++			Tag:              m.tag,
++			State:            m.state.String(),
++			DelayMs:          -1,
++			LastDelayMs:      -1,
++			JitterMs:         m.jitter().Milliseconds(),
++			Samples:          len(m.delays),
++			Score:            -1,
++			FailRatio:        math.Round(m.failRatio(now)*100) / 100,
++			Connections:      len(m.active),
++			LastProbeAgoMs:   ago(m.lastProbeAt),
++			LastSuccessAgoMs: ago(m.lastSuccessAt),
++			LastError:        m.lastError,
++		}
++		if d := m.typicalDelay(); d > 0 {
++			ms.DelayMs = d.Milliseconds()
++			ms.LastDelayMs = m.lastDelay.Milliseconds()
++		}
++		if s, ok := m.score(now); ok {
++			ms.Score = math.Round(s)
++		}
++		st.Members = append(st.Members, ms)
++	}
++	return st
++}
++
++func (g *Group) stateLocked(now time.Time) string {
++	if g.idle.Load() {
++		return "idle"
++	}
++	if g.selected == nil {
++		return "starting"
++	}
++	if g.allDownLocked() {
++		if g.inGraceLocked(now) {
++			for _, m := range g.members {
++				if m.state == stateUnknown {
++					return "starting"
++				}
++			}
++		}
++		return "down"
++	}
++	if g.selected.state == stateSuspect || g.selected.state == stateDead {
++		return "degraded"
++	}
++	if _, ok := g.selected.score(now); !ok && g.inGraceLocked(now) {
++		return "starting"
++	}
++	return "ok"
++}
++
++var registry = struct {
++	sync.Mutex
++	groups []*Group
++}{}
++
++func register(g *Group) {
++	registry.Lock()
++	defer registry.Unlock()
++	registry.groups = append(registry.groups, g)
++}
++
++func unregister(g *Group) {
++	registry.Lock()
++	defer registry.Unlock()
++	for i, x := range registry.groups {
++		if x == g {
++			registry.groups = append(registry.groups[:i], registry.groups[i+1:]...)
++			return
++		}
++	}
++}
++
++func groups() []*Group {
++	registry.Lock()
++	defer registry.Unlock()
++	return append([]*Group(nil), registry.groups...)
++}
++
++// Statuses snapshots every running autoselect outbound in the process, ordered by tag.
++func Statuses() []GroupStatus {
++	var out []GroupStatus
++	for _, g := range groups() {
++		out = append(out, g.Status())
++	}
++	sort.Slice(out, func(i, j int) bool { return out[i].Tag < out[j].Tag })
++	return out
++}
++
++// StatusJSON is Statuses as JSON, for callers across a language boundary.
++func StatusJSON() string {
++	data, err := json.Marshal(Statuses())
++	if err != nil || data == nil {
++		return "[]"
++	}
++	return string(data)
++}
++
++// KickAll tells every group the network changed.
++func KickAll() {
++	for _, g := range groups() {
++		g.Kick()
++	}
++}
++
++// PinMember pins member on the group tagged group (empty member unpins). It reports whether such a
++// group and member exist.
++func PinMember(group, member string) bool {
++	ok := false
++	for _, g := range groups() {
++		if g.tag == group && g.Pin(member) {
++			ok = true
++		}
++	}
++	return ok
++}

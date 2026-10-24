@@ -1,0 +1,207 @@
+<?xml version="1.0" encoding="utf-8"?>
+<manifest xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools">
+
+    <uses-permission android:name="android.permission.CAMERA" tools:node="remove"/>
+
+    <supports-screens
+        android:anyDensity="true"
+        android:smallScreens="true"
+        android:normalScreens="true"
+        android:largeScreens="true"
+        android:xlargeScreens="true"/>
+
+    <uses-sdk android:minSdkVersion="21" />
+
+    <!-- One app for phones and TVs. A TV has neither a touchscreen nor
+         need of one, and Google Play hides an app from TVs unless it says
+         both of these are optional. -->
+    <uses-feature
+        android:name="android.hardware.touchscreen"
+        android:required="false" />
+    <uses-feature
+        android:name="android.software.leanback"
+        android:required="false" />
+
+    <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
+    <uses-permission android:name="android.permission.CHANGE_NETWORK_STATE" />
+    <uses-permission android:name="android.permission.INTERNET" />
+    <uses-permission android:name="android.permission.FOREGROUND_SERVICE" />
+    <uses-permission
+        android:name="android.permission.FOREGROUND_SERVICE_SPECIAL_USE"
+        android:minSdkVersion="34" />
+    <uses-permission android:name="android.permission.POST_NOTIFICATIONS"/>
+
+    <!-- Queries for URL Launcher (Android 11+) -->
+    <queries>
+        <!-- For opening websites -->
+        <intent>
+            <action android:name="android.intent.action.VIEW" />
+            <data android:scheme="https" />
+        </intent>
+        <!-- For sending emails -->
+        <intent>
+            <action android:name="android.intent.action.SENDTO" />
+            <data android:scheme="mailto" />
+        </intent>
+        <!-- To name the app holding the always-on VPN slot when it blocks us -->
+        <intent>
+            <action android:name="android.net.VpnService" />
+        </intent>
+        <!-- To hide state messengers from the invite share sheet (EXTRA_EXCLUDE_COMPONENTS).
+             Not a permission, and nothing about other apps leaves the phone. -->
+        <intent>
+            <action android:name="android.intent.action.SEND" />
+            <data android:mimeType="text/plain" />
+        </intent>
+    </queries>
+
+    <application
+        android:name=".AngApplication"
+        android:allowBackup="false"
+        android:banner="@drawable/tv_banner"
+        android:icon="@mipmap/ic_launcher"
+        android:label="@string/app_name"
+        android:localeConfig="@xml/locales_config"
+        android:supportsRtl="true"
+        android:theme="@style/AppThemeDayNight.NoActionBar"
+        android:usesCleartextTraffic="true"
+        tools:targetApi="m">
+
+        <meta-data
+            android:name="com.google.android.gms.version"
+            android:value="@integer/google_play_services_version" />
+
+        <activity
+            android:name=".MainActivity"
+            android:exported="true"
+            android:launchMode="singleTop"
+            android:theme="@style/LaunchTheme"
+            android:configChanges="orientation|keyboardHidden|keyboard|screenSize|smallestScreenSize|locale|layoutDirection|fontScale|screenLayout|density|uiMode"
+            android:hardwareAccelerated="true"
+            android:windowSoftInputMode="adjustResize">
+            <meta-data
+              android:name="io.flutter.embedding.android.NormalTheme"
+              android:resource="@style/NormalTheme"
+              />
+            <meta-data
+              android:name="flutterEmbedding"
+              android:value="2" />
+            <meta-data
+                android:name="io.flutter.embedding.android.EnableImpeller"
+                android:value="false" />
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+                <category android:name="android.intent.category.LAUNCHER" />
+                <!-- The TV home screen lists only apps that carry this. -->
+                <category android:name="android.intent.category.LEANBACK_LAUNCHER" />
+            </intent-filter>
+        </activity>
+
+        <provider
+            android:name="androidx.core.content.FileProvider"
+            android:authorities="${applicationId}.provider"
+            android:exported="false"
+            android:grantUriPermissions="true">
+            <meta-data
+                android:name="android.support.FILE_PROVIDER_PATHS"
+                android:resource="@xml/file_paths" />
+        </provider>
+
+        <service
+            android:name=".service.V2RayVpnService"
+            android:enabled="true"
+            android:exported="false"
+            android:label="@string/app_name"
+            android:permission="android.permission.BIND_VPN_SERVICE"
+            android:foregroundServiceType="specialUse"
+            android:process=":RunSoLibV2RayDaemon">
+            <intent-filter>
+                <action android:name="android.net.VpnService" />
+            </intent-filter>
+            <meta-data
+                android:name="android.net.VpnService.SUPPORTS_ALWAYS_ON"
+                android:value="true" />
+            <property
+                android:name="android.app.PROPERTY_SPECIAL_USE_FGS_SUBTYPE"
+                android:value="vpn" />
+        </service>
+
+        <service android:name=".service.V2RayProxyOnlyService"
+            android:exported="false"
+            android:label="@string/app_name"
+            android:foregroundServiceType="specialUse"
+            android:process=":RunSoLibV2RayDaemon">
+            <property
+                android:name="android.app.PROPERTY_SPECIAL_USE_FGS_SUBTYPE"
+                android:value="proxy" />
+        </service>
+
+        <!-- Checks for messages from the Fortiva team while the app is off
+             screen (NoticeJobs). In the main process, apart from the
+             tunnel's. Only the system's job scheduler may start it. -->
+        <!-- The wake-up alarm for those checks, and the app update that sets
+             them again. Not exported: only Android delivers to it. -->
+        <receiver
+            android:name=".receiver.NoticeWakeReceiver"
+            android:exported="false">
+            <intent-filter>
+                <action android:name="android.intent.action.MY_PACKAGE_REPLACED" />
+            </intent-filter>
+        </receiver>
+
+        <service
+            android:name=".service.NoticeJobService"
+            android:exported="false"
+            android:permission="android.permission.BIND_JOB_SERVICE" />
+
+        <!-- The heartbeat and the dead tunnel check while the app's own
+             engine is gone (Keeper). In the main process too, apart from
+             the tunnel's. -->
+        <service
+            android:name=".service.KeeperJobService"
+            android:exported="false"
+            android:permission="android.permission.BIND_JOB_SERVICE" />
+
+        <service android:name=".service.V2RayTestService"
+            android:exported="false"
+            android:process=":RunSoLibV2RayDaemon">
+        </service>
+
+        <!-- Not exported: the system still delivers widget updates, and the
+             widget's own click comes from this app's PendingIntent. While it was
+             exported, any app on the phone could send the click and start or stop
+             the VPN. -->
+        <receiver
+            android:exported="false"
+            android:name=".receiver.WidgetProvider"
+            android:process=":RunSoLibV2RayDaemon">
+            <meta-data
+                android:name="android.appwidget.provider"
+                android:resource="@xml/app_widget_provider" />
+            <intent-filter>
+                <action android:name="android.appwidget.action.APPWIDGET_UPDATE" />
+                <action android:name="com.vpn.fortivavpn.action.widget.click" />
+                <action android:name="com.vpn.fortivavpn.action.activity" />
+            </intent-filter>
+        </receiver>
+
+        <service
+            android:exported="true"
+            android:name=".service.QSTileService"
+            android:icon="@mipmap/ic_launcher"
+            android:label="@string/app_tile_name"
+            android:foregroundServiceType="specialUse"
+            android:permission="android.permission.BIND_QUICK_SETTINGS_TILE"
+            android:process=":RunSoLibV2RayDaemon"
+            tools:targetApi="24">
+            <intent-filter>
+                <action android:name="android.service.quicksettings.action.QS_TILE" />
+            </intent-filter>
+            <property
+                android:name="android.app.PROPERTY_SPECIAL_USE_FGS_SUBTYPE"
+                android:value="tile" />
+        </service>
+    </application>
+
+</manifest>

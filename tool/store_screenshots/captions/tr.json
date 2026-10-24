@@ -1,0 +1,11 @@
+{
+  "lang": "tr",
+  "frames": [
+    {"title": "Tek dokunuş. Bağlandınız.", "subtitle": "Kayıt yok, e-posta yok, telefon numarası yok."},
+    {"title": "Ayarlanacak bir şey yok", "subtitle": "Sunucular hazır. Yapılandırma arama, yapıştırma yok."},
+    {"title": "Bir konum seçin ya da uygulama seçsin", "subtitle": ""},
+    {"title": "Açtığınız sayfaları asla kaydetmeyiz", "subtitle": ""},
+    {"title": "Her gün ücretsiz. Premium sınırı kaldırır", "subtitle": ""},
+    {"title": "İsteğe bağlı Google girişi planınızı korur", "subtitle": ""}
+  ]
+}

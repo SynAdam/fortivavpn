@@ -1,0 +1,127 @@
+Xray-core: dial a sinkhole address by its sniffed name
+
+Iran's filter answers a blocked name with an address in 10.10.34.0/24. An
+application that looked the name up before the tunnel came up still holds
+that answer. With routeOnly sniffing the core used the sniffed name only to
+route and still dialled the address, so the connection went out directly to
+the sinkhole (the range is private) and failed. On 2026-10-02 apps on 59 of
+161 phones did this while connected: Instagram, WhatsApp, Facebook.
+
+For a connection headed to a sinkhole address the sniffed name replaces the
+address, as it would without routeOnly. Nothing legitimate lives in that
+range, so no other connection changes, and routeOnly keeps its reason
+everywhere else: a Telegram fake-TLS proxy presents a name that is not its
+own.
+
+Base:    github.com/xtls/xray-core v1.260327.1-0.20260728075948-5ca6f4b7d4dc
+         (v26.7.28), applied after xray-autoselect.patch.
+Licence: MPL-2.0, the same as Xray-core.
+
+  app/dispatcher/default.go       one condition, in Dispatch and DispatchLink
+  app/dispatcher/sinkhole.go      the ranges and isSinkhole
+  app/dispatcher/sinkhole_test.go
+
+Apply with: patch -p1 < xray-sinkhole.patch   (stage-xray.sh does this)
+
+diff --color -ruN xray-base/app/dispatcher/default.go xray-patched/app/dispatcher/default.go
+--- xray-base/app/dispatcher/default.go	2026-10-02 11:46:31
++++ xray-patched/app/dispatcher/default.go	2026-10-02 11:46:31
+@@ -308,7 +308,7 @@
+ 				if fkr0, ok := d.fdns.(dns.FakeDNSEngineRev0); ok && fkr0.IsIPInIPPool(ob.Target.Address) {
+ 					isFakeIP = true
+ 				}
+-				if sniffingRequest.RouteOnly && protocol != "fakedns" && protocol != "fakedns+others" && !isFakeIP {
++				if sniffingRequest.RouteOnly && protocol != "fakedns" && protocol != "fakedns+others" && !isFakeIP && !isSinkhole(ob.Target.Address) {
+ 					ob.RouteTarget = destination
+ 				} else {
+ 					ob.Target = destination
+@@ -363,7 +363,7 @@
+ 			if fkr0, ok := d.fdns.(dns.FakeDNSEngineRev0); ok && fkr0.IsIPInIPPool(ob.Target.Address) {
+ 				isFakeIP = true
+ 			}
+-			if sniffingRequest.RouteOnly && protocol != "fakedns" && protocol != "fakedns+others" && !isFakeIP {
++			if sniffingRequest.RouteOnly && protocol != "fakedns" && protocol != "fakedns+others" && !isFakeIP && !isSinkhole(ob.Target.Address) {
+ 				ob.RouteTarget = destination
+ 			} else {
+ 				ob.Target = destination
+diff --color -ruN xray-base/app/dispatcher/sinkhole.go xray-patched/app/dispatcher/sinkhole.go
+--- xray-base/app/dispatcher/sinkhole.go	1969-12-31 17:00:00
++++ xray-patched/app/dispatcher/sinkhole.go	2026-10-02 11:46:31
+@@ -0,0 +1,44 @@
++package dispatcher
++
++import (
++	gonet "net"
++
++	"github.com/xtls/xray-core/common/net"
++)
++
++// Iran's filter answers a blocked name with an address in these ranges. An
++// application that looked the name up before the tunnel came up still holds
++// that answer, and with routeOnly sniffing its connection is dialled at the
++// sinkhole: sent out directly, because the range is private, or through the
++// proxy to an address nobody outside Iran can reach. Either way it fails
++// until the application looks the name up again. On 2026-10-02 apps on 59 of
++// 161 phones did this while connected (Instagram, WhatsApp, Facebook).
++//
++// For a connection headed to one, the sniffed name is the only real
++// destination it has, so it replaces the address even with routeOnly set.
++// Nothing legitimate lives in these ranges, so no other connection changes,
++// and routeOnly keeps its reason everywhere else: a Telegram fake-TLS proxy
++// presents a name that is not its own.
++var sinkholes = []*gonet.IPNet{mustCIDR("10.10.34.0/24")}
++
++func mustCIDR(s string) *gonet.IPNet {
++	_, n, err := gonet.ParseCIDR(s)
++	if err != nil {
++		panic(err)
++	}
++	return n
++}
++
++// isSinkhole reports whether a is an address Iran's filter answers with.
++func isSinkhole(a net.Address) bool {
++	if a == nil || !a.Family().IsIP() {
++		return false
++	}
++	ip := a.IP()
++	for _, n := range sinkholes {
++		if n.Contains(ip) {
++			return true
++		}
++	}
++	return false
++}
+diff --color -ruN xray-base/app/dispatcher/sinkhole_test.go xray-patched/app/dispatcher/sinkhole_test.go
+--- xray-base/app/dispatcher/sinkhole_test.go	1969-12-31 17:00:00
++++ xray-patched/app/dispatcher/sinkhole_test.go	2026-10-02 11:46:31
+@@ -0,0 +1,29 @@
++package dispatcher
++
++import (
++	"testing"
++
++	"github.com/xtls/xray-core/common/net"
++)
++
++func TestIsSinkhole(t *testing.T) {
++	cases := []struct {
++		addr net.Address
++		want bool
++	}{
++		{net.ParseAddress("10.10.34.34"), true},
++		{net.ParseAddress("10.10.34.35"), true},
++		{net.ParseAddress("10.10.34.36"), true},
++		{net.ParseAddress("10.10.35.1"), false},
++		{net.ParseAddress("10.0.0.1"), false},
++		{net.ParseAddress("185.143.233.131"), false},
++		{net.ParseAddress("api.whatsapp.net"), false},
++		{net.ParseAddress("2001:db8::1"), false},
++		{nil, false},
++	}
++	for _, c := range cases {
++		if got := isSinkhole(c.addr); got != c.want {
++			t.Errorf("isSinkhole(%v) = %v, want %v", c.addr, got, c.want)
++		}
++	}
++}

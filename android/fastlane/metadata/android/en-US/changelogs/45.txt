@@ -1,0 +1,9 @@
+Improvements
+- Iranian sites and apps now open directly, so they load faster and do not use up your daily data.
+- If a connection fails, the app now tells you what went wrong and offers a fix, such as moving to the next server in one tap.
+- The sign-in screen now shows the correct 10 GB per day.
+
+Fixes
+- Picking a server from the free list now connects you to that server.
+- Every Android phone now has its own daily allowance.
+- Parts of the app were updated, and connections are steadier.

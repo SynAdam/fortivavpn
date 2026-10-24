@@ -1,0 +1,42 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources xmlns:tools="http://schemas.android.com/tools">
+    <string name="app_name" translatable="false">FortivaVPN</string>
+    <string name="app_tile_name">Switch</string>
+    <string name="toast_none_data">No Data</string>
+
+    <!-- Connection Status -->
+    <string name="status_connecting">در حال اتصال…</string>
+
+    <!-- Notifications -->
+
+    <!-- Identification status gate screen -->
+
+    <!-- keep your existing base URL string -->
+
+    <string name="intelligent_selection">Intelligent Selection</string>
+
+    <!-- Notifications -->
+    <string name="notification_action_stop_v2ray">توقف</string>
+
+    <!-- RoutingSettingActivity -->
+
+    <!--ServerActivity-->
+    <string name="toast_incorrect_protocol">پروتکل نادرست</string>
+
+    <!-- AboutActivity -->
+
+    <!--ServerActivity-->
+    <!-- PerAppProxyActivity -->
+
+    <!-- UserAssetActivity -->
+
+    <!-- Preferences -->
+
+    <string name="connection_test_available">Success: HTTP connection took %dms</string>
+    <string name="connection_test_error">Fail to detect internet connection: %s</string>
+    <string name="connection_test_error_status_code">Error code: #%d</string>
+    <string name="app_tile_first_use">First use of this feature, please use the app to add server</string>
+    <string name="toast_services_start">شروع خدمات</string>
+    <string name="toast_services_stop">توقف خدمات</string>
+    <string name="toast_warning_pref_proxysharing_short">اتصالات از طریق شبکه محلی را مجاز کنید، مطمئن شوید که در یک شبکه قابل اعتماد هستید.</string>
+</resources>

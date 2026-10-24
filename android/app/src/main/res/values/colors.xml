@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <color name="colorPrimary">#CAF0F8</color>
+    <color name="colorPrimaryDark">#161616</color>
+    <color name="colorAccent">#90E0EF</color>
+    <color name="colorBg">#CAF0F8</color>
+    <color name="colorText">#03045E</color>
+
+    <!-- Badge Colors - High Visibility -->
+
+    <!-- Day/Night-aware UI surfaces (see values-night/colors.xml) -->
+
+    <!-- Drawer icon tint (requested: black and highly visible) -->
+
+    <!-- AppDesign.canvas, the app's background. The window behind Flutter
+         and both launch screens use it, so launch shows one flat color
+         from the first frame and nothing black shows under the app. -->
+    <color name="canvas">#0E1318</color>
+    <!-- The native launch screen. It must equal the Flutter splash
+         background (splash_screen.dart) and shows no logo (commit 13d25bc). -->
+    <color name="splashBackground">@color/canvas</color>
+</resources>

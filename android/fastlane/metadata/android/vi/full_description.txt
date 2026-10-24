@@ -1,0 +1,38 @@
+Fortiva là VPN miễn phí, nhanh và bảo mật cho Android. Kết nối miễn phí mỗi ngày mà không cần đăng ký, không email, không số điện thoại. Chỉ cần cài đặt và kết nối bằng một chạm.
+
+✓ Miễn phí mỗi ngày, kèm hạn mức dữ liệu hằng ngày
+✓ Không cần đăng ký: không email, không số điện thoại, không mật khẩu
+✓ Kết nối một chạm, không cần cấu hình, không phải thiết lập gì
+✓ Không quảng cáo, không theo dõi
+✓ Kiểm tra tốc độ tích hợp: so sánh tốc độ khi bật và tắt VPN
+✓ Chúng tôi không bao giờ ghi lại các trang bạn mở
+
+VPN miễn phí mỗi ngày
+Cài Fortiva và kết nối ngay, hoàn toàn không cần tài khoản. Mỗi ngày bạn đều có dữ liệu miễn phí, và hạn mức tự động làm mới mỗi ngày.
+
+Dành cho mạng bị chặn
+Fortiva được làm cho những mạng mà VPN thông thường không kết nối được. Máy chủ có sẵn trong ứng dụng và tự cập nhật, nên bạn không phải đi tìm cấu hình hay dán khóa. Mở Telegram, Facebook, YouTube, Instagram và các trang web bạn cần, trên cả 4G lẫn Wi-Fi.
+
+Riêng tư trên mọi mạng
+Wi-Fi công cộng, mạng khách sạn và trường học, dữ liệu di động: lưu lượng của bạn được mã hóa giữa điện thoại và máy chủ của chúng tôi. Fortiva không có SDK quảng cáo hay theo dõi và không bao giờ ghi lại các trang bạn mở.
+
+Mời bạn bè
+Gửi link cài đặt cho bạn bè để họ cũng được kết nối miễn phí. Khi một người bạn bắt đầu dùng Fortiva, bạn nhận quà là thêm dữ liệu và Premium.
+
+Premium
+Premium gỡ bỏ giới hạn hằng ngày, bạn dùng bao nhiêu dữ liệu tùy thích cho đến khi Premium hết hạn.
+
+Cách Fortiva hoạt động
+Fortiva VPN dùng VpnService của Android để tạo một đường hầm an toàn, được mã hóa giữa thiết bị của bạn và các máy chủ từ xa của chúng tôi. Toàn bộ lưu lượng mạng được mã hóa bằng TLS, nên dữ liệu của bạn luôn riêng tư và được bảo vệ.
+• Tạo đường hầm VPN an toàn ở cấp thiết bị
+• Mã hóa toàn bộ dữ liệu giữa thiết bị của bạn và máy chủ VPN bằng TLS
+• Không thu thập, không chia sẻ và không chuyển hướng lưu lượng của người dùng để kiếm tiền
+• Không can thiệp vào lưu lượng của các ứng dụng khác
+• Chính sách quyền riêng tư đầy đủ tại fortivavpn.com/privacy
+
+Giấy phép mã nguồn mở
+Fortiva VPN là phần mềm tự do, được cấp phép theo GNU General Public License phiên bản 3. Ứng dụng được xây dựng dựa trên v2rayNG và các dự án mã nguồn mở khác.
+
+Bạn có quyền nhận toàn bộ mã nguồn tương ứng của phiên bản bạn đã cài. Để yêu cầu, hãy gửi email đến admin@fortivavpn.com kèm số phiên bản ứng dụng. Đề nghị này có hiệu lực trong ba năm kể từ ngày bạn nhận được phiên bản này. Mã nguồn được cung cấp miễn phí, chỉ tính chi phí gửi.
+
+Toàn văn giấy phép có tại gnu.org/licenses/gpl-3.0.html

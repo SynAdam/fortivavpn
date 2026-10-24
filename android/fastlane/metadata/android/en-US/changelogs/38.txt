@@ -1,0 +1,3 @@
+The shared and community server lists are reachable again from Your servers, so you always have somewhere to switch to when your own servers are slow.
+
+Signing in with Google now sticks. The app remembers it after a restart instead of asking you again.

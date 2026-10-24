@@ -1,0 +1,6 @@
+- Can't connect? Get help from a friend whose Fortiva works, right from their phone. It works without internet.
+- When only the international internet is cut, the app keeps looking for a way in instead of saying you are offline.
+- If a connection stops carrying data, the app moves to another path without a tap, and tells you if the app is closed.
+- Back no longer closes the app.
+- The app keeps fresh connection details ready.
+- The app remembers what works on each Wi-Fi network.

@@ -1,0 +1,3 @@
+- A steadier connection while you use it.
+- Switching servers from the servers screen is more reliable.
+- Choosing the second server on the servers screen now selects it, not the first one.

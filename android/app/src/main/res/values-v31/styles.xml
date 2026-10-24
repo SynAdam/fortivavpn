@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Android 12+ draws its own splash and it cannot be opted out of. It is
+         reduced to the app's background colour here: the icon slot is filled
+         with a transparent drawable, since leaving it unset would fall back to
+         the launcher icon rather than to nothing. -->
+    <style name="LaunchTheme" parent="@android:style/Theme.Black.NoTitleBar">
+        <item name="android:windowSplashScreenBackground">@color/splashBackground</item>
+        <item name="android:navigationBarColor">@color/canvas</item>
+        <item name="android:windowSplashScreenAnimatedIcon">@drawable/splash_no_icon</item>
+    </style>
+</resources>

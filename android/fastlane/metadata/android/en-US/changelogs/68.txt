@@ -1,0 +1,2 @@
+- While you are connected, the app keeps your server list up to date, so it finds a working server faster if one stops working.
+- The app remembers what did not work on each network, so it is ready sooner the next time you open it there.

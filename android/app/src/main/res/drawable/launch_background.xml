@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Pre-Android-12 launch screen: the app's own background and nothing else,
+     so the window that precedes the first Flutter frame is a colour rather
+     than a logo. See values-v31/styles.xml for the API 31+ path. -->
+<layer-list xmlns:android="http://schemas.android.com/apk/res/android">
+    <item android:drawable="@color/splashBackground" />
+</layer-list>

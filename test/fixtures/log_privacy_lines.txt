@@ -1,0 +1,78 @@
+# Sample lines for the log filter, read by both of its tests:
+# test/log_privacy_test.dart and
+# android/app/src/test/java/com/vpn/fortivavpn/handler/LogPrivacyTest.kt.
+#
+# Each line starts with "drop " or "keep ", then the line as `logcat -v time`
+# prints it. "drop" lines must never leave the phone. The line types are the
+# ones found in the technical logs of connected and dropped events on
+# 2026-10-11, and in the core's and the app's code. The sites and addresses
+# are example names and documentation addresses. 10.10.34.35 and
+# 2001:4188:2:600:10:10:34:36 are the sinkhole addresses Iran's filter answers
+# with.
+#
+# The core's line for each connection's site name.
+drop 10-11 09:16:12.345 I/GoLog   ( 4242): [Info] [1406141838] app/dispatcher: sniffed domain: example.com
+drop 10-11 09:16:12.345 I/GoLog   ( 4242): [Info] [1406141839] app/dispatcher: sniffed domain: xn--mgbh0fb.xn--mgba3a4f16a
+drop 10-11 09:16:12.345 I/GoLog   ( 4242): [Info] [1406141840] app/dispatcher: sniffed domain: localhost
+# Routing.
+drop 10-11 09:16:12.346 I/GoLog   ( 4242): [Info] [1406141838] app/dispatcher: default route for tcp:example.com:443
+drop 10-11 09:16:12.346 I/GoLog   ( 4242): [Info] [1406141838] app/dispatcher: default route for udp:203.0.113.53:53
+drop 10-11 09:16:12.346 I/GoLog   ( 4242): [Info] [1406141838] app/dispatcher: taking detour [proxy] for [tcp:example.org:443]
+drop 10-11 09:16:12.346 I/GoLog   ( 4242): [Info] [1406141838] app/dispatcher: taking platform initialized detour [door-1] for [tcp:example.org:443]
+# The access log.
+drop 10-11 09:16:12.347 I/GoLog   ( 4242): from tcp:127.0.0.1:43210 accepted tcp:example.com:443 [socks -> proxy]
+drop 10-11 09:16:12.347 I/GoLog   ( 4242): from udp:127.0.0.1:5353 accepted udp:198.51.100.53:53 [socks >> direct]
+drop 10-11 09:16:12.347 I/GoLog   ( 4242): from DNS accepted udp:203.0.113.53:53 [dns-out]
+# Requests, packets and dials.
+drop 10-11 09:16:12.348 I/GoLog   ( 4242): [Info] [1406141838] proxy/socks: TCP Connect request to tcp:203.0.113.7:443
+drop 10-11 09:16:12.348 I/GoLog   ( 4242): [Info] [1406141838] proxy/socks: TCP Connect request to tcp:[2001:db8::7]:443
+drop 10-11 09:16:12.348 I/GoLog   ( 4242): [Info] [1406141838] proxy/vless/outbound: tunneling request to tcp:example.com:443 via 198.51.100.20:443
+drop 10-11 09:16:12.348 I/GoLog   ( 4242): [Info] [1406141838] proxy/vless/outbound: tunneling request to udp:203.0.113.53:53 via 198.51.100.20:443
+drop 10-11 09:16:12.348 I/GoLog   ( 4242): [Info] [1406141838] proxy/vless/outbound: tunneling request to tcp:dns.example.net:853 via 198.51.100.20:443
+drop 10-11 09:16:12.349 I/GoLog   ( 4242): [Info] [1406141838] transport/internet/udp: dispatch request to: udp:203.0.113.53:53
+drop 10-11 09:16:12.349 I/GoLog   ( 4242): [Info] [1406141838] proxy/socks: send packet to udp:203.0.113.53:53 with 41 bytes
+drop 10-11 09:16:12.349 I/GoLog   ( 4242): [Info] [1406141838] proxy/socks: writing back UDP response with 120 bytes to udp:127.0.0.1:5353
+drop 10-11 09:16:12.349 I/GoLog   ( 4242): [Info] [1406141838] proxy/socks: client UDP connection from udp:127.0.0.1:5353
+drop 10-11 09:16:12.349 I/GoLog   ( 4242): [Info] [1406141838] transport/internet/udp: establishing new connection for udp:203.0.113.53:53
+drop 10-11 09:16:12.350 I/GoLog   ( 4242): [Info] [1406141838] transport/internet: replace destination with tcp:203.0.113.7:443
+drop 10-11 09:16:12.350 I/GoLog   ( 4242): [Info] [1406141838] transport/internet: redirecting request tcp:example.com:443 to door-2
+drop 10-11 09:16:12.350 I/GoLog   ( 4242): [Info] [1406141838] transport/internet: dialing to tcp:example.ir:443
+drop 10-11 09:16:12.350 I/GoLog   ( 4242): [Info] [1406141838] transport/internet/tcp: dialing TCP to tcp:10.10.34.35:443
+drop 10-11 09:16:12.350 I/GoLog   ( 4242): [Info] [1406141838] proxy/socks: TCP Connect request to tcp:[2001:4188:2:600:10:10:34:36]:443
+drop 10-11 09:16:12.350 I/GoLog   ( 4242): [Info] [1406141838] transport/internet/splithttp: XHTTP is dialing to tcp:door.example.net:443, mode auto, HTTP version 2, host cdn.example.net
+drop 10-11 09:16:12.351 I/GoLog   ( 4242): [Info] [1406141838] transport/internet/websocket: creating connection to tcp:door.example.net:443
+drop 10-11 09:16:12.351 I/GoLog   ( 4242): [Info] [1406141838] transport/internet/grpc: creating connection to tcp:door.example.net:443
+drop 10-11 09:16:12.351 I/GoLog   ( 4242): [Info] [1406141838] proxy/freedom: connection opened to tcp:example.ir:443, local endpoint 192.168.1.20:40000, remote endpoint 203.0.113.9:443
+drop 10-11 09:16:12.351 E/GoLog   ( 4242): [Error] [1406141838] transport/internet/websocket: failed to dial to door.example.net > dial tcp 198.51.100.20:443: i/o timeout
+drop 10-11 09:16:12.351 W/GoLog   ( 4242): [Warning] [1406141838] app/proxyman/outbound: failed to process outbound traffic > proxy/vless/outbound: failed to find an available destination > common/retry: [dial tcp 198.51.100.20:443: i/o timeout] > common/retry: all retry attempts failed
+# DNS.
+drop 10-11 09:16:12.352 I/GoLog   ( 4242): [Info] app/dns: returning 2 IP(s) for domain example.com -> [203.0.113.7 2001:db8::7]
+drop 10-11 09:16:12.352 I/GoLog   ( 4242): [Info] app/dns: UDP:1.1.1.1:53 got answer: example.com. TypeA -> [203.0.113.7], rtt: 30ms
+drop 10-11 09:16:12.352 I/GoLog   ( 4242): [Info] app/dns: domain www.example.com will use DNS in order: [UDP:1.1.1.1:53]
+drop 10-11 09:16:12.352 I/GoLog   ( 4242): [Info] [1406141838] transport/internet/tls: Trying to query ECH config for domain example.com
+drop 10-11 09:16:12.352 W/GoLog   ( 4242): [Warning] [1406141838] proxy/freedom: failed to open connection > lookup example.com on 8.8.8.8:53: no such host
+# A name or an address in a line of no listed type.
+drop 10-11 09:16:12.353 W/GoLog   ( 4242): [Warning] [1406141838] app/proxyman/inbound: connection ends > read from مثال.ایران: connection reset by peer
+drop 10-11 09:16:12.353 W/GoLog   ( 4242): [Warning] [1406141838] transport/internet/tls: x509: certificate is valid for a.example.com, not example.com
+drop 10-11 09:16:12.353 W/GoLog   ( 4242): [Warning] [1406141838] transport/internet: listening on [::]:10808
+drop 2026/10/11 09:16:12 [Info] [42] app/dispatcher: sniffed domain: example.com
+# This app's own lines.
+drop 10-11 09:16:12.354 W/FortivaVPN( 4242): Always-on VPN held by Example VPN; consent dialog cannot open
+drop 10-11 09:16:12.354 E/com.vpn.fortivavpn( 4242): Failed to configure app in VPN: com.example.app
+drop 10-11 09:16:12.354 I/com.vpn.fortivavpn( 4242): TUN2SOCKS UDP: udp 10.0.0.2:5353 to 203.0.113.53:53
+drop 10-11 09:16:12.354 D/FortivaVPN( 4242): realPing result: 85ms for link: vless://***@door.example.net:443?security=reality
+#
+# Lines that name no site and no address.
+keep 10-11 09:16:12.355 W/GoLog   ( 4242): [Warning] core: Xray 26.8.20 started
+keep 10-11 09:16:12.355 I/GoLog   ( 4242): Starting core successfully
+keep 10-11 09:16:12.355 I/GoLog   ( 4242): [Info] [1406141838] app/proxyman/inbound: connection ends > proxy/socks: connection ends > io: read/write on closed pipe
+keep 10-11 09:16:12.355 I/GoLog   ( 4242): 2026/10/11 09:16:12.345678 [Warning] [3141592653] app/proxyman/inbound: connection ends > context canceled
+keep 10-11 09:16:12.355 I/GoLog   ( 4242): [Info] proxy/autoselect: autoselect[proxy]: probe failed, door-1 (was door-0)
+keep 10-11 09:16:12.355 I/GoLog   ( 4242): [Info] transport/internet/tcp: listening TCP on 127.0.0.1:10808
+keep 10-11 09:16:12.355 I/GoLog   ( 4242): [Warning] [1406141838] transport/internet: failed to apply socket options > operation not permitted
+keep 10-11 09:16:12.355 I/GoLog   ( 4242): [Info] app/log: Logger closing
+keep 10-11 09:16:12.356 D/FortivaVPN( 4242): SOCKS test result: HTTP 204 (via port 10808)
+keep 10-11 09:16:12.356 I/FortivaVPN( 4242): [VpnService] Step 3 OK: tun2socks running
+keep 10-11 09:16:12.356 I/com.vpn.fortivavpn( 4242): LocalSocket path : /data/user/0/com.vpn.fortivavpn/files/sock_path
+keep 10-11 09:16:12.356 W/FortivaVPN( 4242): Always-on VPN is held by another app; consent dialog cannot open
+keep 10-11 09:16:12.356 E/com.vpn.fortivavpn( 4242): An app chosen for per-app routing is not installed; skipped

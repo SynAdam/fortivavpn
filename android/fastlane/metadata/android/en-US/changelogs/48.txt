@@ -1,0 +1,6 @@
+Improvements
+- Connecting works more reliably on some networks where it used to fail now and then.
+
+Fixes
+- On some phones, websites did not open while connected. This is fixed.
+- When your daily data is used up, the app now tells you so instead of saying the server is not working.

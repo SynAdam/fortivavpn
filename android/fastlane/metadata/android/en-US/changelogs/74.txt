@@ -1,0 +1,2 @@
+- When a connection opens but nothing gets through, Fortiva now tries another way by itself in the same tap.
+- When your phone has no internet, the app now says so instead of asking you to try another server.

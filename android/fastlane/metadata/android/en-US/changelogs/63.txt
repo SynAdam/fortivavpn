@@ -1,0 +1,3 @@
+- Picking a server now takes you straight back to the home screen.
+- Speed test and Invite friends are now on the home screen, right under the server card.
+- Small fixes.

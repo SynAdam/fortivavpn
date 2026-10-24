@@ -1,0 +1,1 @@
+- When a connection fails, the app now reports the reason more precisely, so problems get fixed faster.

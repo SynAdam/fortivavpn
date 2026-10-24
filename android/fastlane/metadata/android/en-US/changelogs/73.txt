@@ -1,0 +1,2 @@
+- Fortiva now learns faster which ways of connecting work on your internet, so it finds a working one sooner when something gets blocked.
+- Fixed a rare crash.

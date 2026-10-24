@@ -1,0 +1,38 @@
+Fortiva, Android için ücretsiz, hızlı ve güvenli bir VPN'dir. Her gün ücretsiz bağlanın: kayıt yok, e-posta yok, telefon numarası yok. Yükleyin ve tek dokunuşla bağlanın.
+
+✓ Her gün ücretsiz, günlük veri kotasıyla
+✓ Kayıt yok: e-posta, telefon numarası veya şifre istenmez
+✓ Tek dokunuşla bağlantı, ayar ve yapılandırma yok
+✓ Reklam yok, takip yok
+✓ Dahili hız testi: hızınızı VPN ile ve VPN olmadan karşılaştırın
+✓ Açtığınız sayfaları asla kaydetmeyiz
+
+Her gün ücretsiz VPN
+Fortiva'yı yükleyin ve hemen bağlanın. Hiçbir hesap açmadan her gün ücretsiz veri kullanırsınız. Kotanız her gün kendiliğinden yenilenir.
+
+Kısıtlanan ağlar için geliştirildi
+Fortiva, sıradan VPN'lerin bağlanamadığı ağlar için tasarlandı. Sunucular uygulamanın içinde hazır ve kendiliğinden güncellenir; ayar dosyası aramanıza ya da anahtar yapıştırmanıza gerek yok. Erişim engeli veya yavaşlatma olduğunda Instagram, X, YouTube, Discord ve Roblox'u mobil veride ve Wi-Fi'da açın.
+
+Her ağda gizlilik
+Halka açık Wi-Fi, otel ve kampüs ağları, mobil veri: trafiğiniz telefonunuz ile sunucularımız arasında şifrelenir. Fortiva reklam ya da takip SDK'sı içermez ve açtığınız sayfaları asla kaydetmez.
+
+Arkadaşlarınızı davet edin
+Yükleme bağlantısını arkadaşlarınıza gönderin, onlar da ücretsiz bağlansın. Bir arkadaşınız Fortiva'yı kullanmaya başladığında hediye Premium kazanırsınız.
+
+Premium
+Premium günlük sınırı kaldırır; süresi bitene kadar istediğiniz kadar veri kullanabilirsiniz.
+
+Fortiva nasıl çalışır
+Fortiva VPN, cihazınız ile uzak sunucularımız arasında güvenli ve şifreli bir tünel oluşturmak için Android'in VpnService özelliğini kullanır. Tüm ağ trafiği TLS ile şifrelenir, böylece verileriniz gizli ve korunaklı kalır.
+• Cihaz düzeyinde güvenli bir VPN tüneli oluşturur
+• Cihazınız ile VPN sunucuları arasındaki tüm verileri TLS ile şifreler
+• Kullanıcı trafiğini gelir elde etmek için toplamaz, paylaşmaz ve başka bir yere yönlendirmez
+• Diğer uygulamaların trafiğine müdahale etmez
+• Gizlilik politikasının tamamı: fortivavpn.com/privacy
+
+Açık kaynak lisansı
+Fortiva VPN özgür bir yazılımdır ve GNU General Public License sürüm 3 ile lisanslanmıştır. v2rayNG ve diğer açık kaynak projeleri üzerine kuruludur.
+
+Yüklediğiniz sürümün eksiksiz kaynak kodunu alma hakkınız vardır. Talep etmek için uygulamanın sürüm numarasını belirterek admin@fortivavpn.com adresine e-posta gönderin. Bu teklif, bu sürümü aldığınız tarihten itibaren üç yıl geçerlidir. Kaynak kodu, gönderim masrafı dışında ücretsiz olarak sağlanır.
+
+Lisansın tam metni: gnu.org/licenses/gpl-3.0.html

@@ -1,0 +1,3 @@
+When a connection does not go through, the app now works out where it stopped and reports that, so we can find the cause and fix it for you sooner.
+
+The report says how far the connection got and what kind of network you were on. It never records where you went or what you opened, and you can turn it off in Settings at any time.

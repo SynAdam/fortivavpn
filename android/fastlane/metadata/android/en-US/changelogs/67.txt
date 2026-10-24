@@ -1,0 +1,6 @@
+- Connecting is more reliable on restrictive networks, even right after you install the app.
+- Your servers are ready sooner after you open the app, even on a weak connection.
+- If the server you picked does not work, the app tries the others by itself until one connects.
+- When some servers are blocked, the app finds a working one faster.
+- The app no longer says there is no internet when it can still connect.
+- A double tap on the button no longer cancels connecting.

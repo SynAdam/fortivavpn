@@ -1,0 +1,77 @@
+# Miscellaneous
+*.class
+*.log
+*.pyc
+*.swp
+.DS_Store
+.atom/
+.build/
+.buildlog/
+.history
+.svn/
+.swiftpm/
+migrate_working_dir/
+
+# IntelliJ related
+*.iml
+*.ipr
+*.iws
+.idea/
+
+# The .vscode folder contains launch configuration and tasks you configure in
+# VS Code which you may wish to be included in version control, so this line
+# is commented out by default.
+#.vscode/
+
+# Flutter/Dart/Pub related
+**/doc/api/
+**/ios/Flutter/.last_build_id
+.dart_tool/
+.flutter-plugins-dependencies
+.pub-cache/
+.pub/
+/build/
+/coverage/
+
+# Symbolication related
+app.*.symbols
+
+# Obfuscation related
+app.*.map.json
+
+# Android Studio will place build artifacts here
+/android/app/debug
+/android/app/profile
+/android/app/release
+
+# Local files
+/docs/
+ios/Package.resolved
+*.code-workspace
+
+# Certificates
+upload_certificate.pem
+
+# Signing keys and their passwords. Never commit them.
+*.p8
+*.p12
+*.mobileprovision
+*.keystore
+*.jks
+keystore.properties
+key.properties
+# Service account keys
+play-publisher.json
+*-service-account*.json
+# Local settings that can hold keys
+.env
+
+# Toolchain staged by android/core/build.sh
+android/core/.bin/
+# Patched Xray-core source staged by android/core/stage-xray.sh
+android/core/.src/
+# Pinned inputs staged by windows/core/stage.sh, and its build output
+windows/core/.assets/
+windows/core/dist/
+# The installer, when iscc runs without /DOutDir
+windows/installer/Output/
