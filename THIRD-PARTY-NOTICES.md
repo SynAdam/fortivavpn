@@ -315,10 +315,12 @@ Anyone who gets the Android or Windows app is entitled to the complete
 corresponding source of that version. It is available in two ways:
 
 - **The public copy.** The source of each release is published at
-  https://github.com/SynAdam/fortivavpn, one commit for each version,
-  tagged `vX.Y.Z`. Every download of the app links to it: the Google Play
-  listing, fortivavpn.com and the Telegram channel. The public copy leaves
-  out the addresses and keys in `lib/api/built_in.dart`.
+  https://github.com/SynAdam/fortivavpn, and each release is tagged
+  `vX.Y.Z` there. Its history starts at version 2.2.0, with one commit for
+  each change made since the previous release. Every download of the app
+  links to it: the Google Play listing, fortivavpn.com and the Telegram
+  channel. The public copy leaves out the addresses and keys in
+  `lib/api/built_in.dart`.
 - **By email, the complete source.** Write to admin@fortivavpn.com and name
   the version you have. We send the complete source of that version, with
   the values the public copy leaves out. This written offer is valid for

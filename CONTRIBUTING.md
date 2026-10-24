@@ -25,18 +25,19 @@ Write in English or Persian.
 
 ## Pull requests
 
-Each commit in this repository is the source of one released version, so
-a pull request is not merged here. Your change goes into the next release
-instead:
+This repository gets its commits from our private repository at each
+release, so a pull request is not merged here. Your change goes into the
+next release instead:
 
 1. Fork this repository, make your change on a branch, and open a pull
    request against `main`.
 2. We review it here, in the open, and may ask for changes.
-3. When it is ready, we bring it into the next release. The commit of that
-   release lists your pull request and names you as a co-author.
+3. When it is ready, we bring it into the next release. The commit that
+   brings your change here lists your pull request and names you as a
+   co-author.
 4. When that release is published here, we close your pull request with a
    comment that names the release. It is closed rather than merged, because
-   the commit of the release already holds your change.
+   a commit of the release already holds your change.
 
 The co-author line has the name on your GitHub profile, or your username if
 the profile has no name, and your GitHub no-reply email address. Other

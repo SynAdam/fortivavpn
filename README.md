@@ -22,12 +22,12 @@ on top of a native tunnel for each platform, built on
 
 ## What this repository is
 
-Each commit here is the source of one released version, named in its
-commit message and tagged `vX.Y.Z`. The apps are developed in a private
-repository, and this copy is made from it at each release.
+The apps are developed in a private repository. At each release, this copy
+gets one commit for each change made there since the previous release, and
+the release is tagged `vX.Y.Z`. The history here starts at version 2.2.0.
 
 Pull requests are welcome. An accepted change ships in the next release,
-and the commit of that release names you as a co-author.
+and the commit that brings it here names you as a co-author.
 [CONTRIBUTING.md](CONTRIBUTING.md) has the steps and the terms.
 
 Three things in the builds we ship are not in this copy:

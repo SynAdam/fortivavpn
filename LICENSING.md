@@ -46,9 +46,10 @@ Both builds contain code under GPL-3.0:
 ### The source of each release
 
 The source of each release of the Android and Windows apps is published at
-https://github.com/SynAdam/fortivavpn, one commit for each version, tagged
-`vX.Y.Z`. Google Play, fortivavpn.com and the Telegram channel link to it
-next to the download.
+https://github.com/SynAdam/fortivavpn, and each release is tagged `vX.Y.Z`
+there. Its history starts at version 2.2.0. At each release it gets one
+commit for each change made since the previous release. Google Play,
+fortivavpn.com and the Telegram channel link to it next to the download.
 
 That copy leaves out a few addresses and keys that the app uses to reach
 our service, so `lib/api/built_in.dart` is empty there. You can also get
