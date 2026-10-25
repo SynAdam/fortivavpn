@@ -70,6 +70,17 @@ class ReferralState extends ChangeNotifier {
   /// a claim in this run, or the loaded status says so.
   bool get hasClaimed => _justClaimed || (_status?.hasClaimed ?? false);
 
+  /// Whether this device's invites have already added the most daily data
+  /// that invites give (ReferralStatus.maxBonusBytes), so a further invite
+  /// adds none. False while no status is loaded in this run of the app (the
+  /// invite screen loads it), so before then invites still count as a free
+  /// way to more data.
+  bool get dataBonusSpent {
+    final status = _status;
+    final most = status?.maxBonusBytes;
+    return status != null && most != null && status.bonusBytes >= most;
+  }
+
   Future<ReferralStatus> _load(String deviceId) =>
       _service.getStatus(deviceId, lang: _language?.call());
 

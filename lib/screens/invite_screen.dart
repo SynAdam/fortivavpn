@@ -53,6 +53,7 @@ class _InviteScreenState extends State<InviteScreen> {
     _log(switch (widget.entry) {
       InviteEntry.homeButton => InviteSurface.homeButton,
       InviteEntry.limitSheet => InviteSurface.limitSheet,
+      InviteEntry.quotaLine => InviteSurface.quotaLine,
       InviteEntry.settings => InviteSurface.inviteScreen,
     }, InviteAction.shown);
   }
@@ -763,5 +764,6 @@ class _ErrorBody extends StatelessWidget {
   }
 }
 
-/// Where the invite screen was opened from.
-enum InviteEntry { homeButton, limitSheet, settings }
+/// Where the invite screen was opened from. [quotaLine] is the invite
+/// link on the home data line.
+enum InviteEntry { homeButton, limitSheet, quotaLine, settings }

@@ -58,6 +58,13 @@ class FeatureFlags {
   /// entry point into endpoints the backend may not have yet.
   final bool enableReferrals;
 
+  /// The share of the daily allowance used, in percent (1 to 100), after
+  /// which the home data line offers invites, before the allowance runs
+  /// out. Null, which shows no link, when the backend sends none: it sends
+  /// one only while [enableReferrals] is on and its INVITE_NUDGE_PERCENT is
+  /// set. The app holds no number of its own.
+  final int? inviteNudgePercent;
+
   /// How to split the TLS hello on TLS links, for example
   /// `tlshello,10-20,10-20`, or empty for not at all. See TlsFragment.
   final String tlsFragment;
@@ -94,6 +101,7 @@ class FeatureFlags {
     this.enableKillSwitch = true,
     this.enableSplitTunneling = false,
     this.enableReferrals = false,
+    this.inviteNudgePercent,
     this.tlsFragment = '',
     this.standbyDoors = false,
     this.reviewPrompt = false,
@@ -117,8 +125,15 @@ class FeatureFlags {
       reviewPrompt: json['review_prompt'] == true,
       limitSheet: json['limit_sheet'] != false,
       stallWatch: json['stall_watch'] != false,
+      inviteNudgePercent: _percent(json['invite_nudge_percent']),
     );
   }
+
+  /// [value] when it is a whole percent from 1 to 100, else null. Read
+  /// without a cast, as review_prompt is: a value of the wrong type must
+  /// not throw away the whole config.
+  static int? _percent(Object? value) =>
+      value is int && value >= 1 && value <= 100 ? value : null;
 
   Map<String, dynamic> toJson() {
     return {
@@ -127,6 +142,7 @@ class FeatureFlags {
       'enable_kill_switch': enableKillSwitch,
       'enable_split_tunneling': enableSplitTunneling,
       'enable_referrals': enableReferrals,
+      'invite_nudge_percent': inviteNudgePercent,
       'tls_fragment': tlsFragment,
       'standby_doors': standbyDoors,
       'review_prompt': reviewPrompt,

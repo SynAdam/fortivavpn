@@ -133,6 +133,13 @@ class AppConfigState extends ChangeNotifier {
 
   bool get referralsEnabled => flags.enableReferrals;
 
+  /// The share of the daily allowance used, in percent, after which the
+  /// home data line offers invites, or null for no link: while invites are
+  /// off, before a config has landed in this run of the app, and when the
+  /// backend sent no number. See FeatureFlags.inviteNudgePercent.
+  int? get inviteNudgePercent =>
+      referralsEnabled ? flags.inviteNudgePercent : null;
+
   /// The Telegram channel the app's links open: Contact us in Settings
   /// while the chat is off, and the chat's own fallback. Kept between
   /// launches with the version rules. The update prompt picks its own

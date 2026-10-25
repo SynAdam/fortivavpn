@@ -163,9 +163,7 @@ class _MyServersScreenState extends State<MyServersScreen> {
     final config = context.watch<AppConfigState?>();
     if (config?.config == null) return false;
     if (!config!.referralsEnabled) return true;
-    final status = context.watch<ReferralState?>()?.status;
-    final most = status?.maxBonusBytes;
-    return status != null && most != null && status.bonusBytes >= most;
+    return context.watch<ReferralState?>()?.dataBonusSpent ?? false;
   }
 
   void _toast(String message) =>

@@ -1730,15 +1730,45 @@ class _HomeScreenState extends State<HomeScreen> {
         quota.limitBytes > 0 &&
         quota.usedBytes * 100 >= quota.limitBytes * nudge;
 
+    // Invites, the free way to more data, offered before the data runs out:
+    // the limit sheet offers them only once it has, and that is too late
+    // for the same day, because an invite pays only once the friend has
+    // used the VPN on more than one day. The share is the backend's
+    // (AppConfigState.inviteNudgePercent), and there is no link without
+    // it. Never for an unmetered or Premium device, on a TV, while a
+    // connect is under way or an error is on screen, once invites can add
+    // no more data, or once the data is spent (the limit sheet's turn).
+    final invitePercent = context.watch<AppConfigState?>()?.inviteNudgePercent;
+    final invitesSpent =
+        context.watch<ReferralState?>()?.dataBonusSpent ?? false;
+    final inviteNudge =
+        invitePercent != null &&
+        offerCalm &&
+        !FormFactor.isTv &&
+        !invitesSpent &&
+        !(billing?.premium.active ?? false) &&
+        quota != null &&
+        !quota.unlimited &&
+        !quota.blocked &&
+        quota.limitBytes > 0 &&
+        quota.usedBytes * 100 >= quota.limitBytes * invitePercent;
+    final premiumNudge = nearLimit && offer(UpsellSurface.quotaLine);
+    // With both, the data line takes a row more (_QuotaLine), which on a
+    // short phone pushed the power button out of sight.
+    final twoLinks = inviteNudge && premiumNudge && !dedicated.isBlocked;
+
     final footer = <Widget>[
-      // Not beside the invite card, which needs the room.
-      if (!_invite.up) const _HaveCodeRow(),
+      // Not beside the invite card, which needs the room, nor beside the
+      // data line's two links. The invite link opens the invite screen,
+      // which has "Have an invite code?" too.
+      if (!_invite.up && !twoLinks) const _HaveCodeRow(),
       // Over the allowance the status line and the card already say so; a
       // third mention would be nagging.
       if (!dedicated.isBlocked)
         _QuotaLine(
+          key: const Key('quota-line'),
           quota: quota,
-          onGetUnlimited: nearLimit && offer(UpsellSurface.quotaLine)
+          onGetUnlimited: premiumNudge
               ? () {
                   billing?.logUpsell(
                     UpsellSurface.quotaLine,
@@ -1746,6 +1776,16 @@ class _HomeScreenState extends State<HomeScreen> {
                   );
                   PremiumScreen.open(context, source: PremiumSource.quotaLine);
                 }
+              : null,
+          onInvite: inviteNudge
+              ? () => Navigator.push(
+                  context,
+                  MaterialPageRoute<void>(
+                    builder: (_) => const ReadableWidth(
+                      child: InviteScreen(entry: InviteEntry.quotaLine),
+                    ),
+                  ),
+                )
               : null,
         ),
       RenewalCard(key: const ValueKey('renewal'), calm: offerCalm),
@@ -2637,14 +2677,26 @@ class _RenderCardLines extends RenderBox
       defaultHitTestChildren(result, position: position);
 }
 
-/// Remaining allowance, as one quiet line, with a small "Get unlimited"
-/// after it once the backend's nudge share of the allowance is used and
-/// the offer is on ([onGetUnlimited]).
+/// Remaining allowance, as one quiet line, with a small link after it once
+/// the backend's share of the allowance is used: "Invite friends for more
+/// data" ([onInvite]) and "Get unlimited" ([onGetUnlimited]), each while it
+/// is on. With both, the invite link comes first, as on the limit sheet:
+/// the free way to more data, then Premium.
 class _QuotaLine extends StatelessWidget {
   final QuotaStatus? quota;
   final VoidCallback? onGetUnlimited;
+  final VoidCallback? onInvite;
 
-  const _QuotaLine({required this.quota, this.onGetUnlimited});
+  const _QuotaLine({
+    super.key,
+    required this.quota,
+    this.onGetUnlimited,
+    this.onInvite,
+  });
+
+  /// The invite link and the Premium link, for tests.
+  static const inviteKey = Key('quota-line-invite');
+  static const unlimitedKey = Key('quota-line-unlimited');
 
   @override
   Widget build(BuildContext context) {
@@ -2680,7 +2732,8 @@ class _QuotaLine extends StatelessWidget {
       child: Text(words, maxLines: 1, style: style),
     );
     final onGetUnlimited = this.onGetUnlimited;
-    if (blocked || onGetUnlimited == null) {
+    final onInvite = this.onInvite;
+    if (blocked || (onGetUnlimited == null && onInvite == null)) {
       // 8 above: the line's own leading adds to it, and the footer sits in
       // the home screen's height budget.
       return Padding(
@@ -2693,179 +2746,318 @@ class _QuotaLine extends StatelessWidget {
         child: line,
       );
     }
-    final linkWords = l10n.premiumGetUnlimited;
     final linkStyle = AppDesign.textTheme.bodySmall?.copyWith(
       color: AppDesign.brandBright,
       fontWeight: FontWeight.w600,
     );
-    // Only "Get unlimited" opens Premium, as before the redesign: the
-    // amounts are words, not a button.
-    //
-    // The link goes beside the amounts wherever it can, because there its
-    // target is the line's full 48dp height, padded around the link alone.
-    // The first choice is one line, with the amounts shrunk by at most a
-    // tenth. Where that does not fit (a narrow phone at a large text size,
-    // or a long translation), the amounts take two lines, and then the
-    // link takes two lines as well. Two lines are used only where they are
-    // no taller than the amounts and the link one under the other, so the
-    // power button never has less room because of them.
-    //
-    // Only where nothing fits beside the amounts does the link go under
-    // them. Its target is then only as tall as the room the two lines
-    // already take, because a 48dp row of its own there came out of the
-    // power button's room. The line's own air stands in for the gap above
-    // it.
-    Widget link({double? wrapWidth}) => Pressable(
-      onTap: onGetUnlimited,
-      color: Colors.transparent,
-      padding: const EdgeInsets.symmetric(horizontal: AppDesign.space8),
-      child: ConstrainedBox(
-        constraints: BoxConstraints(
-          minHeight: kMinInteractiveDimension,
-          maxWidth: wrapWidth ?? double.infinity,
-        ),
-        child: Center(
-          widthFactor: 1,
-          heightFactor: 1,
-          child: Text(linkWords, textAlign: TextAlign.center, style: linkStyle),
-        ),
-      ),
+    // The free way first, as on the limit sheet.
+    final links = <_QuotaLink>[
+      if (onInvite != null)
+        _QuotaLink(inviteKey, l10n.premiumLimitInvite, onInvite),
+      if (onGetUnlimited != null)
+        _QuotaLink(unlimitedKey, l10n.premiumGetUnlimited, onGetUnlimited),
+    ];
+    // Each amount kept whole, so a line never ends between the number and
+    // its unit.
+    final wrapped = l10n.quotaUsedToday(
+      amount(quota.usedBytes).replaceAll(' ', '\u00A0'),
+      amount(quota.limitBytes).replaceAll(' ', '\u00A0'),
     );
+    final body = links.length == 1
+        ? _oneLink(links.single, line, words, wrapped, style, linkStyle)
+        : _twoLinks(links, line, linkStyle);
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: AppDesign.space20),
-      child: UpsellShown(
-        surface: UpsellSurface.quotaLine,
-        child: LayoutBuilder(
-          builder: (context, constraints) {
-            final width = constraints.maxWidth;
-            final linkPadding = 2 * AppDesign.space8;
-            final amountsOne = _measure(context, words, style);
-            final linkOne = _measure(context, linkWords, linkStyle);
-            if (amountsOne.width * _besideScale + linkOne.width + linkPadding <=
-                width) {
+      // Only the Premium link is an offer the backend counts as shown.
+      child: onGetUnlimited == null
+          ? body
+          : UpsellShown(surface: UpsellSurface.quotaLine, child: body),
+    );
+  }
+
+  /// [link] as a tap target the line's full 48dp height, padded around the
+  /// link's words alone, on lines no wider than [wrapWidth].
+  static Widget _target(
+    _QuotaLink link,
+    TextStyle? linkStyle, {
+    double? wrapWidth,
+  }) => Pressable(
+    key: link.key,
+    onTap: link.onTap,
+    color: Colors.transparent,
+    padding: const EdgeInsets.symmetric(horizontal: AppDesign.space8),
+    child: ConstrainedBox(
+      constraints: BoxConstraints(
+        minHeight: kMinInteractiveDimension,
+        maxWidth: wrapWidth ?? double.infinity,
+      ),
+      child: Center(
+        widthFactor: 1,
+        heightFactor: 1,
+        child: Text(link.words, textAlign: TextAlign.center, style: linkStyle),
+      ),
+    ),
+  );
+
+  /// The amounts with one link, which goes beside them wherever it can.
+  ///
+  /// Only the link opens anything, as before the redesign: the amounts are
+  /// words, not a button.
+  ///
+  /// The link goes beside the amounts wherever it can, because there its
+  /// target is the line's full 48dp height, padded around the link alone.
+  /// The first choice is one line, with the amounts shrunk by at most a
+  /// tenth. Where that does not fit (a narrow phone at a large text size,
+  /// or a long translation), the amounts take two lines, and then the
+  /// link takes two lines as well. Two lines are used only where they are
+  /// no taller than the amounts and the link one under the other, so the
+  /// power button never has less room because of them.
+  ///
+  /// Only where nothing fits beside the amounts does the link go under
+  /// them. Its target is then only as tall as the room the two lines
+  /// already take, because a 48dp row of its own there came out of the
+  /// power button's room. The line's own air stands in for the gap above
+  /// it.
+  Widget _oneLink(
+    _QuotaLink link,
+    Widget line,
+    String words,
+    String wrapped,
+    TextStyle? style,
+    TextStyle? linkStyle,
+  ) {
+    final linkWords = link.words;
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        final width = constraints.maxWidth;
+        final linkPadding = 2 * AppDesign.space8;
+        final amountsOne = _measure(context, words, style);
+        final linkOne = _measure(context, linkWords, linkStyle);
+        if (amountsOne.width * _besideScale + linkOne.width + linkPadding <=
+            width) {
+          return Center(
+            child: Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Flexible(child: line),
+                _target(link, linkStyle),
+              ],
+            ),
+          );
+        }
+
+        // How tall the two lines are one under the other, the amounts
+        // shrunk to the width as the line does.
+        final fit = math.min(
+          1.0,
+          (width - linkPadding) / math.max(amountsOne.width, 1),
+        );
+        final underHeight = math.max(
+          kMinInteractiveDimension,
+          amountsOne.height * fit + linkOne.height + 2 * AppDesign.space2,
+        );
+        // Two lines as even as the words allow. They may shrink by the
+        // same tenth as the one line.
+        final amountsWidth = _twoLineWidth(context, wrapped, style);
+        if (amountsWidth != null) {
+          final amountsLines = _measure(
+            context,
+            wrapped,
+            style,
+            maxLines: 2,
+            maxWidth: amountsWidth,
+          );
+          // The link on one line, then on two.
+          for (final linkWidth in [
+            null,
+            ?_twoLineWidth(context, linkWords, linkStyle),
+          ]) {
+            final linkLines = linkWidth == null
+                ? linkOne
+                : _measure(
+                    context,
+                    linkWords,
+                    linkStyle,
+                    maxLines: 2,
+                    maxWidth: linkWidth,
+                  );
+            final room = width - (linkWidth ?? linkOne.width) - linkPadding;
+            final shrink = math.min(1.0, room / amountsWidth);
+            final height = math.max(
+              kMinInteractiveDimension,
+              math.max(amountsLines.height * shrink, linkLines.height),
+            );
+            if (shrink >= _besideScale &&
+                amountsLines.fits &&
+                linkLines.fits &&
+                height <= underHeight + 0.5) {
               return Center(
                 child: Row(
                   mainAxisSize: MainAxisSize.min,
                   children: [
-                    Flexible(child: line),
-                    link(),
+                    Flexible(
+                      child: FittedBox(
+                        fit: BoxFit.scaleDown,
+                        child: SizedBox(
+                          width: amountsWidth,
+                          child: Text(
+                            wrapped,
+                            textAlign: TextAlign.center,
+                            style: style,
+                          ),
+                        ),
+                      ),
+                    ),
+                    _target(link, linkStyle, wrapWidth: linkWidth),
                   ],
                 ),
               );
             }
+          }
+        }
 
-            // How tall the two lines are one under the other, the amounts
-            // shrunk to the width as the line does.
-            final fit = math.min(
-              1.0,
-              (width - linkPadding) / math.max(amountsOne.width, 1),
-            );
-            final underHeight = math.max(
-              kMinInteractiveDimension,
-              amountsOne.height * fit + linkOne.height + 2 * AppDesign.space2,
-            );
-            // Each amount kept whole, so a line never ends between the
-            // number and its unit.
-            final wrapped = l10n.quotaUsedToday(
-              amount(quota.usedBytes).replaceAll(' ', '\u00A0'),
-              amount(quota.limitBytes).replaceAll(' ', '\u00A0'),
-            );
-            // Two lines as even as the words allow. They may shrink by the
-            // same tenth as the one line.
-            final amountsWidth = _twoLineWidth(context, wrapped, style);
-            if (amountsWidth != null) {
-              final amountsLines = _measure(
-                context,
-                wrapped,
-                style,
-                maxLines: 2,
-                maxWidth: amountsWidth,
-              );
-              // The link on one line, then on two.
-              for (final linkWidth in [
-                null,
-                ?_twoLineWidth(context, linkWords, linkStyle),
-              ]) {
-                final linkLines = linkWidth == null
-                    ? linkOne
-                    : _measure(
-                        context,
-                        linkWords,
-                        linkStyle,
-                        maxLines: 2,
-                        maxWidth: linkWidth,
-                      );
-                final room = width - (linkWidth ?? linkOne.width) - linkPadding;
-                final shrink = math.min(1.0, room / amountsWidth);
-                final height = math.max(
-                  kMinInteractiveDimension,
-                  math.max(amountsLines.height * shrink, linkLines.height),
-                );
-                if (shrink >= _besideScale &&
-                    amountsLines.fits &&
-                    linkLines.fits &&
-                    height <= underHeight + 0.5) {
-                  return Center(
-                    child: Row(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        Flexible(
-                          child: FittedBox(
-                            fit: BoxFit.scaleDown,
-                            child: SizedBox(
-                              width: amountsWidth,
-                              child: Text(
-                                wrapped,
-                                textAlign: TextAlign.center,
-                                style: style,
-                              ),
-                            ),
-                          ),
-                        ),
-                        link(wrapWidth: linkWidth),
-                      ],
+        return ConstrainedBox(
+          constraints: const BoxConstraints(
+            minHeight: kMinInteractiveDimension,
+          ),
+          child: Center(
+            child: Padding(
+              padding: const EdgeInsets.symmetric(horizontal: AppDesign.space8),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  line,
+                  Pressable(
+                    key: link.key,
+                    onTap: link.onTap,
+                    color: Colors.transparent,
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: AppDesign.space8,
+                      vertical: AppDesign.space2,
                     ),
-                  );
-                }
-              }
-            }
-
-            return ConstrainedBox(
-              constraints: const BoxConstraints(
-                minHeight: kMinInteractiveDimension,
-              ),
-              child: Center(
-                child: Padding(
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: AppDesign.space8,
+                    child: Text(
+                      linkWords,
+                      textAlign: TextAlign.center,
+                      style: linkStyle,
+                    ),
                   ),
-                  child: Column(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      line,
-                      Pressable(
-                        onTap: onGetUnlimited,
-                        color: Colors.transparent,
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: AppDesign.space8,
-                          vertical: AppDesign.space2,
-                        ),
-                        child: Text(linkWords, style: linkStyle),
-                      ),
-                    ],
-                  ),
-                ),
+                ],
               ),
-            );
-          },
-        ),
-      ),
+            ),
+          ),
+        );
+      },
     );
   }
 
-  /// How far the amounts may shrink to keep "Get unlimited" beside them, on
-  /// one line or two, as the line already shrinks a little for a long
-  /// translation.
+  /// The amounts with both links on a row under them, the invite link
+  /// first, each a target the full 48dp tall and padded around its own
+  /// words, so the amounts are in neither. The row takes the least room
+  /// that holds both: each link on one line, then the longer on two (the
+  /// invite link runs long in most languages), then both on two. Only where
+  /// none of that fits, at a large text size on a narrow phone, does each
+  /// link get a row of its own; the column above scrolls there already.
+  ///
+  /// Nothing goes beside the amounts here: the two links and the amounts
+  /// never fit on one line, even on a wide phone in English. The amounts
+  /// keep the 8 above that the line has without a link.
+  Widget _twoLinks(List<_QuotaLink> links, Widget line, TextStyle? linkStyle) {
+    final dotStyle = AppDesign.textTheme.bodySmall?.copyWith(
+      color: AppDesign.textTertiary,
+    );
+    // A quiet dot between them, so two links in the same color do not read
+    // as one phrase. Words for neither eye nor screen reader.
+    const dotWords = '\u00B7';
+    final dot = ExcludeSemantics(child: Text(dotWords, style: dotStyle));
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        final width = constraints.maxWidth;
+        final linkPadding = 2 * AppDesign.space8;
+        final dotWidth = _measure(context, dotWords, dotStyle).width;
+        // Each link on one line, and on its most even two lines.
+        final one = [
+          for (final link in links) _measure(context, link.words, linkStyle),
+        ];
+        final two = [
+          for (final link in links)
+            _twoLineWidth(context, link.words, linkStyle),
+        ];
+        bool twoFit(int i) {
+          final w = two[i];
+          if (w == null) return false;
+          final lines = _measure(
+            context,
+            links[i].words,
+            linkStyle,
+            maxLines: 2,
+            maxWidth: w,
+          );
+          return lines.fits;
+        }
+
+        // Which link takes two lines, least room first: none, the longer,
+        // the other one, both.
+        final longer = one[0].width >= one[1].width ? 0 : 1;
+        final choices = <Set<int>>[
+          {},
+          {longer},
+          {1 - longer},
+          {0, 1},
+        ];
+        for (final wrap in choices) {
+          if (!wrap.every(twoFit)) continue;
+          final used =
+              2 * linkPadding +
+              dotWidth +
+              (wrap.contains(0) ? two[0]! : one[0].width) +
+              (wrap.contains(1) ? two[1]! : one[1].width);
+          if (used > width) continue;
+          return Center(
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Padding(
+                  padding: const EdgeInsets.only(top: AppDesign.space8),
+                  child: line,
+                ),
+                Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    _target(
+                      links[0],
+                      linkStyle,
+                      wrapWidth: wrap.contains(0) ? two[0] : null,
+                    ),
+                    dot,
+                    _target(
+                      links[1],
+                      linkStyle,
+                      wrapWidth: wrap.contains(1) ? two[1] : null,
+                    ),
+                  ],
+                ),
+              ],
+            ),
+          );
+        }
+        return Center(
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Padding(
+                padding: const EdgeInsets.only(top: AppDesign.space8),
+                child: line,
+              ),
+              for (final link in links) _target(link, linkStyle),
+            ],
+          ),
+        );
+      },
+    );
+  }
+
+  /// How far the amounts may shrink to keep a link beside them, on one line
+  /// or two, as the line already shrinks a little for a long translation.
   static const double _besideScale = 0.9;
 
   /// [words] in [style] as Text draws them, on up to [maxLines] lines no
@@ -2916,6 +3108,15 @@ class _QuotaLine extends StatelessWidget {
     }
     return narrowest?.ceilToDouble();
   }
+}
+
+/// One link on the data line: its key, its words and what a tap does.
+class _QuotaLink {
+  const _QuotaLink(this.key, this.words, this.onTap);
+
+  final Key key;
+  final String words;
+  final VoidCallback onTap;
 }
 
 /// The speed test and the invite screen, one tap from the home screen

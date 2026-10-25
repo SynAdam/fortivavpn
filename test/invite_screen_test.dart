@@ -190,8 +190,12 @@ void main() {
     const surfaces = {
       InviteEntry.homeButton: 'home_button',
       InviteEntry.limitSheet: 'limit_sheet',
+      InviteEntry.quotaLine: 'quota_line',
       InviteEntry.settings: 'invite_screen',
     };
+    test('every entry has its surface', () {
+      expect(surfaces.keys.toSet(), InviteEntry.values.toSet());
+    });
     for (final entry in surfaces.entries) {
       testScreen('from ${entry.key.name} logs shown on ${entry.value}', (
         tester,

@@ -20,7 +20,11 @@ enum InviteSurface {
   inviteScreen('invite_screen'),
 
   /// The limit sheet's invite row opened the invite screen.
-  limitSheet('limit_sheet');
+  limitSheet('limit_sheet'),
+
+  /// The invite link on the home data line, offered before the daily data
+  /// runs out, opened the invite screen.
+  quotaLine('quota_line');
 
   const InviteSurface(this.wire);
   final String wire;

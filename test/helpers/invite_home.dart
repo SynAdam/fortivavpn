@@ -108,11 +108,14 @@ Future<DeviceState> registeredDevice(Device device) async {
   return state;
 }
 
-/// A loaded app config with invites on.
+/// A loaded app config with invites on. [inviteNudge] is the share of
+/// the allowance after which the data line offers invites, left out of the
+/// config when null, as a backend that sends none.
 Future<AppConfigState> inviteConfig({
   bool referrals = true,
   bool reviewPrompt = false,
   bool limitSheet = true,
+  int? inviteNudge,
 }) async {
   final config = AppConfigState(
     fetch: () async => AppConfig.fromJson({
@@ -132,6 +135,7 @@ Future<AppConfigState> inviteConfig({
         'enable_referrals': referrals,
         'review_prompt': reviewPrompt,
         'limit_sheet': limitSheet,
+        'invite_nudge_percent': ?inviteNudge,
       },
     }),
   );
@@ -794,4 +798,125 @@ Future<({Finder link, Finder amounts, Finder target})> _pumpQuotaOffer(
     findsOneWidget,
   );
   return (link: link, amounts: amounts, target: target);
+}
+
+/// The home screen at its fullest on a phone with the invite link on the
+/// data line: connected, the invite code row showing, and the data line
+/// offering invites, with [premium] also "Get unlimited". For [locales] at
+/// [sizes], with the shipped fonts:
+///
+/// * the power button stays wholly on screen;
+/// * every link is a target the full 48dp tall and 48 wide, and the amounts
+///   are inside none of them;
+/// * with both links, the invite link comes first in reading order, on the
+///   same row as Get unlimited, and the invite code row gives way.
+void inviteLinkLayoutTests(
+  List<String> locales,
+  List<(Size, double)> sizes, {
+  required bool premium,
+}) {
+  setUp(() {
+    mockTunnel([]);
+    UpdateDialog.resetForTest();
+    MessageDialog.resetForTest();
+  });
+  tearDown(unmockTunnel);
+
+  for (final (size, scale) in sizes) {
+    for (final locale in locales) {
+      final what = premium ? 'both links' : 'the invite link';
+      testWidgets('[$locale ${size.width.toInt()}x${size.height.toInt()} at '
+          '$scale] the power button stays on screen with $what', (
+        tester,
+      ) async {
+        tester.view.physicalSize = size;
+        tester.view.devicePixelRatio = 1;
+        tester.platformDispatcher.textScaleFactorTestValue = scale;
+        addTearDown(tester.view.reset);
+        addTearDown(tester.platformDispatcher.clearTextScaleFactorTestValue);
+
+        SharedPreferences.setMockInitialValues({...inviteRecord()});
+        await pumpInviteHome(
+          tester,
+          vpn: FakeVpn(VpnStatus.connected),
+          invite: InvitePrompt(),
+          events: keptEvents(),
+          device: await registeredDevice(
+            inviteDevice(
+              claimOpenUntil: DateTime.now().add(const Duration(hours: 5)),
+            ),
+          ),
+          // The device in inviteQuota has used a tenth.
+          config: await inviteConfig(inviteNudge: 5),
+          billing: premium ? FixedBilling(quotaOfferBilling()) : null,
+          referrals: CountingReferral(answer: shareStatus),
+          locale: locale,
+        );
+        await tester.pump(const Duration(seconds: 1));
+        expect(tester.takeException(), isNull);
+        // Beside both links the code row gives way: they take a row more.
+        expect(
+          find.byKey(const Key('home-have-code')),
+          premium ? findsNothing : findsOneWidget,
+        );
+
+        final l10n = lookupS(Locale(locale));
+        final rtl = const ['fa', 'ar', 'ur'].contains(locale);
+        final invite = find.byKey(const Key('quota-line-invite'));
+        final unlimited = find.byKey(const Key('quota-line-unlimited'));
+        expect(invite, findsOneWidget);
+        expect(unlimited, premium ? findsOneWidget : findsNothing);
+        // The amounts: the line's one text that is no link's words.
+        final amounts = find.descendant(
+          of: find.byKey(const Key('quota-line')),
+          matching: find.byWidgetPredicate(
+            (w) =>
+                w is Text &&
+                w.data != l10n.premiumLimitInvite &&
+                w.data != l10n.premiumGetUnlimited &&
+                w.data != '\u00B7',
+          ),
+        );
+        expect(amounts, findsOneWidget);
+        expect(
+          find.ancestor(of: amounts, matching: find.byType(InkWell)),
+          findsNothing,
+        );
+        final words = tester.getRect(amounts);
+        for (final target in [invite, if (premium) unlimited]) {
+          final box = tester.getRect(target);
+          expect(box.height, greaterThanOrEqualTo(48), reason: '$target');
+          expect(box.width, greaterThanOrEqualTo(48), reason: '$target');
+          expect(box.overlaps(words), isFalse, reason: 'over the amounts');
+          expect(
+            find.descendant(of: target, matching: find.byType(Text)),
+            findsOneWidget,
+          );
+        }
+        expect(
+          find.descendant(
+            of: invite,
+            matching: find.text(l10n.premiumLimitInvite),
+          ),
+          findsOneWidget,
+        );
+        if (premium) {
+          final a = tester.getRect(invite);
+          final b = tester.getRect(unlimited);
+          expect(
+            (a.center.dy - b.center.dy).abs(),
+            lessThan(1),
+            reason: 'one row',
+          );
+          if (rtl) {
+            expect(a.left, greaterThanOrEqualTo(b.right - 0.5));
+          } else {
+            expect(a.right, lessThanOrEqualTo(b.left + 0.5));
+          }
+        }
+        expectPowerButtonOnScreen(tester, size, 'with $what');
+        await inviteHomeDone(tester);
+      });
+    }
+  }
 }
