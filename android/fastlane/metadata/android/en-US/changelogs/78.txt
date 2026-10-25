@@ -1,0 +1,2 @@
+- When your daily data is running low, the app now offers more data for inviting friends.
+- Fortiva no longer turns off other VPN apps. It takes over only when you tap Connect.

@@ -5,7 +5,7 @@ publish_to: 'none'
 # Single source of truth for the app version: android/app/build.gradle.kts
 # reads versionName/versionCode from here, and iOS takes CFBundleVersion
 # from it through the Flutter build.
-version: 2.2.0+77
+version: 2.3.0+78
 
 environment:
   sdk: ^3.10.7
