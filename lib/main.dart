@@ -37,6 +37,7 @@ import 'services/delivery_log.dart';
 import 'services/door_refresh.dart';
 import 'services/report_schedule.dart';
 import 'services/size_probe.dart';
+import 'services/vpn_event_reporter.dart';
 import 'services/vpn_service.dart';
 import 'services/speed_test_service.dart';
 import 'services/session_tracker.dart';
@@ -175,7 +176,10 @@ class FortivaVpnApp extends StatelessWidget {
         // Does nothing unless the backend says this phone is a test point.
         ChangeNotifierProvider(
           lazy: false,
-          create: (ctx) => TestPointRunner(ctx.read<DedicatedState>()),
+          create: (ctx) => TestPointRunner(
+            ctx.read<DedicatedState>(),
+            otherVpnUp: ctx.read<VpnService>().otherVpnUp,
+          ),
         ),
         // A tunnel that stops carrying data gets the connect button's search
         // without a tap (VpnService.stalled).
@@ -428,6 +432,13 @@ class _AppBootstrapState extends State<_AppBootstrap> {
       final flow = context.read<ConnectFlow>();
       final appConfig = context.read<AppConfigState>();
       final servers = context.read<ServerState>();
+      // A phone whose own traffic goes through another app's VPN would
+      // measure that app's route, filed under the phone's carrier. The size
+      // probe and the variant tests wait for the phone's own network. Up to
+      // 2.2.0 their report took the slot from the other app instead.
+      Future<String?> ownNetworkType() async => await vpn.otherVpnUp()
+          ? null
+          : await VpnEventReporter.currentNetworkType();
       _sizeProbe = SizeProbeRunner(
         settings: () => appConfig.sizeProbe,
         // Nothing runs while the user waits on a connect, nor beside the
@@ -447,6 +458,7 @@ class _AppBootstrapState extends State<_AppBootstrap> {
         stale: () => UpdateGate.isStale(appConfig.loadedAt, DateTime.now()),
         reload: appConfig.load,
         network: ConnectFlow.currentNetworkKey,
+        networkType: ownNetworkType,
       );
       _variantTests = VariantTester(
         dedicated,
@@ -465,6 +477,7 @@ class _AppBootstrapState extends State<_AppBootstrap> {
         tunnelUp: () => vpn.isConnected,
         throughTunnel: () =>
             vpn.reporter.reportsGoThroughTunnel?.call() ?? true,
+        networkType: ownNetworkType,
       );
       _reportSchedule = ReportSchedule(
         flush: () {

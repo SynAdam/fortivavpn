@@ -225,6 +225,9 @@ Future<void> dialServer(
     return;
   }
   if (paths.isEmpty) {
+    // A tap may take the VPN slot from another app; the search after a
+    // dead tunnel may not (VpnService.allowTakingSlot).
+    if (!afterStall) vpn.allowTakingSlot();
     // Fire and forget, but a failed connect must not become an unhandled
     // async error: this runs from a screen tap, with nothing awaiting it.
     unawaited(

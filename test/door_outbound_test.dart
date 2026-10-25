@@ -402,6 +402,9 @@ void main() {
         'alternates': [for (final d in doors.skip(1)) d.connectionUri],
         'exits': [for (final d in doors) d.serverId?.toString() ?? ''],
       },
+      // A dial the connect flow did not let take the VPN slot from another
+      // app (VpnService.allowTakingSlot).
+      'take_slot': false,
       'session_sample_ms': 0,
       'session_stall_ms': 0,
       'session_busy_bytes': 0,

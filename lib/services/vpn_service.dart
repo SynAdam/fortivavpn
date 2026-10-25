@@ -64,6 +64,19 @@ const dropReasonUnknown = 'unknown';
 /// door or taking the tunnel down.
 const dropReasonStalled = 'stalled';
 
+/// What Android says when it took the VPN slot from the app: the user turned
+/// the VPN off in system settings, or another VPN app took the slot. The app
+/// files the second as [dropReasonReplaced] ([VpnService.reportDrop]).
+const dropReasonRevoked = 'revoked';
+
+/// A tunnel another VPN app took the slot from.
+const dropReasonReplaced = 'replaced';
+
+/// Why the platform failed a start ("failed:slot_taken"): another VPN app
+/// holds the phone's VPN slot, and the start was not one the user tapped
+/// for, so it was not allowed to take it ([VpnService.allowTakingSlot]).
+const startFailedSlotTaken = 'slot_taken';
+
 /// Service class for managing VPN connections.
 ///
 /// Both platforms start in full VPN mode and then verify traffic (see
@@ -82,6 +95,12 @@ class VpnService extends ChangeNotifier {
   bool _isEnablingVpn = false; // true while switching from proxy → VPN mode
   bool _errorNeedsVpnSettings = false;
   bool _failedOnPermission = false;
+  bool _lostSlot = false;
+  bool _mayTakeSlot = false;
+
+  /// Whether the phone's VPN slot is Android's ([otherVpnUp],
+  /// [takeSlotForTap]). Elsewhere there is none to ask about.
+  final bool _android;
   Timer? _connectWatchdog;
   Timer? _heartbeat;
 
@@ -137,6 +156,89 @@ class VpnService extends ChangeNotifier {
   /// it has cleared the message off the screen.
   bool get failedOnPermission => _failedOnPermission;
 
+  /// Whether the last connect found another VPN app holding the phone's VPN
+  /// slot, and left it to that app ([startFailedSlotTaken]). Kept until the
+  /// next connect, like [failedOnPermission]. Not a failure: the attempt
+  /// ends as if the user had stopped it, shows no error and reports none.
+  bool get lostSlot => _lostSlot;
+
+  /// Let the next [connect] take the phone's VPN slot from another VPN app.
+  /// Only for a dial the user tapped for: the connect flow calls this right
+  /// before the first dial of a tap, and nothing else does.
+  ///
+  /// Android runs one VPN at a time, and the call that takes the slot
+  /// (VpnService.prepare on the platform) tears down whatever other VPN
+  /// holds it, with no question asked once the user has approved this app.
+  /// Up to 2.2.0 every dial made that call, retries and searches nobody
+  /// tapped for included, so a user who switched to Psiphon or NPV Tunnel
+  /// had it torn down again within seconds. A connect without this leaves
+  /// the slot to whoever holds it: the platform starts the tunnel only
+  /// while no other app has taken the slot since this one last had it.
+  void allowTakingSlot() => _mayTakeSlot = true;
+
+  /// Take the phone's VPN slot now, for a tap made while another app's VPN
+  /// is up, so the search's door checks see the phone's own network and
+  /// not that VPN's. True once the slot is this app's and the other app's
+  /// VPN no longer carries the app's traffic. False when the platform did
+  /// not take it, as when the user has not approved this app yet: the tap's
+  /// first dial then asks, as it always has.
+  ///
+  /// The connect flow calls this for a tap alone (ConnectFlow._takeSlotFirst).
+  /// Up to 2.2.0 a carrier read did the same by accident on mobile data,
+  /// and on Wi-Fi the checks ran through the other app's VPN.
+  Future<bool> takeSlotForTap() async {
+    if (!_android) return false;
+    try {
+      return await _methodChannel
+              .invokeMethod<bool>('takeSlot')
+              .timeout(const Duration(seconds: 4)) ??
+          false;
+    } catch (_) {
+      return false;
+    }
+  }
+
+  /// How many VPN networks on the phone are not this app's, a VPN that
+  /// leaves this app out and one in a work profile included, which
+  /// [otherVpnUp] does not see. Null where the platform will not say. For
+  /// the connect flow's one question: has another VPN come up since the
+  /// user tapped (ConnectFlow._tapMayTakeSlot).
+  Future<int?> otherVpnCount() async {
+    if (!_android) return null;
+    try {
+      return await _methodChannel
+          .invokeMethod<int>('otherVpnCount')
+          .timeout(const Duration(seconds: 2));
+    } catch (_) {
+      return null;
+    }
+  }
+
+  /// The connect flow gave way to another app's VPN: no tunnel is up or on
+  /// its way, and the screen goes back to Tap to connect with no error or
+  /// diagnosis left from the tap's dials. Nothing when a tunnel is up or
+  /// starting, which is not the flow's to take down.
+  ///
+  /// clearError cannot do this: it leaves an error status in place.
+  void clearAfterGivingWay() {
+    if (isConnected || isConnecting || _isVerifying) return;
+    _settleWithNothingUp();
+  }
+
+  /// Whether another app's VPN is up now. Read without touching the slot.
+  /// False where the platform will not say.
+  Future<bool> otherVpnUp() async {
+    if (!_android) return false;
+    try {
+      return await _methodChannel
+              .invokeMethod<bool>('otherVpn')
+              .timeout(const Duration(seconds: 2)) ??
+          false;
+    } catch (_) {
+      return false;
+    }
+  }
+
   /// Whether the last attempt failed after its tunnel came up: the check
   /// through it carried nothing ([_failVerification]), rather than the
   /// tunnel never starting. Kept until the next connect, like
@@ -179,8 +281,10 @@ class VpnService extends ChangeNotifier {
     ConnectDiagnostics? diagnostics,
     PsiphonSettings? Function()? psiphon,
     Future<String?> Function(PsiphonSettings settings)? psiphonEntries,
+    bool? android,
     @visibleForTesting Future<bool> Function()? trafficCheck,
-  }) : _events = events ?? VpnEventReporter(),
+  }) : _android = android ?? Platform.isAndroid,
+       _events = events ?? VpnEventReporter(),
        _diagnostics =
            diagnostics ?? ConnectDiagnostics(channel: _methodChannel),
        _psiphon = psiphon ?? _currentPsiphon,
@@ -583,8 +687,35 @@ class VpnService extends ChangeNotifier {
       notifyListeners();
       return;
     }
+    if (line.status == 'failed' && line.reason == startFailedSlotTaken) {
+      _gaveWay();
+      return;
+    }
     if (line.reason != null) _dropReason = line.reason;
     _updateStatus(_parseStatus(line.status));
+  }
+
+  /// The start found another VPN app holding the slot ([lostSlot]). The
+  /// attempt ends with nothing up, as a stop ends it: no error on screen,
+  /// no failure reported, and the door it dialled is not to blame.
+  void _gaveWay() {
+    _lostSlot = true;
+    _settleWithNothingUp();
+  }
+
+  /// No tunnel, no error and no diagnosis: the state of Tap to connect.
+  void _settleWithNothingUp() {
+    _cancelConnectWatchdog();
+    _awaitingPermission = false;
+    _isVerifying = false;
+    _isEnablingVpn = false;
+    _errorMessage = null;
+    _errorNeedsVpnSettings = false;
+    _forgetDiagnosis();
+    _status = VpnStatus.disconnected;
+    _currentConnection = null;
+    _clearConnectionInfo();
+    notifyListeners();
   }
 
   /// Whether [status] comes from a start the user already stopped. Such a
@@ -2167,6 +2298,14 @@ class VpnService extends ChangeNotifier {
   }
 
   /// Diagnose and report a tunnel that went away without the user asking.
+  ///
+  /// A tunnel Android took the slot from ([dropReasonRevoked]) is filed as
+  /// [dropReasonReplaced] when another app's VPN comes up within
+  /// [slotTakerWait]: the user turned that app on. Otherwise they turned
+  /// ours off in system settings. Up to 2.2.0 the platform told the two
+  /// apart by taking the slot back, which tore the other app down: in the
+  /// 30 days to 2026-10-21 it filed 1,077 drops on 271 phones as revoked
+  /// and 1 as replaced.
   @visibleForTesting
   Future<void> reportDrop(
     String? host,
@@ -2179,7 +2318,12 @@ class VpnService extends ChangeNotifier {
     final door = _currentDoor;
     final attemptId = _currentAttemptId;
     final strategy = _currentStrategy;
+    // Asked beside the diagnosis, which takes seconds of its own.
+    final replaced = reason == dropReasonRevoked ? _anotherVpnCameUp() : null;
     final diag = await diagnose(host, uri) ?? <String, dynamic>{};
+    final why = replaced != null && await replaced
+        ? dropReasonReplaced
+        : reason;
     await _events.record(
       VpnEventType.dropped,
       door: door,
@@ -2187,9 +2331,25 @@ class VpnService extends ChangeNotifier {
       strategy: strategy,
       serverHost: host,
       duration: duration,
-      error: reason,
-      diag: {...diag, 'drop_reason': reason},
+      error: why,
+      diag: {...diag, 'drop_reason': why},
     );
+  }
+
+  /// How long after Android takes the slot another app's VPN may take to
+  /// come up and still count as the app that took it. An app holds the slot
+  /// before its VPN is up, and may connect to its own servers first.
+  @visibleForTesting
+  static Duration slotTakerWait = const Duration(seconds: 10);
+
+  /// Whether another app's VPN comes up within [slotTakerWait].
+  Future<bool> _anotherVpnCameUp() async {
+    final until = DateTime.now().add(slotTakerWait);
+    while (true) {
+      if (await otherVpnUp()) return true;
+      if (!DateTime.now().isBefore(until)) return false;
+      await Future<void>.delayed(const Duration(milliseconds: 500));
+    }
   }
 
   /// Diagnose and report a connect failure. The tunnel never came up here,
@@ -2290,6 +2450,10 @@ class VpnService extends ChangeNotifier {
     // Read again after every wait below. A stop that lands in one of them
     // must not be followed by a dial.
     final run = ++_attemptRun;
+    // This dial's alone: the next one may take the slot only if allowed
+    // again.
+    final takeSlot = _mayTakeSlot;
+    _mayTakeSlot = false;
     _stoppedStartUntil = null;
     _stoppedBeforeVerified = false;
     // Cleared before the first wait below, so a caller waiting for a dead
@@ -2357,6 +2521,7 @@ class VpnService extends ChangeNotifier {
     _errorMessage = null;
     _errorNeedsVpnSettings = false;
     _failedOnPermission = false;
+    _lostSlot = false;
     _failedAfterUp = false;
     _cancelConnectWatchdog();
     final psiphon = server.isPsiphon ? _psiphon() : null;
@@ -2450,6 +2615,7 @@ class VpnService extends ChangeNotifier {
             'config': psiphon.tunnelConfig,
             'establish_timeout_ms': psiphon.establishTimeout.inMilliseconds,
             'server_entries_file': ?entries,
+            'take_slot': takeSlot,
             ...session,
           });
         } else {
@@ -2477,6 +2643,7 @@ class VpnService extends ChangeNotifier {
               ],
             if (outbounds.any((o) => o.isNotEmpty)) 'doorOutbounds': outbounds,
             if (remoteDns != null && remoteDns.isNotEmpty) 'dns': remoteDns,
+            'take_slot': takeSlot,
             ...session,
           });
         }

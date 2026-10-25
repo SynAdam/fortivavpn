@@ -41,7 +41,9 @@ class TestPointRunner extends ChangeNotifier {
     String Function()? newId,
     DateTime Function()? now,
     bool? android,
+    Future<bool> Function()? otherVpnUp,
   }) : _reporter = reporter ?? VpnEventReporter(),
+       _otherVpnUp = otherVpnUp ?? (() async => false),
        _internet = internet ?? _defaultInternet,
        _carrier = carrier ?? _defaultCarrier,
        _newId = newId ?? _defaultId,
@@ -62,6 +64,10 @@ class TestPointRunner extends ChangeNotifier {
   final String Function() _newId;
   final DateTime Function() _now;
   final bool _android;
+
+  /// Whether another app's VPN carries this app's traffic
+  /// (VpnService.otherVpnUp).
+  final Future<bool> Function() _otherVpnUp;
   late final DoorSweep _sweep;
 
   Timer? _timer;
@@ -107,6 +113,10 @@ class TestPointRunner extends ChangeNotifier {
       await _dedicated.refresh(viaTunnel: false);
       final config = _dedicated.testPoint;
       if (config == null) return;
+      // Another app's VPN carries this app's traffic: the checks would
+      // measure that app's route, filed under the phone's carrier. Up to
+      // 2.2.0 the carrier read below took the slot from it by accident.
+      if (await _otherVpnUp()) return;
       if (!await _internet()) return;
       final doors = _dedicated.paths.take(DoorSweep.maxDoors).toList();
       if (doors.isEmpty) return;

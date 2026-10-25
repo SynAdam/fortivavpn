@@ -363,6 +363,27 @@ class ConnectFlow extends ChangeNotifier {
   /// for it again.
   bool _permissionRefused = false;
 
+  /// Whether the next dial is the first of a tap: the one dial that may
+  /// take the phone's VPN slot from another VPN app
+  /// (VpnService.allowTakingSlot). The rest of the tap's search and the
+  /// search after a dead tunnel never may. A tap that dialled nothing
+  /// leaves it to the first dial of a try later ([connect]).
+  bool _tapDial = false;
+
+  /// Whether another app's VPN was up when the user tapped. Asked at the
+  /// tap, read before its search ([_takeSlotFirst]) and at its first dial
+  /// ([_tapMayTakeSlot]). Null once the tap is over.
+  Future<bool>? _otherVpnAtTap;
+
+  /// How many VPN networks were not this app's when the user tapped
+  /// (VpnService.otherVpnCount). Kept while the tap's take of the slot is
+  /// ([_tapDial]), so a dial can tell whether a VPN came up since.
+  Future<int?>? _vpnsAtTap;
+
+  /// How many times [_armTapDial] has run, so a tap that ends after a newer
+  /// one began leaves the newer one's [_otherVpnAtTap] alone.
+  int _taps = 0;
+
   /// The run whose search was cut at the backend's
   /// [PsiphonSettings.startAfter] ([_cutSearch]). Null before any was.
   int? _cutRun;
@@ -826,6 +847,10 @@ class ConnectFlow extends ChangeNotifier {
     _fastFailed = null;
     _cancelled = true;
     _afterStall = false;
+    // A stopped tap takes the slot no more ([_tapDial]).
+    _tapDial = false;
+    _otherVpnAtTap = null;
+    _vpnsAtTap = null;
     _run++;
     _retry?.cancel();
     _retry = null;
@@ -925,6 +950,7 @@ class ConnectFlow extends ChangeNotifier {
     if (isBusy || paths.isEmpty) return;
     _retries = 0;
     _afterStall = afterStall;
+    final armed = _armTapDial(afterStall);
     // A tap is someone asking now, often because the internet is back. A
     // search after a dead tunnel keeps what StallRecovery found
     // ([_noWayAbroad]).
@@ -946,7 +972,76 @@ class ConnectFlow extends ChangeNotifier {
       allowanceSpent: allowanceSpent,
     );
     await tap();
-    _retryLater(tap, beforeRetry);
+    _tapOver(armed);
+    // A tap a newer one replaced schedules no try of its own: the newer
+    // tap's run owns the stage it would read.
+    if (armed == _taps) _retryLater(tap, beforeRetry);
+  }
+
+  /// Let the first dial of this tap take the VPN slot ([_tapDial]), unless
+  /// nobody tapped: the search after a dead tunnel ([afterStall]). Returns
+  /// the tap's number, for [_tapOver].
+  int _armTapDial(bool afterStall) {
+    _tapDial = !afterStall;
+    _otherVpnAtTap = afterStall ? null : _vpn.otherVpnUp();
+    _vpnsAtTap = afterStall ? null : _vpn.otherVpnCount();
+    return ++_taps;
+  }
+
+  /// The tap numbered [armed] has made its first try. One that dialled has
+  /// used its take of the slot. One that dialled nothing, as most taps in a
+  /// blackout do, leaves it to the first dial of a try later, which takes
+  /// the slot only while no other app's VPN is up ([_tapMayTakeSlot]). After
+  /// a reboot, or once another VPN app has run, Android gives this app no
+  /// tunnel until it takes the slot, and the tries would never connect.
+  void _tapOver(int armed) {
+    if (armed == _taps) _otherVpnAtTap = null;
+  }
+
+  /// A tap made while another app's VPN was up takes the slot before its
+  /// search (VpnService.takeSlotForTap), so the door checks and the control
+  /// fetch see the phone's own network and not that VPN's, and the doors
+  /// they find open are open here. Nothing for a try later or the search
+  /// after a dead tunnel. Called at the start of a try, in [_connect] and
+  /// [_connectShared], before either reads the network.
+  Future<void> _takeSlotFirst() async {
+    final atTap = _otherVpnAtTap;
+    if (!_tapDial || atTap == null || !await atTap) return;
+    // Taken: the switch the tap asked for is made. From here the tap's
+    // first dial takes the slot only if no VPN has come up since, as for a
+    // tap made with none up, so one the user turns back on during the
+    // search stays on. Not when a newer tap has armed its own.
+    if (await _vpn.takeSlotForTap() && identical(_otherVpnAtTap, atTap)) {
+      _otherVpnAtTap = Future.value(false);
+      _vpnsAtTap = _vpn.otherVpnCount();
+    }
+  }
+
+  /// Another app's VPN holds the slot, and nobody tapped to take it back:
+  /// the user has switched to that app. The tap ends as a stop ends it,
+  /// with no next door, no retry and no failure reported, and the screen
+  /// keeps no error from before.
+  void _giveWay() {
+    cancel();
+    _vpn.clearAfterGivingWay();
+  }
+
+  /// Whether the tap's first dial may take the VPN slot: yes, unless another
+  /// app's VPN came up after the tap. A user who tapped while one was up
+  /// asked to switch to this app. A user who turned one on while this app
+  /// was still searching has switched away from it.
+  ///
+  /// Another VPN that came up since is found two ways: one that carries
+  /// this app's traffic, and one more VPN network than at the tap, which
+  /// also finds a VPN for a few apps only. Such a VPN does not carry this
+  /// app, and the first try of a retry could run minutes after the tap. A
+  /// VPN up at the tap, in a work profile for one, does not stop the take.
+  Future<bool> _tapMayTakeSlot() async {
+    if (await (_otherVpnAtTap ?? Future.value(false))) return true;
+    if (await _vpn.otherVpnUp()) return false;
+    final before = await (_vpnsAtTap ?? Future<int?>.value());
+    final now = await _vpn.otherVpnCount();
+    return before == null || now == null || now <= before;
   }
 
   /// Wait, and then run [again], when the tap that just ended found
@@ -1001,6 +1096,14 @@ class ConnectFlow extends ChangeNotifier {
       _retry = null;
       _stopWatchingNetwork();
       if (!still()) return;
+      // Another VPN app is up: the user has switched to it. A try would
+      // check the doors through it, and its dial may not take the slot
+      // back. The wait ends as a stop ends it. Up to 2.2.0 the try took the
+      // slot and tore the other app's VPN down.
+      if (await _vpn.otherVpnUp()) {
+        if (still()) _giveWay();
+        return;
+      }
       // The wait is over. Making the next try ready can take several
       // seconds (the traces below, and [before]), and meanwhile the screen
       // says it starts now.
@@ -1229,6 +1332,7 @@ class ConnectFlow extends ChangeNotifier {
     if (isBusy) return;
     _retries = 0;
     _afterStall = afterStall;
+    final armed = _armTapDial(afterStall);
     // As in [connect].
     if (!afterStall) _noWayAbroad = false;
     Future<void> handOver(
@@ -1289,7 +1393,10 @@ class ConnectFlow extends ChangeNotifier {
       },
     );
     await tap();
-    _retryLater(tap, beforeRetry);
+    _tapOver(armed);
+    // A tap a newer one replaced schedules no try of its own: the newer
+    // tap's run owns the stage it would read.
+    if (armed == _taps) _retryLater(tap, beforeRetry);
   }
 
   Future<void> _connectShared(
@@ -1312,6 +1419,13 @@ class ConnectFlow extends ChangeNotifier {
     // Busy from here, while the network is read, so a tap on the button
     // stops this run rather than starting another beside it.
     _set(ConnectStage.diagnosing);
+    // As before the own doors' checks: a tap made while another app's VPN
+    // is up takes the slot first, so the control fetch and the pick's check
+    // see the phone's own network ([_takeSlotFirst]). The pick has been
+    // checked before its dial since 2.2.0, and that check went through the
+    // other app's VPN.
+    await _takeSlotFirst();
+    if (_halted(run)) return;
     // The control fetch for the fallback's rows, started before the pick's
     // check and dial so it has their time to answer. Until 2026-10-12 this
     // path ran none. An offline phone sent a failed community check for
@@ -1882,6 +1996,15 @@ class ConnectFlow extends ChangeNotifier {
     if (picked != null && ownFirstDoors == null) {
       _pickFirst(picked, sharedAfter: shared != null);
     }
+    // A tap made while another app's VPN is up takes the slot before
+    // anything below reads the network ([_takeSlotFirst]): the network key
+    // and the door memory under it, the pick's check, the own doors checked
+    // beside a fallback's pick, the fast path's dial and the search, which
+    // can start beside that dial. All of them would see that VPN's network
+    // otherwise. A handover from [_connectShared] has taken it already.
+    // After the pick's stage, which shows from the first second.
+    await _takeSlotFirst();
+    if (_halted(run)) return;
     if (picked != null && ownFirstDoors != null) {
       final pickedOpen = await _ownFirst(
         paths,
@@ -4099,7 +4222,15 @@ class ConnectFlow extends ChangeNotifier {
     if (fast) _fastDoor = path;
     _enter(RouteKind.of(path));
     notifyListeners();
+    // The tap's first dial alone may take the slot from another VPN app.
+    var takeSlot = false;
+    if (_tapDial) {
+      _tapDial = false;
+      takeSlot = await _tapMayTakeSlot();
+      if (_stale(run)) return false;
+    }
     final outcome = _outcome(timeout ?? attemptTimeout);
+    if (takeSlot) _vpn.allowTakingSlot();
     // For the failure's verdict: an answer from our API since the tap began
     // says the phone had internet (VpnService.tapStarted).
     _vpn.tapStarted = _tapStartedAt;
@@ -4131,6 +4262,10 @@ class ConnectFlow extends ChangeNotifier {
     // Read before anyone clears the error: the flow clears it after a
     // failed pick, and with it the reason.
     if (!ok && _vpn.failedOnPermission) _permissionRefused = true;
+    // Another VPN app holds the slot, and this dial was not allowed to take
+    // it: the user has switched to that app. The tap ends here as a stop
+    // ends it, with no next door, no retry and no failure reported.
+    if (!ok && _vpn.lostSlot && !_stale(run)) _giveWay();
     // Why it failed is in the tunnel events under the same attempt id. The
     // trace says only whether the user stopped it or the wait ran out.
     trace?.add(

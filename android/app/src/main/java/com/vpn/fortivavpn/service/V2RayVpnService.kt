@@ -51,7 +51,10 @@ class V2RayVpnService : VpnService(), ServiceControl {
          * have opposite fixes. Android knows the difference and nothing was
          * asking it.
          */
-        const val REASON_REVOKED = "revoked"      // the user turned the VPN off in system settings
+        // Android took the slot: the user turned the VPN off in system
+        // settings, or another VPN app took it. The app tells the two apart
+        // afterwards and files the second as "replaced" (VpnService.dart).
+        const val REASON_REVOKED = "revoked"
         const val REASON_REPLACED = "replaced"    // another VPN app took the slot
         const val REASON_KILLED = "killed"        // the service died while it still meant to run
         const val REASON_NETWORK_LOST = "network_lost"  // the network underneath went away
@@ -164,10 +167,13 @@ class V2RayVpnService : VpnService(), ServiceControl {
 
     override fun onRevoke() {
         // Android calls this both when the user turns our VPN off from system
-        // settings and when another VPN app takes the slot, and the two are
-        // very different findings. prepare() tells them apart: our consent
-        // survives the first and is handed to the other app by the second.
-        stopReason = if (prepare(this) != null) REASON_REPLACED else REASON_REVOKED
+        // settings and when another VPN app takes the slot. Up to 2.2.0 this
+        // called prepare() to tell the two apart. That call is no question:
+        // our consent survives both, so it made us the VPN again and tore
+        // down the app that had just taken the slot, 1 to 7 ms after it got
+        // it, and then we stopped too, leaving no VPN at all (VpnSlot). The
+        // app now tells them apart by whether another VPN comes up.
+        stopReason = REASON_REVOKED
         stoppedGen = startGen.get()
         stopV2Ray()
     }
@@ -217,14 +223,19 @@ class V2RayVpnService : VpnService(), ServiceControl {
         // Must call startForeground() quickly after startForegroundService().
         NotificationService.showStartingNotification(this)
 
+        // Only a start the user tapped for may take the slot, because
+        // prepare() takes it from any other VPN app (VpnSlot). A restart by
+        // Android (a null intent), always-on and the app's own retries leave
+        // it to establish(), which fails while another app holds the slot.
+        val takeSlot = intent?.getBooleanExtra(VpnSlot.EXTRA_TAKE_SLOT, false) == true
         // If VPN permission is not granted, we cannot proceed from a Service context.
-        if (prepare(this) != null) {
+        if (takeSlot && prepare(this) != null) {
             Log.e(AppConfig.TAG, "[VpnService] ABORT: VPN permission not granted")
             MessageUtil.sendMsg2UI(this, AppConfig.MSG_STATE_START_FAILURE, "")
             stopSelf()
             return START_NOT_STICKY
         }
-        Log.d(AppConfig.TAG, "[VpnService] VPN permission OK")
+        Log.d(AppConfig.TAG, "[VpnService] VPN permission OK (tap: $takeSlot)")
 
         val gen = startGen.incrementAndGet()
         CoroutineScope(Dispatchers.Default).launch {
@@ -306,8 +317,18 @@ class V2RayVpnService : VpnService(), ServiceControl {
         }
 
         Log.d(AppConfig.TAG, "[VpnService] Step 2: Setting up VPN...")
-        val vpnOk = setupVpnService()
-        if (!vpnOk) {
+        val setup = setupVpnService()
+        if (setup == Setup.SLOT_TAKEN) {
+            // Another app has the slot, and nobody tapped to take it back.
+            // Not a failure of the door: the app ends its search there.
+            Log.w(AppConfig.TAG, "[VpnService] Step 2: another VPN app holds the slot; leaving it")
+            if (abandoned(gen, startId)) return
+            psiphon?.let { PsiphonSession.forget(it.guid) }
+            MessageUtil.sendMsg2UI(this@V2RayVpnService, AppConfig.MSG_STATE_START_FAILURE, VpnSlot.SLOT_TAKEN)
+            stopV2Ray(true)
+            return
+        }
+        if (setup != Setup.OK) {
             Log.e(AppConfig.TAG, "[VpnService] FAILED at Step 2: setupVpnService returned false")
             if (abandoned(gen, startId)) return
             psiphon?.let { PsiphonSession.forget(it.guid) }
@@ -470,16 +491,25 @@ class V2RayVpnService : VpnService(), ServiceControl {
     private fun setup() {
         // Kept for compatibility with the ServiceControl interface.
         // Main entrypoint is onStartCommand().
-        if (setupVpnService()) {
+        if (setupVpnService() == Setup.OK) {
             runTun2socks()
         }
     }
 
+    /** How [setupVpnService] went. */
+    private enum class Setup {
+        OK,
+        FAILED,
+
+        /** establish() gave no interface: this app does not hold the slot. */
+        SLOT_TAKEN,
+    }
+
     /**
      * Configures the VPN service.
-     * @return True if the VPN service was configured successfully, false otherwise.
+     * @return [Setup.OK] once the interface is up.
      */
-    private fun setupVpnService(): Boolean {
+    private fun setupVpnService(): Setup {
         // If the old interface has exactly the same parameters, use it!
         // Configure a builder while parsing the parameters.
         val builder = Builder()
@@ -552,16 +582,21 @@ class V2RayVpnService : VpnService(), ServiceControl {
         }
 
         // Create a new interface using the builder and save the parameters.
-        try {
-            mInterface = builder.establish()!!
-            isRunning = true
-            return true
+        val established = try {
+            builder.establish()
         } catch (e: Exception) {
-            // non-nullable lateinit var
             Log.e(AppConfig.TAG, "Failed to establish VPN interface", e)
             stopV2Ray()
+            return Setup.FAILED
         }
-        return false
+        // Null when this app is not the one Android has prepared: another app
+        // took the slot since this one last held it, the user turned the VPN
+        // off in system settings, or the consent is gone. Nearly always a
+        // start without a tap: a start with one took the slot moments ago.
+        if (established == null) return Setup.SLOT_TAKEN
+        mInterface = established
+        isRunning = true
+        return Setup.OK
     }
 
     /**

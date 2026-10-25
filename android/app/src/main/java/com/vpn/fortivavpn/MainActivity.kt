@@ -34,6 +34,7 @@ import com.google.gson.JsonParser
 import io.flutter.embedding.android.FlutterActivity
 import io.flutter.embedding.engine.FlutterEngine
 import io.flutter.plugin.common.EventChannel
+import io.flutter.plugin.common.MethodCall
 import io.flutter.plugin.common.MethodChannel
 import com.vpn.fortivavpn.handler.AngConfigManager
 import com.vpn.fortivavpn.handler.DoorCheck
@@ -58,12 +59,14 @@ import com.vpn.fortivavpn.service.PsiphonSession
 import com.vpn.fortivavpn.service.SessionSettings
 import com.vpn.fortivavpn.service.StatsPayload
 import com.vpn.fortivavpn.service.V2RayServiceManager
+import com.vpn.fortivavpn.service.VpnSlot
 import com.vpn.fortivavpn.util.MessageUtil
 import com.vpn.fortivavpn.util.Utils
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Deferred
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.async
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withTimeoutOrNull
 import java.net.HttpURLConnection
@@ -135,6 +138,12 @@ class MainActivity : FlutterActivity() {
         // No one dismisses a dialog this fast; below it the system closed
         // the dialog itself and the user had nothing to answer.
         private const val SILENT_CANCEL_MS = 800L
+
+        /**
+         * How long a tap that took the VPN slot from another app waits for
+         * that app's network to go, before its door checks start anyway.
+         */
+        private const val SLOT_TAKE_WAIT_MS = 2_000L
         private const val SETTING_ALWAYS_ON_VPN = "always_on_vpn_app"
         // A cross-process broadcast round trip takes milliseconds. Anything
         // beyond this is the service being gone, and the caller skips a beat
@@ -184,7 +193,9 @@ class MainActivity : FlutterActivity() {
                 AppConfig.MSG_STATE_START -> eventSink?.success("connecting")
                 AppConfig.MSG_STATE_STOP -> eventSink?.success("disconnected")
                 AppConfig.MSG_STATE_START_SUCCESS -> eventSink?.success("connected")
-                AppConfig.MSG_STATE_START_FAILURE -> eventSink?.success("failed")
+                // "failed:slot_taken" when another VPN app holds the slot
+                // (VpnSlot.SLOT_TAKEN); every other failure is the bare word.
+                AppConfig.MSG_STATE_START_FAILURE -> eventSink?.success(withReason("failed", intent))
                 AppConfig.MSG_STATE_STOP_SUCCESS -> eventSink?.success(withReason("disconnected", intent))
                 AppConfig.MSG_STATS_UPDATE -> deliverStats(intent?.getStringExtra("content"))
             }
@@ -192,11 +203,13 @@ class MainActivity : FlutterActivity() {
     }
 
     /**
-     * "disconnected", or "disconnected:killed" when the service said why.
+     * "disconnected", or "disconnected:killed" when the service said why, and
+     * "failed:slot_taken" for a start another VPN app's slot stopped.
      *
      * The status stream has always been a bare word, and the app on the other
      * end still reads one when there is no reason to add. See the REASON_
-     * constants on V2RayVpnService for what the second half can be.
+     * constants on V2RayVpnService and VpnSlot.SLOT_TAKEN for what the second
+     * half can be.
      */
     private fun withReason(status: String, intent: Intent?): String {
         val reason = intent?.getStringExtra("content")?.takeIf { it.isNotBlank() }
@@ -342,7 +355,7 @@ class MainActivity : FlutterActivity() {
                             call.argument<Number>("session_stall_ms")?.toLong(),
                             call.argument<Number>("session_busy_bytes")?.toLong(),
                         )
-                        connectTunnel(link, alternates, exits, penalties, outbounds, result)
+                        connectTunnel(link, alternates, exits, penalties, outbounds, takeSlot(call), result)
                     } else {
                         result.error("INVALID_ARGUMENT", "Link is null", null)
                     }
@@ -367,7 +380,7 @@ class MainActivity : FlutterActivity() {
                         // library is handed it only if it can be read when
                         // the library starts (PsiphonSession.embeddedList).
                         val entriesFile = PsiphonSession.entriesFileOf(call.argument<String>("server_entries_file"))
-                        connectPsiphon(PsiphonStart(config, timeoutMs, entriesFile), result)
+                        connectPsiphon(PsiphonStart(config, timeoutMs, entriesFile), takeSlot(call), result)
                     } else {
                         result.error("INVALID_ARGUMENT", "Config is not a JSON object", null)
                     }
@@ -397,6 +410,28 @@ class MainActivity : FlutterActivity() {
                 "disconnect" -> {
                     V2RayServiceManager.stopVService(this)
                     result.success(null)
+                }
+                "otherVpn" -> {
+                    // Whether another app's VPN is up now. Read without
+                    // prepare(), which would take the slot from it (VpnSlot).
+                    result.success(VpnSlot.otherUp(this))
+                }
+                "otherVpnCount" -> {
+                    // How many VPN networks are not this app's (VpnSlot).
+                    result.success(VpnSlot.othersCount(this))
+                }
+                "takeSlot" -> {
+                    // A tap made while another app's VPN carries this app's
+                    // traffic. The slot is taken before the search, so its
+                    // door checks see the phone's own network and not that
+                    // VPN's. Only with the consent on record: without it
+                    // prepare() asks, and the tap's first dial opens the
+                    // dialog as it always has.
+                    if (VpnSlot.consentOnRecord(this) != true || !VpnSlot.otherUp(this)) {
+                        result.success(false)
+                    } else {
+                        takeSlotForTap(result)
+                    }
                 }
                 "openVpnSettings" -> {
                     openVpnSettings(result)
@@ -677,15 +712,46 @@ class MainActivity : FlutterActivity() {
         )
     }
 
+    /**
+     * Takes the VPN slot for a tap (the "takeSlot" call), and answers once
+     * the other app's VPN no longer carries this app's traffic, or after
+     * [SLOT_TAKE_WAIT_MS]. True when the slot is this app's.
+     */
+    private fun takeSlotForTap(result: MethodChannel.Result) {
+        val asked = try { VpnService.prepare(this) } catch (e: Exception) { result.success(false); return }
+        // An intent: the consent is not on record after all, and nothing was taken.
+        if (asked != null) {
+            result.success(false)
+            return
+        }
+        CoroutineScope(Dispatchers.IO).launch {
+            // Android takes the other app's network down a moment later.
+            val until = SystemClock.elapsedRealtime() + SLOT_TAKE_WAIT_MS
+            while (VpnSlot.otherUp(this@MainActivity) && SystemClock.elapsedRealtime() < until) {
+                delay(50)
+            }
+            runOnUiThread { result.success(true) }
+        }
+    }
+
+    /**
+     * Whether a connect call came from the user's tap, and so may take the
+     * VPN slot from another app (VpnSlot). Only the app's first dial after a
+     * tap sends `take_slot`; its retries, the next doors of a search and the
+     * search after a dead tunnel do not, and an absent value is false.
+     */
+    private fun takeSlot(call: MethodCall): Boolean = call.argument<Boolean>("take_slot") == true
+
     private fun connectTunnel(
         link: String,
         alternates: List<String>,
         exits: List<String>,
         penalties: List<Int>,
         outbounds: List<String>,
+        takeSlot: Boolean,
         result: MethodChannel.Result?,
     ) {
-        withVpnConsent(result, { startConnection(link, alternates, exits, penalties, outbounds, result) }) {
+        withVpnConsent(result, takeSlot, { startConnection(link, alternates, exits, penalties, outbounds, takeSlot, result) }) {
             pendingConnectLink = link
             pendingConnectAlternates = alternates
             pendingConnectExits = exits
@@ -695,8 +761,8 @@ class MainActivity : FlutterActivity() {
     }
 
     /** [connectTunnel] for the backup network: the same consent steps and errors. */
-    private fun connectPsiphon(start: PsiphonStart, result: MethodChannel.Result?) {
-        withVpnConsent(result, { startPsiphon(start, result) }) {
+    private fun connectPsiphon(start: PsiphonStart, takeSlot: Boolean, result: MethodChannel.Result?) {
+        withVpnConsent(result, takeSlot, { startPsiphon(start, takeSlot, result) }) {
             pendingPsiphon = start
         }
     }
@@ -714,14 +780,23 @@ class MainActivity : FlutterActivity() {
      * Runs [onGranted] when the VPN consent is on record. Otherwise [park]
      * stores what to start once it is, and the consent dialog opens; or
      * [result] says why it cannot.
+     *
+     * Only with [takeSlot], for a tap. prepare() hands this app the VPN slot
+     * and tears down any other app's VPN, so a start nobody tapped for runs
+     * [onGranted] straight away and lets the service's establish() find out
+     * whether the slot is still this app's. It never opens the dialog.
      */
     private fun withVpnConsent(
         result: MethodChannel.Result?,
+        takeSlot: Boolean,
         onGranted: () -> Unit,
         park: () -> Unit,
     ) {
+        // A start nobody tapped for reads as consent on record: no prepare(),
+        // no dialog. The gate is on the line of the call on purpose, so the
+        // app's scan of prepare() calls (test/other_vpn_app_test.dart) sees it.
         val prepareIntent = try {
-            VpnService.prepare(this)
+            if (takeSlot) VpnService.prepare(this) else null
         } catch (e: Exception) {
             // A few ROMs throw out of the system service instead of returning
             // an intent. Nothing we can do but report it honestly.
@@ -1045,6 +1120,7 @@ class MainActivity : FlutterActivity() {
         exits: List<String>,
         penalties: List<Int>,
         outbounds: List<String>,
+        takeSlot: Boolean,
         result: MethodChannel.Result?,
     ) {
         Log.d(TAG, "Connection link: ${TestLink.redact(link)}")
@@ -1077,7 +1153,7 @@ class MainActivity : FlutterActivity() {
                          MmkvManager.encodeSettings(AppConfig.PREF_MODE, AppConfig.VPN)
                          
                          launch(Dispatchers.Main) {
-                             V2RayServiceManager.startVService(this@MainActivity)
+                             V2RayServiceManager.startVService(this@MainActivity, takeSlot = takeSlot)
                              result?.success(null)
                          }
                      } else {
@@ -1106,7 +1182,7 @@ class MainActivity : FlutterActivity() {
      * session is stored for every start of the service to read
      * (PsiphonSession). No standby doors.
      */
-    private fun startPsiphon(start: PsiphonStart, result: MethodChannel.Result?) {
+    private fun startPsiphon(start: PsiphonStart, takeSlot: Boolean, result: MethodChannel.Result?) {
         Log.d(TAG, "Backup network connect")
         CoroutineScope(Dispatchers.IO).launch {
             try {
@@ -1126,7 +1202,7 @@ class MainActivity : FlutterActivity() {
                 MmkvManager.setSelectServer(guid)
                 MmkvManager.encodeSettings(AppConfig.PREF_MODE, AppConfig.VPN)
                 launch(Dispatchers.Main) {
-                    V2RayServiceManager.startVService(this@MainActivity)
+                    V2RayServiceManager.startVService(this@MainActivity, takeSlot = takeSlot)
                     result?.success(null)
                 }
             } catch (e: Exception) {
@@ -1424,7 +1500,7 @@ class MainActivity : FlutterActivity() {
 
         if (psiphon != null) {
             Log.d(TAG, "VPN consent granted, starting the backup network")
-            startPsiphon(psiphon, result)
+            startPsiphon(psiphon, takeSlot = true, result)
             return
         }
 
@@ -1436,7 +1512,7 @@ class MainActivity : FlutterActivity() {
         }
 
         Log.d(TAG, "VPN consent granted, starting connection")
-        startConnection(link, alternates, exits, penalties, outbounds, result)
+        startConnection(link, alternates, exits, penalties, outbounds, takeSlot = true, result)
     }
 
     /**
@@ -2002,9 +2078,10 @@ class MainActivity : FlutterActivity() {
                 cm.restrictBackgroundStatus == ConnectivityManager.RESTRICT_BACKGROUND_STATUS_ENABLED
             out["down_kbps"] = caps?.linkDownstreamBandwidthKbps
         } catch (_: Exception) {}
-        try {
-            out["vpn_permission"] = VpnService.prepare(this) == null
-        } catch (_: Exception) {}
+        // From the app op, not prepare(). This report is made with no tap, on
+        // every network change and while the app is off, and prepare() took
+        // the VPN slot from any other app that had it (VpnSlot).
+        VpnSlot.consentOnRecord(this)?.let { out["vpn_permission"] = it }
         try {
             val pm = getSystemService(Context.POWER_SERVICE) as PowerManager
             out["power_save"] = pm.isPowerSaveMode
@@ -2134,17 +2211,10 @@ class MainActivity : FlutterActivity() {
         // Check static flag (works when service is in same process)
         if (V2RayServiceManager.isRunning()) return true
 
-        // Check all networks for VPN transport (survives app death if service
-        // runs in separate process)
-        try {
-            val cm = getSystemService(Context.CONNECTIVITY_SERVICE) as ConnectivityManager
-            for (network in cm.allNetworks) {
-                val caps = cm.getNetworkCapabilities(network) ?: continue
-                if (caps.hasTransport(NetworkCapabilities.TRANSPORT_VPN)) {
-                    return true
-                }
-            }
-        } catch (_: Exception) {}
-        return false
+        // This app's own VPN network (survives app death if service runs in
+        // separate process). Up to 2.2.0 any VPN counted, so the app opened
+        // while Psiphon was up showed Connected, and its check of that
+        // "tunnel" then searched for a door without a tap.
+        return VpnSlot.ownUp(this)
     }
 }

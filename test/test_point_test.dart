@@ -187,6 +187,38 @@ void main() {
     runner.dispose();
   });
 
+  test('nothing is checked while another app\'s VPN carries the phone\'s '
+      'traffic', () async {
+    // The checks would measure that app's route, filed under the carrier.
+    final batches = <String>[];
+    final reporter = VpnEventReporter(
+      send: (_, _, _) async {},
+      sendProbes: (_, probes, _) async =>
+          batches.add(probes.first['source'] as String),
+      deviceId: () async => 'DEV-TP',
+      appVersion: () async => '2.1.4',
+      platform: 'android',
+      networkType: () async => 'mobile',
+    );
+    var other = true;
+    final runner = TestPointRunner(
+      _Dedicated(),
+      sweep: DoorSweep(probe: (_) async => 100, reporter: reporter),
+      reporter: reporter,
+      internet: () async => true,
+      carrier: () async => 'IR-MCI',
+      android: true,
+      otherVpnUp: () async => other,
+    );
+    await pumpEventQueue();
+    expect(batches, isEmpty);
+
+    other = false;
+    await runner.runOnce();
+    expect(batches, contains('testpoint'));
+    runner.dispose();
+  });
+
   test('nothing runs on a phone that is not a test point', () async {
     final dedicated = _Dedicated()..config = null;
     final runner = TestPointRunner(

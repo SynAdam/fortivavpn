@@ -7,7 +7,6 @@ import android.app.job.JobScheduler
 import android.content.ComponentName
 import android.content.Context
 import android.content.Intent
-import android.net.ConnectivityManager
 import android.net.NetworkCapabilities
 import android.net.NetworkRequest
 import android.os.Build
@@ -256,22 +255,11 @@ object NoticeJobs {
     private fun alarmDue(): Long = store()?.decodeLong(ALARM_DUE_KEY, 0L) ?: 0L
 
     /**
-     * Whether this app's own tunnel is up. Android names a VPN's owner only
-     * to the app that owns it, so the owner check is true for ours alone.
-     * Before Android 10 there is no owner to read, and any VPN counts.
+     * Whether this app's own tunnel is up (VpnSlot.ownUp). Until 2.2.0 this
+     * read the VPN's owner from Android 10, which has no such call: it threw
+     * an Error the catch here did not take.
      */
-    private fun ownTunnelUp(context: Context): Boolean =
-        try {
-            val cm = context.getSystemService(Context.CONNECTIVITY_SERVICE) as ConnectivityManager
-            @Suppress("DEPRECATION")
-            cm.allNetworks.any {
-                val caps = cm.getNetworkCapabilities(it)
-                caps?.hasTransport(NetworkCapabilities.TRANSPORT_VPN) == true &&
-                    (Build.VERSION.SDK_INT < Build.VERSION_CODES.Q || caps.ownerUid == android.os.Process.myUid())
-            }
-        } catch (_: Exception) {
-            false
-        }
+    private fun ownTunnelUp(context: Context): Boolean = VpnSlot.ownUp(context)
 
     private val ticker = Handler(Looper.getMainLooper())
     private var tickContext: Context? = null

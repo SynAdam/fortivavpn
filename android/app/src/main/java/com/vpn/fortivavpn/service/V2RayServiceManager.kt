@@ -91,7 +91,8 @@ object V2RayServiceManager {
            // context.toast(R.string.app_tile_first_use)
             return false
         }
-        startContextService(context)
+        // The tile and the widget start only on a tap.
+        startContextService(context, takeSlot = true)
         return true
     }
 
@@ -99,12 +100,14 @@ object V2RayServiceManager {
      * Starts the V2Ray service.
      * @param context The context from which the service is started.
      * @param guid The GUID of the server configuration to use (optional).
+     * @param takeSlot True only when the user tapped for this start: it may
+     *   then take the VPN slot from another app (VpnSlot).
      */
-    fun startVService(context: Context, guid: String? = null) {
+    fun startVService(context: Context, guid: String? = null, takeSlot: Boolean = false) {
         if (guid != null) {
             MmkvManager.setSelectServer(guid)
         }
-        startContextService(context)
+        startContextService(context, takeSlot)
     }
 
     /**
@@ -126,8 +129,9 @@ object V2RayServiceManager {
      * Starts the context service for V2Ray.
      * Chooses between VPN service or Proxy-only service based on user settings.
      * @param context The context from which the service is started.
+     * @param takeSlot See [startVService].
      */
-    private fun startContextService(context: Context) {
+    private fun startContextService(context: Context, takeSlot: Boolean) {
         val guid = MmkvManager.getSelectServer() ?: return
         val config = MmkvManager.decodeServerConfig(guid) ?: return
         if (config.configType != EConfigType.CUSTOM
@@ -154,6 +158,7 @@ object V2RayServiceManager {
         } else {
             Intent(context.applicationContext, V2RayProxyOnlyService::class.java)
         }
+        intent.putExtra(VpnSlot.EXTRA_TAKE_SLOT, takeSlot)
         if (Build.VERSION.SDK_INT > Build.VERSION_CODES.N_MR1) {
             context.startForegroundService(intent)
         } else {

@@ -154,6 +154,7 @@ void main() {
       expect(args.keys.toSet(), {
         'config',
         'establish_timeout_ms',
+        'take_slot',
         'session_sample_ms',
         'session_stall_ms',
         'session_busy_bytes',
@@ -169,6 +170,23 @@ void main() {
       expect(vpn.status, VpnStatus.connecting);
       expect(vpn.onPsiphon, isTrue);
     });
+
+    test(
+      'takes the VPN slot only on the dial the connect flow allowed',
+      () async {
+        final vpn = service(settings: backup());
+        bool? took() =>
+            (callOf('connectPsiphon')!.arguments as Map)['take_slot'];
+
+        await vpn.connect(Server.psiphon);
+        expect(took(), isFalse);
+        vpn.allowTakingSlot();
+        await vpn.connect(Server.psiphon);
+        expect(took(), isTrue);
+        await vpn.connect(Server.psiphon);
+        expect(took(), isFalse);
+      },
+    );
 
     test('no exit region when the backend sets none, and the readings off '
         'when it turns them off', () async {
@@ -216,6 +234,7 @@ void main() {
         'config',
         'establish_timeout_ms',
         'server_entries_file',
+        'take_slot',
         'session_sample_ms',
         'session_stall_ms',
         'session_busy_bytes',
