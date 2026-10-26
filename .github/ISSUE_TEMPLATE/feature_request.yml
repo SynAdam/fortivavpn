@@ -1,0 +1,39 @@
+name: Idea or suggestion
+description: Something new for the app, or a way to make it better.
+labels: ["enhancement"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        **Issues are public.** Anyone can read what you write here. Do not post a server address, a link from Copy link, your Premium key or a code from Help a friend connect. For your account or a payment, open Settings in the app and tap Contact Us.
+
+        <div dir="rtl">
+
+        این صفحه عمومی است و همه می‌توانند نوشته‌ی شما را ببینند. آدرس سرور، لینکی که با «کپی لینک» گرفته‌اید، کلید پریمیوم و کدهای «کمک به اتصال دوست» را این‌جا نگذارید. برای حساب یا پرداخت، در برنامه به «تنظیمات» بروید و «تماس با ما» را بزنید. می‌توانید فارسی بنویسید.
+
+        </div>
+  - type: textarea
+    id: idea
+    attributes:
+      label: What you would like
+      description: The change you would like to see in the app.
+    validations:
+      required: true
+  - type: textarea
+    id: why
+    attributes:
+      label: What it would help with
+      description: What you are trying to do, and what makes it hard now.
+  - type: dropdown
+    id: platform
+    attributes:
+      label: Platform
+      multiple: true
+      options:
+        - Android phone
+        - Android TV
+  - type: input
+    id: version
+    attributes:
+      label: App version
+      description: Settings shows it. You can leave this empty.

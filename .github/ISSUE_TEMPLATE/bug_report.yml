@@ -1,5 +1,6 @@
 name: Bug or connection problem
 description: Something in the app does not work as it should.
+labels: ["bug"]
 body:
   - type: markdown
     attributes:
@@ -33,6 +34,7 @@ body:
         - Google Play
         - Website
         - Telegram
+        - GitHub Releases
     validations:
       required: true
   - type: dropdown

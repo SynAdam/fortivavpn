@@ -1,0 +1,67 @@
+name: Translation problem
+description: Text in the app that is wrong, unclear or missing in your language.
+labels: ["translation"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        **Issues are public.** Anyone can read what you write here. Do not post a link from Copy link, your Premium key or a code from Help a friend connect, and if you add a screenshot, check that it shows none of them.
+
+        You can also fix the text yourself: a pull request that changes `lib/l10n/app_<code>.arb` is welcome. [CONTRIBUTING.md](https://github.com/SynAdam/fortivavpn/blob/main/CONTRIBUTING.md#where-to-start) says how.
+
+        <div dir="rtl">
+
+        این صفحه عمومی است و همه می‌توانند نوشته‌ی شما را ببینند. لینکی که با «کپی لینک» گرفته‌اید، کلید پریمیوم و کدهای «کمک به اتصال دوست» را این‌جا نگذارید و اگر عکس صفحه می‌گذارید، مطمئن شوید که هیچ‌کدام از آن‌ها در عکس دیده نمی‌شود. اگر می‌خواهید متن فارسی را خودتان درست کنید، یک pull request برای فایل `lib/l10n/app_fa.arb` بفرستید.
+
+        </div>
+  - type: dropdown
+    id: language
+    attributes:
+      label: Language
+      options:
+        - Arabic (ar)
+        - Chinese, Simplified (zh)
+        - English (en)
+        - French (fr)
+        - German (de)
+        - Hindi (hi)
+        - Indonesian (id)
+        - Japanese (ja)
+        - Korean (ko)
+        - Persian (fa)
+        - Portuguese (pt)
+        - Russian (ru)
+        - Spanish (es)
+        - Turkish (tr)
+        - Ukrainian (uk)
+        - Urdu (ur)
+        - Uzbek (uz)
+        - Vietnamese (vi)
+    validations:
+      required: true
+  - type: input
+    id: where
+    attributes:
+      label: Where in the app
+      description: The screen, and the button or line the text is on.
+      placeholder: Settings, the Language line
+    validations:
+      required: true
+  - type: textarea
+    id: now
+    attributes:
+      label: The text now
+      description: Copy it exactly as the app shows it.
+    validations:
+      required: true
+  - type: textarea
+    id: better
+    attributes:
+      label: The text it should be
+    validations:
+      required: true
+  - type: input
+    id: version
+    attributes:
+      label: App version
+      description: Settings shows it.

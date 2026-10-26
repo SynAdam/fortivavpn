@@ -10,8 +10,10 @@
   <img alt="18 languages" src="https://img.shields.io/badge/languages-18-30363C?style=flat-square&labelColor=1B2127">
 </p>
 
+<p align="center"><b>English</b> · <a href="README.fa.md">فارسی</a></p>
+
 <p align="center">
-  <a href="https://play.google.com/store/apps/details?id=com.vpn.fortivavpn"><img alt="Get it on Google Play" src="https://img.shields.io/badge/Get_it_on_Google_Play-C8452B?style=for-the-badge&logo=googleplay&logoColor=white"></a>
+  <a href="https://play.google.com/store/apps/details?id=com.vpn.fortivavpn&amp;referrer=utm_source%3Dgithub"><img alt="Get it on Google Play" src="https://img.shields.io/badge/Get_it_on_Google_Play-C8452B?style=for-the-badge&logo=googleplay&logoColor=white"></a>
   <a href="https://fortivavpn.com/apk"><img alt="Download the APK" src="https://img.shields.io/badge/Download_the_APK-1B2127?style=for-the-badge&logo=android&logoColor=6CD5B3"></a>
   <a href="https://t.me/fortivavpn"><img alt="Telegram channel" src="https://img.shields.io/badge/Telegram-1B2127?style=for-the-badge&logo=telegram&logoColor=white"></a>
 </p>
@@ -27,6 +29,7 @@
   <a href="#build-from-source">Build</a> ·
   <a href="#check-a-download">Check a download</a> ·
   <a href="#contributing">Contributing</a> ·
+  <a href="#credits">Credits</a> ·
   <a href="#licence">Licence</a>
 </p>
 
@@ -34,9 +37,9 @@
 
 ### فورتیوا به فارسی
 
-فورتیوا یک فیلترشکن رایگان و قوی است: بدون ثبت‌نام، بدون تبلیغات و با اتصال با یک لمس. اپ را از [گوگل‌پلی](https://play.google.com/store/apps/details?id=com.vpn.fortivavpn) یا [سایت فورتیوا](https://fortivavpn.com/apk) بگیرید و خبرها را در [کانال تلگرام](https://t.me/fortiva_vpn) دنبال کنید.
+فورتیوا یک فیلترشکن رایگان و قوی است: بدون ثبت‌نام، بدون تبلیغات و با اتصال با یک لمس. اپ را از [گوگل‌پلی](https://play.google.com/store/apps/details?id=com.vpn.fortivavpn&referrer=utm_source%3Dgithub) یا [سایت فورتیوا](https://fortivavpn.com/apk) بگیرید و خبرها را در [کانال تلگرام](https://t.me/fortiva_vpn) دنبال کنید.
 
-این مخزن کد منبع اپ‌های فورتیوا برای اندروید، اندروید TV، iOS و ویندوز است. کد هر نسخه‌ی منتشرشده با تگ `vX.Y.Z` مشخص شده است. برای گزارش مشکل یا پیشنهاد، یک issue باز کنید. برای تغییر کد، یک pull request بفرستید. روش کار در [CONTRIBUTING.md](CONTRIBUTING.md) آمده است.
+این مخزن کد منبع اپ‌های فورتیوا برای اندروید، اندروید TV، iOS و ویندوز است. کد هر نسخه‌ی منتشرشده با تگ `vX.Y.Z` مشخص شده است. برای گزارش مشکل یا پیشنهاد، یک issue باز کنید. برای تغییر کد، یک pull request بفرستید. روش کار در [CONTRIBUTING.md](CONTRIBUTING.md) آمده است. راهنمای فارسی کامل‌تر در [README.fa.md](README.fa.md) است.
 
 </div>
 
@@ -47,8 +50,7 @@
 <td width="33%" valign="top">
 
 **Free every day**<br>
-A data allowance every day that refills on its own. Premium lifts the
-limit.
+A data allowance that resets every day. Premium lifts the limit.
 
 </td>
 <td width="33%" valign="top">
@@ -94,7 +96,7 @@ A speed test in the app compares your speed with and without the VPN.
 
 | | Where to get it | Source |
 | --- | --- | --- |
-| **Android** phones and tablets | [Google Play](https://play.google.com/store/apps/details?id=com.vpn.fortivavpn), or the APK from [fortivavpn.com/apk](https://fortivavpn.com/apk) or the [Releases](../../releases/latest) page. The [Lite APK](https://fortivavpn.com/apk/lite) is a smaller download for 32-bit phones that also runs on most 64-bit ones. | [`android/`](android/) |
+| **Android** phones and tablets | [Google Play](https://play.google.com/store/apps/details?id=com.vpn.fortivavpn&referrer=utm_source%3Dgithub), or the APK from [fortivavpn.com/apk](https://fortivavpn.com/apk) or from this repository's [Releases](https://github.com/SynAdam/fortivavpn/releases/latest). The [Lite APK](https://fortivavpn.com/apk/lite) is a smaller download for 32-bit phones that also runs on most 64-bit ones. | [`android/`](android/) |
 | **Android TV** | The same app and APK as on phones | [`android/`](android/) |
 | **iOS** | Build it from source | [`ios/`](ios/) |
 | **Windows** | Build it from source | [`windows/`](windows/) |
@@ -221,9 +223,9 @@ and ours is signed with our key.
 
 ## Check a download
 
-The APKs on the [Releases](../../releases) page, on fortivavpn.com and in
-the Telegram channel are signed with our upload key. Its certificate has
-this SHA-256 fingerprint:
+The APKs on the [Releases](https://github.com/SynAdam/fortivavpn/releases) page, on
+fortivavpn.com and in the Telegram channel are signed with our upload key.
+Its certificate has this SHA-256 fingerprint:
 
 ```text
 D4:A0:BA:F7:0A:62:66:54:A6:3F:F9:9A:B7:27:5D:85:B4:3D:77:6A:26:85:4D:24:48:AC:2F:6D:10:AC:B1:41
@@ -251,13 +253,69 @@ E1:F5:F9:1D:AA:A7:F9:AE:07:FF:3B:02:06:0F:6E:33:BA:21:21:5C:16:F2:EA:70:9B:E0:B1
 
 Pull requests are welcome. An accepted change ships in the next release,
 and the commit that brings it here names you as a co-author.
-[CONTRIBUTING.md](CONTRIBUTING.md) has the steps and the terms.
+[CONTRIBUTING.md](CONTRIBUTING.md) has the steps, the checks and the terms.
 
-- **Found a bug or have an idea?** [Open an issue](../../issues).
+- **Found a bug or have an idea?** [Open an issue](https://github.com/SynAdam/fortivavpn/issues/new/choose)
+  with one of the forms, in English or Persian.
 - **Want to change the code?** Open a pull request. See
   [CONTRIBUTING.md](CONTRIBUTING.md).
+- **Looking for something to do?** Start with the issues labelled
+  [good first issue](https://github.com/SynAdam/fortivavpn/labels/good%20first%20issue)
+  or [help wanted](https://github.com/SynAdam/fortivavpn/labels/help%20wanted).
+- **Translations:** the app is in 18 languages, one file each in
+  [`lib/l10n/`](lib/l10n/). A fix to one translated string is a good first
+  pull request.
+- **Need help with the app, an account or a payment?** See
+  [SUPPORT.md](SUPPORT.md). Issues are public, so do not ask about an
+  account or a payment in one.
 - **Found a security problem?** Follow [SECURITY.md](SECURITY.md). Do not
   open an issue for it.
+
+The [code of conduct](CODE_OF_CONDUCT.md) applies in issues, pull requests
+and everywhere else in this project.
+
+## Credits
+
+Fortiva VPN is built on the work of these open-source projects. Thank you to
+everyone who wrote and maintains them.
+
+- [ZedSecure](https://github.com/CluvexStudio/ZedSecure) by CluvexStudio, a
+  VPN and proxy client. Our core includes the autoselect outbound that
+  CluvexStudio wrote for Xray-core, taken from
+  [their Xray-core fork](https://github.com/CluvexStudio/Xray-core). Thank
+  you for publishing it.
+- [Xray-core](https://github.com/XTLS/Xray-core) by XTLS, the network core
+  the app is built on.
+- [libXray](https://github.com/XTLS/libXray) by XTLS, a wrapper that makes
+  Xray-core easier to use in mobile apps.
+- [v2rayNG](https://github.com/2dust/v2rayNG) by 2dust, an Android client for
+  Xray-core. Our Android native layer is derived from it.
+- [AndroidLibXrayLite](https://github.com/2dust/AndroidLibXrayLite) by 2dust,
+  the binding that lets Android apps use Xray-core.
+- [psiphon-tunnel-core](https://github.com/Psiphon-Labs/psiphon-tunnel-core)
+  by Psiphon Inc., Psiphon's tunnel library.
+- [shadowsocks-android](https://github.com/shadowsocks/shadowsocks-android),
+  an Android client. A few files of our Android native layer come from it.
+- [sing](https://github.com/SagerNet/sing) and
+  [sing-shadowsocks](https://github.com/SagerNet/sing-shadowsocks) by
+  SagerNet, Go libraries that Xray-core uses.
+- [BadVPN](https://github.com/ambrop72/badvpn) by ambrop72, whose tun2socks
+  the Android app uses.
+- [v2ray-rules-dat](https://github.com/Loyalsoldier/v2ray-rules-dat) by
+  Loyalsoldier, the `geoip.dat` and `geosite.dat` data files.
+- [MMKV](https://github.com/Tencent/MMKV) by Tencent, a key-value store that
+  keeps the Android native layer's settings.
+- [Tun2SocksKit](https://github.com/EbrahimTahernejad/Tun2SocksKit) by
+  EbrahimTahernejad, a Swift package of hev-socks5-tunnel.
+- [hev-socks5-tunnel](https://github.com/heiher/hev-socks5-tunnel) by heiher,
+  a small and fast tun2socks tunnel.
+- [Wintun](https://www.wintun.net) by WireGuard LLC, a network adapter driver
+  for Windows.
+- [Flutter](https://flutter.dev) and the Dart packages listed in
+  [`pubspec.yaml`](pubspec.yaml).
+
+[THIRD-PARTY-NOTICES.md](THIRD-PARTY-NOTICES.md) lists the licence of each
+project.
 
 ## Licence
 
@@ -282,8 +340,7 @@ terms under section 7 of the GPL; see [LICENSING.md](LICENSING.md).
 <br>
 
 <p align="center">
-  <sub>Made for internet freedom.
-  <a href="https://fortivavpn.com">fortivavpn.com</a> ·
+  <sub><a href="https://fortivavpn.com">fortivavpn.com</a> ·
   <a href="https://fortivavpn.com/privacy">Privacy</a> ·
   <a href="https://t.me/fortivavpn">Telegram</a></sub>
 </p>

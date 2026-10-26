@@ -3,6 +3,32 @@
 Thank you for looking at the code. You can report a problem in an issue, or
 send a change as a pull request.
 
+## Where to start
+
+- **Good first issues.** Issues labelled
+  [good first issue](https://github.com/SynAdam/fortivavpn/labels/good%20first%20issue)
+  are small and clearly described, so they make a good first change.
+- **Help wanted.** Issues labelled
+  [help wanted](https://github.com/SynAdam/fortivavpn/labels/help%20wanted)
+  are ones we would like help with. Say in the issue that you are working on
+  one, so that two people do not do the same work.
+- **Translations.** The app's text is in [`lib/l10n/`](lib/l10n/), one file
+  for each language, named `app_<code>.arb`. English, `app_en.arb`, is the
+  source, and the other files translate it. The codes are `ar`, `de`, `en`,
+  `es`, `fa`, `fr`, `hi`, `id`, `ja`, `ko`, `pt`, `ru`, `tr`, `uk`, `ur`,
+  `uz`, `vi` and `zh`. A fix to one translated string is a good first pull
+  request.
+
+For a translation:
+
+- Keep every placeholder in braces, such as `{query}`, exactly as it is.
+  `test/arb_keys_test.dart` checks that each language has the same keys and
+  placeholders as `app_en.arb`.
+- A new string goes into every `.arb` file, not only the English one.
+- Run `flutter gen-l10n`, which writes `lib/l10n/generated/` from the
+  `.arb` files as [`l10n.yaml`](l10n.yaml) sets out, then
+  `dart format lib/ test/`. Commit the generated files with your change.
+
 ## Issues
 
 Open an issue for a bug, a connection problem or an idea. It helps to say:
@@ -52,9 +78,11 @@ What a pull request can change:
 
 - The code and tests of the app, such as `lib/`, `test/`, `android/` and
   `windows/`.
-- Not `README.md`, `CONTRIBUTING.md`, `SECURITY.md`, `.github/`,
-  `lib/api/built_in.dart` or `assets/fallback/index.txt`. This copy has its
-  own versions of these files. Suggest a change to them in an issue.
+- Not the files that this copy has its own versions of: `README.md`,
+  `README.fa.md`, `CONTRIBUTING.md`, `CODE_OF_CONDUCT.md`, `SECURITY.md`,
+  `SUPPORT.md`, `CHANGELOG.md` and `.gitignore` at the top level, anything
+  under `.github/`, `lib/api/built_in.dart` and `assets/fallback/index.txt`.
+  Suggest a change to them in an issue.
 - Not `.gitattributes` or `.gitmodules`, in any folder.
 - No binary files, such as images or libraries, and no symlinks or
   submodules. If your change needs one, say so in the pull request.
@@ -71,6 +99,30 @@ Add a test for what you fix or add. In tests, use the documentation
 addresses (`192.0.2.0/24`, `198.51.100.0/24`, `203.0.113.0/24` and
 `2001:db8::/32`) instead of real ones. Never put a link the app gave you or
 an account code in a pull request.
+
+## Labels
+
+The issue forms add `bug`, `enhancement` or `translation`. We add the
+others.
+
+| Label | What it means |
+| --- | --- |
+| `bug` | Something in the app does not work as it should. |
+| `connection` | The app cannot connect, or the connection drops or is slow. |
+| `enhancement` | An idea for something new, or for something that could work better. |
+| `translation` | Text in one of the app's languages is wrong, unclear or missing. |
+| `android` | It is about Android phones. |
+| `android tv` | It is about Android TV. |
+| `accessibility` | Something makes the app hard to use for people with disabilities. |
+| `documentation` | The README, these guides or other documentation. |
+| `good first issue` | Small and clearly described: a good first change. |
+| `help wanted` | We would like help with it. |
+| `question` | The issue asks a question. |
+| `needs info` | We are waiting for more details from the person who opened it. |
+| `in next release` | Accepted. The change ships in the next release. |
+| `duplicate` | Another issue or pull request already covers it. |
+| `invalid` | It is not a problem in the app, or there is not enough in it to act on. |
+| `wontfix` | We decided not to make this change. |
 
 ## Terms
 
@@ -91,6 +143,12 @@ build. Code you send for these folders must be your own work, or under a
 licence that allows it in a build that is not GPL, such as MIT or BSD.
 GPL-3.0 code can go only into `android/` and `windows/`, which are part of
 the Android and Windows builds alone.
+
+## Code of conduct
+
+Everyone who takes part in this project follows the
+[code of conduct](CODE_OF_CONDUCT.md). To report a problem, email
+admin@fortivavpn.com with "Conduct" in the subject.
 
 ## Security problems
 

@@ -3,3 +3,9 @@ contact_links:
   - name: Help with the app, your account or a payment
     url: https://fortivavpn.com
     about: Issues are public, so do not ask here. Open Settings in the app and tap Contact Us.
+  - name: Security problem
+    url: https://github.com/SynAdam/fortivavpn/security/advisories/new
+    about: Report it privately, because issues are public. SECURITY.md has the details.
+  - name: News and new versions
+    url: https://t.me/fortivavpn
+    about: Our Telegram channel in English. The Persian channel is t.me/fortiva_vpn.
