@@ -94,7 +94,7 @@ A speed test in the app compares your speed with and without the VPN.
 
 | | Where to get it | Source |
 | --- | --- | --- |
-| **Android** phones and tablets | [Google Play](https://play.google.com/store/apps/details?id=com.vpn.fortivavpn), or the APK from [fortivavpn.com/apk](https://fortivavpn.com/apk). The [Lite APK](https://fortivavpn.com/apk/lite) is a smaller download for 32-bit phones that also runs on most 64-bit ones. | [`android/`](android/) |
+| **Android** phones and tablets | [Google Play](https://play.google.com/store/apps/details?id=com.vpn.fortivavpn), or the APK from [fortivavpn.com/apk](https://fortivavpn.com/apk) or the [Releases](../../releases/latest) page. The [Lite APK](https://fortivavpn.com/apk/lite) is a smaller download for 32-bit phones that also runs on most 64-bit ones. | [`android/`](android/) |
 | **Android TV** | The same app and APK as on phones | [`android/`](android/) |
 | **iOS** | Build it from source | [`ios/`](ios/) |
 | **Windows** | Build it from source | [`windows/`](windows/) |
@@ -209,8 +209,8 @@ and [`windows/installer/`](windows/installer/) for the installer.
 Each release is built from its tagged commit with Flutter 3.38.7:
 
 - The Google Play bundle: `flutter build appbundle --release`.
-- The APK on fortivavpn.com and in the Telegram channel, for 32-bit and
-  64-bit ARM phones:
+- The APK on the [Releases](../../releases) page, fortivavpn.com and the
+  Telegram channel, for 32-bit and 64-bit ARM phones:
   `flutter build apk --release --target-platform android-arm,android-arm64`.
 - The Lite APK, a smaller download for 32-bit ARM that also runs on most
   64-bit phones: `flutter build apk --release --target-platform android-arm`.
@@ -221,8 +221,9 @@ and ours is signed with our key.
 
 ## Check a download
 
-The APKs on fortivavpn.com and in the Telegram channel are signed with our
-upload key. Its certificate has this SHA-256 fingerprint:
+The APKs on the [Releases](../../releases) page, on fortivavpn.com and in
+the Telegram channel are signed with our upload key. Its certificate has
+this SHA-256 fingerprint:
 
 ```text
 D4:A0:BA:F7:0A:62:66:54:A6:3F:F9:9A:B7:27:5D:85:B4:3D:77:6A:26:85:4D:24:48:AC:2F:6D:10:AC:B1:41
@@ -233,6 +234,11 @@ apksigner is in the Android SDK build tools. The line "Signer #1
 certificate SHA-256 digest" must show the same value, in lower case and
 without colons. If it shows another value, the file is not ours, so do not
 install it.
+
+Each release page also carries `SHA256SUMS`, with the SHA-256 of both
+APKs, and GitHub shows each file's SHA-256 under Assets. To check a
+download against it, save `SHA256SUMS` in the folder with the APK and run
+`sha256sum -c --ignore-missing SHA256SUMS` there.
 
 The app from Google Play is signed by Google Play's app signing key, not by
 our upload key. Its certificate has this SHA-256 fingerprint:
