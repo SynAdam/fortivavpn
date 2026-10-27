@@ -176,6 +176,12 @@ class ReferralStatus {
   /// lower it.
   bool get bonusAboveKept => bonusBytes > (keptBytes ?? 0);
 
+  /// Whether the bonus is the part kept from the old rule: there is one,
+  /// and what friends add now is not more than it. The backend then sends
+  /// no next_invite_bytes when the next friend would not lift the bonus
+  /// above it, even though more friends together would.
+  bool get bonusAtKept => (keptBytes ?? 0) > 0 && !bonusAboveKept;
+
   /// How many slots this device has of its own, counted from [pairs].
   int get treeSlots => pairs.fold(0, (n, p) => n + p.slots.length);
 

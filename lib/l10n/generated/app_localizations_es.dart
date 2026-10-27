@@ -672,7 +672,7 @@ class SEs extends S {
 
   @override
   String inviteBonusPerDay(String amount) {
-    return '+$amount cada día';
+    return '+$amount al día';
   }
 
   @override
@@ -736,12 +736,12 @@ class SEs extends S {
       other: '$days días distintos',
       one: '$days día',
     );
-    return 'Invitación aceptada. Tu amigo gana un bono de datos cuando hayas usado la VPN durante $_temp0.';
+    return 'Invitación aceptada. Cuenta cuando hayas usado la VPN durante $_temp0, a partir de hoy.';
   }
 
   @override
   String get inviteClaimAcceptedNoDays =>
-      'Invitación aceptada. Tu amigo gana un bono de datos cuando hayas usado la VPN por un tiempo.';
+      'Invitación aceptada. Cuenta cuando hayas usado la VPN durante un tiempo, a partir de hoy.';
 
   @override
   String get inviteClaimAlready =>
@@ -843,16 +843,16 @@ class SEs extends S {
 
   @override
   String get inviteTreeLive =>
-      'Tu bono dura mientras tus amigos sigan usando Fortiva. Si un amigo deja de usarlo, baja.';
+      'Tu bono dura mientras tus amigos sigan usando Fortiva. Si un amigo lo deja, tu bono puede bajar.';
 
   @override
   String inviteTreeNext(String amount) {
-    return 'Tu próximo amigo suma $amount al día cuando empiece a usar Fortiva.';
+    return 'Tu siguiente amigo suma $amount al día cuando quede confirmado y esté activo.';
   }
 
   @override
   String inviteTreeKept(String amount) {
-    return 'Tu bono nunca baja de $amount al día, gracias a los amigos que invitaste antes.';
+    return 'Tu bono no baja de $amount al día, el bono que tenías por invitaciones anteriores. Esta cantidad solo puede bajar si se elimina una de tus invitaciones.';
   }
 
   @override
@@ -885,9 +885,6 @@ class SEs extends S {
 
   @override
   String get inviteTreeRowFriends => 'En tus lugares';
-
-  @override
-  String get inviteTreeRowFriendsSlots => 'En sus lugares';
 
   @override
   String inviteTreeRowSteps(int steps) {
@@ -954,12 +951,12 @@ class SEs extends S {
       other: '$window días',
       one: '$window día',
     );
-    return 'Un amigo cuenta como activo mientras haya usado Fortiva al menos $_temp0 en los últimos $_temp1.';
+    return 'Un amigo está activo mientras haya usado la VPN al menos $_temp0 en los últimos $_temp1.';
   }
 
   @override
   String get inviteTreeHowActiveNoNumber =>
-      'Un amigo cuenta como activo mientras siga usando Fortiva.';
+      'Un amigo está activo mientras siga usando la VPN.';
 
   @override
   String inviteTreeHowCap(String max) {
@@ -1001,16 +998,12 @@ class SEs extends S {
       'Tus amigos llenan tus lugares por parejas';
 
   @override
-  String get inviteTreeIntroSlotsWhen =>
-      'Un amigo ocupa un lugar cuando empieza a usar Fortiva.';
-
-  @override
   String get inviteTreeIntroSlotsArt =>
-      'Tus lugares, por parejas, que se llenan cuando se unen amigos.';
+      'Tú, tu código de invitación y tus lugares por parejas. Cada lugar muestra si está libre, o si la persona que lo ocupa está activa o inactiva por ahora.';
 
   @override
   String get inviteTreeIntroPairTitle =>
-      'Una pareja suma más cuando ambos están activos';
+      'Una pareja suma lo máximo cuando ambos están activos';
 
   @override
   String inviteTreeIntroPairBoth(String full, String one) {
@@ -1036,26 +1029,7 @@ class SEs extends S {
   }
 
   @override
-  String get inviteTreeIntroPairArt =>
-      'Una pareja de lugares. Suma más datos cuando ambos amigos están activos.';
-
-  @override
-  String get inviteTreeIntroFurtherTitle =>
-      'Los amigos más lejanos también suman datos';
-
-  @override
-  String get inviteTreeIntroFirstPairOnly =>
-      'De los lugares de tu amigo, solo su primera pareja suma datos para ti.';
-
-  @override
   String get inviteTreeIntroYourFriend => 'Tu amigo';
-
-  @override
-  String get inviteTreeIntroTheirPair => 'Su primera pareja';
-
-  @override
-  String get inviteTreeIntroFurtherArt =>
-      'La primera pareja de tu amigo suma datos para tu amigo y para ti. Las parejas más lejanas suman menos.';
 
   @override
   String get inviteTreeIntroTotalTitle => 'Tus datos de amigos';
@@ -1082,7 +1056,7 @@ class SEs extends S {
 
   @override
   String inviteTreeSheetNext(String amount) {
-    return 'Tu próximo amigo suma $amount al día cuando empiece a usar Fortiva. Esto no se suma a los datos de hoy.';
+    return 'Tu siguiente amigo suma $amount al día cuando quede confirmado y esté activo. No se suma a los datos de hoy.';
   }
 
   @override
@@ -1094,9 +1068,9 @@ class SEs extends S {
       days,
       locale: localeName,
       other:
-          'Cada amigo que empiece a usar Fortiva también te da $days días de Premium.',
+          'Cada amigo que quede confirmado con tu código también suma $days días de Premium para ti.',
       one:
-          'Cada amigo que empiece a usar Fortiva también te da $days día de Premium.',
+          'Cada amigo que quede confirmado con tu código también suma $days día de Premium para ti.',
     );
     return '$_temp0';
   }
@@ -1111,6 +1085,336 @@ class SEs extends S {
     );
     return '$_temp0';
   }
+
+  @override
+  String inviteTreeIntroSlotsBody(int slots) {
+    String _temp0 = intl.Intl.pluralLogic(
+      slots,
+      locale: localeName,
+      other:
+          'Los amigos que se unan con tu código pueden sumar a tus datos diarios. Tienes $slots lugares para ellos. Cada lugar es para un amigo, y los lugares van por parejas. Primero se llena tu primera pareja. Aunque tus lugares estén llenos, pueden unirse más amigos.',
+      one:
+          'Los amigos que se unan con tu código pueden sumar a tus datos diarios. Tienes $slots lugar para ellos. Cada lugar es para un amigo, y los lugares van por parejas. Primero se llena tu primera pareja. Aunque tus lugares estén llenos, pueden unirse más amigos.',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get inviteTreeIntroSlotsBodyNoNumber =>
+      'Los amigos que se unan con tu código pueden sumar a tus datos diarios. Tienes lugares para ellos. Cada lugar es para un amigo, y los lugares van por parejas. Primero se llena tu primera pareja. Aunque tus lugares estén llenos, pueden unirse más amigos.';
+
+  @override
+  String get inviteTreeIntroJoinTitle => 'Cómo un amigo ocupa un lugar';
+
+  @override
+  String inviteTreeIntroJoinCode(int hours) {
+    String _temp0 = intl.Intl.pluralLogic(
+      hours,
+      locale: localeName,
+      other:
+          'Tu amigo debe introducir tu código en su pantalla de invitaciones en las $hours horas siguientes a instalar Fortiva.',
+      one:
+          'Tu amigo debe introducir tu código en su pantalla de invitaciones en la $hours hora siguiente a instalar Fortiva.',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get inviteTreeIntroJoinCodeNoNumber =>
+      'Tu amigo debe introducir tu código en su pantalla de invitaciones poco después de instalar Fortiva.';
+
+  @override
+  String inviteTreeIntroJoinQualify(int days) {
+    String _temp0 = intl.Intl.pluralLogic(
+      days,
+      locale: localeName,
+      other:
+          'Después, debe usar la VPN durante $days días distintos. Entonces queda confirmado y ocupa el siguiente lugar libre.',
+      one:
+          'Después, debe usar la VPN durante $days día. Entonces queda confirmado y ocupa el siguiente lugar libre.',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get inviteTreeIntroJoinQualifyNoNumber =>
+      'Después, debe usar la VPN durante un tiempo. Entonces queda confirmado y ocupa el siguiente lugar libre.';
+
+  @override
+  String get inviteTreeIntroJoinPlay =>
+      'Si instala Fortiva desde Google Play con tu enlace, el código se introduce automáticamente.';
+
+  @override
+  String get inviteTreeIntroJoinWaiting =>
+      'Hasta que quede confirmado, tu pantalla de invitaciones lo cuenta en «Invitados», pero todavía no en «Confirmados».';
+
+  @override
+  String get inviteTreeIntroJoinStepCode => 'Introduce tu código';
+
+  @override
+  String get inviteTreeIntroJoinStepUse => 'Usa la VPN';
+
+  @override
+  String get inviteTreeIntroJoinStepSlot => 'Ocupa un lugar';
+
+  @override
+  String get inviteTreeIntroJoinArt =>
+      'Un amigo introduce tu código, usa la VPN en días distintos y después ocupa el siguiente lugar libre.';
+
+  @override
+  String get inviteTreeIntroPairsBody =>
+      'Cada pareja puede sumar datos para ti. Suma lo máximo cuando ambas personas están activas.';
+
+  @override
+  String get inviteTreeIntroPairsCaption =>
+      'Lo que cada pareja suma a tus datos al día';
+
+  @override
+  String get inviteTreeIntroBothActive => 'Ambos activos';
+
+  @override
+  String get inviteTreeIntroOneActive => 'Uno activo';
+
+  @override
+  String inviteTreeIntroPlus(String amount) {
+    return '+$amount';
+  }
+
+  @override
+  String get inviteTreeIntroNothing => 'Nada';
+
+  @override
+  String get inviteTreeIntroPairNow =>
+      'Las cantidades resaltadas son lo que tus parejas suman ahora.';
+
+  @override
+  String get inviteTreeIntroPairsArt =>
+      'Tus parejas y lo que suma cada una al día cuando ambas personas están activas y cuando lo está una.';
+
+  @override
+  String get inviteTreeIntroActiveTitle =>
+      'Un amigo suma datos mientras está activo';
+
+  @override
+  String get inviteTreeIntroActiveStops =>
+      'Si un amigo deja de usar Fortiva, su pareja suma menos y tu bono puede bajar. Conserva su lugar. Cuando vuelve a usar Fortiva, su pareja vuelve a sumar más.';
+
+  @override
+  String get inviteTreeIntroActiveFar =>
+      'Las personas más lejanas que suman datos para ti también cuentan solo mientras están activas.';
+
+  @override
+  String get inviteTreeIntroActiveArt =>
+      'Una pareja en la que un amigo dejó de usar Fortiva. Ahora la pareja suma menos.';
+
+  @override
+  String get inviteTreeIntroFullTitle => 'Cuando tus lugares están llenos';
+
+  @override
+  String get inviteTreeIntroFullBody =>
+      'Cuando todos tus lugares están ocupados, tu siguiente amigo va a la primera pareja de alguien que está en tus lugares, por orden desde tu primer lugar. Esa pareja suma datos para esa persona, y menos para ti.';
+
+  @override
+  String get inviteTreeIntroFullLess =>
+      'Cuanto más lejos está un lugar, menos suma para ti. Los lugares muy lejanos no suman nada.';
+
+  @override
+  String get inviteTreeIntroNextFriend => 'Tu siguiente amigo';
+
+  @override
+  String get inviteTreeIntroLaterFriend => 'Un amigo más adelante';
+
+  @override
+  String get inviteTreeIntroFullArt =>
+      'Un amigo más adelante ocupa un lugar libre en la primera pareja de alguien que está en tus lugares. Esa pareja suma datos para esa persona, y menos para ti.';
+
+  @override
+  String get inviteTreeIntroOthersTitle =>
+      'Tu primera pareja puede tener personas que no invitaste';
+
+  @override
+  String get inviteTreeIntroOthersWhy =>
+      'Te uniste con el código de un amigo. Cuando sus lugares están llenos, sus siguientes amigos pueden ocupar un lugar libre en tu primera pareja. Los amigos de otras personas también. Quien lo ocupe suma datos para ti de la misma forma que tus propios amigos.';
+
+  @override
+  String get inviteTreeIntroOthersYours =>
+      'Tus propios amigos llenan tus otros lugares libres y, después, lugares libres más lejanos.';
+
+  @override
+  String get inviteTreeIntroNotInvited => 'No invitado por ti';
+
+  @override
+  String get inviteTreeIntroOthersArt =>
+      'Un ejemplo de tu primera pareja, con un amigo que invitaste y una persona que no invitaste. Ambos suman datos para ti mientras están activos.';
+
+  @override
+  String get inviteTreeIntroShareTitle =>
+      'Invita a amigos que vayan a usar Fortiva';
+
+  @override
+  String get inviteTreeIntroShareBody =>
+      'Un amigo suma datos para ti solo mientras está activo. Envía tu invitación a amigos que necesiten una VPN.';
+
+  @override
+  String get inviteTreeQaTitle => 'Preguntas y respuestas';
+
+  @override
+  String get inviteTreeQaCountQ =>
+      'Mi amigo introdujo mi código. ¿Cuándo ocupa un lugar?';
+
+  @override
+  String get inviteTreeQaCountDay =>
+      'Un día cuenta solo si ese día usa algunos datos a través de la VPN. Abrir la aplicación no basta. No hay plazo para esos días.';
+
+  @override
+  String get inviteTreeQaCountOther =>
+      'Un teléfono que ya introdujo un código no puede introducir otro. Tú y un amigo no pueden introducir el código del otro.';
+
+  @override
+  String get inviteTreeQaDownQ => '¿Por qué bajó mi bono?';
+
+  @override
+  String get inviteTreeQaDownA =>
+      'Alguien que suma datos para ti no está activo ahora. Puede ser un amigo en tus lugares o alguien más lejos. Cuando vuelva a usar Fortiva, volverá a sumar datos.';
+
+  @override
+  String get inviteTreeQaDownLater =>
+      'Un amigo que deja de usar Fortiva sigue contando como activo durante un tiempo. Por eso tu bono puede bajar un tiempo después de que lo deje.';
+
+  @override
+  String get inviteTreeQaDownRemoved =>
+      'Tu bono también puede bajar cuando se elimina una invitación, por ejemplo cuando ese amigo borra su cuenta de Fortiva.';
+
+  @override
+  String get inviteTreeQaFullQ => '¿Qué pasa cuando mis lugares están llenos?';
+
+  @override
+  String get inviteTreeQaFullFurther =>
+      'Cuando esas primeras parejas también están llenas, tu siguiente amigo va más lejos, a la primera pareja de alguien que está en esas parejas. Esa pareja suma datos para esa persona, y cantidades menores para ti y para cada persona que hay entre ustedes.';
+
+  @override
+  String get inviteTreeQaFriendsQ =>
+      '¿Los amigos de mis amigos suman datos para mí?';
+
+  @override
+  String get inviteTreeQaFriendsA =>
+      'Algunos sí. La primera pareja de cada persona que está en tus lugares suma datos para esa persona, y una cantidad menor para ti. Sus otras parejas suman datos solo para ellos. Más lejos, solo las primeras parejas suman datos para ti, y cuanto más lejos están, menos suman, hasta que no suman nada.';
+
+  @override
+  String get inviteTreeQaOthersQ =>
+      '¿Quiénes son las personas de mis lugares a las que no invité?';
+
+  @override
+  String get inviteTreeQaOthersA =>
+      'Son amigos de alguien cuyos lugares están llenos, por ejemplo la persona que te invitó. Ocuparon un lugar libre en tu primera pareja, y no puedes elegirlos ni quitarlos. Suman datos para ti de la misma forma que tus propios amigos.';
+
+  @override
+  String get inviteTreeQaSumQ =>
+      '¿Por qué mi bono es distinto de las cantidades de la pantalla de invitaciones?';
+
+  @override
+  String get inviteTreeQaSumA =>
+      'Cada fila de «A través de tus lugares» muestra lo que suman ahora las personas de esa fila. Tu bono es su total, hasta el límite.';
+
+  @override
+  String get inviteTreeQaSlotQ =>
+      '¿Puedo liberar un lugar o elegir quién lo ocupa?';
+
+  @override
+  String get inviteTreeQaSlotA =>
+      'No. Un amigo conserva su lugar aunque deje de usar Fortiva. Su lugar solo vuelve a quedar libre cuando se elimina su invitación, por ejemplo cuando borra su cuenta de Fortiva. Los lugares libres se llenan por orden, y nadie puede elegir quién los ocupa.';
+
+  @override
+  String get inviteTreeQaPrivacyQ => '¿Pueden ver mis amigos si uso Fortiva?';
+
+  @override
+  String get inviteTreeQaPrivacyA =>
+      'Si te uniste con el código de un amigo, la persona en cuyos lugares estás puede ver si estás activo o inactivo por ahora. Los demás solo ven cuántas personas están activas, no quiénes. La pantalla de invitaciones nunca muestra el nombre, el teléfono ni el consumo de nadie.';
+
+  @override
+  String get inviteTreeQaLimitQ => '¿Hay un límite?';
+
+  @override
+  String get inviteTreeQaLimitMore =>
+      'Cuando tus invitaciones suman esa cantidad, más amigos no suman más datos.';
+
+  @override
+  String get inviteTreeQaKeptQ => '¿Qué pasa con el bono que ya tengo?';
+
+  @override
+  String get inviteTreeQaKeptMore =>
+      'Cuando el bono de tus invitaciones anteriores es mayor que lo que suman tus amigos ahora, recibes ese bono en su lugar. Los dos no se suman.';
+
+  @override
+  String get inviteTreeQaKeptRemoved =>
+      'Una invitación se elimina cuando ese amigo borra su cuenta de Fortiva, o cuando Fortiva la cancela por uso indebido.';
+
+  @override
+  String get inviteTreeQaChangedQ => '¿Qué ha cambiado en las invitaciones?';
+
+  @override
+  String get inviteTreeQaChangedA =>
+      'Antes, cada amigo confirmado sumaba una cantidad fija de datos. Ahora los amigos suman datos mientras están activos, a través de tus lugares y parejas, y tu bono puede bajar.';
+
+  @override
+  String get inviteTreeQaPremiumQ => '¿Las invitaciones suman días de Premium?';
+
+  @override
+  String get inviteTreeQaPremiumOwn =>
+      'No importa qué lugar ocupe tu amigo. Las personas que no invitaste no suman días de Premium.';
+
+  @override
+  String get inviteTreeQaGetsQ => '¿Mi amigo recibe algo?';
+
+  @override
+  String get inviteTreeQaGetsA =>
+      'No por introducir tu código. Como todos, tiene su propio código y sus lugares, y los amigos que se unan con su código suman datos para él. Cuando quede confirmado, su primera pareja también puede tener personas que no invitó, y esas personas también suman datos para él.';
+
+  @override
+  String get inviteTreeQaGetsSee =>
+      'Si está en tus lugares, puedes ver si está activo o inactivo por ahora. Nunca ves su nombre ni su consumo.';
+
+  @override
+  String get inviteTreeKeptFloor =>
+      'Ahora tu bono es la cantidad que conservas de tus invitaciones anteriores. Sube cuando tus amigos, juntos, suman más que esa cantidad.';
+
+  @override
+  String inviteTreeIntroTotalUpTo(String most, String total) {
+    return 'Tus amigos pueden sumar hasta $most al día. Tus datos gratis y los datos de tus amigos, juntos, pueden llegar a $total al día.';
+  }
+
+  @override
+  String get inviteTreeIntroPairsOrder =>
+      'Tu primera pareja es la que más suma. Cada pareja siguiente suma menos.';
+
+  @override
+  String get inviteTreeIntroInvitedYou => 'Te invitó';
+
+  @override
+  String get inviteTreeIntroGuide => 'Guía paso a paso';
+
+  @override
+  String get inviteTreeQaCostQ => '¿Mi amigo pierde datos por mi culpa?';
+
+  @override
+  String get inviteTreeQaCostA =>
+      'No. Lo que un amigo suma para ti no sale de sus propios datos. Sus datos diarios no cambian por ti.';
+
+  @override
+  String get inviteTreeQaStartQ =>
+      '¿Cuándo empiezan a sumarse los datos de un amigo?';
+
+  @override
+  String get inviteTreeQaStartA =>
+      'En cuanto tu amigo ocupa un lugar y está activo. Tu bono se actualiza a lo largo del día, así que sube poco después, el mismo día. Hasta que tu amigo quede confirmado, no suma nada.';
+
+  @override
+  String get inviteTreeQaPhoneQ =>
+      '¿Qué pasa si mi amigo reinstala Fortiva o cambia de teléfono?';
+
+  @override
+  String get inviteTreeQaPhoneA =>
+      'Tras reinstalar en el mismo teléfono, Fortiva suele reconocer el teléfono y nada cambia. Un teléfono nuevo es nuevo para Fortiva. El lugar sigue siendo del teléfono anterior, y cuenta como inactivo en cuanto ese teléfono deja de usarse.';
 
   @override
   String get premiumSourceInvite => 'Gracias a tus invitaciones';

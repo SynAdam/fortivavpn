@@ -731,12 +731,12 @@ class SPt extends S {
       other: '$days dias diferentes',
       one: '$days dia',
     );
-    return 'Convite aceito. Seu amigo ganha dados bônus depois que você usar a VPN em $_temp0.';
+    return 'Convite aceito. Ele conta depois que você usar a VPN em $_temp0, a partir de hoje.';
   }
 
   @override
   String get inviteClaimAcceptedNoDays =>
-      'Convite aceito. Seu amigo ganha dados bônus depois que você usar a VPN por um tempo.';
+      'Convite aceito. Ele conta depois que você usar a VPN por um tempo, a partir de hoje.';
 
   @override
   String get inviteClaimAlready =>
@@ -764,16 +764,16 @@ class SPt extends S {
       days,
       locale: localeName,
       other:
-          'Quando seu amigo começar a usar o Fortiva, você ganha $days dias de Premium.',
+          'Quando seu amigo começar a usar o Fortiva, você recebe $days dias de Premium.',
       one:
-          'Quando seu amigo começar a usar o Fortiva, você ganha $days dia de Premium.',
+          'Quando seu amigo começar a usar o Fortiva, você recebe $days dia de Premium.',
     );
     return '$_temp0';
   }
 
   @override
   String get inviteCardRewardNoAmount =>
-      'Quando seu amigo começar a usar o Fortiva, você ganha Premium de presente.';
+      'Quando seu amigo começar a usar o Fortiva, você recebe Premium de presente.';
 
   @override
   String get inviteSendTelegram => 'Telegram';
@@ -839,16 +839,16 @@ class SPt extends S {
 
   @override
   String get inviteTreeLive =>
-      'Seu bônus dura enquanto seus amigos continuarem usando o Fortiva. Se um amigo parar, ele diminui.';
+      'Seu bônus dura enquanto seus amigos continuarem usando o Fortiva. Se um amigo parar, seu bônus pode cair.';
 
   @override
   String inviteTreeNext(String amount) {
-    return 'Seu próximo amigo adiciona $amount por dia quando começar a usar o Fortiva.';
+    return 'Seu próximo amigo soma $amount por dia depois que se qualificar e estiver ativo.';
   }
 
   @override
   String inviteTreeKept(String amount) {
-    return 'Seu bônus nunca fica abaixo de $amount por dia, graças aos amigos que você convidou antes.';
+    return 'Seu bônus não fica abaixo de $amount por dia, o bônus que você tinha dos convites anteriores. Esse valor só pode cair se um dos seus convites for removido.';
   }
 
   @override
@@ -881,9 +881,6 @@ class SPt extends S {
 
   @override
   String get inviteTreeRowFriends => 'Nas suas vagas';
-
-  @override
-  String get inviteTreeRowFriendsSlots => 'Nas vagas deles';
 
   @override
   String inviteTreeRowSteps(int steps) {
@@ -950,12 +947,12 @@ class SPt extends S {
       other: '$window dias',
       one: '$window dia',
     );
-    return 'Um amigo conta como ativo enquanto tiver usado o Fortiva em pelo menos $_temp0 nos últimos $_temp1.';
+    return 'Um amigo está ativo enquanto tiver usado a VPN em pelo menos $_temp0 nos últimos $_temp1.';
   }
 
   @override
   String get inviteTreeHowActiveNoNumber =>
-      'Um amigo conta como ativo enquanto continuar usando o Fortiva.';
+      'Um amigo está ativo enquanto continuar usando a VPN.';
 
   @override
   String inviteTreeHowCap(String max) {
@@ -997,12 +994,8 @@ class SPt extends S {
       'Amigos preenchem suas vagas em pares';
 
   @override
-  String get inviteTreeIntroSlotsWhen =>
-      'Um amigo ocupa uma vaga quando começa a usar o Fortiva.';
-
-  @override
   String get inviteTreeIntroSlotsArt =>
-      'Suas vagas, em pares, sendo preenchidas conforme amigos entram.';
+      'Você, seu código de convite e suas vagas em pares. Cada vaga mostra se está livre, ou se a pessoa nela está ativa ou inativa agora.';
 
   @override
   String get inviteTreeIntroPairTitle =>
@@ -1032,26 +1025,7 @@ class SPt extends S {
   }
 
   @override
-  String get inviteTreeIntroPairArt =>
-      'Um par de vagas. Ele soma mais dados quando ambos os amigos nele estão ativos.';
-
-  @override
-  String get inviteTreeIntroFurtherTitle =>
-      'Amigos mais distantes também somam dados';
-
-  @override
-  String get inviteTreeIntroFirstPairOnly =>
-      'Das vagas do seu amigo, só o primeiro par dele soma dados para você.';
-
-  @override
   String get inviteTreeIntroYourFriend => 'Seu amigo';
-
-  @override
-  String get inviteTreeIntroTheirPair => 'O primeiro par dele';
-
-  @override
-  String get inviteTreeIntroFurtherArt =>
-      'O primeiro par do seu amigo soma dados para ele e para você. Pares mais distantes somam menos.';
 
   @override
   String get inviteTreeIntroTotalTitle => 'Seus dados vindos de amigos';
@@ -1077,7 +1051,7 @@ class SPt extends S {
 
   @override
   String inviteTreeSheetNext(String amount) {
-    return 'Seu próximo amigo soma $amount por dia quando começar a usar o Fortiva. Isso não entra nos dados de hoje.';
+    return 'Seu próximo amigo soma $amount por dia depois que se qualificar e estiver ativo. Isso não soma aos dados de hoje.';
   }
 
   @override
@@ -1089,9 +1063,9 @@ class SPt extends S {
       days,
       locale: localeName,
       other:
-          'Cada amigo que começar a usar o Fortiva também dá a você $days dias de Premium.',
+          'Cada amigo que se qualifica com o seu código também soma $days dias de Premium para você.',
       one:
-          'Cada amigo que começar a usar o Fortiva também dá a você $days dia de Premium.',
+          'Cada amigo que se qualifica com o seu código também soma $days dia de Premium para você.',
     );
     return '$_temp0';
   }
@@ -1106,6 +1080,338 @@ class SPt extends S {
     );
     return '$_temp0';
   }
+
+  @override
+  String inviteTreeIntroSlotsBody(int slots) {
+    String _temp0 = intl.Intl.pluralLogic(
+      slots,
+      locale: localeName,
+      other:
+          'Amigos que entram com o seu código podem somar aos seus dados diários. Você tem $slots vagas para eles. Cada vaga é de um amigo, e as vagas vêm em pares. Seu primeiro par é preenchido primeiro. Mais amigos ainda podem entrar quando suas vagas estiverem cheias.',
+      one:
+          'Amigos que entram com o seu código podem somar aos seus dados diários. Você tem $slots vaga para eles. Cada vaga é de um amigo, e as vagas vêm em pares. Seu primeiro par é preenchido primeiro. Mais amigos ainda podem entrar quando suas vagas estiverem cheias.',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get inviteTreeIntroSlotsBodyNoNumber =>
+      'Amigos que entram com o seu código podem somar aos seus dados diários. Você tem vagas para eles. Cada vaga é de um amigo, e as vagas vêm em pares. Seu primeiro par é preenchido primeiro. Mais amigos ainda podem entrar quando suas vagas estiverem cheias.';
+
+  @override
+  String get inviteTreeIntroJoinTitle => 'Como um amigo ocupa uma vaga';
+
+  @override
+  String inviteTreeIntroJoinCode(int hours) {
+    String _temp0 = intl.Intl.pluralLogic(
+      hours,
+      locale: localeName,
+      other:
+          'Seu amigo precisa inserir o seu código na tela de convites dele em até $hours horas depois de instalar o Fortiva.',
+      one:
+          'Seu amigo precisa inserir o seu código na tela de convites dele em até $hours hora depois de instalar o Fortiva.',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get inviteTreeIntroJoinCodeNoNumber =>
+      'Seu amigo precisa inserir o seu código na tela de convites dele logo depois de instalar o Fortiva.';
+
+  @override
+  String inviteTreeIntroJoinQualify(int days) {
+    String _temp0 = intl.Intl.pluralLogic(
+      days,
+      locale: localeName,
+      other:
+          'Depois disso, ele precisa usar a VPN em $days dias diferentes. Aí ele se qualifica e ocupa a próxima vaga livre.',
+      one:
+          'Depois disso, ele precisa usar a VPN em $days dia. Aí ele se qualifica e ocupa a próxima vaga livre.',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get inviteTreeIntroJoinQualifyNoNumber =>
+      'Depois disso, ele precisa usar a VPN por um tempo. Aí ele se qualifica e ocupa a próxima vaga livre.';
+
+  @override
+  String get inviteTreeIntroJoinPlay =>
+      'Se ele instalar pelo Google Play usando o seu link, o código é inserido para ele.';
+
+  @override
+  String get inviteTreeIntroJoinWaiting =>
+      'Até ele se qualificar, sua tela de convites o conta em \"Convidados\", mas ainda não em \"Qualificados\".';
+
+  @override
+  String get inviteTreeIntroJoinStepCode => 'Insere seu código';
+
+  @override
+  String get inviteTreeIntroJoinStepUse => 'Usa a VPN';
+
+  @override
+  String get inviteTreeIntroJoinStepSlot => 'Ocupa uma vaga';
+
+  @override
+  String get inviteTreeIntroJoinArt =>
+      'Um amigo insere o seu código, usa a VPN em dias diferentes e depois ocupa a próxima vaga livre.';
+
+  @override
+  String get inviteTreeIntroPairsBody =>
+      'Cada par pode somar dados para você. Ele soma mais quando ambas as pessoas dele estão ativas.';
+
+  @override
+  String get inviteTreeIntroPairsCaption =>
+      'O que cada par soma aos seus dados por dia';
+
+  @override
+  String get inviteTreeIntroBothActive => 'Ambos ativos';
+
+  @override
+  String get inviteTreeIntroOneActive => 'Um ativo';
+
+  @override
+  String inviteTreeIntroPlus(String amount) {
+    return '+$amount';
+  }
+
+  @override
+  String get inviteTreeIntroNothing => 'Nada';
+
+  @override
+  String get inviteTreeIntroPairNow =>
+      'Os valores em destaque são o que seus pares somam agora.';
+
+  @override
+  String get inviteTreeIntroPairsArt =>
+      'Seus pares e quanto cada um soma por dia quando ambas as pessoas dele estão ativas e quando uma está.';
+
+  @override
+  String get inviteTreeIntroActiveTitle =>
+      'Um amigo soma dados enquanto está ativo';
+
+  @override
+  String get inviteTreeIntroActiveStops =>
+      'Se um amigo para de usar o Fortiva, o par dele soma menos e o seu bônus pode cair. Ele continua com a vaga dele. Quando volta a usar o Fortiva, o par dele volta a somar mais.';
+
+  @override
+  String get inviteTreeIntroActiveFar =>
+      'Pessoas mais distantes que somam dados para você também contam só enquanto estão ativas.';
+
+  @override
+  String get inviteTreeIntroActiveArt =>
+      'Um par em que um amigo parou de usar o Fortiva. Agora o par soma menos.';
+
+  @override
+  String get inviteTreeIntroFullTitle => 'Quando suas vagas estão cheias';
+
+  @override
+  String get inviteTreeIntroFullBody =>
+      'Quando todas as suas vagas estão ocupadas, seu próximo amigo vai para o primeiro par de alguém que está nas suas vagas, em ordem a partir da sua primeira vaga. Esse par soma dados para essa pessoa, e menos para você.';
+
+  @override
+  String get inviteTreeIntroFullLess =>
+      'Quanto mais distante uma vaga, menos ela soma para você. Vagas muito distantes não somam nada.';
+
+  @override
+  String get inviteTreeIntroNextFriend => 'Seu próximo amigo';
+
+  @override
+  String get inviteTreeIntroLaterFriend => 'Um amigo mais tarde';
+
+  @override
+  String get inviteTreeIntroFullArt =>
+      'Um amigo, mais tarde, ocupa uma vaga livre no primeiro par de alguém que está nas suas vagas. Esse par soma dados para essa pessoa, e menos para você.';
+
+  @override
+  String get inviteTreeIntroOthersTitle =>
+      'Seu primeiro par pode ter pessoas que você não convidou';
+
+  @override
+  String get inviteTreeIntroOthersWhy =>
+      'Você entrou com o código de um amigo. Quando as vagas dele estão cheias, os próximos amigos dele podem ocupar uma vaga livre no seu primeiro par. Amigos de outras pessoas também. Quem ocupar a vaga soma dados para você do mesmo jeito que os seus próprios amigos.';
+
+  @override
+  String get inviteTreeIntroOthersYours =>
+      'Seus próprios amigos preenchem as suas outras vagas livres e, depois, vagas livres mais distantes.';
+
+  @override
+  String get inviteTreeIntroNotInvited => 'Não convidado por você';
+
+  @override
+  String get inviteTreeIntroOthersArt =>
+      'Um exemplo do seu primeiro par, com um amigo que você convidou e uma pessoa que você não convidou. Ambos somam dados para você enquanto estão ativos.';
+
+  @override
+  String get inviteTreeIntroShareTitle =>
+      'Convide amigos que vão usar o Fortiva';
+
+  @override
+  String get inviteTreeIntroShareBody =>
+      'Um amigo soma dados para você só enquanto está ativo. Envie seu convite para amigos que precisam de uma VPN.';
+
+  @override
+  String get inviteTreeQaTitle => 'Perguntas e respostas';
+
+  @override
+  String get inviteTreeQaCountQ =>
+      'Meu amigo inseriu meu código. Quando ele ocupa uma vaga?';
+
+  @override
+  String get inviteTreeQaCountDay =>
+      'Só conta o dia em que ele usa algum dado pela VPN. Abrir o app não basta. Não há prazo para esses dias.';
+
+  @override
+  String get inviteTreeQaCountOther =>
+      'Um celular que já inseriu um código não pode inserir outro. Você e um amigo não podem inserir o código um do outro.';
+
+  @override
+  String get inviteTreeQaDownQ => 'Por que meu bônus caiu?';
+
+  @override
+  String get inviteTreeQaDownA =>
+      'Alguém que soma dados para você não está ativo agora. Pode ser um amigo nas suas vagas ou alguém mais distante. Quando voltar a usar o Fortiva, ele volta a somar dados.';
+
+  @override
+  String get inviteTreeQaDownLater =>
+      'Um amigo que para ainda conta como ativo por um tempo. Por isso o seu bônus pode cair um tempo depois que ele parar.';
+
+  @override
+  String get inviteTreeQaDownRemoved =>
+      'Seu bônus também pode cair quando um convite é removido, por exemplo quando esse amigo exclui a conta dele no Fortiva.';
+
+  @override
+  String get inviteTreeQaFullQ =>
+      'O que acontece quando minhas vagas estão cheias?';
+
+  @override
+  String get inviteTreeQaFullFurther =>
+      'Quando esses primeiros pares também estão cheios, seu próximo amigo vai mais longe, para o primeiro par de alguém que está nesses pares. Esse par soma dados para essa pessoa, e valores menores para você e para cada pessoa entre vocês.';
+
+  @override
+  String get inviteTreeQaFriendsQ =>
+      'Os amigos dos meus amigos somam dados para mim?';
+
+  @override
+  String get inviteTreeQaFriendsA =>
+      'Alguns, sim. O primeiro par de cada pessoa nas suas vagas soma dados para essa pessoa, e um valor menor para você. Os outros pares deles somam dados só para eles. Mais longe, só os primeiros pares somam dados para você, e quanto mais longe estão, menos somam, até não somarem nada.';
+
+  @override
+  String get inviteTreeQaOthersQ =>
+      'Quem são as pessoas nas minhas vagas que eu não convidei?';
+
+  @override
+  String get inviteTreeQaOthersA =>
+      'São amigos de alguém cujas vagas estão cheias, por exemplo a pessoa que convidou você. Elas ocuparam uma vaga livre no seu primeiro par, e você não pode escolhê-las nem removê-las. Elas somam dados para você do mesmo jeito que os seus próprios amigos.';
+
+  @override
+  String get inviteTreeQaSumQ =>
+      'Por que meu bônus é diferente dos valores da tela de convites?';
+
+  @override
+  String get inviteTreeQaSumA =>
+      'Cada linha de \"Por meio das suas vagas\" mostra o que as pessoas daquela linha somam agora. Seu bônus é o total delas, até o limite.';
+
+  @override
+  String get inviteTreeQaSlotQ =>
+      'Posso liberar uma vaga ou escolher quem a ocupa?';
+
+  @override
+  String get inviteTreeQaSlotA =>
+      'Não. Um amigo continua com a vaga dele mesmo quando para de usar o Fortiva. A vaga dele só fica livre de novo quando o convite dele é removido, por exemplo quando ele exclui a conta dele no Fortiva. As vagas livres são preenchidas em ordem, e ninguém pode escolher quem as ocupa.';
+
+  @override
+  String get inviteTreeQaPrivacyQ =>
+      'Meus amigos podem ver se eu uso o Fortiva?';
+
+  @override
+  String get inviteTreeQaPrivacyA =>
+      'Se você entrou com o código de um amigo, a pessoa em cujas vagas você está pode ver se você está ativo ou inativo agora. As outras pessoas só veem quantas pessoas estão ativas, não quem. A tela de convites nunca mostra o nome, o celular ou o uso de ninguém.';
+
+  @override
+  String get inviteTreeQaLimitQ => 'Existe um limite?';
+
+  @override
+  String get inviteTreeQaLimitMore =>
+      'Quando seus convites somam esse valor, mais amigos não somam mais dados.';
+
+  @override
+  String get inviteTreeQaKeptQ => 'O que acontece com o bônus que eu já tenho?';
+
+  @override
+  String get inviteTreeQaKeptMore =>
+      'Quando o bônus dos seus convites anteriores é maior do que o que seus amigos somam agora, você recebe esse bônus no lugar. Os dois não se somam.';
+
+  @override
+  String get inviteTreeQaKeptRemoved =>
+      'Um convite é removido quando esse amigo exclui a conta dele no Fortiva, ou quando o Fortiva o cancela por uso indevido.';
+
+  @override
+  String get inviteTreeQaChangedQ => 'O que mudou nos convites?';
+
+  @override
+  String get inviteTreeQaChangedA =>
+      'Antes, cada amigo qualificado somava um valor fixo de dados. Agora os amigos somam dados enquanto estão ativos, por meio das suas vagas e dos seus pares, e o seu bônus pode cair.';
+
+  @override
+  String get inviteTreeQaPremiumQ => 'Os convites somam dias de Premium?';
+
+  @override
+  String get inviteTreeQaPremiumOwn =>
+      'Não importa qual vaga o seu amigo ocupa. Pessoas que você não convidou não somam dias de Premium.';
+
+  @override
+  String get inviteTreeQaGetsQ => 'Meu amigo recebe alguma coisa?';
+
+  @override
+  String get inviteTreeQaGetsA =>
+      'Não por inserir o seu código. Como todo mundo, ele tem o próprio código e as próprias vagas, e os amigos que entram com o código dele somam dados para ele. Quando ele se qualifica, o primeiro par dele também pode ter pessoas que ele não convidou, e essas pessoas também somam dados para ele.';
+
+  @override
+  String get inviteTreeQaGetsSee =>
+      'Se ele estiver nas suas vagas, você pode ver se ele está ativo ou inativo agora. Você nunca vê o nome dele nem o uso dele.';
+
+  @override
+  String get inviteTreeKeptFloor =>
+      'Agora seu bônus é o valor mantido dos seus convites anteriores. Ele sobe quando seus amigos, juntos, somam mais do que esse valor.';
+
+  @override
+  String inviteTreeIntroTotalUpTo(String most, String total) {
+    return 'Seus amigos podem somar até $most por dia. Seus dados grátis e os dados dos amigos, juntos, podem chegar a $total por dia.';
+  }
+
+  @override
+  String get inviteTreeIntroPairsOrder =>
+      'Seu primeiro par é o que mais soma. Cada par seguinte soma menos.';
+
+  @override
+  String get inviteTreeIntroInvitedYou => 'Convidou você';
+
+  @override
+  String get inviteTreeIntroGuide => 'Guia passo a passo';
+
+  @override
+  String get inviteTreeQaCostQ => 'Meu amigo perde dados por minha causa?';
+
+  @override
+  String get inviteTreeQaCostA =>
+      'Não. O que um amigo soma para você não sai dos dados dele. Os dados diários dele não mudam por sua causa.';
+
+  @override
+  String get inviteTreeQaStartQ =>
+      'Quando os dados de um amigo começam a ser somados?';
+
+  @override
+  String get inviteTreeQaStartA =>
+      'Assim que seu amigo ocupa uma vaga e está ativo. Seu bônus é atualizado ao longo do dia, então ele sobe logo depois, no mesmo dia. Até seu amigo se qualificar, ele não soma nada.';
+
+  @override
+  String get inviteTreeQaPhoneQ =>
+      'E se meu amigo reinstalar o Fortiva ou trocar de celular?';
+
+  @override
+  String get inviteTreeQaPhoneA =>
+      'Depois de reinstalar no mesmo celular, o Fortiva normalmente reconhece o celular, e nada muda. Um celular novo é novo para o Fortiva. A vaga continua sendo do celular antigo e conta como inativa assim que o celular antigo deixa de ser usado.';
 
   @override
   String get premiumSourceInvite => 'Ganho com seus convites';

@@ -83,15 +83,37 @@ class ReferralState extends ChangeNotifier {
 
   /// Whether a further invite adds no daily data: the bonus is at the most
   /// ([dataBonusSpent]), or, under the tree rule, the backend says the next
-  /// friend adds nothing (ReferralStatus.nextInviteBytes is null). False
-  /// while no status is loaded, so before then invites still count as a
-  /// free way to more data. The limit sheet, the invite link on the spent
-  /// server card, the home data line and the tree introduction all ask
-  /// this one question.
+  /// friend adds nothing (ReferralStatus.nextInviteBytes is null) for a
+  /// reason that more friends do not change. False while no status is
+  /// loaded, so before then invites still count as a free way to more
+  /// data. The limit sheet, the invite link on the spent server card, the
+  /// home data line and the tree introduction all ask this one question.
+  ///
+  /// Under the tree the backend also sends no next amount while the bonus
+  /// is the part kept from the old rule and one more friend would not lift
+  /// it above that ([nextFriendBelowKept]). More friends together do, so
+  /// that is not this. Nor is a bonus of nothing: invites have not added
+  /// the most when they have added nothing.
   bool get invitesAddNoMore {
     final status = this.status;
     if (status == null) return false;
-    return dataBonusSpent || (status.isTree && status.nextInviteBytes == null);
+    if (dataBonusSpent) return true;
+    return status.isTree &&
+        status.nextInviteBytes == null &&
+        status.bonusBytes > 0 &&
+        !status.bonusAtKept;
+  }
+
+  /// Whether, under the tree rule, the bonus is the part kept from the old
+  /// rule and the backend sends no next amount because one more friend
+  /// would not lift it above that. Friends then add data again once
+  /// together they add more than the kept part (inviteTreeKeptFloor).
+  bool get nextFriendBelowKept {
+    final status = this.status;
+    if (status == null || dataBonusSpent) return false;
+    return status.isTree &&
+        status.nextInviteBytes == null &&
+        status.bonusAtKept;
   }
 
   Future<ReferralStatus> _load(String deviceId) =>

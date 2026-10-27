@@ -65,6 +65,14 @@ class FeatureFlags {
   /// set. The app holds no number of its own.
   final int? inviteNudgePercent;
 
+  /// Which invite rule the backend runs: "flat" (a fixed amount per
+  /// friend) or "tree" (friends fill slots in pairs, and the bonus is
+  /// live). Null when the config sent neither, which an older backend
+  /// does: the rule is then not known until the referral answer says it.
+  /// The home screen reads it to open the introduction to the invite tree
+  /// once, without asking every phone for its referral answer at launch.
+  final String? referralRules;
+
   /// How to split the TLS hello on TLS links, for example
   /// `tlshello,10-20,10-20`, or empty for not at all. See TlsFragment.
   final String tlsFragment;
@@ -102,6 +110,7 @@ class FeatureFlags {
     this.enableSplitTunneling = false,
     this.enableReferrals = false,
     this.inviteNudgePercent,
+    this.referralRules,
     this.tlsFragment = '',
     this.standbyDoors = false,
     this.reviewPrompt = false,
@@ -126,12 +135,18 @@ class FeatureFlags {
       limitSheet: json['limit_sheet'] != false,
       stallWatch: json['stall_watch'] != false,
       inviteNudgePercent: _percent(json['invite_nudge_percent']),
+      referralRules: _rules(json['referral_rules']),
     );
   }
 
   /// [value] when it is a whole percent from 1 to 100, else null. Read
   /// without a cast, as review_prompt is: a value of the wrong type must
   /// not throw away the whole config.
+  /// [value] when it is a rule the app knows, else null. Read without a
+  /// cast, as review_prompt is.
+  static String? _rules(Object? value) =>
+      value == 'flat' || value == 'tree' ? value as String : null;
+
   static int? _percent(Object? value) =>
       value is int && value >= 1 && value <= 100 ? value : null;
 
@@ -143,6 +158,7 @@ class FeatureFlags {
       'enable_split_tunneling': enableSplitTunneling,
       'enable_referrals': enableReferrals,
       'invite_nudge_percent': inviteNudgePercent,
+      'referral_rules': referralRules,
       'tls_fragment': tlsFragment,
       'standby_doors': standbyDoors,
       'review_prompt': reviewPrompt,

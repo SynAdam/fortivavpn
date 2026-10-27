@@ -653,14 +653,14 @@ class STr extends S {
   String get inviteStatInvited => 'Davet edilen';
 
   @override
-  String get inviteStatEarning => 'Hak kazanan';
+  String get inviteStatEarning => 'Onaylanan';
 
   @override
   String get inviteStatBonus => 'Bonus veri';
 
   @override
   String inviteBonusPerDay(String amount) {
-    return 'Her gün +$amount';
+    return 'Günde +$amount';
   }
 
   @override
@@ -671,8 +671,8 @@ class STr extends S {
     String _temp0 = intl.Intl.pluralLogic(
       count,
       locale: localeName,
-      other: '$count davet henüz hak kazanmadı',
-      one: '1 davet henüz hak kazanmadı',
+      other: '$count davet henüz onaylanmadı',
+      one: '1 davet henüz onaylanmadı',
       zero: '',
     );
     return '$_temp0';
@@ -717,12 +717,12 @@ class STr extends S {
       other: '$days farklı gün',
       one: '$days gün',
     );
-    return 'Davet kabul edildi. VPN\'i $_temp0 kullandığında arkadaşın bonus veri kazanacak.';
+    return 'Davet kabul edildi. Bugünden itibaren VPN\'i $_temp0 kullandığında davet sayılır.';
   }
 
   @override
   String get inviteClaimAcceptedNoDays =>
-      'Davet kabul edildi. VPN\'i bir süre kullandığında arkadaşın bonus veri kazanacak.';
+      'Davet kabul edildi. Bugünden itibaren VPN\'i bir süre kullandığında davet sayılır.';
 
   @override
   String get inviteClaimAlready => 'Bu cihaz zaten bir davet kodu kullandı';
@@ -823,16 +823,16 @@ class STr extends S {
 
   @override
   String get inviteTreeLive =>
-      'Bonusun, arkadaşların Fortiva\'yı kullandıkça sürer. Bir arkadaşın bırakırsa azalır.';
+      'Bonusun, arkadaşların Fortiva\'yı kullanmaya devam ettiği sürece sürer. Bir arkadaş bırakırsa bonusun düşebilir.';
 
   @override
   String inviteTreeNext(String amount) {
-    return 'Sıradaki arkadaşın Fortiva\'yı kullanmaya başlayınca günde $amount ekler.';
+    return 'Sıradaki arkadaşın onaylanıp aktif olduğunda günde $amount ekler.';
   }
 
   @override
   String inviteTreeKept(String amount) {
-    return 'Önceden davet ettiğin arkadaşlar sayesinde bonusun günde $amount altına hiç düşmez.';
+    return 'Bonusun günde $amount altına düşmez; bu, önceki davetlerinden gelen bonusun. Bu miktar yalnızca davetlerinden biri kaldırılırsa düşebilir.';
   }
 
   @override
@@ -867,9 +867,6 @@ class STr extends S {
   String get inviteTreeRowFriends => 'Senin yerlerinde';
 
   @override
-  String get inviteTreeRowFriendsSlots => 'Onların yerlerinde';
-
-  @override
   String inviteTreeRowSteps(int steps) {
     String _temp0 = intl.Intl.pluralLogic(
       steps,
@@ -896,14 +893,14 @@ class STr extends S {
       slots,
       locale: localeName,
       other:
-          'Kodunu paylaş. Hak kazanan ilk $slots arkadaş, senin yerlerini çiftler halinde doldurur.',
+          'Kodunu paylaş. Onaylanan ilk $slots arkadaş, senin yerlerini çiftler halinde doldurur.',
     );
     return '$_temp0';
   }
 
   @override
   String get inviteTreeHowSlotsNoNumber =>
-      'Kodunu paylaş. Hak kazanan ilk arkadaşlar, senin yerlerini çiftler halinde doldurur.';
+      'Kodunu paylaş. Onaylanan ilk arkadaşlar, senin yerlerini çiftler halinde doldurur.';
 
   @override
   String get inviteTreeHowPair =>
@@ -911,7 +908,7 @@ class STr extends S {
 
   @override
   String get inviteTreeHowFriendsSlots =>
-      'Yerlerin dolunca, sonra hak kazanan arkadaşların bir sonraki boş yerlere, senden daha uzağa geçer. Onlar da sana veri ekler, ne kadar uzaklarsa o kadar az.';
+      'Yerlerin dolunca, sonra onaylanan arkadaşların bir sonraki boş yerlere, senden daha uzağa geçer. Onlar da sana veri ekler, ne kadar uzaklarsa o kadar az.';
 
   @override
   String get inviteTreeHowOthers =>
@@ -919,12 +916,12 @@ class STr extends S {
 
   @override
   String inviteTreeHowActive(int days, int window) {
-    return 'Bir arkadaş, son $window gün içinde en az $days gün Fortiva\'yı kullandıysa aktif sayılır.';
+    return 'Bir arkadaş, son $window gün içinde en az $days gün VPN\'i kullandıysa aktif sayılır.';
   }
 
   @override
   String get inviteTreeHowActiveNoNumber =>
-      'Bir arkadaş, Fortiva\'yı kullanmaya devam ettiği sürece aktif sayılır.';
+      'Bir arkadaş, VPN\'i kullanmaya devam ettiği sürece aktif sayılır.';
 
   @override
   String inviteTreeHowCap(String max) {
@@ -966,12 +963,8 @@ class STr extends S {
       'Arkadaşlar yerlerini çiftler halinde doldurur';
 
   @override
-  String get inviteTreeIntroSlotsWhen =>
-      'Bir arkadaş, Fortiva\'yı kullanmaya başlayınca bir yer alır.';
-
-  @override
   String get inviteTreeIntroSlotsArt =>
-      'Arkadaşlar katıldıkça çiftler halinde dolan yerlerin.';
+      'Sen, davet kodun ve çiftler halinde yerlerin. Her yer boş mu, yoksa içindeki kişi aktif mi ya da şu an aktif değil mi, onu gösterir.';
 
   @override
   String get inviteTreeIntroPairTitle =>
@@ -1001,26 +994,7 @@ class STr extends S {
   }
 
   @override
-  String get inviteTreeIntroPairArt =>
-      'Bir çift yer. İçindeki arkadaşların ikisi de aktif olunca daha fazla veri ekler.';
-
-  @override
-  String get inviteTreeIntroFurtherTitle =>
-      'Daha uzaktaki arkadaşlar da veri ekler';
-
-  @override
-  String get inviteTreeIntroFirstPairOnly =>
-      'Arkadaşının yerlerinden yalnızca onun ilk çifti sana veri ekler.';
-
-  @override
   String get inviteTreeIntroYourFriend => 'Arkadaşın';
-
-  @override
-  String get inviteTreeIntroTheirPair => 'Onun ilk çifti';
-
-  @override
-  String get inviteTreeIntroFurtherArt =>
-      'Arkadaşının ilk çifti hem ona hem sana veri ekler. Daha uzaktaki çiftler daha az ekler.';
 
   @override
   String get inviteTreeIntroTotalTitle => 'Arkadaşlardan gelen verin';
@@ -1046,7 +1020,7 @@ class STr extends S {
 
   @override
   String inviteTreeSheetNext(String amount) {
-    return 'Sıradaki arkadaşın Fortiva\'yı kullanmaya başlayınca günde $amount ekler. Bu, bugünkü verine eklenmez.';
+    return 'Sıradaki arkadaşın onaylanıp aktif olduğunda günde $amount ekler. Bugünkü veriye eklenmez.';
   }
 
   @override
@@ -1058,9 +1032,9 @@ class STr extends S {
       days,
       locale: localeName,
       other:
-          'Fortiva\'yı kullanmaya başlayan her arkadaşın sana ayrıca $days günlük Premium verir.',
+          'Kodunla onaylanan her arkadaş senin için $days günlük Premium da ekler.',
       one:
-          'Fortiva\'yı kullanmaya başlayan her arkadaşın sana ayrıca $days günlük Premium verir.',
+          'Kodunla onaylanan her arkadaş senin için $days günlük Premium da ekler.',
     );
     return '$_temp0';
   }
@@ -1075,6 +1049,336 @@ class STr extends S {
     );
     return '$_temp0';
   }
+
+  @override
+  String inviteTreeIntroSlotsBody(int slots) {
+    String _temp0 = intl.Intl.pluralLogic(
+      slots,
+      locale: localeName,
+      other:
+          'Kodunla katılan arkadaşlar günlük verine ekleme yapabilir. Onlar için $slots yerin var. Her yerde bir arkadaş olur ve yerler çiftler halindedir. Önce ilk çiftin dolar. Yerlerin dolduğunda da daha fazla arkadaş katılabilir.',
+      one:
+          'Kodunla katılan arkadaşlar günlük verine ekleme yapabilir. Onlar için $slots yerin var. Her yerde bir arkadaş olur ve yerler çiftler halindedir. Önce ilk çiftin dolar. Yerlerin dolduğunda da daha fazla arkadaş katılabilir.',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get inviteTreeIntroSlotsBodyNoNumber =>
+      'Kodunla katılan arkadaşlar günlük verine ekleme yapabilir. Onlar için yerlerin var. Her yerde bir arkadaş olur ve yerler çiftler halindedir. Önce ilk çiftin dolar. Yerlerin dolduğunda da daha fazla arkadaş katılabilir.';
+
+  @override
+  String get inviteTreeIntroJoinTitle => 'Bir arkadaş bir yere nasıl yerleşir';
+
+  @override
+  String inviteTreeIntroJoinCode(int hours) {
+    String _temp0 = intl.Intl.pluralLogic(
+      hours,
+      locale: localeName,
+      other:
+          'Arkadaşın, Fortiva\'yı kurduktan sonraki $hours saat içinde kodunu kendi davet ekranına girmelidir.',
+      one:
+          'Arkadaşın, Fortiva\'yı kurduktan sonraki $hours saat içinde kodunu kendi davet ekranına girmelidir.',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get inviteTreeIntroJoinCodeNoNumber =>
+      'Arkadaşın, Fortiva\'yı kurduktan kısa süre sonra kodunu kendi davet ekranına girmelidir.';
+
+  @override
+  String inviteTreeIntroJoinQualify(int days) {
+    String _temp0 = intl.Intl.pluralLogic(
+      days,
+      locale: localeName,
+      other:
+          'Bundan sonra VPN\'i $days farklı gün kullanmalıdır. Sonra onaylanır ve sıradaki boş yeri alır.',
+      one:
+          'Bundan sonra VPN\'i $days gün kullanmalıdır. Sonra onaylanır ve sıradaki boş yeri alır.',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get inviteTreeIntroJoinQualifyNoNumber =>
+      'Bundan sonra VPN\'i bir süre kullanmalıdır. Sonra onaylanır ve sıradaki boş yeri alır.';
+
+  @override
+  String get inviteTreeIntroJoinPlay =>
+      'Fortiva\'yı senin bağlantınla Google Play\'den kurarsa kod onun için girilir.';
+
+  @override
+  String get inviteTreeIntroJoinWaiting =>
+      'Onaylanana kadar davet ekranın onu \"Davet edilen\" sayısına katar, ama henüz \"Onaylanan\" sayısına katmaz.';
+
+  @override
+  String get inviteTreeIntroJoinStepCode => 'Kodunu girer';
+
+  @override
+  String get inviteTreeIntroJoinStepUse => 'VPN\'i kullanır';
+
+  @override
+  String get inviteTreeIntroJoinStepSlot => 'Bir yere yerleşir';
+
+  @override
+  String get inviteTreeIntroJoinArt =>
+      'Bir arkadaş kodunu girer, VPN\'i farklı günlerde kullanır ve ardından sıradaki boş yeri alır.';
+
+  @override
+  String get inviteTreeIntroPairsBody =>
+      'Her çift senin için veri ekleyebilir. İçindeki kişilerin ikisi de aktif olduğunda en çok ekler.';
+
+  @override
+  String get inviteTreeIntroPairsCaption => 'Her çiftin verine günde eklediği';
+
+  @override
+  String get inviteTreeIntroBothActive => 'İkisi de aktif';
+
+  @override
+  String get inviteTreeIntroOneActive => 'Biri aktif';
+
+  @override
+  String inviteTreeIntroPlus(String amount) {
+    return '+$amount';
+  }
+
+  @override
+  String get inviteTreeIntroNothing => 'Hiç';
+
+  @override
+  String get inviteTreeIntroPairNow =>
+      'Vurgulanan miktarlar çiftlerinin şu an eklediği miktarlardır.';
+
+  @override
+  String get inviteTreeIntroPairsArt =>
+      'Çiftlerin ve her birinin, içindeki kişilerin ikisi de aktifken ve biri aktifken günde eklediği.';
+
+  @override
+  String get inviteTreeIntroActiveTitle =>
+      'Bir arkadaş aktif olduğu sürece veri ekler';
+
+  @override
+  String get inviteTreeIntroActiveStops =>
+      'Bir arkadaş Fortiva\'yı kullanmayı bırakırsa çifti daha az ekler ve bonusun düşebilir. Yeri onda kalır. Fortiva\'yı yeniden kullandığında çifti yine daha fazla ekler.';
+
+  @override
+  String get inviteTreeIntroActiveFar =>
+      'Senin için veri ekleyen daha uzaktaki kişiler de yalnızca aktif oldukları sürece sayılır.';
+
+  @override
+  String get inviteTreeIntroActiveArt =>
+      'Bir arkadaşın Fortiva\'yı kullanmayı bıraktığı bir çift. Bu çift artık daha az ekler.';
+
+  @override
+  String get inviteTreeIntroFullTitle => 'Yerlerin dolduğunda';
+
+  @override
+  String get inviteTreeIntroFullBody =>
+      'Tüm yerlerin dolduğunda sıradaki arkadaşın, yerlerindeki birinin ilk çiftine girer; sıra ilk yerinden başlar. O çift o kişi için veri ekler, senin için daha az.';
+
+  @override
+  String get inviteTreeIntroFullLess =>
+      'Bir yer ne kadar uzaksa senin için o kadar az ekler. Çok uzaktaki yerler hiçbir şey eklemez.';
+
+  @override
+  String get inviteTreeIntroNextFriend => 'Sıradaki arkadaşın';
+
+  @override
+  String get inviteTreeIntroLaterFriend => 'Sonraki bir arkadaş';
+
+  @override
+  String get inviteTreeIntroFullArt =>
+      'Sonraki bir arkadaş, yerlerindeki birinin ilk çiftindeki boş yeri alır. O çift o kişi için veri ekler, senin için daha az.';
+
+  @override
+  String get inviteTreeIntroOthersTitle =>
+      'İlk çiftinde davet etmediğin kişiler olabilir';
+
+  @override
+  String get inviteTreeIntroOthersWhy =>
+      'Bir arkadaşının koduyla katıldın. Onun yerleri dolduğunda, sıradaki arkadaşları senin ilk çiftindeki boş yeri alabilir. Başka kişilerin arkadaşları da alabilir. Kim alırsa alsın, senin kendi arkadaşların gibi senin için veri ekler.';
+
+  @override
+  String get inviteTreeIntroOthersYours =>
+      'Kendi arkadaşların diğer boş yerlerini, ardından daha uzaktaki boş yerleri doldurur.';
+
+  @override
+  String get inviteTreeIntroNotInvited => 'Senin davet etmediğin';
+
+  @override
+  String get inviteTreeIntroOthersArt =>
+      'İlk çiftine bir örnek: davet ettiğin bir arkadaş ve davet etmediğin bir kişi. İkisi de aktif oldukları sürece senin için veri ekler.';
+
+  @override
+  String get inviteTreeIntroShareTitle =>
+      'Fortiva\'yı kullanacak arkadaşlarını davet et';
+
+  @override
+  String get inviteTreeIntroShareBody =>
+      'Bir arkadaş yalnızca aktif olduğu sürece senin için veri ekler. Davetini VPN\'e ihtiyacı olan arkadaşlarına gönder.';
+
+  @override
+  String get inviteTreeQaTitle => 'Sorular ve yanıtlar';
+
+  @override
+  String get inviteTreeQaCountQ =>
+      'Arkadaşım kodumu girdi. Ne zaman bir yere yerleşir?';
+
+  @override
+  String get inviteTreeQaCountDay =>
+      'Bir gün, ancak o gün VPN üzerinden biraz veri kullanırsa sayılır. Uygulamayı açmak yetmez. Bu günler için bir son tarih yoktur.';
+
+  @override
+  String get inviteTreeQaCountOther =>
+      'Daha önce kod girmiş bir telefon başka bir kod giremez. Sen ve bir arkadaşın birbirinizin kodunu giremezsiniz.';
+
+  @override
+  String get inviteTreeQaDownQ => 'Bonusum neden düştü?';
+
+  @override
+  String get inviteTreeQaDownA =>
+      'Senin için veri ekleyen biri şu an aktif değil. Yerlerindeki bir arkadaş ya da daha uzaktaki biri olabilir. Fortiva\'yı yeniden kullandığında yine veri ekler.';
+
+  @override
+  String get inviteTreeQaDownLater =>
+      'Kullanmayı bırakan bir arkadaş bir süre daha aktif sayılır. Bu yüzden bonusun, o bıraktıktan bir süre sonra düşebilir.';
+
+  @override
+  String get inviteTreeQaDownRemoved =>
+      'Bir davet kaldırıldığında da bonusun düşebilir; örneğin o arkadaş Fortiva hesabını sildiğinde.';
+
+  @override
+  String get inviteTreeQaFullQ => 'Yerlerim dolunca ne olur?';
+
+  @override
+  String get inviteTreeQaFullFurther =>
+      'O ilk çiftler de dolduğunda sıradaki arkadaşın daha uzağa, o çiftlerdeki birinin ilk çiftine girer. O çift o kişi için veri ekler; sana ve aranızdaki her kişiye daha küçük miktarlar ekler.';
+
+  @override
+  String get inviteTreeQaFriendsQ =>
+      'Arkadaşlarımın arkadaşları benim için veri ekler mi?';
+
+  @override
+  String get inviteTreeQaFriendsA =>
+      'Bazıları ekler. Yerlerindeki her kişinin ilk çifti o kişi için veri ekler, senin için daha küçük bir miktar. Onların diğer çiftleri yalnızca kendileri için veri ekler. Daha uzakta yalnızca ilk çiftler senin için veri ekler ve ne kadar uzaktaysalar o kadar az ekler, sonunda hiç eklemez.';
+
+  @override
+  String get inviteTreeQaOthersQ =>
+      'Yerlerimdeki, davet etmediğim kişiler kim?';
+
+  @override
+  String get inviteTreeQaOthersA =>
+      'Yerleri dolu olan birinin arkadaşları; örneğin seni davet eden kişinin. İlk çiftindeki boş yeri aldılar; onları seçemez ya da çıkaramazsın. Senin kendi arkadaşların gibi senin için veri eklerler.';
+
+  @override
+  String get inviteTreeQaSumQ =>
+      'Bonusum neden davet ekranındaki miktarlardan farklı?';
+
+  @override
+  String get inviteTreeQaSumA =>
+      '\"Yerlerin üzerinden\" bölümündeki her satır, o satırdaki kişilerin şu an ne kadar eklediğini gösterir. Bonusun bunların toplamıdır, sınıra kadar.';
+
+  @override
+  String get inviteTreeQaSlotQ =>
+      'Bir yeri boşaltabilir ya da onu kimin alacağını seçebilir miyim?';
+
+  @override
+  String get inviteTreeQaSlotA =>
+      'Hayır. Bir arkadaş Fortiva\'yı kullanmayı bıraksa da yeri onda kalır. Yeri ancak daveti kaldırıldığında yeniden boşalır; örneğin Fortiva hesabını sildiğinde. Boş yerler sırayla dolar ve kimse onları kimin alacağını seçemez.';
+
+  @override
+  String get inviteTreeQaPrivacyQ =>
+      'Arkadaşlarım Fortiva\'yı kullanıp kullanmadığımı görebilir mi?';
+
+  @override
+  String get inviteTreeQaPrivacyA =>
+      'Bir arkadaşının koduyla katıldıysan, yerlerinde bulunduğun kişi senin aktif mi yoksa şu an aktif değil mi olduğunu görebilir. Diğerleri yalnızca kaç kişinin aktif olduğunu görür, kim olduğunu değil. Davet ekranı hiç kimsenin adını, telefonunu ya da kullanımını göstermez.';
+
+  @override
+  String get inviteTreeQaLimitQ => 'Bir sınır var mı?';
+
+  @override
+  String get inviteTreeQaLimitMore =>
+      'Davetlerin bu kadar eklediğinde, daha fazla arkadaş daha fazla veri eklemez.';
+
+  @override
+  String get inviteTreeQaKeptQ => 'Zaten olan bonusuma ne olacak?';
+
+  @override
+  String get inviteTreeQaKeptMore =>
+      'Önceki davetlerinden gelen bonus, arkadaşlarının şu an eklediğinden fazlaysa onun yerine o bonusu alırsın. İkisi toplanmaz.';
+
+  @override
+  String get inviteTreeQaKeptRemoved =>
+      'Bir davet, o arkadaş Fortiva hesabını sildiğinde ya da Fortiva onu kötüye kullanım nedeniyle iptal ettiğinde kaldırılır.';
+
+  @override
+  String get inviteTreeQaChangedQ => 'Davetlerde ne değişti?';
+
+  @override
+  String get inviteTreeQaChangedA =>
+      'Önceden onaylanan her arkadaş sabit miktarda veri eklerdi. Artık arkadaşlar aktif oldukları sürece yerlerin ve çiftlerin üzerinden veri ekler ve bonusun düşebilir.';
+
+  @override
+  String get inviteTreeQaPremiumQ => 'Davetler Premium gün de ekler mi?';
+
+  @override
+  String get inviteTreeQaPremiumOwn =>
+      'Arkadaşının hangi yeri aldığı fark etmez. Davet etmediğin kişiler Premium gün eklemez.';
+
+  @override
+  String get inviteTreeQaGetsQ => 'Arkadaşım bir şey alır mı?';
+
+  @override
+  String get inviteTreeQaGetsA =>
+      'Kodunu girdiği için hayır. Herkes gibi onun da kendi kodu ve yerleri var; onun koduyla katılan arkadaşlar onun için veri ekler. Onaylandıktan sonra onun ilk çiftinde de davet etmediği kişiler olabilir ve onlar da onun için veri ekler.';
+
+  @override
+  String get inviteTreeQaGetsSee =>
+      'Senin yerlerindeyse, aktif mi yoksa şu an aktif değil mi olduğunu görebilirsin. Adını ya da kullanımını asla görmezsin.';
+
+  @override
+  String get inviteTreeKeptFloor =>
+      'Bonusun şu an önceki davetlerinden korunan miktar kadar. Arkadaşların birlikte bundan fazlasını eklediğinde artar.';
+
+  @override
+  String inviteTreeIntroTotalUpTo(String most, String total) {
+    return 'Arkadaşlar günde en fazla $most ekleyebilir. Ücretsiz verin ve arkadaşlardan gelen veri birlikte günde $total değerine ulaşabilir.';
+  }
+
+  @override
+  String get inviteTreeIntroPairsOrder =>
+      'En çok ilk çiftin ekler. Sonraki her çift daha az ekler.';
+
+  @override
+  String get inviteTreeIntroInvitedYou => 'Seni davet eden';
+
+  @override
+  String get inviteTreeIntroGuide => 'Adım adım anlatım';
+
+  @override
+  String get inviteTreeQaCostQ => 'Arkadaşım benim yüzümden veri kaybeder mi?';
+
+  @override
+  String get inviteTreeQaCostA =>
+      'Hayır. Bir arkadaşın senin için eklediği veri kendi verisinden düşülmez. Onun günlük verisi senin yüzünden değişmez.';
+
+  @override
+  String get inviteTreeQaStartQ =>
+      'Bir arkadaşın verisi ne zaman eklenmeye başlar?';
+
+  @override
+  String get inviteTreeQaStartA =>
+      'Arkadaşın bir yere yerleşip aktif olduğu anda. Bonusun gün içinde güncellenir, bu yüzden kısa süre sonra, aynı gün artar. Arkadaşın onaylanana kadar hiçbir şey eklemez.';
+
+  @override
+  String get inviteTreeQaPhoneQ =>
+      'Arkadaşım Fortiva\'yı yeniden yüklerse veya telefonunu değiştirirse ne olur?';
+
+  @override
+  String get inviteTreeQaPhoneA =>
+      'Aynı telefona yeniden yüklerse Fortiva telefonu genelde yeniden tanır ve hiçbir şey değişmez. Yeni bir telefon Fortiva için yenidir. Yer eski telefona ait olmaya devam eder ve eski telefon artık kullanılmadığında aktif değil sayılır.';
 
   @override
   String get premiumSourceInvite => 'Davetlerinizle kazanıldı';

@@ -96,6 +96,32 @@ void main() {
       expect(again.referralClaimOpenUntil, DateTime.utc(2026, 10, 23, 8));
     });
 
+    test('after_disconnect is read only when it is true', () {
+      expect(InvitePromptRules.fromJson(full)!.afterDisconnect, isFalse);
+      for (final bad in <Object?>[false, null, 'true', 1]) {
+        expect(
+          InvitePromptRules.fromJson({
+            ...full,
+            'after_disconnect': bad,
+          })!.afterDisconnect,
+          isFalse,
+          reason: '$bad',
+        );
+      }
+      final on = InvitePromptRules.fromJson({
+        ...full,
+        'after_disconnect': true,
+      })!;
+      expect(on.afterDisconnect, isTrue);
+      expect(InvitePromptRules.fromJson(on.toJson())!.afterDisconnect, isTrue);
+      // It turns on a moment, never the card: the block still needs all
+      // five numbers.
+      expect(
+        InvitePromptRules.fromJson({'after_disconnect': true, 'max_shows': 3}),
+        isNull,
+      );
+    });
+
     test('an older backend sends neither', () {
       final device = Device.fromJson({
         'id': 42,
@@ -400,6 +426,69 @@ void main() {
             ratingAskDay: ReviewPrompt.tehranDay(
               now.subtract(const Duration(days: 1)),
             ),
+          ),
+          isTrue,
+        );
+      });
+
+      test('after a stop, the session is measured to its end', () async {
+        final prompt = make();
+        await goodDays(prompt, 3);
+        // A session of 5 minutes that ended a while ago.
+        final ended = now.subtract(const Duration(seconds: 2));
+        expect(
+          await prompt.due(
+            rules: rules,
+            upSince: ended.subtract(const Duration(minutes: 5)),
+            endedAt: ended,
+            ratingAskDay: null,
+          ),
+          isTrue,
+        );
+        // Up 4 minutes: the time since the stop does not make it longer.
+        final ended2 = now.subtract(const Duration(minutes: 3));
+        expect(
+          await prompt.due(
+            rules: rules,
+            upSince: ended2.subtract(const Duration(minutes: 4)),
+            endedAt: ended2,
+            ratingAskDay: null,
+          ),
+          isFalse,
+        );
+      });
+
+      test('never with a failure inside the session, however short the '
+          'quiet time', () async {
+        final prompt = make();
+        await goodDays(prompt, 3);
+        final quick = InvitePromptRules.fromJson({
+          ...full,
+          'quiet_after_failure_hours': 1,
+        });
+        final start = now;
+        now = now.add(const Duration(hours: 1));
+        prompt.record(VpnEventType.dropped);
+        now = now.add(const Duration(hours: 2));
+        for (final endedAt in [null, now]) {
+          expect(
+            await prompt.due(
+              rules: quick,
+              upSince: start,
+              endedAt: endedAt,
+              ratingAskDay: null,
+            ),
+            isFalse,
+            reason: endedAt == null ? 'while up' : 'after the stop',
+          );
+        }
+        // A session that began after it is fine once the quiet time ends.
+        expect(
+          await prompt.due(
+            rules: quick,
+            upSince: now.subtract(const Duration(minutes: 30)),
+            endedAt: now,
+            ratingAskDay: null,
           ),
           isTrue,
         );

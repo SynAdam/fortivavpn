@@ -133,6 +133,11 @@ class AppConfigState extends ChangeNotifier {
 
   bool get referralsEnabled => flags.enableReferrals;
 
+  /// Whether the config says invites run under the tree rule. False while
+  /// invites are off, before a config has landed in this run of the app,
+  /// and when the backend did not say which rule it runs.
+  bool get inviteTreeOn => referralsEnabled && flags.referralRules == 'tree';
+
   /// The share of the daily allowance used, in percent, after which the
   /// home data line offers invites, or null for no link: while invites are
   /// off, before a config has landed in this run of the app, and when the

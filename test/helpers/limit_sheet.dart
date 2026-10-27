@@ -15,6 +15,8 @@ import 'package:fortiva_vpn/core/state/referral_state.dart';
 import 'package:fortiva_vpn/data/models/billing.dart';
 import 'package:fortiva_vpn/l10n/generated/app_localizations.dart';
 import 'package:fortiva_vpn/screens/invite_tree_intro_screen.dart';
+import 'package:fortiva_vpn/screens/invite_tree_questions_screen.dart';
+import 'package:fortiva_vpn/widgets/invite_slots.dart';
 import 'package:fortiva_vpn/widgets/limit_sheet.dart';
 import 'package:fortiva_vpn/core/state/notice_permission_prompt.dart';
 import 'package:fortiva_vpn/services/notice_channel.dart';
@@ -232,22 +234,31 @@ const layoutScreens = [
 
 const _rtl = {'fa', 'ar', 'ur'};
 
+/// The tree fixture for a user who joined with a code and gets Premium
+/// days: every step of the introduction and every question.
+ReferralStatus everyStepStatus() => ReferralStatus.fromJson(
+  treeAnswer()
+    ..['claimed_code'] = 'QW8RT2'
+    ..['earns'] = true
+    ..['reward_premium_days'] = 3
+    ..['premium_days_max'] = 30,
+);
+
 /// The introduction for [locales]: no step overflows, and in a right to
 /// left language the user is on the right, the progress fills from the
-/// right and Next is on the left.
+/// right, Next is on the left, the friend in step 2 starts on the right,
+/// and the slots of step 3 are on the right of their amounts.
 void introLayoutTests(List<String> locales) {
   for (final (size, scale) in layoutScreens) {
     for (final locale in locales) {
       testWidgets('[$locale ${size.width.toInt()}x${size.height.toInt()} at '
           '$scale] every step of the introduction fits', (tester) async {
         screenFor(tester, size: size, textScale: scale);
-        await pumpIntro(
-          tester,
-          heldStatus(ReferralStatus.fromJson(treeAnswer())),
-          locale: locale,
-        );
+        await pumpIntro(tester, heldStatus(everyStepStatus()), locale: locale);
         final rtl = _rtl.contains(locale);
-        for (var page = 0; page < 4; page++) {
+        bool before(Offset a, Offset b) => rtl ? a.dx > b.dx : a.dx < b.dx;
+        Offset centre(String key) => tester.getCenter(find.byKey(Key(key)));
+        for (var page = 0; page < 8; page++) {
           if (page > 0) {
             await tester.tap(find.byKey(const Key('invite-tree-intro-next')));
             await tester.pumpAndSettle();
@@ -261,49 +272,215 @@ void introLayoutTests(List<String> locales) {
             expect(rect.left, greaterThanOrEqualTo(0), reason: key);
             expect(rect.right, lessThanOrEqualTo(size.width), reason: key);
           }
-          if (page == 0) {
-            final first = tester.getRect(
-              find.byKey(const Key('invite-tree-intro-progress-0')),
-            );
-            final last = tester.getRect(
-              find.byKey(const Key('invite-tree-intro-progress-3')),
-            );
-            expect(
-              rtl ? first.left > last.left : first.left < last.left,
-              isTrue,
-            );
-            final you = tester.getCenter(
-              find.byKey(const Key('invite-tree-intro-you')),
-            );
-            final pair = tester.getCenter(
-              find.byKey(const Key('invite-tree-intro-pair-0')),
-            );
-            expect(rtl ? you.dx > pair.dx : you.dx < pair.dx, isTrue);
+          switch (page) {
+            case 0:
+              expect(
+                before(
+                  centre('invite-tree-intro-progress-0'),
+                  centre('invite-tree-intro-progress-7'),
+                ),
+                isTrue,
+              );
+              expect(
+                before(
+                  centre('invite-tree-intro-you'),
+                  centre('invite-tree-intro-pair-0'),
+                ),
+                isTrue,
+              );
+            case 1:
+              expect(
+                before(
+                  centre('invite-tree-intro-back'),
+                  centre('invite-tree-intro-next'),
+                ),
+                isTrue,
+              );
+              // The drawing keeps its words at every size: inside it, or
+              // under the card.
+              for (final key in ['code', 'use', 'slot']) {
+                expect(
+                  find.byKey(Key('invite-tree-intro-caption-$key')),
+                  findsOneWidget,
+                  reason: 'caption $key',
+                );
+              }
+              // In reading order: before it on the same line, or on a
+              // line above it.
+              final code = tester.getRect(
+                find.byKey(const Key('invite-tree-intro-caption-code')),
+              );
+              final slot = tester.getRect(
+                find.byKey(const Key('invite-tree-intro-caption-slot')),
+              );
+              expect(
+                code.bottom <= slot.top || before(code.center, slot.center),
+                isTrue,
+              );
+              expect(
+                before(
+                  centre('invite-tree-intro-join-code'),
+                  centre('invite-tree-intro-join-pair'),
+                ),
+                isTrue,
+              );
+            case 2:
+              final capsule = tester.getCenter(
+                find
+                    .descendant(
+                      of: find.byKey(const Key('invite-tree-intro-row-0')),
+                      matching: find.byType(PairCapsule),
+                    )
+                    .first,
+              );
+              expect(
+                before(capsule, centre('invite-tree-intro-both-0')),
+                isTrue,
+              );
+              expect(
+                before(
+                  centre('invite-tree-intro-both-0'),
+                  centre('invite-tree-intro-one-0'),
+                ),
+                isTrue,
+              );
+            case 4:
+              expect(
+                before(
+                  centre('invite-tree-intro-you-full'),
+                  centre('invite-tree-intro-friend'),
+                ),
+                isTrue,
+              );
+              // All six own slots taken, and the friend's pair further on.
+              for (var i = 0; i < 3; i++) {
+                expect(
+                  find.byKey(Key('invite-tree-intro-full-pair-$i')),
+                  findsOneWidget,
+                );
+              }
+              expect(
+                before(
+                  centre('invite-tree-intro-friend'),
+                  centre('invite-tree-intro-their-pair'),
+                ),
+                isTrue,
+              );
+              expect(
+                find.byKey(const Key('invite-tree-intro-caption-pair')),
+                findsOneWidget,
+              );
+            case 5:
+              expect(
+                before(
+                  centre('invite-tree-intro-you-others'),
+                  centre('invite-tree-intro-first-pair'),
+                ),
+                isTrue,
+              );
+              // The people the user did not invite come from the person who
+              // invited the user, on the start side, not from further away.
+              expect(
+                before(
+                  centre('invite-tree-intro-inviter'),
+                  centre('invite-tree-intro-you-others'),
+                ),
+                isTrue,
+              );
+              for (final key in ['inviter', 'others']) {
+                expect(
+                  find.byKey(Key('invite-tree-intro-caption-$key')),
+                  findsOneWidget,
+                  reason: 'caption $key',
+                );
+              }
+            case 7:
+              final share = tester.getRect(
+                find.byKey(const Key('invite-tree-intro-share')),
+              );
+              expect(share.bottom, lessThanOrEqualTo(size.height));
+              // The questions are in the bar, so they never scroll away.
+              final questions = tester.getRect(
+                find.byKey(const Key('invite-tree-intro-questions')),
+              );
+              expect(questions.bottom, lessThanOrEqualTo(size.height));
+              expect(questions.top, greaterThan(share.bottom));
           }
-          if (page == 1) {
-            final back = tester.getCenter(
-              find.byKey(const Key('invite-tree-intro-back')),
-            );
-            final next = tester.getCenter(
-              find.byKey(const Key('invite-tree-intro-next')),
-            );
-            expect(rtl ? next.dx < back.dx : next.dx > back.dx, isTrue);
-          }
-          if (page == 2) {
-            final you = tester.getCenter(
-              find.byKey(const Key('invite-tree-intro-you-3')),
-            );
-            final friend = tester.getCenter(
-              find.byKey(const Key('invite-tree-intro-friend')),
-            );
-            expect(rtl ? you.dx > friend.dx : you.dx < friend.dx, isTrue);
-          }
-          if (page == 3) {
-            final share = tester.getRect(
-              find.byKey(const Key('invite-tree-intro-share')),
-            );
-            expect(share.bottom, lessThanOrEqualTo(size.height));
-          }
+        }
+      });
+    }
+  }
+}
+
+/// Every question of the invite tree, in the order the page lists them
+/// for [everyStepStatus].
+const everyQuestion = [
+  'changed',
+  'kept',
+  'count',
+  'down',
+  'full',
+  'start',
+  'cost',
+  'friends',
+  'others',
+  'sum',
+  'slot',
+  'phone',
+  'privacy',
+  'limit',
+  'premium',
+  'gets',
+];
+
+/// The questions page for [locales], with every answer open: nothing
+/// overflows, and in a right to left language each question starts on the
+/// right with its chevron on the left.
+void questionsLayoutTests(List<String> locales) {
+  for (final (size, scale) in layoutScreens) {
+    for (final locale in locales) {
+      testWidgets('[$locale ${size.width.toInt()}x${size.height.toInt()} at '
+          '$scale] every answer of the questions page fits', (tester) async {
+        screenFor(tester, size: size, textScale: scale);
+        await tester.pumpWidget(
+          ChangeNotifierProvider<ReferralState>.value(
+            value: heldStatus(everyStepStatus()),
+            child: MaterialApp(
+              theme: appThemeFor(Locale(locale)),
+              localizationsDelegates: S.localizationsDelegates,
+              supportedLocales: S.supportedLocales,
+              locale: Locale(locale),
+              home: const InviteTreeQuestionsScreen(),
+            ),
+          ),
+        );
+        await tester.pumpAndSettle();
+        final rtl = _rtl.contains(locale);
+        for (final id in everyQuestion) {
+          final row = find.byKey(Key('invite-tree-qa-$id'));
+          await tester.scrollUntilVisible(
+            row,
+            200,
+            scrollable: find.byType(Scrollable).first,
+          );
+          await tester.pumpAndSettle();
+          await tester.tap(row);
+          await tester.pumpAndSettle();
+          expect(tester.takeException(), isNull, reason: id);
+          final rect = tester.getRect(row);
+          expect(rect.left, greaterThanOrEqualTo(0), reason: id);
+          expect(rect.right, lessThanOrEqualTo(size.width), reason: id);
+          final chevron = tester.getCenter(
+            find.descendant(
+              of: row,
+              matching: find.byIcon(Icons.expand_more_rounded),
+            ),
+          );
+          expect(
+            rtl ? chevron.dx < rect.center.dx : chevron.dx > rect.center.dx,
+            isTrue,
+            reason: id,
+          );
         }
       });
     }

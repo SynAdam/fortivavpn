@@ -704,12 +704,12 @@ class SJa extends S {
       other: '別々の$days日に',
       one: '$days日',
     );
-    return '招待を受け付けました。あなたが$_temp0 VPN を使うと、友達にボーナスデータが入ります。';
+    return '招待を受け付けました。今日から$_temp0 VPN を使うと、招待が数えられます。';
   }
 
   @override
   String get inviteClaimAcceptedNoDays =>
-      '招待を受け付けました。あなたがしばらく VPN を使うと、友達にボーナスデータが入ります。';
+      '招待を受け付けました。今日からしばらく VPN を使うと、招待が数えられます。';
 
   @override
   String get inviteClaimAlready => 'この端末はすでに招待コードを使用しています';
@@ -795,16 +795,16 @@ class SJa extends S {
 
   @override
   String get inviteTreeLive =>
-      'ボーナスは、友だちが Fortiva を使い続けている間だけ続きます。友だちが使うのをやめると減ります。';
+      'ボーナスは、友だちが Fortiva を使い続けている間続きます。友だちが使わなくなると、ボーナスが減ることがあります。';
 
   @override
   String inviteTreeNext(String amount) {
-    return '次に招待した友だちが Fortiva を使い始めると、毎日 $amount 増えます。';
+    return '次の友だちは、条件達成してアクティブになると、毎日 $amount 増やします。';
   }
 
   @override
   String inviteTreeKept(String amount) {
-    return '以前に招待した友だちのおかげで、ボーナスが毎日 $amount を下回ることはありません。';
+    return 'ボーナスが毎日 $amount を下回ることはありません。これは以前の招待によるボーナスです。この量が減るのは、あなたの招待のどれかが削除された場合だけです。';
   }
 
   @override
@@ -837,9 +837,6 @@ class SJa extends S {
 
   @override
   String get inviteTreeRowFriends => 'あなたの枠にいる人';
-
-  @override
-  String get inviteTreeRowFriendsSlots => 'その人たちの枠にいる人';
 
   @override
   String inviteTreeRowSteps(int steps) {
@@ -888,12 +885,11 @@ class SJa extends S {
 
   @override
   String inviteTreeHowActive(int days, int window) {
-    return '友だちは、直近 $window 日のうち $days 日以上 Fortiva を使っていればアクティブとして数えられます。';
+    return '直近 $window 日のうち $days 日以上 VPN を使っている友だちは、アクティブとして数えられます。';
   }
 
   @override
-  String get inviteTreeHowActiveNoNumber =>
-      '友だちは、Fortiva を使い続けている間アクティブとして数えられます。';
+  String get inviteTreeHowActiveNoNumber => 'VPN を使い続けている友だちは、アクティブとして数えられます。';
 
   @override
   String inviteTreeHowCap(String max) {
@@ -933,10 +929,8 @@ class SJa extends S {
   String get inviteTreeIntroSlotsTitle => '友だちがペアごとにあなたの枠を埋めます';
 
   @override
-  String get inviteTreeIntroSlotsWhen => '友だちは Fortiva を使い始めると、枠に入ります。';
-
-  @override
-  String get inviteTreeIntroSlotsArt => '友だちが参加するにつれて、ペアごとに埋まっていくあなたの枠。';
+  String get inviteTreeIntroSlotsArt =>
+      'あなた、あなたの招待コード、ペアになったあなたの枠。各枠には、空いているか、入っている人がアクティブか今は非アクティブかが表示されます。';
 
   @override
   String get inviteTreeIntroPairTitle => 'ペアは両方がアクティブだと最も多く増やします';
@@ -965,24 +959,7 @@ class SJa extends S {
   }
 
   @override
-  String get inviteTreeIntroPairArt => '枠のペア。中の友だちが両方アクティブだと、データがより多く増えます。';
-
-  @override
-  String get inviteTreeIntroFurtherTitle => '離れた友だちもデータを増やします';
-
-  @override
-  String get inviteTreeIntroFirstPairOnly =>
-      '友だちの枠のうち、あなたのデータを増やすのはその友だちの最初のペアだけです。';
-
-  @override
   String get inviteTreeIntroYourFriend => 'あなたの友だち';
-
-  @override
-  String get inviteTreeIntroTheirPair => '友だちの最初のペア';
-
-  @override
-  String get inviteTreeIntroFurtherArt =>
-      '友だちの最初のペアは、その友だちとあなたのデータを増やします。さらに離れたペアは増える量が少なくなります。';
 
   @override
   String get inviteTreeIntroTotalTitle => '友だちからのデータ';
@@ -1008,7 +985,7 @@ class SJa extends S {
 
   @override
   String inviteTreeSheetNext(String amount) {
-    return '次に招待した友だちが Fortiva を使い始めると、毎日 $amount 増えます。今日のデータには加わりません。';
+    return '次の友だちは、条件達成してアクティブになると、毎日 $amount 増やします。今日のデータには加わりません。';
   }
 
   @override
@@ -1019,7 +996,7 @@ class SJa extends S {
     String _temp0 = intl.Intl.pluralLogic(
       days,
       locale: localeName,
-      other: '友だちが Fortiva を使い始めるたびに、プレミアムも$days日分もらえます。',
+      other: 'あなたのコードで条件達成した友だちごとに、あなたのプレミアムも$days日増えます。',
     );
     return '$_temp0';
   }
@@ -1033,6 +1010,316 @@ class SJa extends S {
     );
     return '$_temp0';
   }
+
+  @override
+  String inviteTreeIntroSlotsBody(int slots) {
+    String _temp0 = intl.Intl.pluralLogic(
+      slots,
+      locale: localeName,
+      other:
+          'あなたのコードで参加した友だちは、あなたの毎日のデータを増やせます。友だちのための枠は$slotsつあります。各枠に友だちが入り、枠はペアになっています。最初のペアから順に埋まります。枠がすべて埋まっても、さらに友だちが参加できます。',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get inviteTreeIntroSlotsBodyNoNumber =>
+      'あなたのコードで参加した友だちは、あなたの毎日のデータを増やせます。友だちのための枠があります。各枠に友だちが入り、枠はペアになっています。最初のペアから順に埋まります。枠がすべて埋まっても、さらに友だちが参加できます。';
+
+  @override
+  String get inviteTreeIntroJoinTitle => '友だちが枠に入るまで';
+
+  @override
+  String inviteTreeIntroJoinCode(int hours) {
+    String _temp0 = intl.Intl.pluralLogic(
+      hours,
+      locale: localeName,
+      other: '友だちは Fortiva をインストールしてから$hours時間以内に、自分の招待画面であなたのコードを入力する必要があります。',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get inviteTreeIntroJoinCodeNoNumber =>
+      '友だちは Fortiva をインストールしてからすぐに、自分の招待画面であなたのコードを入力する必要があります。';
+
+  @override
+  String inviteTreeIntroJoinQualify(int days) {
+    String _temp0 = intl.Intl.pluralLogic(
+      days,
+      locale: localeName,
+      other: 'その後、別々の$days日に VPN を使う必要があります。すると条件達成となり、次の空き枠に入ります。',
+      one: 'その後、$days日 VPN を使う必要があります。すると条件達成となり、次の空き枠に入ります。',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get inviteTreeIntroJoinQualifyNoNumber =>
+      'その後、しばらく VPN を使う必要があります。すると条件達成となり、次の空き枠に入ります。';
+
+  @override
+  String get inviteTreeIntroJoinPlay =>
+      'あなたのリンクから Google Play でインストールした場合は、コードが自動で入力されます。';
+
+  @override
+  String get inviteTreeIntroJoinWaiting =>
+      '条件達成になるまでは、あなたの招待画面では「招待した人数」に数えられますが、「条件達成」にはまだ数えられません。';
+
+  @override
+  String get inviteTreeIntroJoinStepCode => 'コードを入力';
+
+  @override
+  String get inviteTreeIntroJoinStepUse => 'VPN を使う';
+
+  @override
+  String get inviteTreeIntroJoinStepSlot => '枠に入る';
+
+  @override
+  String get inviteTreeIntroJoinArt =>
+      '友だちがあなたのコードを入力し、別々の日に VPN を使ってから、次の空き枠に入ります。';
+
+  @override
+  String get inviteTreeIntroPairsBody =>
+      '各ペアはあなたのデータを増やせます。ペアの両方がアクティブなとき、最も多く増やします。';
+
+  @override
+  String get inviteTreeIntroPairsCaption => '各ペアが毎日あなたのデータに加える量';
+
+  @override
+  String get inviteTreeIntroBothActive => '両方アクティブ';
+
+  @override
+  String get inviteTreeIntroOneActive => '片方アクティブ';
+
+  @override
+  String inviteTreeIntroPlus(String amount) {
+    return '+$amount';
+  }
+
+  @override
+  String get inviteTreeIntroNothing => 'なし';
+
+  @override
+  String get inviteTreeIntroPairNow => '強調された量が、あなたのペアが今増やしている量です。';
+
+  @override
+  String get inviteTreeIntroPairsArt =>
+      'あなたのペアと、両方がアクティブなときと片方がアクティブなときに各ペアが毎日増やす量。';
+
+  @override
+  String get inviteTreeIntroActiveTitle => '友だちはアクティブな間、データを増やします';
+
+  @override
+  String get inviteTreeIntroActiveStops =>
+      '友だちが Fortiva を使わなくなると、そのペアが増やす量は減り、あなたのボーナスも減ることがあります。その友だちは枠に残ります。また Fortiva を使い始めると、ペアが増やす量も戻ります。';
+
+  @override
+  String get inviteTreeIntroActiveFar =>
+      'あなたのデータを増やす、もっと遠くの人たちも、アクティブな間だけ数えられます。';
+
+  @override
+  String get inviteTreeIntroActiveArt =>
+      '友だちが Fortiva を使わなくなったペア。今はこのペアが増やす量が減っています。';
+
+  @override
+  String get inviteTreeIntroFullTitle => '枠がすべて埋まったら';
+
+  @override
+  String get inviteTreeIntroFullBody =>
+      'あなたの枠がすべて埋まると、次の友だちは、あなたの枠にいる人の最初のペアに入ります。順番はあなたの最初の枠からです。そのペアはその人のデータを増やし、あなたのデータも少し増やします。';
+
+  @override
+  String get inviteTreeIntroFullLess =>
+      '枠が遠いほど、あなたのデータを増やす量は少なくなります。とても遠い枠は何も増やしません。';
+
+  @override
+  String get inviteTreeIntroNextFriend => '次の友だち';
+
+  @override
+  String get inviteTreeIntroLaterFriend => 'あとから来る友だち';
+
+  @override
+  String get inviteTreeIntroFullArt =>
+      'あとから来る友だちが、あなたの枠にいる人の最初のペアの空き枠に入ります。そのペアはその人のデータを増やし、あなたのデータも少し増やします。';
+
+  @override
+  String get inviteTreeIntroOthersTitle => '最初のペアには、あなたが招待していない人が入ることがあります';
+
+  @override
+  String get inviteTreeIntroOthersWhy =>
+      'あなたは友だちのコードで参加しました。その友だちの枠が埋まると、その友だちの次の友だちが、あなたの最初のペアの空き枠に入ることがあります。ほかの人の友だちが入ることもあります。誰が入っても、あなた自身の友だちと同じようにあなたのデータを増やします。';
+
+  @override
+  String get inviteTreeIntroOthersYours =>
+      'あなた自身の友だちは、あなたの残りの空き枠を埋め、その後はもっと遠くの空き枠に入ります。';
+
+  @override
+  String get inviteTreeIntroNotInvited => 'あなたが招待していない人';
+
+  @override
+  String get inviteTreeIntroOthersArt =>
+      'あなたの最初のペアの例。あなたが招待した友だちと、招待していない人がいます。どちらもアクティブな間、あなたのデータを増やします。';
+
+  @override
+  String get inviteTreeIntroShareTitle => 'Fortiva を使ってくれる友だちを招待しましょう';
+
+  @override
+  String get inviteTreeIntroShareBody =>
+      '友だちがあなたのデータを増やすのは、アクティブな間だけです。VPN が必要な友だちに招待を送りましょう。';
+
+  @override
+  String get inviteTreeQaTitle => 'よくある質問';
+
+  @override
+  String get inviteTreeQaCountQ => '友だちが私のコードを入力しました。いつ枠に入りますか？';
+
+  @override
+  String get inviteTreeQaCountDay =>
+      'その日に VPN でデータを少しでも使った日だけが数えられます。アプリを開くだけでは足りません。これらの日に期限はありません。';
+
+  @override
+  String get inviteTreeQaCountOther =>
+      'すでにコードを入力した端末は、別のコードを入力できません。あなたと友だちが互いのコードを入力することもできません。';
+
+  @override
+  String get inviteTreeQaDownQ => 'ボーナスが減ったのはなぜですか？';
+
+  @override
+  String get inviteTreeQaDownA =>
+      'あなたのデータを増やしている人が、今はアクティブではありません。あなたの枠にいる友だちのこともあれば、もっと遠くの人のこともあります。その人がまた Fortiva を使えば、またデータを増やします。';
+
+  @override
+  String get inviteTreeQaDownLater =>
+      '使うのをやめた友だちも、しばらくはアクティブとして数えられます。そのため、ボーナスが減るのはやめてから少し後になることがあります。';
+
+  @override
+  String get inviteTreeQaDownRemoved =>
+      '招待が削除されたときも、ボーナスが減ることがあります。たとえば、その友だちが Fortiva のアカウントを削除したときです。';
+
+  @override
+  String get inviteTreeQaFullQ => '枠がすべて埋まったらどうなりますか？';
+
+  @override
+  String get inviteTreeQaFullFurther =>
+      'その最初のペアも埋まると、次の友だちはもっと遠く、それらのペアにいる人の最初のペアに入ります。そのペアはその人のデータを増やし、あなたと、その間にいる各人のデータも少しずつ増やします。';
+
+  @override
+  String get inviteTreeQaFriendsQ => '友だちの友だちも私のデータを増やしますか？';
+
+  @override
+  String get inviteTreeQaFriendsA =>
+      '一部は増やします。あなたの枠にいる各人の最初のペアは、その人のデータを増やし、あなたのデータも少し増やします。その人のほかのペアは、その人のデータだけを増やします。さらに遠くでは、最初のペアだけがあなたのデータを増やし、遠いほど増える量は少なくなり、やがて何も増やさなくなります。';
+
+  @override
+  String get inviteTreeQaOthersQ => '私の枠にいる、私が招待していない人は誰ですか？';
+
+  @override
+  String get inviteTreeQaOthersA =>
+      '枠が埋まっている人の友だちです。たとえば、あなたを招待した人の友だちです。その人たちはあなたの最初のペアの空き枠に入っていて、あなたが選んだり外したりすることはできません。あなた自身の友だちと同じように、あなたのデータを増やします。';
+
+  @override
+  String get inviteTreeQaSumQ => 'ボーナスが招待画面の量と違うのはなぜですか？';
+
+  @override
+  String get inviteTreeQaSumA =>
+      '「あなたの枠を通じて」の各行は、その行の人たちが今増やしている量を示します。ボーナスはその合計で、上限があります。';
+
+  @override
+  String get inviteTreeQaSlotQ => '枠を空けたり、誰が入るかを選んだりできますか？';
+
+  @override
+  String get inviteTreeQaSlotA =>
+      'できません。友だちは Fortiva を使わなくなっても枠に残ります。枠がまた空くのは、その招待が削除されたときだけです。たとえば、その友だちが Fortiva のアカウントを削除したときです。空き枠は順番に埋まり、誰が入るかは誰も選べません。';
+
+  @override
+  String get inviteTreeQaPrivacyQ => '私が Fortiva を使っているか、友だちに分かりますか？';
+
+  @override
+  String get inviteTreeQaPrivacyA =>
+      '友だちのコードで参加した場合、あなたがいる枠の持ち主には、あなたが「アクティブ」か「今は非アクティブ」かが分かります。ほかの人に分かるのは、アクティブな人の数だけで、誰かは分かりません。招待画面に名前、端末、使用量が表示されることはありません。';
+
+  @override
+  String get inviteTreeQaLimitQ => '上限はありますか？';
+
+  @override
+  String get inviteTreeQaLimitMore => '招待でその量まで増えると、友だちが増えてもデータはそれ以上増えません。';
+
+  @override
+  String get inviteTreeQaKeptQ => '今持っているボーナスはどうなりますか？';
+
+  @override
+  String get inviteTreeQaKeptMore =>
+      '以前の招待によるボーナスが、友だちが今増やしている量より多いときは、そのボーナスが適用されます。この二つは合算されません。';
+
+  @override
+  String get inviteTreeQaKeptRemoved =>
+      '招待が削除されるのは、その友だちが Fortiva のアカウントを削除したときか、不正利用のために Fortiva が取り消したときです。';
+
+  @override
+  String get inviteTreeQaChangedQ => '招待の何が変わりましたか？';
+
+  @override
+  String get inviteTreeQaChangedA =>
+      '以前は、条件を達成した友だちごとに、決まった量のデータが増えました。今は、友だちはアクティブな間、あなたの枠とペアを通じてデータを増やし、ボーナスは減ることもあります。';
+
+  @override
+  String get inviteTreeQaPremiumQ => '招待でプレミアムの日数も増えますか？';
+
+  @override
+  String get inviteTreeQaPremiumOwn =>
+      '友だちがどの枠に入るかは関係ありません。あなたが招待していない人では、プレミアムの日数は増えません。';
+
+  @override
+  String get inviteTreeQaGetsQ => '友だちは何かもらえますか？';
+
+  @override
+  String get inviteTreeQaGetsA =>
+      'あなたのコードを入力したことでは何ももらえません。誰でもそうであるように、友だちにも自分のコードと枠があり、そのコードで参加した友だちがその人のデータを増やします。条件達成後は、その人の最初のペアにも招待していない人が入ることがあり、その人たちもデータを増やします。';
+
+  @override
+  String get inviteTreeQaGetsSee =>
+      'その友だちがあなたの枠にいれば、「アクティブ」か「今は非アクティブ」かが分かります。名前や使用量が分かることはありません。';
+
+  @override
+  String get inviteTreeKeptFloor =>
+      'ボーナスは今、以前の招待で残っている量と同じです。友だちが合わせてそれより多く増やすと、ボーナスも増えます。';
+
+  @override
+  String inviteTreeIntroTotalUpTo(String most, String total) {
+    return '友だちが増やせるのは毎日最大 $most です。無料データと友だちからのデータを合わせると、毎日最大 $total になります。';
+  }
+
+  @override
+  String get inviteTreeIntroPairsOrder =>
+      '最初のペアが最も多く増やします。その後のペアは、それぞれ増える量が少なくなります。';
+
+  @override
+  String get inviteTreeIntroInvitedYou => 'あなたを招待した人';
+
+  @override
+  String get inviteTreeIntroGuide => 'ステップごとの説明';
+
+  @override
+  String get inviteTreeQaCostQ => '私のせいで友だちのデータが減りますか？';
+
+  @override
+  String get inviteTreeQaCostA =>
+      'いいえ。友だちがあなたのために増やすデータは、友だち自身のデータから引かれません。あなたが原因で友だちの毎日のデータが変わることはありません。';
+
+  @override
+  String get inviteTreeQaStartQ => '友だちからのデータはいつから増えますか？';
+
+  @override
+  String get inviteTreeQaStartA =>
+      '友だちが枠に入り、アクティブになったときからです。ボーナスはその日のうちに随時更新されるので、少し後、同じ日のうちに増えます。条件達成になるまでは、友だちは何も増やしません。';
+
+  @override
+  String get inviteTreeQaPhoneQ => '友だちが Fortiva を入れ直したり、スマホを替えたりしたら？';
+
+  @override
+  String get inviteTreeQaPhoneA =>
+      '同じスマホに入れ直した場合は、Fortiva はたいていそのスマホを認識し、何も変わりません。新しいスマホは Fortiva にとって新しい端末です。枠は前のスマホのもので、前のスマホが使われなくなると「今は非アクティブ」と数えられます。';
 
   @override
   String get premiumSourceInvite => '招待で獲得';

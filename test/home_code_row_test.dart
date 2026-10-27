@@ -181,8 +181,8 @@ void main() {
     }
     expect(
       find.text(
-        'Invite accepted. Your friend earns bonus data once you have used '
-        'the VPN on 2 different days.',
+        'Invite accepted. It counts once you have used the VPN on 2 '
+        'different days, starting today.',
       ),
       findsOneWidget,
     );

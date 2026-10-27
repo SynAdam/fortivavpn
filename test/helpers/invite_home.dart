@@ -15,6 +15,7 @@ import 'package:fortiva_vpn/core/state/dedicated_state.dart';
 import 'package:fortiva_vpn/core/state/device_state.dart';
 import 'package:fortiva_vpn/core/state/invite_events.dart';
 import 'package:fortiva_vpn/core/state/invite_prompt.dart';
+import 'package:fortiva_vpn/core/state/invite_tree_intro.dart';
 import 'package:fortiva_vpn/core/state/locale_state.dart';
 import 'package:fortiva_vpn/core/state/message_state.dart';
 import 'package:fortiva_vpn/core/state/notice_permission_prompt.dart';
@@ -110,12 +111,14 @@ Future<DeviceState> registeredDevice(Device device) async {
 
 /// A loaded app config with invites on. [inviteNudge] is the share of
 /// the allowance after which the data line offers invites, left out of the
-/// config when null, as a backend that sends none.
+/// config when null, as a backend that sends none. [referralRules] is the
+/// invite rule the config names, left out when null.
 Future<AppConfigState> inviteConfig({
   bool referrals = true,
   bool reviewPrompt = false,
   bool limitSheet = true,
   int? inviteNudge,
+  String? referralRules,
 }) async {
   final config = AppConfigState(
     fetch: () async => AppConfig.fromJson({
@@ -136,6 +139,7 @@ Future<AppConfigState> inviteConfig({
         'review_prompt': reviewPrompt,
         'limit_sheet': limitSheet,
         'invite_nudge_percent': ?inviteNudge,
+        'referral_rules': ?referralRules,
       },
     }),
   );
@@ -229,19 +233,50 @@ class FakeServers extends ServerState {
 }
 
 class FakeVpn extends VpnService {
-  FakeVpn(this._fake, {Duration upFor = const Duration(hours: 1)})
-    : _since = DateTime.now().subtract(upFor);
+  FakeVpn(
+    this._fake, {
+    Duration upFor = const Duration(hours: 1),
+    this.verified = true,
+    this.teardown,
+  }) : _since = DateTime.now().subtract(upFor);
 
   VpnStatus _fake;
   DateTime _since;
 
-  void become(VpnStatus status) {
+  /// Whether the session's traffic was found to flow (VpnService.verifiedAt).
+  bool verified;
+
+  /// How long a stop shows "disconnecting" before the tunnel is down. At
+  /// once when null.
+  final Duration? teardown;
+
+  /// A connection that comes up now has been up for [upFor] already, an
+  /// hour unless a test says otherwise.
+  void become(VpnStatus status, {Duration upFor = const Duration(hours: 1)}) {
     if (status == VpnStatus.connected && _fake != VpnStatus.connected) {
-      _since = DateTime.now().subtract(const Duration(hours: 1));
+      _since = DateTime.now().subtract(upFor);
     }
     _fake = status;
     notifyListeners();
   }
+
+  @override
+  DateTime? get verifiedAt =>
+      verified && _fake == VpnStatus.connected ? _since : null;
+
+  /// Whether the tunnel was found carrying nothing (VpnService.stalled).
+  bool stalledForTest = false;
+
+  /// The failure on screen (VpnService.errorMessage), none when null.
+  String? errorForTest;
+
+  @override
+  bool get stalled => stalledForTest && _fake == VpnStatus.connected;
+  @override
+  String? get errorMessage => errorForTest;
+
+  /// Tell the screen that [stalledForTest] or [errorForTest] changed.
+  void changed() => notifyListeners();
 
   @override
   VpnStatus get status => _fake;
@@ -263,7 +298,13 @@ class FakeVpn extends VpnService {
     LinkSource? source,
   }) async {}
   @override
-  Future<void> disconnect() async => become(VpnStatus.disconnected);
+  Future<void> disconnect() async {
+    final wait = teardown;
+    if (wait == null) return become(VpnStatus.disconnected);
+    become(VpnStatus.disconnecting);
+    await Future<void>.delayed(wait);
+    if (_fake == VpnStatus.disconnecting) become(VpnStatus.disconnected);
+  }
 }
 
 final madeEvents = <InviteEvents>[];
@@ -341,6 +382,7 @@ Future<void> pumpInviteHome(
   DedicatedState? dedicated,
   ServerState? servers,
   ConnectFlow? flow,
+  InviteTreeIntroRecord? treeIntro,
   String locale = 'en',
 }) async {
   tester.binding.handleAppLifecycleStateChanged(AppLifecycleState.resumed);
@@ -375,6 +417,8 @@ Future<void> pumpInviteHome(
         if (invite != null)
           ChangeNotifierProvider<InvitePrompt>.value(value: invite),
         if (events != null) Provider<InviteEvents>.value(value: events),
+        if (treeIntro != null)
+          Provider<InviteTreeIntroRecord>.value(value: treeIntro),
         if (review != null)
           ChangeNotifierProvider<ReviewPrompt>.value(value: review),
         if (premium != null)
@@ -468,8 +512,14 @@ Future<void> loadShippedFonts({required bool rtl}) async {
 }
 
 /// The power button is inside the screen and inside the area it scrolls
-/// in, so none of it is cut off.
-void expectPowerButtonOnScreen(WidgetTester tester, Size screen, String why) {
+/// in, so none of it is cut off. With [line], the status line under it is
+/// too: the invite card must leave both in view.
+void expectPowerButtonOnScreen(
+  WidgetTester tester,
+  Size screen,
+  String why, {
+  bool line = false,
+}) {
   final button = tester.getRect(find.byType(PowerButton));
   final area = tester.getRect(
     find
@@ -484,6 +534,13 @@ void expectPowerButtonOnScreen(WidgetTester tester, Size screen, String why) {
   expect(button.top, greaterThanOrEqualTo(0), reason: why);
   expect(button.bottom, lessThanOrEqualTo(screen.height), reason: why);
   expect(button.right, lessThanOrEqualTo(screen.width), reason: why);
+  if (line) {
+    final status = tester.getRect(
+      find.byWidgetPredicate((w) => w.runtimeType.toString() == '_StatusLine'),
+    );
+    expect(status.top, greaterThanOrEqualTo(area.top - 0.5), reason: why);
+    expect(status.bottom, lessThanOrEqualTo(area.bottom + 0.5), reason: why);
+  }
 }
 
 /// The home screen layout with the invite card, for [locales]: the power
@@ -520,6 +577,8 @@ void inviteLayoutTests(List<String> locales) {
     (const Size(360, 640), 1.0),
     (const Size(320, 640), 1.3),
     (const Size(412, 915), 1.0),
+    // Room for the button but not for the line under it as well.
+    (const Size(360, 780), 1.3),
   ]) {
     final tall = size.height > 800;
     for (final locale in locales) {
@@ -553,7 +612,12 @@ void inviteLayoutTests(List<String> locales) {
         await waitSeconds(tester, 21);
         expect(tester.takeException(), isNull);
         final up = find.byKey(const Key('invite-card')).evaluate().isNotEmpty;
-        expectPowerButtonOnScreen(tester, size, up ? 'card up' : 'gave way');
+        expectPowerButtonOnScreen(
+          tester,
+          size,
+          up ? 'card up' : 'gave way',
+          line: up,
+        );
         if (tall) expect(up, isTrue, reason: 'a tall phone has room');
         // A card that gave way was never drawn, so it was not counted.
         expect((await saved())['shows'], up ? 1 : 0);
@@ -562,6 +626,48 @@ void inviteLayoutTests(List<String> locales) {
           find.byKey(const Key('home-have-code')),
           findsNWidgets(up ? 0 : 1),
         );
+        await inviteHomeDone(tester);
+      });
+
+      testWidgets('$name the power button stays on screen with the card '
+          'after a stop', (tester) async {
+        tester.view.physicalSize = size;
+        tester.view.devicePixelRatio = 1;
+        tester.platformDispatcher.textScaleFactorTestValue = scale;
+        addTearDown(tester.view.reset);
+        addTearDown(tester.platformDispatcher.clearTextScaleFactorTestValue);
+
+        SharedPreferences.setMockInitialValues({...inviteRecord()});
+        await pumpInviteHome(
+          tester,
+          vpn: FakeVpn(VpnStatus.connected),
+          invite: InvitePrompt(),
+          events: keptEvents(),
+          device: await registeredDevice(
+            inviteDevice(
+              rules: const {...inviteRulesJson, 'after_disconnect': true},
+              claimOpenUntil: DateTime.now().add(const Duration(hours: 5)),
+            ),
+          ),
+          config: await inviteConfig(),
+          billing: FixedBilling(),
+          referrals: CountingReferral(answer: shareStatus),
+          locale: locale,
+        );
+        await tester.pump(const Duration(seconds: 1));
+        await tester.tap(find.byType(PowerButton));
+        await tester.pump();
+        await waitSeconds(tester, 3);
+        expect(tester.takeException(), isNull);
+        final up = find.byKey(const Key('invite-card')).evaluate().isNotEmpty;
+        expectPowerButtonOnScreen(
+          tester,
+          size,
+          up ? 'card up' : 'gave way',
+          line: up,
+        );
+        if (tall) expect(up, isTrue, reason: 'a tall phone has room');
+        expect((await saved())['shows'], up ? 1 : 0);
         await inviteHomeDone(tester);
       });
 

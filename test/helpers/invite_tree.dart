@@ -12,8 +12,11 @@ import 'app_theme.dart';
 /// the tests' own, never the backend's start values.
 
 /// A referral answer under the tree rule: one pair with one friend active,
-/// one full pair, one empty pair, and three levels: the device's own
-/// friends, the people in their slots, and people three steps away.
+/// one full pair, one empty pair, and three levels: the people in the
+/// device's own slots (the 4 in the pairs, 3 of them active), the people in
+/// their slots, and people three steps away. Every pair's one-active amount
+/// is above nothing, as the backend computes it, and the next friend, who
+/// goes into the empty pair, adds that pair's one-active amount.
 Map<String, dynamic> treeAnswer({
   Object? nextInviteBytes = 300 << 20,
   Object? keptBytes = 1 << 30,
@@ -46,12 +49,12 @@ Map<String, dynamic> treeAnswer({
     {
       'states': ['empty', 'empty'],
       'full_bytes': 600 << 20,
-      'one_bytes': 0,
+      'one_bytes': 300 << 20,
       'now_bytes': 0,
     },
   ],
   'levels': [
-    {'level': 1, 'people': 3, 'active': 3, 'bytes': 5 << 29},
+    {'level': 1, 'people': 4, 'active': 3, 'bytes': 5 << 29},
     {'level': 2, 'people': 1, 'active': 0, 'bytes': 0},
     {'level': 3, 'people': 2, 'active': 0, 'bytes': 0},
   ],

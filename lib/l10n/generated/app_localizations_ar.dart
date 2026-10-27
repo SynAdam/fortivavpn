@@ -672,7 +672,7 @@ class SAr extends S {
 
   @override
   String inviteBonusPerDay(String amount) {
-    return '+$amount كل يوم';
+    return '+$amount يوميًا';
   }
 
   @override
@@ -741,12 +741,12 @@ class SAr extends S {
       two: 'يومين مختلفين',
       one: 'يوم واحد',
     );
-    return 'تم قبول الدعوة. سيحصل صديقك على بيانات إضافية بعد أن تستخدم الشبكة في $_temp0.';
+    return 'تم قبول الدعوة. تُحتسب الدعوة بعد أن تستخدم VPN بدءًا من اليوم في $_temp0.';
   }
 
   @override
   String get inviteClaimAcceptedNoDays =>
-      'تم قبول الدعوة. سيحصل صديقك على بيانات إضافية بعد أن تستخدم الشبكة لفترة.';
+      'تم قبول الدعوة. تُحتسب الدعوة بعد أن تستخدم VPN لفترة بدءًا من اليوم.';
 
   @override
   String get inviteClaimAlready => 'استخدم هذا الجهاز رمز دعوة من قبل';
@@ -758,7 +758,7 @@ class SAr extends S {
   String get inviteClaimNetwork => 'تعذّر الوصول إلى الخادم. أعد المحاولة';
 
   @override
-  String get inviteCardTitle => 'هل يعمل فورتيفا جيدًا معك؟ أرسله إلى أصدقائك';
+  String get inviteCardTitle => 'هل يعمل فورتيفا جيدًا معك؟ أرسله إلى أصدقائك';
 
   @override
   String get inviteCardBody =>
@@ -770,13 +770,13 @@ class SAr extends S {
       days,
       locale: localeName,
       other:
-          'عندما يبدأ صديقك باستخدام فورتيفا، تحصل على بريميوم لمدة $days يوم.',
+          'عندما يبدأ صديقك باستخدام فورتيفا، تحصل على بريميوم لمدة $days يوم.',
       many:
-          'عندما يبدأ صديقك باستخدام فورتيفا، تحصل على بريميوم لمدة $days يومًا.',
+          'عندما يبدأ صديقك باستخدام فورتيفا، تحصل على بريميوم لمدة $days يومًا.',
       few:
-          'عندما يبدأ صديقك باستخدام فورتيفا، تحصل على بريميوم لمدة $days أيام.',
-      two: 'عندما يبدأ صديقك باستخدام فورتيفا، تحصل على بريميوم لمدة يومين.',
-      one: 'عندما يبدأ صديقك باستخدام فورتيفا، تحصل على بريميوم لمدة يوم واحد.',
+          'عندما يبدأ صديقك باستخدام فورتيفا، تحصل على بريميوم لمدة $days أيام.',
+      two: 'عندما يبدأ صديقك باستخدام فورتيفا، تحصل على بريميوم لمدة يومين.',
+      one: 'عندما يبدأ صديقك باستخدام فورتيفا، تحصل على بريميوم لمدة يوم واحد.',
     );
     return '$_temp0';
   }
@@ -851,16 +851,16 @@ class SAr extends S {
 
   @override
   String get inviteTreeLive =>
-      'تستمر مكافأتك ما دام أصدقاؤك يستخدمون فورتيفا. إذا توقف أحدهم، تنخفض المكافأة.';
+      'تستمر مكافأتك ما دام أصدقاؤك يستخدمون فورتيفا. إذا توقف أحدهم، قد تنخفض المكافأة.';
 
   @override
   String inviteTreeNext(String amount) {
-    return 'صديقك التالي يضيف $amount يوميًا عندما يبدأ باستخدام فورتيفا.';
+    return 'صديقك التالي يضيف $amount يوميًا بعد أن يصبح مؤهلًا ونشطًا.';
   }
 
   @override
   String inviteTreeKept(String amount) {
-    return 'لن تقل مكافأتك عن $amount يوميًا أبدًا، بفضل الأصدقاء الذين دعوتهم سابقًا.';
+    return 'لا تقل مكافأتك عن $amount يوميًا، وهي المكافأة التي حصلت عليها من دعوات سابقة. ولا يمكن أن ينخفض هذا المقدار إلا إذا أُزيلت إحدى دعواتك.';
   }
 
   @override
@@ -893,9 +893,6 @@ class SAr extends S {
 
   @override
   String get inviteTreeRowFriends => 'في خاناتك';
-
-  @override
-  String get inviteTreeRowFriendsSlots => 'في خاناتهم';
 
   @override
   String inviteTreeRowSteps(int steps) {
@@ -971,12 +968,12 @@ class SAr extends S {
       two: 'يومين',
       one: 'يوم',
     );
-    return 'يُحتسب الصديق نشطًا إذا استخدم فورتيفا في $_temp0 على الأقل خلال آخر $_temp1.';
+    return 'يُحتسب الصديق نشطًا إذا استخدم VPN في $_temp0 على الأقل خلال آخر $_temp1.';
   }
 
   @override
   String get inviteTreeHowActiveNoNumber =>
-      'يُحتسب الصديق نشطًا ما دام يواصل استخدام فورتيفا.';
+      'يُحتسب الصديق نشطًا ما دام يواصل استخدام VPN.';
 
   @override
   String inviteTreeHowCap(String max) {
@@ -990,7 +987,7 @@ class SAr extends S {
   String get inviteTreeIntroTitle => 'كيف يضيف الأصدقاء البيانات';
 
   @override
-  String get inviteTreeIntroOpen => 'اعرضها خطوة بخطوة';
+  String get inviteTreeIntroOpen => 'اشرح لي خطوة بخطوة';
 
   @override
   String inviteTreeIntroStep(int current, int total) {
@@ -1016,12 +1013,8 @@ class SAr extends S {
   String get inviteTreeIntroSlotsTitle => 'يملأ أصدقاؤك خاناتك على شكل ثنائيات';
 
   @override
-  String get inviteTreeIntroSlotsWhen =>
-      'يأخذ الصديق خانة عندما يبدأ باستخدام فورتيفا.';
-
-  @override
   String get inviteTreeIntroSlotsArt =>
-      'خاناتك على شكل ثنائيات، تمتلئ مع انضمام الأصدقاء.';
+      'أنت، ورمز دعوتك، وخاناتك على شكل ثنائيات. تُظهر كل خانة إن كانت فارغة، أو إن كان الشخص فيها نشطًا أو غير نشط الآن.';
 
   @override
   String get inviteTreeIntroPairTitle =>
@@ -1029,17 +1022,17 @@ class SAr extends S {
 
   @override
   String inviteTreeIntroPairBoth(String full, String one) {
-    return 'عندما يكون كلاهما في ثنائيك الأول نشطًا، يضيف هذا الثنائي $full يوميًا. وعندما يكون أحدهما فقط نشطًا، يضيف $one يوميًا.';
+    return 'عندما يكون الصديقان في ثنائيك الأول نشطين، يضيف هذا الثنائي $full يوميًا. وعندما يكون أحدهما فقط نشطًا، يضيف $one يوميًا.';
   }
 
   @override
   String inviteTreeIntroPairBothOnly(String full) {
-    return 'عندما يكون كلاهما في ثنائيك الأول نشطًا، يضيف هذا الثنائي $full يوميًا. وعندما يكون أحدهما فقط نشطًا، لا يضيف شيئًا.';
+    return 'عندما يكون الصديقان في ثنائيك الأول نشطين، يضيف هذا الثنائي $full يوميًا. وعندما يكون أحدهما فقط نشطًا، لا يضيف شيئًا.';
   }
 
   @override
   String inviteTreeIntroPairNoOne(String full) {
-    return 'عندما يكون كلاهما في ثنائيك الأول نشطًا، يضيف هذا الثنائي $full يوميًا. وعندما يكون أحدهما فقط نشطًا، يضيف أقل.';
+    return 'عندما يكون الصديقان في ثنائيك الأول نشطين، يضيف هذا الثنائي $full يوميًا. وعندما يكون أحدهما فقط نشطًا، يضيف أقل.';
   }
 
   @override
@@ -1051,26 +1044,7 @@ class SAr extends S {
   }
 
   @override
-  String get inviteTreeIntroPairArt =>
-      'ثنائي من الخانات. يضيف بيانات أكثر عندما يكون الصديقان فيه نشطين معًا.';
-
-  @override
-  String get inviteTreeIntroFurtherTitle =>
-      'الأصدقاء الأبعد يضيفون البيانات أيضًا';
-
-  @override
-  String get inviteTreeIntroFirstPairOnly =>
-      'من خانات صديقك، ثنائيه الأول فقط يضيف لك بيانات.';
-
-  @override
   String get inviteTreeIntroYourFriend => 'صديقك';
-
-  @override
-  String get inviteTreeIntroTheirPair => 'ثنائيه الأول';
-
-  @override
-  String get inviteTreeIntroFurtherArt =>
-      'يضيف الثنائي الأول لصديقك بيانات له ولك. والثنائيات الأبعد تضيف أقل.';
 
   @override
   String get inviteTreeIntroTotalTitle => 'بياناتك من الأصدقاء';
@@ -1096,7 +1070,7 @@ class SAr extends S {
 
   @override
   String inviteTreeSheetNext(String amount) {
-    return 'صديقك التالي يضيف $amount يوميًا عندما يبدأ باستخدام فورتيفا. لا يُضاف ذلك إلى بيانات اليوم.';
+    return 'صديقك التالي يضيف $amount يوميًا بعد أن يصبح مؤهلًا ونشطًا. لا يُضاف ذلك إلى بيانات اليوم.';
   }
 
   @override
@@ -1107,13 +1081,11 @@ class SAr extends S {
     String _temp0 = intl.Intl.pluralLogic(
       days,
       locale: localeName,
-      other:
-          'كل صديق يبدأ باستخدام فورتيفا يمنحك أيضًا بريميوم لمدة $days يوم.',
-      many:
-          'كل صديق يبدأ باستخدام فورتيفا يمنحك أيضًا بريميوم لمدة $days يومًا.',
-      few: 'كل صديق يبدأ باستخدام فورتيفا يمنحك أيضًا بريميوم لمدة $days أيام.',
-      two: 'كل صديق يبدأ باستخدام فورتيفا يمنحك أيضًا بريميوم لمدة يومين.',
-      one: 'كل صديق يبدأ باستخدام فورتيفا يمنحك أيضًا بريميوم لمدة يوم واحد.',
+      other: 'كل صديق يتأهل برمزك يضيف لك أيضًا بريميوم لمدة $days يوم.',
+      many: 'كل صديق يتأهل برمزك يضيف لك أيضًا بريميوم لمدة $days يومًا.',
+      few: 'كل صديق يتأهل برمزك يضيف لك أيضًا بريميوم لمدة $days أيام.',
+      two: 'كل صديق يتأهل برمزك يضيف لك أيضًا بريميوم لمدة يومين.',
+      one: 'كل صديق يتأهل برمزك يضيف لك أيضًا بريميوم لمدة يوم واحد.',
     );
     return '$_temp0';
   }
@@ -1131,6 +1103,332 @@ class SAr extends S {
     );
     return '$_temp0';
   }
+
+  @override
+  String inviteTreeIntroSlotsBody(int slots) {
+    String _temp0 = intl.Intl.pluralLogic(
+      slots,
+      locale: localeName,
+      other: '$slots خانة',
+      many: '$slots خانة',
+      few: '$slots خانات',
+      two: 'خانتان',
+      one: 'خانة',
+    );
+    return 'الأصدقاء الذين ينضمون برمزك يمكنهم أن يضيفوا إلى بياناتك اليومية. لديك $_temp0 لهم. تتسع كل خانة لصديق، والخانات تأتي على شكل ثنائيات. يمتلئ ثنائيك الأول أولًا. ويمكن لمزيد من الأصدقاء أن ينضموا حتى بعد امتلاء خاناتك.';
+  }
+
+  @override
+  String get inviteTreeIntroSlotsBodyNoNumber =>
+      'الأصدقاء الذين ينضمون برمزك يمكنهم أن يضيفوا إلى بياناتك اليومية. لديك خانات لهم. تتسع كل خانة لصديق، والخانات تأتي على شكل ثنائيات. يمتلئ ثنائيك الأول أولًا. ويمكن لمزيد من الأصدقاء أن ينضموا حتى بعد امتلاء خاناتك.';
+
+  @override
+  String get inviteTreeIntroJoinTitle => 'كيف يشغل صديقك خانة';
+
+  @override
+  String inviteTreeIntroJoinCode(int hours) {
+    String _temp0 = intl.Intl.pluralLogic(
+      hours,
+      locale: localeName,
+      other: '$hours ساعة',
+      many: '$hours ساعة',
+      few: '$hours ساعات',
+      two: 'ساعتين',
+      one: 'ساعة واحدة',
+    );
+    return 'يجب أن يُدخل صديقك رمزك في شاشة الدعوات لديه خلال $_temp0 من تثبيت فورتيفا.';
+  }
+
+  @override
+  String get inviteTreeIntroJoinCodeNoNumber =>
+      'يجب أن يُدخل صديقك رمزك في شاشة الدعوات لديه بعد تثبيت فورتيفا بوقت قصير.';
+
+  @override
+  String inviteTreeIntroJoinQualify(int days) {
+    String _temp0 = intl.Intl.pluralLogic(
+      days,
+      locale: localeName,
+      other: '$days يوم مختلف',
+      many: '$days يومًا مختلفًا',
+      few: '$days أيام مختلفة',
+      two: 'يومين مختلفين',
+      one: 'يوم واحد',
+    );
+    return 'بعد ذلك، يجب أن يستخدم VPN في $_temp0. عندها يصبح مؤهلًا ويشغل الخانة الفارغة التالية.';
+  }
+
+  @override
+  String get inviteTreeIntroJoinQualifyNoNumber =>
+      'بعد ذلك، يجب أن يستخدم VPN لفترة. عندها يصبح مؤهلًا ويشغل الخانة الفارغة التالية.';
+
+  @override
+  String get inviteTreeIntroJoinPlay =>
+      'إذا ثبّت فورتيفا من Google Play عبر رابطك، يُدخَل الرمز له تلقائيًا.';
+
+  @override
+  String get inviteTreeIntroJoinWaiting =>
+      'إلى أن يصبح مؤهلًا، تحسبه شاشة الدعوات لديك ضمن «المدعوون»، لكن ليس ضمن «مؤهل» بعد.';
+
+  @override
+  String get inviteTreeIntroJoinStepCode => 'يُدخل رمزك';
+
+  @override
+  String get inviteTreeIntroJoinStepUse => 'يستخدم VPN';
+
+  @override
+  String get inviteTreeIntroJoinStepSlot => 'يشغل خانة';
+
+  @override
+  String get inviteTreeIntroJoinArt =>
+      'صديق يُدخل رمزك، ويستخدم VPN في أيام مختلفة، ثم يشغل الخانة الفارغة التالية.';
+
+  @override
+  String get inviteTreeIntroPairsBody =>
+      'كل ثنائي يمكنه أن يضيف بيانات لك. ويضيف أكثر ما يمكن عندما يكون كلاهما نشطًا.';
+
+  @override
+  String get inviteTreeIntroPairsCaption =>
+      'ما يضيفه كل ثنائي إلى بياناتك يوميًا';
+
+  @override
+  String get inviteTreeIntroBothActive => 'كلاهما نشط';
+
+  @override
+  String get inviteTreeIntroOneActive => 'أحدهما نشط';
+
+  @override
+  String inviteTreeIntroPlus(String amount) {
+    return '+$amount';
+  }
+
+  @override
+  String get inviteTreeIntroNothing => 'لا شيء';
+
+  @override
+  String get inviteTreeIntroPairNow =>
+      'المقادير المميزة هي ما تضيفه ثنائياتك الآن.';
+
+  @override
+  String get inviteTreeIntroPairsArt =>
+      'ثنائياتك، وما يضيفه كل منها يوميًا عندما يكون كلاهما نشطًا، وعندما يكون أحدهما نشطًا.';
+
+  @override
+  String get inviteTreeIntroActiveTitle => 'يضيف الصديق بيانات ما دام نشطًا';
+
+  @override
+  String get inviteTreeIntroActiveStops =>
+      'إذا توقف صديق عن استخدام فورتيفا، يضيف ثنائيه أقل وقد تنخفض مكافأتك. ويحتفظ بخانته. وعندما يعود إلى استخدام فورتيفا، يعود ثنائيه إلى إضافة المزيد.';
+
+  @override
+  String get inviteTreeIntroActiveFar =>
+      'الأشخاص الأبعد الذين يضيفون بيانات لك لا يُحتسبون أيضًا إلا ما داموا نشطين.';
+
+  @override
+  String get inviteTreeIntroActiveArt =>
+      'ثنائي توقف فيه صديق عن استخدام فورتيفا. صار هذا الثنائي يضيف أقل.';
+
+  @override
+  String get inviteTreeIntroFullTitle => 'عندما تمتلئ خاناتك';
+
+  @override
+  String get inviteTreeIntroFullBody =>
+      'عندما تُشغل كل خاناتك، ينضم صديقك التالي إلى الثنائي الأول لأحد الموجودين في خاناتك، بالترتيب بدءًا من خانتك الأولى. يضيف ذلك الثنائي بيانات لذلك الشخص، وأقل لك.';
+
+  @override
+  String get inviteTreeIntroFullLess =>
+      'كلما كانت الخانة أبعد، أضافت لك أقل. والخانات البعيدة جدًا لا تضيف شيئًا.';
+
+  @override
+  String get inviteTreeIntroNextFriend => 'صديقك التالي';
+
+  @override
+  String get inviteTreeIntroLaterFriend => 'صديق لاحق';
+
+  @override
+  String get inviteTreeIntroFullArt =>
+      'صديق لاحق يشغل خانة فارغة في الثنائي الأول لأحد الموجودين في خاناتك. يضيف ذلك الثنائي بيانات لذلك الشخص، وأقل لك.';
+
+  @override
+  String get inviteTreeIntroOthersTitle =>
+      'قد يضم ثنائيك الأول أشخاصًا لم تدعُهم';
+
+  @override
+  String get inviteTreeIntroOthersWhy =>
+      'لقد انضممت برمز صديق. عندما تمتلئ خاناته، يمكن لأصدقائه التاليين أن يشغلوا خانة فارغة في ثنائيك الأول. ويمكن ذلك أيضًا لأصدقاء أشخاص آخرين. أيًّا كان من يشغلها، فهو يضيف بيانات لك بالطريقة نفسها التي يضيف بها أصدقاؤك.';
+
+  @override
+  String get inviteTreeIntroOthersYours =>
+      'أصدقاؤك أنت يملؤون خاناتك الفارغة الأخرى، ثم الخانات الفارغة الأبعد.';
+
+  @override
+  String get inviteTreeIntroNotInvited => 'لم تدعُه أنت';
+
+  @override
+  String get inviteTreeIntroOthersArt =>
+      'مثال على ثنائيك الأول، فيه صديق دعوته وشخص لم تدعُه. كلاهما يضيف بيانات لك ما دام نشطًا.';
+
+  @override
+  String get inviteTreeIntroShareTitle => 'ادعُ أصدقاء سيستخدمون فورتيفا';
+
+  @override
+  String get inviteTreeIntroShareBody =>
+      'لا يضيف الصديق بيانات لك إلا ما دام نشطًا. أرسل دعوتك إلى أصدقاء يحتاجون إلى VPN.';
+
+  @override
+  String get inviteTreeQaTitle => 'أسئلة وأجوبة';
+
+  @override
+  String get inviteTreeQaCountQ => 'أدخل صديقي رمزي. متى يشغل خانة؟';
+
+  @override
+  String get inviteTreeQaCountDay =>
+      'لا يُحتسب اليوم إلا إذا استخدم فيه بعض البيانات عبر VPN. فتح التطبيق وحده لا يكفي. ولا توجد مهلة لهذه الأيام.';
+
+  @override
+  String get inviteTreeQaCountOther =>
+      'الهاتف الذي أُدخل فيه رمز من قبل لا يمكنه إدخال رمز آخر. ولا يمكنك أنت وصديقك أن يُدخل كل منكما رمز الآخر.';
+
+  @override
+  String get inviteTreeQaDownQ => 'لماذا انخفضت مكافأتي؟';
+
+  @override
+  String get inviteTreeQaDownA =>
+      'شخص يضيف بيانات لك ليس نشطًا الآن. قد يكون صديقًا في خاناتك أو شخصًا أبعد. وعندما يعود إلى استخدام فورتيفا، يعود إلى إضافة البيانات.';
+
+  @override
+  String get inviteTreeQaDownLater =>
+      'الصديق الذي يتوقف يظل يُحتسب نشطًا لفترة. لذلك قد تنخفض مكافأتك بعد توقفه بفترة.';
+
+  @override
+  String get inviteTreeQaDownRemoved =>
+      'وقد تنخفض مكافأتك أيضًا عندما تُزال دعوة، مثلًا عندما يحذف ذلك الصديق حسابه في فورتيفا.';
+
+  @override
+  String get inviteTreeQaFullQ => 'ماذا يحدث عندما تمتلئ خاناتي؟';
+
+  @override
+  String get inviteTreeQaFullFurther =>
+      'عندما تمتلئ تلك الثنائيات الأولى أيضًا، ينضم صديقك التالي إلى موضع أبعد، إلى الثنائي الأول لأحد الموجودين في تلك الثنائيات. يضيف ذلك الثنائي بيانات لذلك الشخص، ومقادير أصغر لك ولكل شخص بينكما.';
+
+  @override
+  String get inviteTreeQaFriendsQ => 'هل يضيف أصدقاء أصدقائي بيانات لي؟';
+
+  @override
+  String get inviteTreeQaFriendsA =>
+      'بعضهم نعم. الثنائي الأول لكل شخص في خاناتك يضيف بيانات لذلك الشخص، ومقدارًا أصغر لك. أما ثنائياتهم الأخرى فتضيف بيانات لهم وحدهم. وفي المواضع الأبعد، لا تضيف لك بيانات إلا الثنائيات الأولى، وكلما ابتعدت أضافت أقل، حتى لا تضيف شيئًا.';
+
+  @override
+  String get inviteTreeQaOthersQ => 'من هم الأشخاص في خاناتي الذين لم أدعُهم؟';
+
+  @override
+  String get inviteTreeQaOthersA =>
+      'هم أصدقاء شخص امتلأت خاناته، مثل الشخص الذي دعاك. لقد شغلوا خانة فارغة في ثنائيك الأول، ولا يمكنك اختيارهم أو إزالتهم. وهم يضيفون بيانات لك بالطريقة نفسها التي يضيف بها أصدقاؤك.';
+
+  @override
+  String get inviteTreeQaSumQ =>
+      'لماذا تختلف مكافأتي عن المقادير في شاشة الدعوات؟';
+
+  @override
+  String get inviteTreeQaSumA =>
+      'كل صف في «عبر خاناتك» يعرض ما يضيفه الآن الأشخاص في ذلك الصف. ومكافأتك هي مجموع ذلك، حتى الحد الأقصى.';
+
+  @override
+  String get inviteTreeQaSlotQ => 'هل يمكنني إفراغ خانة أو اختيار من يشغلها؟';
+
+  @override
+  String get inviteTreeQaSlotA =>
+      'لا. يحتفظ الصديق بخانته حتى لو توقف عن استخدام فورتيفا. ولا تفرغ خانته مجددًا إلا عندما تُزال دعوته، مثلًا عندما يحذف حسابه في فورتيفا. وتمتلئ الخانات الفارغة بالترتيب، ولا يستطيع أحد اختيار من يشغلها.';
+
+  @override
+  String get inviteTreeQaPrivacyQ => 'هل يرى أصدقائي إن كنت أستخدم فورتيفا؟';
+
+  @override
+  String get inviteTreeQaPrivacyA =>
+      'إذا انضممت برمز صديق، فإن الشخص الذي تشغل إحدى خاناته يرى إن كنت نشطًا أو غير نشط الآن. أما الآخرون فيرون فقط كم شخصًا نشطًا، لا من هم. ولا تعرض شاشة الدعوات أبدًا اسم أي أحد أو هاتفه أو مقدار استخدامه.';
+
+  @override
+  String get inviteTreeQaLimitQ => 'هل يوجد حد أقصى؟';
+
+  @override
+  String get inviteTreeQaLimitMore =>
+      'عندما تضيف دعواتك هذا المقدار، لا يضيف مزيد من الأصدقاء بيانات أكثر.';
+
+  @override
+  String get inviteTreeQaKeptQ => 'ماذا يحدث للمكافأة التي لدي الآن؟';
+
+  @override
+  String get inviteTreeQaKeptMore =>
+      'عندما تكون المكافأة من دعواتك السابقة أكبر مما يضيفه أصدقاؤك الآن، تحصل على تلك المكافأة بدلًا منه. ولا يُجمع الاثنان معًا.';
+
+  @override
+  String get inviteTreeQaKeptRemoved =>
+      'تُزال الدعوة عندما يحذف ذلك الصديق حسابه في فورتيفا، أو عندما تلغيها فورتيفا بسبب إساءة الاستخدام.';
+
+  @override
+  String get inviteTreeQaChangedQ => 'ما الذي تغيّر في الدعوات؟';
+
+  @override
+  String get inviteTreeQaChangedA =>
+      'في السابق، كان كل صديق مؤهل يضيف مقدارًا ثابتًا من البيانات. الآن يضيف الأصدقاء بيانات ما داموا نشطين، عبر خاناتك وثنائياتك، وقد تنخفض مكافأتك.';
+
+  @override
+  String get inviteTreeQaPremiumQ => 'هل تضيف الدعوات أيام بريميوم؟';
+
+  @override
+  String get inviteTreeQaPremiumOwn =>
+      'لا يهم أي خانة يشغلها صديقك. والأشخاص الذين لم تدعُهم لا يضيفون أيام بريميوم.';
+
+  @override
+  String get inviteTreeQaGetsQ => 'هل يحصل صديقي على شيء؟';
+
+  @override
+  String get inviteTreeQaGetsA =>
+      'ليس مقابل إدخال رمزك. مثل الجميع، لديه رمزه وخاناته، والأصدقاء الذين ينضمون برمزه يضيفون بيانات له. وبعد أن يصبح مؤهلًا، قد يضم ثنائيه الأول أيضًا أشخاصًا لم يدعُهم، وهؤلاء أيضًا يضيفون بيانات له.';
+
+  @override
+  String get inviteTreeQaGetsSee =>
+      'إذا كان في خاناتك، يمكنك أن ترى إن كان نشطًا أو غير نشط الآن. ولا ترى أبدًا اسمه أو مقدار استخدامه.';
+
+  @override
+  String get inviteTreeKeptFloor =>
+      'مكافأتك الآن هي المقدار المحفوظ من دعواتك السابقة. وتزيد عندما يضيف أصدقاؤك معًا أكثر من هذا المقدار.';
+
+  @override
+  String inviteTreeIntroTotalUpTo(String most, String total) {
+    return 'يمكن أن يضيف الأصدقاء حتى $most يوميًا. ويمكن أن تصل بياناتك المجانية مع بيانات الأصدقاء معًا إلى $total يوميًا.';
+  }
+
+  @override
+  String get inviteTreeIntroPairsOrder =>
+      'ثنائيك الأول يضيف أكثر من غيره. وكل ثنائي بعده يضيف أقل.';
+
+  @override
+  String get inviteTreeIntroInvitedYou => 'من دعاك';
+
+  @override
+  String get inviteTreeIntroGuide => 'دليل خطوة بخطوة';
+
+  @override
+  String get inviteTreeQaCostQ => 'هل يخسر صديقي أي بيانات بسببي؟';
+
+  @override
+  String get inviteTreeQaCostA =>
+      'لا. ما يضيفه صديقك لك لا يُخصم من بياناته. ولا تتغير بياناته اليومية بسببك.';
+
+  @override
+  String get inviteTreeQaStartQ => 'متى تبدأ البيانات التي يضيفها صديق؟';
+
+  @override
+  String get inviteTreeQaStartA =>
+      'بمجرد أن يشغل صديقك خانة ويكون نشطًا. تُحدَّث مكافأتك على مدار اليوم، لذلك تزيد بعد ذلك بقليل في اليوم نفسه. وإلى أن يصبح صديقك مؤهلًا، لا يضيف شيئًا.';
+
+  @override
+  String get inviteTreeQaPhoneQ =>
+      'ماذا لو أعاد صديقي تثبيت فورتيفا أو غيّر هاتفه؟';
+
+  @override
+  String get inviteTreeQaPhoneA =>
+      'بعد إعادة التثبيت على الهاتف نفسه، يتعرّف فورتيفا على الهاتف عادةً، ولا يتغير شيء. أما الهاتف الجديد فهو جديد بالنسبة إلى فورتيفا. تظل الخانة للهاتف القديم، وتُحسب غير نشطة بعد أن يتوقف استخدام الهاتف القديم.';
 
   @override
   String get premiumSourceInvite => 'هدية من دعوة الأصدقاء';

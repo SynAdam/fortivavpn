@@ -10,8 +10,11 @@ import '../../services/vpn_event_reporter.dart';
 
 /// Where an invite event happened.
 enum InviteSurface {
-  /// The invite card after a good connection.
+  /// The invite card after a good connection, while the tunnel is up.
   afterConnect('after_connect'),
+
+  /// The same card right after a good session the user ended in the app.
+  afterDisconnect('after_disconnect'),
 
   /// The home screen's Invite friends shortcut opened the invite screen.
   homeButton('home_button'),

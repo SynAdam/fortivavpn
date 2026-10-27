@@ -668,7 +668,7 @@ class SEn extends S {
 
   @override
   String inviteBonusPerDay(String amount) {
-    return '+$amount every day';
+    return '+$amount a day';
   }
 
   @override
@@ -731,12 +731,12 @@ class SEn extends S {
       other: '$days different days',
       one: '$days day',
     );
-    return 'Invite accepted. Your friend earns bonus data once you have used the VPN on $_temp0.';
+    return 'Invite accepted. It counts once you have used the VPN on $_temp0, starting today.';
   }
 
   @override
   String get inviteClaimAcceptedNoDays =>
-      'Invite accepted. Your friend earns bonus data once you have used the VPN for a while.';
+      'Invite accepted. It counts once you have used the VPN for a while, starting today.';
 
   @override
   String get inviteClaimAlready =>
@@ -751,11 +751,11 @@ class SEn extends S {
 
   @override
   String get inviteCardTitle =>
-      'Is Fortiva working well for you? Send it to a friend';
+      'Does Fortiva work well for you? Send it to a friend';
 
   @override
   String get inviteCardBody =>
-      'Send your friend the install link so they can connect for free too.';
+      'Send the install link so they can connect for free too.';
 
   @override
   String inviteCardReward(int days) {
@@ -838,16 +838,16 @@ class SEn extends S {
 
   @override
   String get inviteTreeLive =>
-      'Your bonus lasts while your friends keep using Fortiva. If a friend stops, it goes down.';
+      'Your bonus lasts while your friends keep using Fortiva. If a friend stops, your bonus can go down.';
 
   @override
   String inviteTreeNext(String amount) {
-    return 'Your next friend adds $amount a day once they start using Fortiva.';
+    return 'Your next friend adds $amount a day once they qualify and are active.';
   }
 
   @override
   String inviteTreeKept(String amount) {
-    return 'Your bonus never goes below $amount a day, because of friends you invited before.';
+    return 'Your bonus does not go below $amount a day, the bonus you had from earlier invites. This amount can go down only if one of your invites is removed.';
   }
 
   @override
@@ -880,9 +880,6 @@ class SEn extends S {
 
   @override
   String get inviteTreeRowFriends => 'In your slots';
-
-  @override
-  String get inviteTreeRowFriendsSlots => 'In their slots';
 
   @override
   String inviteTreeRowSteps(int steps) {
@@ -948,12 +945,12 @@ class SEn extends S {
       other: '$window days',
       one: '$window day',
     );
-    return 'A friend is active while they have used Fortiva on at least $_temp0 in the last $_temp1.';
+    return 'A friend is active while they have used the VPN on at least $_temp0 in the last $_temp1.';
   }
 
   @override
   String get inviteTreeHowActiveNoNumber =>
-      'A friend is active while they keep using Fortiva.';
+      'A friend is active while they keep using the VPN.';
 
   @override
   String inviteTreeHowCap(String max) {
@@ -994,12 +991,8 @@ class SEn extends S {
   String get inviteTreeIntroSlotsTitle => 'Friends fill your slots in pairs';
 
   @override
-  String get inviteTreeIntroSlotsWhen =>
-      'A friend takes a slot once they start using Fortiva.';
-
-  @override
   String get inviteTreeIntroSlotsArt =>
-      'Your slots, in pairs, filling as friends join.';
+      'You, your invite code, and your slots in pairs. Each slot shows if it is open, or if the person in it is active or not active now.';
 
   @override
   String get inviteTreeIntroPairTitle =>
@@ -1029,26 +1022,7 @@ class SEn extends S {
   }
 
   @override
-  String get inviteTreeIntroPairArt =>
-      'A pair of slots. It adds more data when both friends in it are active.';
-
-  @override
-  String get inviteTreeIntroFurtherTitle =>
-      'Friends further away still add data';
-
-  @override
-  String get inviteTreeIntroFirstPairOnly =>
-      'From your friend\'s slots, only their first pair adds data for you.';
-
-  @override
   String get inviteTreeIntroYourFriend => 'Your friend';
-
-  @override
-  String get inviteTreeIntroTheirPair => 'Their first pair';
-
-  @override
-  String get inviteTreeIntroFurtherArt =>
-      'Your friend\'s first pair adds data for your friend and for you. Pairs further away add less.';
 
   @override
   String get inviteTreeIntroTotalTitle => 'Your data from friends';
@@ -1074,7 +1048,7 @@ class SEn extends S {
 
   @override
   String inviteTreeSheetNext(String amount) {
-    return 'Your next friend adds $amount a day once they start using Fortiva. It does not add to today\'s data.';
+    return 'Your next friend adds $amount a day once they qualify and are active. It does not add to today\'s data.';
   }
 
   @override
@@ -1086,9 +1060,9 @@ class SEn extends S {
       days,
       locale: localeName,
       other:
-          'Each friend who starts using Fortiva also gives you $days days of Premium.',
+          'Each friend who qualifies with your code also adds $days days of Premium for you.',
       one:
-          'Each friend who starts using Fortiva also gives you $days day of Premium.',
+          'Each friend who qualifies with your code also adds $days day of Premium for you.',
     );
     return '$_temp0';
   }
@@ -1103,6 +1077,333 @@ class SEn extends S {
     );
     return '$_temp0';
   }
+
+  @override
+  String inviteTreeIntroSlotsBody(int slots) {
+    String _temp0 = intl.Intl.pluralLogic(
+      slots,
+      locale: localeName,
+      other:
+          'Friends who join with your code can add to your daily data. You have $slots slots for them. Each slot holds a friend, and the slots come in pairs. Your first pair is filled first. More friends can still join when your slots are full.',
+      one:
+          'Friends who join with your code can add to your daily data. You have $slots slot for them. Each slot holds a friend, and the slots come in pairs. Your first pair is filled first. More friends can still join when your slots are full.',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get inviteTreeIntroSlotsBodyNoNumber =>
+      'Friends who join with your code can add to your daily data. You have slots for them. Each slot holds a friend, and the slots come in pairs. Your first pair is filled first. More friends can still join when your slots are full.';
+
+  @override
+  String get inviteTreeIntroJoinTitle => 'How a friend takes a slot';
+
+  @override
+  String inviteTreeIntroJoinCode(int hours) {
+    String _temp0 = intl.Intl.pluralLogic(
+      hours,
+      locale: localeName,
+      other:
+          'Your friend must enter your code on their invite screen within $hours hours of installing Fortiva.',
+      one:
+          'Your friend must enter your code on their invite screen within $hours hour of installing Fortiva.',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get inviteTreeIntroJoinCodeNoNumber =>
+      'Your friend must enter your code on their invite screen soon after installing Fortiva.';
+
+  @override
+  String inviteTreeIntroJoinQualify(int days) {
+    String _temp0 = intl.Intl.pluralLogic(
+      days,
+      locale: localeName,
+      other:
+          'After that, they must use the VPN on $days different days. Then they qualify and take the next open slot.',
+      one:
+          'After that, they must use the VPN on $days day. Then they qualify and take the next open slot.',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get inviteTreeIntroJoinQualifyNoNumber =>
+      'After that, they must use the VPN for a while. Then they qualify and take the next open slot.';
+
+  @override
+  String get inviteTreeIntroJoinPlay =>
+      'If they install from Google Play through your link, the code is entered for them.';
+
+  @override
+  String get inviteTreeIntroJoinWaiting =>
+      'Until they qualify, your invite screen counts them in \"Invited\", but not yet in \"Qualified\".';
+
+  @override
+  String get inviteTreeIntroJoinStepCode => 'Enters your code';
+
+  @override
+  String get inviteTreeIntroJoinStepUse => 'Uses the VPN';
+
+  @override
+  String get inviteTreeIntroJoinStepSlot => 'Takes a slot';
+
+  @override
+  String get inviteTreeIntroJoinArt =>
+      'A friend enters your code, uses the VPN on different days, and then takes the next open slot.';
+
+  @override
+  String get inviteTreeIntroPairsBody =>
+      'Each pair can add data for you. It adds the most when both people in it are active.';
+
+  @override
+  String get inviteTreeIntroPairsCaption =>
+      'What each pair adds to your data a day';
+
+  @override
+  String get inviteTreeIntroBothActive => 'Both active';
+
+  @override
+  String get inviteTreeIntroOneActive => 'One active';
+
+  @override
+  String inviteTreeIntroPlus(String amount) {
+    return '+$amount';
+  }
+
+  @override
+  String get inviteTreeIntroNothing => 'Nothing';
+
+  @override
+  String get inviteTreeIntroPairNow =>
+      'The highlighted amounts are what your pairs add now.';
+
+  @override
+  String get inviteTreeIntroPairsArt =>
+      'Your pairs, and what each one adds a day when both people in it are active, and when one is.';
+
+  @override
+  String get inviteTreeIntroActiveTitle =>
+      'A friend adds data while they are active';
+
+  @override
+  String get inviteTreeIntroActiveStops =>
+      'If a friend stops using Fortiva, their pair adds less and your bonus can go down. They keep their slot. When they use Fortiva again, their pair adds more again.';
+
+  @override
+  String get inviteTreeIntroActiveFar =>
+      'People further away who add data for you also count only while they are active.';
+
+  @override
+  String get inviteTreeIntroActiveArt =>
+      'A pair where a friend stopped using Fortiva. The pair now adds less.';
+
+  @override
+  String get inviteTreeIntroFullTitle => 'When your slots are full';
+
+  @override
+  String get inviteTreeIntroFullBody =>
+      'When all your slots are taken, your next friend goes into the first pair of someone in your slots, in order from your first slot. That pair adds data for that person, and less for you.';
+
+  @override
+  String get inviteTreeIntroFullLess =>
+      'The further away a slot is, the less it adds for you. Slots very far away add nothing.';
+
+  @override
+  String get inviteTreeIntroNextFriend => 'Your next friend';
+
+  @override
+  String get inviteTreeIntroLaterFriend => 'A later friend';
+
+  @override
+  String get inviteTreeIntroFullArt =>
+      'A later friend takes an open slot in the first pair of someone in your slots. That pair adds data for that person, and less for you.';
+
+  @override
+  String get inviteTreeIntroOthersTitle =>
+      'Your first pair can hold people you did not invite';
+
+  @override
+  String get inviteTreeIntroOthersWhy =>
+      'You joined with a friend\'s code. When their slots are full, their next friends can take an open slot in your first pair. Friends of other people can too. Whoever takes it adds data for you in the same way as your own friends.';
+
+  @override
+  String get inviteTreeIntroOthersYours =>
+      'Your own friends fill your other open slots, and after that, open slots further away.';
+
+  @override
+  String get inviteTreeIntroNotInvited => 'Not invited by you';
+
+  @override
+  String get inviteTreeIntroOthersArt =>
+      'An example of your first pair, with a friend you invited and a person you did not invite. Both add data for you while they are active.';
+
+  @override
+  String get inviteTreeIntroShareTitle => 'Invite friends who will use Fortiva';
+
+  @override
+  String get inviteTreeIntroShareBody =>
+      'A friend adds data for you only while they are active. Send your invite to friends who need a VPN.';
+
+  @override
+  String get inviteTreeQaTitle => 'Questions and answers';
+
+  @override
+  String get inviteTreeQaCountQ =>
+      'My friend entered my code. When do they take a slot?';
+
+  @override
+  String get inviteTreeQaCountDay =>
+      'A day counts only when they use some data through the VPN that day. Opening the app is not enough. There is no deadline for these days.';
+
+  @override
+  String get inviteTreeQaCountOther =>
+      'A phone that already entered a code cannot enter another one. You and a friend cannot enter each other\'s codes.';
+
+  @override
+  String get inviteTreeQaDownQ => 'Why did my bonus go down?';
+
+  @override
+  String get inviteTreeQaDownA =>
+      'Someone who adds data for you is not active now. It can be a friend in your slots or someone further away. When they use Fortiva again, they add data again.';
+
+  @override
+  String get inviteTreeQaDownLater =>
+      'A friend who stops still counts as active for a while. So your bonus can go down a while after they stop.';
+
+  @override
+  String get inviteTreeQaDownRemoved =>
+      'Your bonus can also go down when an invite is removed, for example when that friend deletes their Fortiva account.';
+
+  @override
+  String get inviteTreeQaFullQ => 'What happens when my slots are full?';
+
+  @override
+  String get inviteTreeQaFullFurther =>
+      'When those first pairs are full too, your next friend goes further away, into the first pair of someone in those pairs. That pair adds data for that person, and smaller amounts for you and for each person between you.';
+
+  @override
+  String get inviteTreeQaFriendsQ => 'Do my friends\' friends add data for me?';
+
+  @override
+  String get inviteTreeQaFriendsA =>
+      'Some of them do. The first pair of each person in your slots adds data for that person, and a smaller amount for you. Their other pairs add data only for them. Further away, only first pairs add data for you, and the further away they are, the less they add, until they add nothing.';
+
+  @override
+  String get inviteTreeQaOthersQ =>
+      'Who are the people in my slots I did not invite?';
+
+  @override
+  String get inviteTreeQaOthersA =>
+      'They are friends of someone whose slots are full, for example the person who invited you. They took an open slot in your first pair, and you cannot choose or remove them. They add data for you in the same way as your own friends.';
+
+  @override
+  String get inviteTreeQaSumQ =>
+      'Why is my bonus different from the amounts on the invite screen?';
+
+  @override
+  String get inviteTreeQaSumA =>
+      'Each row in \"Through your slots\" shows what the people in that row add now. Your bonus is their total, up to the limit.';
+
+  @override
+  String get inviteTreeQaSlotQ => 'Can I free a slot or choose who takes it?';
+
+  @override
+  String get inviteTreeQaSlotA =>
+      'No. A friend keeps their slot even when they stop using Fortiva. Their slot opens again only when their invite is removed, for example when they delete their Fortiva account. Open slots are filled in order, and nobody can choose who takes one.';
+
+  @override
+  String get inviteTreeQaPrivacyQ =>
+      'Can my friends see whether I use Fortiva?';
+
+  @override
+  String get inviteTreeQaPrivacyA =>
+      'If you joined with a friend\'s code, the person whose slot you are in can see whether you are active or not active now. Other people see only how many people are active, not who. The invite screen never shows anyone\'s name, phone or how much they use.';
+
+  @override
+  String get inviteTreeQaLimitQ => 'Is there a limit?';
+
+  @override
+  String get inviteTreeQaLimitMore =>
+      'Once your invites add that much, more friends do not add more data.';
+
+  @override
+  String get inviteTreeQaKeptQ => 'What happens to the bonus I already have?';
+
+  @override
+  String get inviteTreeQaKeptMore =>
+      'When the bonus from your earlier invites is more than what your friends add now, you get that bonus instead. The two are not added together.';
+
+  @override
+  String get inviteTreeQaKeptRemoved =>
+      'An invite is removed when that friend deletes their Fortiva account, or when Fortiva cancels it for misuse.';
+
+  @override
+  String get inviteTreeQaChangedQ => 'What changed in invites?';
+
+  @override
+  String get inviteTreeQaChangedA =>
+      'Before, each friend who qualified added a fixed amount of data. Now friends add data while they are active, through your slots and pairs, and your bonus can go down.';
+
+  @override
+  String get inviteTreeQaPremiumQ => 'Do invites add Premium days?';
+
+  @override
+  String get inviteTreeQaPremiumOwn =>
+      'It does not matter which slot your friend takes. People you did not invite do not add Premium days.';
+
+  @override
+  String get inviteTreeQaGetsQ => 'Does my friend get anything?';
+
+  @override
+  String get inviteTreeQaGetsA =>
+      'Not for entering your code. Like everyone, they have their own code and slots, and friends who join with their code add data for them. Once they qualify, their first pair can also hold people they did not invite, and those people add data for them too.';
+
+  @override
+  String get inviteTreeQaGetsSee =>
+      'If they are in your slots, you can see whether they are active or not active now. You never see their name or how much they use.';
+
+  @override
+  String get inviteTreeKeptFloor =>
+      'Your bonus is now the amount kept from your earlier invites. It goes up once your friends together add more than that.';
+
+  @override
+  String inviteTreeIntroTotalUpTo(String most, String total) {
+    return 'Friends can add up to $most a day. Your free data and the data from friends together can reach $total a day.';
+  }
+
+  @override
+  String get inviteTreeIntroPairsOrder =>
+      'Your first pair adds the most. Each later pair adds less.';
+
+  @override
+  String get inviteTreeIntroInvitedYou => 'Invited you';
+
+  @override
+  String get inviteTreeIntroGuide => 'Step by step guide';
+
+  @override
+  String get inviteTreeQaCostQ => 'Does my friend lose any data because of me?';
+
+  @override
+  String get inviteTreeQaCostA =>
+      'No. What a friend adds for you does not come out of their own data. Their daily data does not change because of you.';
+
+  @override
+  String get inviteTreeQaStartQ => 'When does the data from a friend start?';
+
+  @override
+  String get inviteTreeQaStartA =>
+      'As soon as your friend is in a slot and active. Your bonus is updated through the day, so it goes up soon after, on the same day. Until your friend qualifies, they add nothing.';
+
+  @override
+  String get inviteTreeQaPhoneQ =>
+      'What if my friend reinstalls Fortiva or changes phone?';
+
+  @override
+  String get inviteTreeQaPhoneA =>
+      'After a reinstall on the same phone, Fortiva usually knows the phone again, and nothing changes. A new phone is new to Fortiva. The slot is still the old phone\'s, and it counts as not active once the old phone is no longer used.';
 
   @override
   String get premiumSourceInvite => 'From your invites';

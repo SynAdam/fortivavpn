@@ -673,7 +673,7 @@ class SRu extends S {
 
   @override
   String inviteBonusPerDay(String amount) {
-    return '+$amount каждый день';
+    return '+$amount в день';
   }
 
   @override
@@ -741,12 +741,12 @@ class SRu extends S {
       few: '$days разных дня',
       one: '$days день',
     );
-    return 'Приглашение принято. Ваш друг получит бонусный трафик, когда вы воспользуетесь VPN в $_temp0.';
+    return 'Приглашение принято. Оно засчитается, когда вы, начиная с сегодняшнего дня, воспользуетесь VPN в $_temp0.';
   }
 
   @override
   String get inviteClaimAcceptedNoDays =>
-      'Приглашение принято. Ваш друг получит бонусный трафик, когда вы какое-то время попользуетесь VPN.';
+      'Приглашение принято. Оно засчитается, когда вы, начиная с сегодняшнего дня, какое-то время попользуетесь VPN.';
 
   @override
   String get inviteClaimAlready =>
@@ -858,16 +858,16 @@ class SRu extends S {
 
   @override
   String get inviteTreeLive =>
-      'Бонус действует, пока ваши друзья пользуются Fortiva. Если друг перестанет, бонус уменьшится.';
+      'Ваш бонус действует, пока друзья продолжают пользоваться Fortiva. Если друг перестанет, бонус может уменьшиться.';
 
   @override
   String inviteTreeNext(String amount) {
-    return 'Ваш следующий друг добавит $amount в день, когда начнёт пользоваться Fortiva.';
+    return 'Ваш следующий друг добавит $amount в день, когда его приглашение засчитают и он будет активен.';
   }
 
   @override
   String inviteTreeKept(String amount) {
-    return 'Благодаря друзьям, приглашённым раньше, ваш бонус не опустится ниже $amount в день.';
+    return 'Ваш бонус не опускается ниже $amount в день, это бонус от ваших прежних приглашений. Эта сумма может уменьшиться, только если одно из ваших приглашений удалят.';
   }
 
   @override
@@ -900,9 +900,6 @@ class SRu extends S {
 
   @override
   String get inviteTreeRowFriends => 'На ваших местах';
-
-  @override
-  String get inviteTreeRowFriendsSlots => 'На их местах';
 
   @override
   String inviteTreeRowSteps(int steps) {
@@ -981,12 +978,12 @@ class SRu extends S {
       few: '$days дня',
       one: '$days день',
     );
-    return 'Друг считается активным, если за последние $_temp0 он пользовался Fortiva хотя бы $_temp1.';
+    return 'Друг считается активным, если за последние $_temp0 он пользовался VPN хотя бы $_temp1.';
   }
 
   @override
   String get inviteTreeHowActiveNoNumber =>
-      'Друг считается активным, пока продолжает пользоваться Fortiva.';
+      'Друг считается активным, пока продолжает пользоваться VPN.';
 
   @override
   String inviteTreeHowCap(String max) {
@@ -1027,12 +1024,8 @@ class SRu extends S {
   String get inviteTreeIntroSlotsTitle => 'Друзья занимают ваши места парами';
 
   @override
-  String get inviteTreeIntroSlotsWhen =>
-      'Друг занимает место, когда начинает пользоваться Fortiva.';
-
-  @override
   String get inviteTreeIntroSlotsArt =>
-      'Ваши места парами, которые заполняются, когда приходят друзья.';
+      'Вы, ваш код приглашения и ваши места парами. Каждое место показывает, свободно ли оно, или активен ли человек в нём сейчас.';
 
   @override
   String get inviteTreeIntroPairTitle =>
@@ -1063,26 +1056,7 @@ class SRu extends S {
   }
 
   @override
-  String get inviteTreeIntroPairArt =>
-      'Пара мест. Она добавляет больше трафика, когда оба друга в ней активны.';
-
-  @override
-  String get inviteTreeIntroFurtherTitle =>
-      'Друзья подальше тоже добавляют трафик';
-
-  @override
-  String get inviteTreeIntroFirstPairOnly =>
-      'Из мест вашего друга трафик для вас добавляет только его первая пара.';
-
-  @override
   String get inviteTreeIntroYourFriend => 'Ваш друг';
-
-  @override
-  String get inviteTreeIntroTheirPair => 'Его первая пара';
-
-  @override
-  String get inviteTreeIntroFurtherArt =>
-      'Первая пара вашего друга добавляет трафик ему и вам. Пары подальше добавляют меньше.';
 
   @override
   String get inviteTreeIntroTotalTitle => 'Ваш трафик от друзей';
@@ -1108,7 +1082,7 @@ class SRu extends S {
 
   @override
   String inviteTreeSheetNext(String amount) {
-    return 'Ваш следующий друг добавит $amount в день, когда начнёт пользоваться Fortiva. К сегодняшнему трафику это не добавится.';
+    return 'Ваш следующий друг добавит $amount в день, когда его приглашение засчитают и он будет активен. К сегодняшнему трафику это не добавится.';
   }
 
   @override
@@ -1120,13 +1094,13 @@ class SRu extends S {
       days,
       locale: localeName,
       other:
-          'Каждый друг, который начнёт пользоваться Fortiva, также добавит вам $days дня Премиума.',
+          'Каждый друг, чьё приглашение по вашему коду засчитано, также добавляет вам $days дня Премиума.',
       many:
-          'Каждый друг, который начнёт пользоваться Fortiva, также добавит вам $days дней Премиума.',
+          'Каждый друг, чьё приглашение по вашему коду засчитано, также добавляет вам $days дней Премиума.',
       few:
-          'Каждый друг, который начнёт пользоваться Fortiva, также добавит вам $days дня Премиума.',
+          'Каждый друг, чьё приглашение по вашему коду засчитано, также добавляет вам $days дня Премиума.',
       one:
-          'Каждый друг, который начнёт пользоваться Fortiva, также добавит вам $days день Премиума.',
+          'Каждый друг, чьё приглашение по вашему коду засчитано, также добавляет вам $days день Премиума.',
     );
     return '$_temp0';
   }
@@ -1143,6 +1117,340 @@ class SRu extends S {
     );
     return '$_temp0';
   }
+
+  @override
+  String inviteTreeIntroSlotsBody(int slots) {
+    String _temp0 = intl.Intl.pluralLogic(
+      slots,
+      locale: localeName,
+      other: '$slots места',
+      many: '$slots мест',
+      few: '$slots места',
+      one: '$slots место',
+    );
+    return 'Друзья, которые присоединяются по вашему коду, могут добавлять трафик к вашему дневному трафику. У вас $_temp0 для них. На каждом месте может быть друг, а места идут парами. Сначала заполняется ваша первая пара. Когда ваши места заполнены, друзья всё равно могут присоединяться.';
+  }
+
+  @override
+  String get inviteTreeIntroSlotsBodyNoNumber =>
+      'Друзья, которые присоединяются по вашему коду, могут добавлять трафик к вашему дневному трафику. У вас есть места для них. На каждом месте может быть друг, а места идут парами. Сначала заполняется ваша первая пара. Когда ваши места заполнены, друзья всё равно могут присоединяться.';
+
+  @override
+  String get inviteTreeIntroJoinTitle => 'Как друг занимает место';
+
+  @override
+  String inviteTreeIntroJoinCode(int hours) {
+    String _temp0 = intl.Intl.pluralLogic(
+      hours,
+      locale: localeName,
+      other: '$hours часа',
+      many: '$hours часов',
+      few: '$hours часов',
+      one: '$hours часа',
+    );
+    return 'Ваш друг должен ввести ваш код на своём экране приглашений в течение $_temp0 после установки Fortiva.';
+  }
+
+  @override
+  String get inviteTreeIntroJoinCodeNoNumber =>
+      'Ваш друг должен ввести ваш код на своём экране приглашений вскоре после установки Fortiva.';
+
+  @override
+  String inviteTreeIntroJoinQualify(int days) {
+    String _temp0 = intl.Intl.pluralLogic(
+      days,
+      locale: localeName,
+      other:
+          'После этого он должен пользоваться VPN в $days разных дня. Тогда его приглашение засчитывается, и он занимает следующее свободное место.',
+      many:
+          'После этого он должен пользоваться VPN в $days разных дней. Тогда его приглашение засчитывается, и он занимает следующее свободное место.',
+      few:
+          'После этого он должен пользоваться VPN в $days разных дня. Тогда его приглашение засчитывается, и он занимает следующее свободное место.',
+      one:
+          'После этого он должен пользоваться VPN $days день. Тогда его приглашение засчитывается, и он занимает следующее свободное место.',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get inviteTreeIntroJoinQualifyNoNumber =>
+      'После этого он должен какое-то время пользоваться VPN. Тогда его приглашение засчитывается, и он занимает следующее свободное место.';
+
+  @override
+  String get inviteTreeIntroJoinPlay =>
+      'Если он установит Fortiva из Google Play по вашей ссылке, код введётся за него.';
+
+  @override
+  String get inviteTreeIntroJoinWaiting =>
+      'Пока его приглашение не засчитано, ваш экран приглашений учитывает его в графе «Приглашено», но ещё не в графе «Засчитано».';
+
+  @override
+  String get inviteTreeIntroJoinStepCode => 'Вводит ваш код';
+
+  @override
+  String get inviteTreeIntroJoinStepUse => 'Пользуется VPN';
+
+  @override
+  String get inviteTreeIntroJoinStepSlot => 'Занимает место';
+
+  @override
+  String get inviteTreeIntroJoinArt =>
+      'Друг вводит ваш код, пользуется VPN в разные дни, а затем занимает следующее свободное место.';
+
+  @override
+  String get inviteTreeIntroPairsBody =>
+      'Каждая пара может добавлять вам трафик. Больше всего она добавляет, когда оба человека в ней активны.';
+
+  @override
+  String get inviteTreeIntroPairsCaption =>
+      'Сколько каждая пара добавляет к вашему трафику в день';
+
+  @override
+  String get inviteTreeIntroBothActive => 'Оба активны';
+
+  @override
+  String get inviteTreeIntroOneActive => 'Активен один';
+
+  @override
+  String inviteTreeIntroPlus(String amount) {
+    return '+$amount';
+  }
+
+  @override
+  String get inviteTreeIntroNothing => 'Ничего';
+
+  @override
+  String get inviteTreeIntroPairNow =>
+      'Выделенные значения показывают, сколько ваши пары добавляют сейчас.';
+
+  @override
+  String get inviteTreeIntroPairsArt =>
+      'Ваши пары и сколько каждая добавляет в день, когда активны оба человека в ней и когда активен один.';
+
+  @override
+  String get inviteTreeIntroActiveTitle =>
+      'Друг добавляет трафик, пока он активен';
+
+  @override
+  String get inviteTreeIntroActiveStops =>
+      'Если друг перестаёт пользоваться Fortiva, его пара добавляет меньше, и ваш бонус может уменьшиться. Его место остаётся за ним. Когда он снова начинает пользоваться Fortiva, его пара снова добавляет больше.';
+
+  @override
+  String get inviteTreeIntroActiveFar =>
+      'Люди, которые находятся дальше и добавляют вам трафик, тоже учитываются, только пока они активны.';
+
+  @override
+  String get inviteTreeIntroActiveArt =>
+      'Пара, в которой друг перестал пользоваться Fortiva. Теперь эта пара добавляет меньше.';
+
+  @override
+  String get inviteTreeIntroFullTitle => 'Когда ваши места заполнены';
+
+  @override
+  String get inviteTreeIntroFullBody =>
+      'Когда все ваши места заняты, ваш следующий друг попадает в первую пару кого-то из тех, кто на ваших местах, по порядку начиная с вашего первого места. Эта пара добавляет трафик этому человеку, а вам меньше.';
+
+  @override
+  String get inviteTreeIntroFullLess =>
+      'Чем дальше место, тем меньше оно добавляет вам. Очень далёкие места ничего не добавляют.';
+
+  @override
+  String get inviteTreeIntroNextFriend => 'Ваш следующий друг';
+
+  @override
+  String get inviteTreeIntroLaterFriend => 'Друг, который придёт позже';
+
+  @override
+  String get inviteTreeIntroFullArt =>
+      'Друг, пришедший позже, занимает свободное место в первой паре кого-то из тех, кто на ваших местах. Эта пара добавляет трафик этому человеку, а вам меньше.';
+
+  @override
+  String get inviteTreeIntroOthersTitle =>
+      'В вашей первой паре могут быть люди, которых вы не приглашали';
+
+  @override
+  String get inviteTreeIntroOthersWhy =>
+      'Вы присоединились по коду друга. Когда его места заполнены, его следующие друзья могут занять свободное место в вашей первой паре. Друзья других людей тоже могут. Кто бы его ни занял, он добавляет вам трафик так же, как ваши собственные друзья.';
+
+  @override
+  String get inviteTreeIntroOthersYours =>
+      'Ваши собственные друзья заполняют ваши остальные свободные места, а после этого свободные места дальше.';
+
+  @override
+  String get inviteTreeIntroNotInvited => 'Не приглашён вами';
+
+  @override
+  String get inviteTreeIntroOthersArt =>
+      'Пример вашей первой пары: друг, которого вы пригласили, и человек, которого вы не приглашали. Оба добавляют вам трафик, пока активны.';
+
+  @override
+  String get inviteTreeIntroShareTitle =>
+      'Приглашайте друзей, которые будут пользоваться Fortiva';
+
+  @override
+  String get inviteTreeIntroShareBody =>
+      'Друг добавляет вам трафик, только пока он активен. Отправьте приглашение друзьям, которым нужен VPN.';
+
+  @override
+  String get inviteTreeQaTitle => 'Вопросы и ответы';
+
+  @override
+  String get inviteTreeQaCountQ =>
+      'Мой друг ввёл мой код. Когда он займёт место?';
+
+  @override
+  String get inviteTreeQaCountDay =>
+      'День засчитывается, только если в этот день он использует через VPN хоть немного трафика. Просто открыть приложение недостаточно. Срока для этих дней нет.';
+
+  @override
+  String get inviteTreeQaCountOther =>
+      'Телефон, на котором уже ввели код, не может ввести другой. Вы и ваш друг не можете ввести коды друг друга.';
+
+  @override
+  String get inviteTreeQaDownQ => 'Почему мой бонус уменьшился?';
+
+  @override
+  String get inviteTreeQaDownA =>
+      'Кто-то, кто добавляет вам трафик, сейчас не активен. Это может быть друг на ваших местах или кто-то дальше. Когда он снова начнёт пользоваться Fortiva, он снова будет добавлять трафик.';
+
+  @override
+  String get inviteTreeQaDownLater =>
+      'Друг, который перестал пользоваться приложением, ещё какое-то время считается активным. Поэтому ваш бонус может уменьшиться не сразу, а через некоторое время.';
+
+  @override
+  String get inviteTreeQaDownRemoved =>
+      'Ваш бонус может уменьшиться и тогда, когда приглашение удаляется, например когда этот друг удаляет свой аккаунт Fortiva.';
+
+  @override
+  String get inviteTreeQaFullQ => 'Что будет, когда мои места заполнятся?';
+
+  @override
+  String get inviteTreeQaFullFurther =>
+      'Когда и эти первые пары заполнены, ваш следующий друг попадает дальше, в первую пару кого-то из тех, кто в этих парах. Эта пара добавляет трафик этому человеку, а вам и каждому, кто между вами, меньше.';
+
+  @override
+  String get inviteTreeQaFriendsQ => 'Друзья моих друзей добавляют мне трафик?';
+
+  @override
+  String get inviteTreeQaFriendsA =>
+      'Некоторые да. Первая пара каждого, кто на ваших местах, добавляет трафик этому человеку, а вам меньше. Остальные их пары добавляют трафик только им. Дальше трафик вам добавляют только первые пары, и чем они дальше, тем меньше, пока не перестают добавлять совсем.';
+
+  @override
+  String get inviteTreeQaOthersQ =>
+      'Кто эти люди на моих местах, которых я не приглашал?';
+
+  @override
+  String get inviteTreeQaOthersA =>
+      'Это друзья кого-то, чьи места заполнены, например того, кто вас пригласил. Они заняли свободное место в вашей первой паре, и вы не можете выбрать или убрать их. Они добавляют вам трафик так же, как ваши собственные друзья.';
+
+  @override
+  String get inviteTreeQaSumQ =>
+      'Почему мой бонус отличается от значений на экране приглашений?';
+
+  @override
+  String get inviteTreeQaSumA =>
+      'Каждая строка в разделе «Через ваши места» показывает, сколько сейчас добавляют люди этой строки. Ваш бонус равен их сумме, но не больше лимита.';
+
+  @override
+  String get inviteTreeQaSlotQ =>
+      'Можно освободить место или выбрать, кто его займёт?';
+
+  @override
+  String get inviteTreeQaSlotA =>
+      'Нет. Друг сохраняет своё место, даже если перестаёт пользоваться Fortiva. Его место снова освобождается, только когда его приглашение удаляется, например когда он удаляет свой аккаунт Fortiva. Свободные места заполняются по порядку, и никто не может выбрать, кто их займёт.';
+
+  @override
+  String get inviteTreeQaPrivacyQ => 'Видят ли друзья, пользуюсь ли я Fortiva?';
+
+  @override
+  String get inviteTreeQaPrivacyA =>
+      'Если вы присоединились по коду друга, тот, у кого вы занимаете место, видит, активны вы или сейчас не активны. Остальные видят только, сколько людей активны, но не кто именно. Экран приглашений никогда не показывает ничьё имя, телефон или расход трафика.';
+
+  @override
+  String get inviteTreeQaLimitQ => 'Есть ли лимит?';
+
+  @override
+  String get inviteTreeQaLimitMore =>
+      'Когда ваши приглашения добавляют столько, новые друзья больше трафика не добавляют.';
+
+  @override
+  String get inviteTreeQaKeptQ =>
+      'Что будет с бонусом, который у меня уже есть?';
+
+  @override
+  String get inviteTreeQaKeptMore =>
+      'Если бонус от ваших прежних приглашений больше того, что сейчас добавляют друзья, вы получаете этот бонус, а не то, что добавляют друзья. Эти суммы не складываются.';
+
+  @override
+  String get inviteTreeQaKeptRemoved =>
+      'Приглашение удаляется, когда этот друг удаляет свой аккаунт Fortiva или когда Fortiva отменяет его из-за злоупотребления.';
+
+  @override
+  String get inviteTreeQaChangedQ => 'Что изменилось в приглашениях?';
+
+  @override
+  String get inviteTreeQaChangedA =>
+      'Раньше каждый засчитанный друг добавлял фиксированный объём трафика. Теперь друзья добавляют трафик, пока они активны, через ваши места и пары, и ваш бонус может уменьшаться.';
+
+  @override
+  String get inviteTreeQaPremiumQ => 'Добавляют ли приглашения дни Премиума?';
+
+  @override
+  String get inviteTreeQaPremiumOwn =>
+      'Неважно, какое место займёт ваш друг. Люди, которых вы не приглашали, не добавляют дни Премиума.';
+
+  @override
+  String get inviteTreeQaGetsQ => 'Получает ли что-то мой друг?';
+
+  @override
+  String get inviteTreeQaGetsA =>
+      'За ввод вашего кода нет. Как и у всех, у него есть свой код и свои места, и друзья, которые присоединяются по его коду, добавляют ему трафик. Когда его приглашение засчитано, в его первой паре тоже могут оказаться люди, которых он не приглашал, и они тоже добавляют ему трафик.';
+
+  @override
+  String get inviteTreeQaGetsSee =>
+      'Если он на ваших местах, вы видите, активен он или сейчас не активен. Вы никогда не видите его имя или расход трафика.';
+
+  @override
+  String get inviteTreeKeptFloor =>
+      'Сейчас ваш бонус равен сумме, сохранённой от ваших прежних приглашений. Он вырастет, когда друзья вместе будут добавлять больше этой суммы.';
+
+  @override
+  String inviteTreeIntroTotalUpTo(String most, String total) {
+    return 'Друзья могут добавить до $most в день. Ваш бесплатный трафик вместе с трафиком от друзей может достичь $total в день.';
+  }
+
+  @override
+  String get inviteTreeIntroPairsOrder =>
+      'Больше всего добавляет ваша первая пара. Каждая следующая пара добавляет меньше.';
+
+  @override
+  String get inviteTreeIntroInvitedYou => 'Пригласил вас';
+
+  @override
+  String get inviteTreeIntroGuide => 'Объяснение по шагам';
+
+  @override
+  String get inviteTreeQaCostQ => 'Теряет ли мой друг трафик из-за меня?';
+
+  @override
+  String get inviteTreeQaCostA =>
+      'Нет. То, что друг добавляет вам, не вычитается из его собственного трафика. Его дневной трафик из-за вас не меняется.';
+
+  @override
+  String get inviteTreeQaStartQ =>
+      'Когда начинает добавляться трафик от друга?';
+
+  @override
+  String get inviteTreeQaStartA =>
+      'Как только друг занял место и активен. Ваш бонус время от времени обновляется, поэтому он вырастет вскоре после этого, в тот же день. Пока приглашение друга не засчитано, он ничего не добавляет.';
+
+  @override
+  String get inviteTreeQaPhoneQ =>
+      'Что если друг переустановит Fortiva или сменит телефон?';
+
+  @override
+  String get inviteTreeQaPhoneA =>
+      'После переустановки на том же телефоне Fortiva обычно узнаёт телефон, и ничего не меняется. Новый телефон для Fortiva новый. Место по-прежнему принадлежит старому телефону и считается неактивным, когда старым телефоном перестают пользоваться.';
 
   @override
   String get premiumSourceInvite => 'За ваши приглашения';

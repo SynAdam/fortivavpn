@@ -360,7 +360,11 @@ class _InviteCard extends StatelessWidget {
     final status = referrals?.status;
     final noMore = referrals?.invitesAddNoMore ?? false;
     final tree = status?.isTree ?? false;
-    final line = _amountLine(context, status);
+    final line = _amountLine(
+      context,
+      status,
+      belowKept: referrals?.nextFriendBelowKept ?? false,
+    );
 
     final Widget body;
     if (noMore) {
@@ -482,7 +486,8 @@ class _InviteCard extends StatelessWidget {
                   key: const Key('limit-sheet-intro'),
                   onPressed: onIntro,
                   icon: const Icon(Icons.auto_stories_outlined, size: 18),
-                  label: Text(l10n.inviteTreeIntroTitle),
+                  // A short name: the story's own title wraps here.
+                  label: Text(l10n.inviteTreeIntroGuide),
                   style: TextButton.styleFrom(
                     foregroundColor: AppDesign.textSecondary,
                     minimumSize: const Size(48, 48),
@@ -516,15 +521,24 @@ class _InviteCard extends StatelessWidget {
 
   /// What the next friend adds, from the status the backend sent. Every
   /// amount and day count is the backend's; with none, a line that names
-  /// no number.
-  static String _amountLine(BuildContext context, ReferralStatus? status) {
+  /// no number. [belowKept] is ReferralState.nextFriendBelowKept: the
+  /// bonus is the part kept from earlier invites, which one more friend
+  /// does not lift.
+  static String _amountLine(
+    BuildContext context,
+    ReferralStatus? status, {
+    required bool belowKept,
+  }) {
     final l10n = S.of(context)!;
     if (status == null) return l10n.premiumLimitInviteNoAmount;
     if (status.isTree) {
       final next = status.nextInviteBytes;
-      return next == null
-          ? l10n.premiumLimitInviteNoAmount
-          : l10n.inviteTreeSheetNext(inviteAmountText(context, next));
+      if (next != null) {
+        return l10n.inviteTreeSheetNext(inviteAmountText(context, next));
+      }
+      return belowKept
+          ? l10n.inviteTreeKeptFloor
+          : l10n.premiumLimitInviteNoAmount;
     }
     var each = status.bonusPerReferralBytes;
     final most = status.maxBonusBytes;
@@ -566,8 +580,8 @@ class _GiftDisc extends StatelessWidget {
   }
 }
 
-/// One friend joining the user: a line draws in from the gift, the
-/// friend's slot turns active, and a plus lands on the gift. It plays once
+/// One friend joining the user: a line draws in from the gift, and the
+/// friend's slot turns active. It plays once
 /// as the sheet opens, and starts at its last frame under reduced motion.
 /// It shows a single friend, which is true under both invite rules.
 class _OneFriendArt extends StatelessWidget {
@@ -579,7 +593,6 @@ class _OneFriendArt extends StatelessWidget {
   static const double _heroDisc = 40;
   static const double _lineWidth = 24;
   static const double _slotDisc = 28;
-  static const double _badgeDisc = 12;
 
   double _part(
     double t,
@@ -602,38 +615,9 @@ class _OneFriendArt extends StatelessWidget {
           builder: (context, t, _) {
             final line = _part(t, 0.25, 0.55, AppMotion.emphasizedDecelerate);
             final slot = _part(t, 0.55, 0.85, AppMotion.emphasizedDecelerate);
-            final badge = _part(t, 0.85, 1);
             return Row(
               children: [
-                SizedBox(
-                  width: _heroDisc,
-                  height: _heroDisc,
-                  child: Stack(
-                    clipBehavior: Clip.none,
-                    children: [
-                      const _GiftDisc(size: _heroDisc),
-                      PositionedDirectional(
-                        end: -2,
-                        bottom: -2,
-                        child: Container(
-                          width: _badgeDisc,
-                          height: _badgeDisc,
-                          decoration: BoxDecoration(
-                            color: AppDesign.protected.withValues(alpha: badge),
-                            shape: BoxShape.circle,
-                          ),
-                          child: Icon(
-                            Icons.add_rounded,
-                            size: 9,
-                            color: AppDesign.onProtected.withValues(
-                              alpha: badge,
-                            ),
-                          ),
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
+                const _GiftDisc(size: _heroDisc),
                 SizedBox(
                   width: _lineWidth,
                   child: Align(

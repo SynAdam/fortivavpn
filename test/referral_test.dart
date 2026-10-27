@@ -164,13 +164,26 @@ void main() {
       expect(status.pairs[1].full, isTrue);
       final empty = status.pairs[2];
       expect(empty.slots, [TreeSlot.empty, TreeSlot.empty]);
-      // Zero is an answer here: one alone gives nothing, and nothing now.
-      expect(empty.oneBytes, 0);
+      expect(empty.oneBytes, 300 << 20);
+      // Zero is an answer here: nothing now.
       expect(empty.nowBytes, 0);
+      final none = ReferralStatus.fromJson(
+        treeAnswer()
+          ..['pairs'] = [
+            {
+              'states': ['empty', 'empty'],
+              'full_bytes': 600 << 20,
+              'one_bytes': 0,
+              'now_bytes': 0,
+            },
+          ],
+      );
+      // Zero is an answer too: one alone gives nothing.
+      expect(none.pairs.single.oneBytes, 0);
 
       expect(status.levels, hasLength(3));
       expect(status.levels.first.level, 1);
-      expect(status.levels.first.people, 3);
+      expect(status.levels.first.people, 4);
       expect(status.levels.first.active, 3);
       expect(status.levels.first.bytes, 5 << 29);
       expect(status.levels.last.active, 0);

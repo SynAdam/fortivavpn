@@ -161,6 +161,13 @@ class VpnService extends ChangeNotifier {
   bool get isConnecting => _status == VpnStatus.connecting || _isEnablingVpn;
   bool get isVerifying => _isVerifying;
 
+  /// When the traffic of the current connection, or of the last one, was
+  /// first found to flow. Null from the start of a connect until its first
+  /// check passes. Kept with the connection, so a tunnel the app found
+  /// already up has the time of its own check. Not cleared when the tunnel
+  /// goes down, so read it only while the tunnel is up.
+  DateTime? get verifiedAt => _verifiedAt;
+
   /// How many passes of the traffic check have failed on the tunnel being
   /// checked now ([isVerifying]). 0 until its first pass has failed, and
   /// whenever no tunnel is being checked.

@@ -146,7 +146,7 @@ void main() {
   testWidgets('the earned bonus reads as a whole number', (tester) async {
     await pump(tester, _status(perReferral: 1 << 30, bonusBytes: 2 << 30));
 
-    expect(find.text('+2\u00A0GB every day'), findsOneWidget);
+    expect(find.text('+2\u00A0GB a day'), findsOneWidget);
     expect(find.textContaining(RegExp(r'2\.0\sGB')), findsNothing);
   });
 
@@ -159,7 +159,7 @@ void main() {
       locale: 'fa',
     );
 
-    expect(find.text('+۲\u00A0GB هر روز'), findsOneWidget);
+    expect(find.text('+۲\u00A0GB در روز'), findsOneWidget);
   });
 
   // An amount with a fraction writes its decimal sign as the quota card
@@ -173,7 +173,7 @@ void main() {
       locale: 'fa',
     );
 
-    expect(find.text('+۱\u066B۵\u00A0GB هر روز'), findsOneWidget);
+    expect(find.text('+۱\u066B۵\u00A0GB در روز'), findsOneWidget);
     expect(
       find.textContaining('۱\u066B۵\u00A0GB به دیتای روزانه شما'),
       findsOneWidget,
@@ -184,7 +184,7 @@ void main() {
   testWidgets('a fraction of a GB keeps its point in English', (tester) async {
     await pump(tester, _status(perReferral: 3 << 29, bonusBytes: 3 << 29));
 
-    expect(find.text('+1.5\u00A0GB every day'), findsOneWidget);
+    expect(find.text('+1.5\u00A0GB a day'), findsOneWidget);
     expect(find.textContaining('you get 1.5\u00A0GB added'), findsOneWidget);
   });
 

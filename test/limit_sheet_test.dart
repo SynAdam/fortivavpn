@@ -160,8 +160,8 @@ void main() {
       await expectLine(
         tester,
         treeAnswer(),
-        'Your next friend adds 300${nb}MB a day once they start using '
-        "Fortiva. It does not add to today's data.",
+        'Your next friend adds 300${nb}MB a day once they qualify and are '
+        "active. It does not add to today's data.",
       );
     });
 

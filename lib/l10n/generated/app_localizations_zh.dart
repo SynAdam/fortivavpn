@@ -705,13 +705,13 @@ class SZh extends S {
     String _temp0 = intl.Intl.pluralLogic(
       days,
       locale: localeName,
-      other: '$days 天',
+      other: '$days 个不同的日子',
     );
-    return '邀请已接受。当您累计使用 VPN $_temp0 后，您的好友将获得奖励流量。';
+    return '邀请已接受。从今天起，当您在 $_temp0使用 VPN 后，邀请就会计入。';
   }
 
   @override
-  String get inviteClaimAcceptedNoDays => '邀请已接受。当您使用 VPN 一段时间后，您的好友将获得奖励流量。';
+  String get inviteClaimAcceptedNoDays => '邀请已接受。从今天起，当您使用 VPN 一段时间后，邀请就会计入。';
 
   @override
   String get inviteClaimAlready => '此设备已使用过邀请码';
@@ -795,16 +795,16 @@ class SZh extends S {
   }
 
   @override
-  String get inviteTreeLive => '只要您的好友还在使用 Fortiva，奖励就有效。有好友停止使用时，奖励会减少。';
+  String get inviteTreeLive => '只要您的好友继续使用 Fortiva，您的奖励就会持续。如果有好友停止使用，奖励可能会下降。';
 
   @override
   String inviteTreeNext(String amount) {
-    return '您接下来邀请的好友开始使用 Fortiva 后，每天可为您增加 $amount。';
+    return '您的下一名好友达标并保持活跃后，每天增加 $amount。';
   }
 
   @override
   String inviteTreeKept(String amount) {
-    return '因为您之前邀请的好友，您的奖励每天不会低于 $amount。';
+    return '您的奖励每天不会低于 $amount，这是您之前邀请带来的奖励。只有在您的某个邀请被移除时，这个数额才可能下降。';
   }
 
   @override
@@ -837,9 +837,6 @@ class SZh extends S {
 
   @override
   String get inviteTreeRowFriends => '在您的位置中';
-
-  @override
-  String get inviteTreeRowFriendsSlots => '在他们的位置中';
 
   @override
   String inviteTreeRowSteps(int steps) {
@@ -886,11 +883,11 @@ class SZh extends S {
 
   @override
   String inviteTreeHowActive(int days, int window) {
-    return '好友在最近 $window 天内至少使用 Fortiva $days 天，就算作活跃。';
+    return '好友在最近 $window 天内至少使用 VPN $days 天，就算作活跃。';
   }
 
   @override
-  String get inviteTreeHowActiveNoNumber => '好友只要继续使用 Fortiva，就算作活跃。';
+  String get inviteTreeHowActiveNoNumber => '好友只要持续使用 VPN，就算作活跃。';
 
   @override
   String inviteTreeHowCap(String max) {
@@ -930,10 +927,8 @@ class SZh extends S {
   String get inviteTreeIntroSlotsTitle => '好友成对填满您的位置';
 
   @override
-  String get inviteTreeIntroSlotsWhen => '好友开始使用 Fortiva 后，就会占据您的一个位置。';
-
-  @override
-  String get inviteTreeIntroSlotsArt => '您的位置成对排列，随着好友加入逐渐填满。';
+  String get inviteTreeIntroSlotsArt =>
+      '您、您的邀请码，以及成对排列的您的位置。每个位置显示它是空的，或者里面的人是活跃还是当前不活跃。';
 
   @override
   String get inviteTreeIntroPairTitle => '一对中双方都活跃时，增加最多';
@@ -962,22 +957,7 @@ class SZh extends S {
   }
 
   @override
-  String get inviteTreeIntroPairArt => '一对位置。其中双方都活跃时，增加更多流量。';
-
-  @override
-  String get inviteTreeIntroFurtherTitle => '更远的好友也会增加流量';
-
-  @override
-  String get inviteTreeIntroFirstPairOnly => '在您好友的位置中，只有其第一对会为您增加流量。';
-
-  @override
   String get inviteTreeIntroYourFriend => '您的好友';
-
-  @override
-  String get inviteTreeIntroTheirPair => '其第一对';
-
-  @override
-  String get inviteTreeIntroFurtherArt => '您好友的第一对会为好友和您增加流量。更远的对增加得更少。';
 
   @override
   String get inviteTreeIntroTotalTitle => '来自好友的流量';
@@ -1003,7 +983,7 @@ class SZh extends S {
 
   @override
   String inviteTreeSheetNext(String amount) {
-    return '您接下来邀请的好友开始使用 Fortiva 后，每天可为您增加 $amount。不会计入今天的流量。';
+    return '您的下一名好友达标并保持活跃后，每天增加 $amount。这不会加到今天的流量中。';
   }
 
   @override
@@ -1014,7 +994,7 @@ class SZh extends S {
     String _temp0 = intl.Intl.pluralLogic(
       days,
       locale: localeName,
-      other: '每位开始使用 Fortiva 的好友还会为您带来 $days 天 Premium。',
+      other: '每位用您的邀请码达标的好友，还会为您增加 $days 天 Premium。',
     );
     return '$_temp0';
   }
@@ -1028,6 +1008,304 @@ class SZh extends S {
     );
     return '$_temp0';
   }
+
+  @override
+  String inviteTreeIntroSlotsBody(int slots) {
+    String _temp0 = intl.Intl.pluralLogic(
+      slots,
+      locale: localeName,
+      other:
+          '用您的邀请码加入的好友可以为您每天的流量增加额度。您有 $slots 个位置留给他们。每个位置放一名好友，位置两两成对。您的第一对位置最先填满。您的位置填满后，仍然可以有更多好友加入。',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get inviteTreeIntroSlotsBodyNoNumber =>
+      '用您的邀请码加入的好友可以为您每天的流量增加额度。您有一些位置留给他们。每个位置放一名好友，位置两两成对。您的第一对位置最先填满。您的位置填满后，仍然可以有更多好友加入。';
+
+  @override
+  String get inviteTreeIntroJoinTitle => '好友如何占到位置';
+
+  @override
+  String inviteTreeIntroJoinCode(int hours) {
+    String _temp0 = intl.Intl.pluralLogic(
+      hours,
+      locale: localeName,
+      other: '您的好友必须在安装 Fortiva 后 $hours 小时内，在自己的邀请页面输入您的邀请码。',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get inviteTreeIntroJoinCodeNoNumber =>
+      '您的好友必须在安装 Fortiva 后不久，在自己的邀请页面输入您的邀请码。';
+
+  @override
+  String inviteTreeIntroJoinQualify(int days) {
+    String _temp0 = intl.Intl.pluralLogic(
+      days,
+      locale: localeName,
+      other: '之后，他们需要在 $days 个不同的日子使用 VPN。然后他们就达标了，并占用下一个空位。',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get inviteTreeIntroJoinQualifyNoNumber =>
+      '之后，他们需要使用 VPN 一段时间。然后他们就达标了，并占用下一个空位。';
+
+  @override
+  String get inviteTreeIntroJoinPlay =>
+      '如果他们通过您的链接从 Google Play 安装，邀请码会自动替他们填好。';
+
+  @override
+  String get inviteTreeIntroJoinWaiting =>
+      '在达标之前，您的邀请页面会把他们计入「已邀请」，但还不会计入「已达标」。';
+
+  @override
+  String get inviteTreeIntroJoinStepCode => '输入您的邀请码';
+
+  @override
+  String get inviteTreeIntroJoinStepUse => '使用 VPN';
+
+  @override
+  String get inviteTreeIntroJoinStepSlot => '占用位置';
+
+  @override
+  String get inviteTreeIntroJoinArt => '好友输入您的邀请码，在不同的日子使用 VPN，然后占用下一个空位。';
+
+  @override
+  String get inviteTreeIntroPairsBody => '每一对都可以为您增加流量。一对中双方都活跃时，增加得最多。';
+
+  @override
+  String get inviteTreeIntroPairsCaption => '每一对每天为您的流量增加多少';
+
+  @override
+  String get inviteTreeIntroBothActive => '双方活跃';
+
+  @override
+  String get inviteTreeIntroOneActive => '一方活跃';
+
+  @override
+  String inviteTreeIntroPlus(String amount) {
+    return '+$amount';
+  }
+
+  @override
+  String get inviteTreeIntroNothing => '无';
+
+  @override
+  String get inviteTreeIntroPairNow => '突出显示的数额就是您的各对现在增加的流量。';
+
+  @override
+  String get inviteTreeIntroPairsArt => '您的各对位置，以及每一对在双方都活跃时和只有一方活跃时每天增加多少。';
+
+  @override
+  String get inviteTreeIntroActiveTitle => '好友在活跃期间为您增加流量';
+
+  @override
+  String get inviteTreeIntroActiveStops =>
+      '如果好友停止使用 Fortiva，他们所在的一对增加得更少，您的奖励也可能下降。他们会保留自己的位置。当他们再次使用 Fortiva 时，这一对又会增加得更多。';
+
+  @override
+  String get inviteTreeIntroActiveFar => '离您更远、为您增加流量的人，也只有在活跃期间才会计入。';
+
+  @override
+  String get inviteTreeIntroActiveArt => '其中有好友已停止使用 Fortiva 的一对。现在这一对增加得更少。';
+
+  @override
+  String get inviteTreeIntroFullTitle => '当您的位置都满了';
+
+  @override
+  String get inviteTreeIntroFullBody =>
+      '当您的位置全部被占用后，您的下一名好友会进入您位置上某个人的第一对位置，按顺序从您的第一个位置开始。这一对为那个人增加流量，为您增加得更少。';
+
+  @override
+  String get inviteTreeIntroFullLess => '位置离您越远，为您增加得越少。非常远的位置不会增加任何流量。';
+
+  @override
+  String get inviteTreeIntroNextFriend => '您的下一名好友';
+
+  @override
+  String get inviteTreeIntroLaterFriend => '以后的好友';
+
+  @override
+  String get inviteTreeIntroFullArt =>
+      '以后的好友占用您位置上某个人的第一对位置中的空位。这一对为那个人增加流量，为您增加得更少。';
+
+  @override
+  String get inviteTreeIntroOthersTitle => '您的第一对位置可能有您没有邀请的人';
+
+  @override
+  String get inviteTreeIntroOthersWhy =>
+      '您是用好友的邀请码加入的。当这位好友的位置满了，他之后的好友可以占用您第一对位置中的空位。其他人的好友也可以。无论是谁占用，都会像您自己的好友一样为您增加流量。';
+
+  @override
+  String get inviteTreeIntroOthersYours => '您自己的好友会填满您其余的空位，之后再进入更远的空位。';
+
+  @override
+  String get inviteTreeIntroNotInvited => '不是您邀请的';
+
+  @override
+  String get inviteTreeIntroOthersArt =>
+      '您的第一对位置示例：其中有您邀请的好友，也有您没有邀请的人。两者在活跃期间都会为您增加流量。';
+
+  @override
+  String get inviteTreeIntroShareTitle => '邀请会使用 Fortiva 的好友';
+
+  @override
+  String get inviteTreeIntroShareBody => '好友只有在活跃期间才会为您增加流量。把邀请发给需要 VPN 的好友吧。';
+
+  @override
+  String get inviteTreeQaTitle => '常见问题';
+
+  @override
+  String get inviteTreeQaCountQ => '我的好友输入了我的邀请码。他们什么时候占到位置？';
+
+  @override
+  String get inviteTreeQaCountDay =>
+      '只有当天通过 VPN 使用了一些流量，那天才算数。只打开应用是不够的。这些日子没有截止期限。';
+
+  @override
+  String get inviteTreeQaCountOther =>
+      '已经输入过邀请码的手机不能再输入其他邀请码。您和好友也不能互相输入对方的邀请码。';
+
+  @override
+  String get inviteTreeQaDownQ => '为什么我的奖励下降了？';
+
+  @override
+  String get inviteTreeQaDownA =>
+      '某个为您增加流量的人现在不活跃。可能是您位置上的好友，也可能是更远的人。当他们再次使用 Fortiva 时，又会为您增加流量。';
+
+  @override
+  String get inviteTreeQaDownLater =>
+      '停止使用的好友在之后一段时间内仍算作活跃。所以您的奖励可能在他们停止一段时间后才下降。';
+
+  @override
+  String get inviteTreeQaDownRemoved =>
+      '当邀请被移除时，您的奖励也可能下降，例如这位好友删除了自己的 Fortiva 账户。';
+
+  @override
+  String get inviteTreeQaFullQ => '我的位置满了以后会怎样？';
+
+  @override
+  String get inviteTreeQaFullFurther =>
+      '当这些第一对位置也满了，您的下一名好友会去得更远，进入这些对中某个人的第一对位置。这一对为那个人增加流量，并为您和你们之间的每个人增加较少的流量。';
+
+  @override
+  String get inviteTreeQaFriendsQ => '好友的好友会为我增加流量吗？';
+
+  @override
+  String get inviteTreeQaFriendsA =>
+      '其中一部分会。您位置上每个人的第一对位置为那个人增加流量，也为您增加较少的流量。他们的其他各对只为他们自己增加流量。更远的地方，只有第一对位置会为您增加流量，而且越远增加得越少，直到不再增加。';
+
+  @override
+  String get inviteTreeQaOthersQ => '我位置上那些不是我邀请的人是谁？';
+
+  @override
+  String get inviteTreeQaOthersA =>
+      '他们是某个位置已满的人的好友，例如邀请您的人的好友。他们占用了您第一对位置中的空位，您不能选择或移除他们。他们会像您自己的好友一样为您增加流量。';
+
+  @override
+  String get inviteTreeQaSumQ => '为什么我的奖励和邀请页面上的数额不一样？';
+
+  @override
+  String get inviteTreeQaSumA =>
+      '「通过您的位置」中的每一行，显示该行的人现在增加的流量。您的奖励是这些流量的总和，但不超过上限。';
+
+  @override
+  String get inviteTreeQaSlotQ => '我能空出一个位置，或者选择由谁来占用吗？';
+
+  @override
+  String get inviteTreeQaSlotA =>
+      '不能。好友即使停止使用 Fortiva，也会保留自己的位置。只有在他们的邀请被移除时，例如他们删除了自己的 Fortiva 账户，这个位置才会重新空出来。空位按顺序填满，任何人都不能选择由谁来占用。';
+
+  @override
+  String get inviteTreeQaPrivacyQ => '我的好友能看到我是否在使用 Fortiva 吗？';
+
+  @override
+  String get inviteTreeQaPrivacyA =>
+      '如果您是用好友的邀请码加入的，您所在位置的主人可以看到您是活跃还是当前不活跃。其他人只能看到有多少人活跃，看不到是谁。邀请页面从不显示任何人的名字、手机或使用量。';
+
+  @override
+  String get inviteTreeQaLimitQ => '有上限吗？';
+
+  @override
+  String get inviteTreeQaLimitMore => '当您的邀请增加到这个数额后，更多好友也不会再增加流量。';
+
+  @override
+  String get inviteTreeQaKeptQ => '我已有的奖励会怎样？';
+
+  @override
+  String get inviteTreeQaKeptMore =>
+      '当您之前邀请带来的奖励多于好友现在增加的流量时，您会获得之前的奖励。两者不会相加。';
+
+  @override
+  String get inviteTreeQaKeptRemoved =>
+      '当这位好友删除自己的 Fortiva 账户，或 Fortiva 因滥用取消该邀请时，邀请会被移除。';
+
+  @override
+  String get inviteTreeQaChangedQ => '邀请有哪些变化？';
+
+  @override
+  String get inviteTreeQaChangedA =>
+      '以前，每位达标的好友会增加固定数额的流量。现在，好友在活跃期间通过您的位置和各对增加流量，您的奖励也可能下降。';
+
+  @override
+  String get inviteTreeQaPremiumQ => '邀请会增加 Premium 天数吗？';
+
+  @override
+  String get inviteTreeQaPremiumOwn => '您的好友占用哪个位置都没关系。不是您邀请的人不会增加 Premium 天数。';
+
+  @override
+  String get inviteTreeQaGetsQ => '我的好友能得到什么吗？';
+
+  @override
+  String get inviteTreeQaGetsA =>
+      '输入您的邀请码本身不会。和所有人一样，他们有自己的邀请码和位置，用他们的邀请码加入的好友会为他们增加流量。达标后，他们的第一对位置也可能有他们没有邀请的人，这些人也会为他们增加流量。';
+
+  @override
+  String get inviteTreeQaGetsSee =>
+      '如果他们在您的位置上，您可以看到他们是活跃还是当前不活跃。您永远看不到他们的名字或使用量。';
+
+  @override
+  String get inviteTreeKeptFloor =>
+      '您现在的奖励等于之前邀请保留下来的数额。当好友加起来增加的流量超过这个数额时，奖励就会上升。';
+
+  @override
+  String inviteTreeIntroTotalUpTo(String most, String total) {
+    return '好友每天最多可为您增加 $most。您的免费流量加上好友带来的流量，每天最多可达 $total。';
+  }
+
+  @override
+  String get inviteTreeIntroPairsOrder => '您的第一对增加得最多。之后的每一对增加得更少。';
+
+  @override
+  String get inviteTreeIntroInvitedYou => '邀请您的人';
+
+  @override
+  String get inviteTreeIntroGuide => '逐步说明';
+
+  @override
+  String get inviteTreeQaCostQ => '好友会因为我而失去流量吗？';
+
+  @override
+  String get inviteTreeQaCostA => '不会。好友为您增加的流量，不会从他们自己的流量里扣除。他们每天的流量不会因为您而改变。';
+
+  @override
+  String get inviteTreeQaStartQ => '好友带来的流量从什么时候开始？';
+
+  @override
+  String get inviteTreeQaStartA =>
+      '从好友占到一个位置并且活跃时开始。您的奖励会随时更新，所以不久后、当天就会上升。好友达标之前，不会增加任何流量。';
+
+  @override
+  String get inviteTreeQaPhoneQ => '如果好友重新安装 Fortiva 或换了手机，会怎样？';
+
+  @override
+  String get inviteTreeQaPhoneA =>
+      '如果在原来的手机上重新安装，Fortiva 通常能再次认出这部手机，什么都不会改变。新手机对 Fortiva 来说是新设备。位置仍然属于旧手机，旧手机不再使用后，就会被算作不活跃。';
 
   @override
   String get premiumSourceInvite => '来自您的邀请';

@@ -34,12 +34,27 @@ class LanguageSetupScreen extends StatefulWidget {
     required this.onDone,
   });
 
+  /// Whether this screen showed in this run of the app: the first launch.
+  /// That run is for the first connect, so the home screen keeps the
+  /// introduction to the invite tree for a later run.
+  static bool get shownThisRun => _shownThisRun;
+  static bool _shownThisRun = false;
+
+  @visibleForTesting
+  static set shownThisRunForTest(bool value) => _shownThisRun = value;
+
   @override
   State<LanguageSetupScreen> createState() => _LanguageSetupScreenState();
 }
 
 class _LanguageSetupScreenState extends State<LanguageSetupScreen> {
   late String _selected = widget.suggested;
+
+  @override
+  void initState() {
+    super.initState();
+    LanguageSetupScreen._shownThisRun = true;
+  }
 
   /// "Language" in the scripts this app serves, so the heading means
   /// something whichever of them the reader knows.

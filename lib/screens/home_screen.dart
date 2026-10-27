@@ -63,6 +63,8 @@ import '../widgets/update_dialog.dart';
 import '../widgets/server_title.dart';
 import 'inbox_screen.dart';
 import 'invite_screen.dart';
+import 'invite_tree_intro_screen.dart';
+import 'language_setup_screen.dart';
 import 'my_servers_screen.dart';
 import 'peer_receive_screen.dart';
 import 'premium_screen.dart';
@@ -72,6 +74,7 @@ import 'speed_test_screen.dart';
 import '../core/state/device_state.dart';
 import '../core/state/invite_events.dart';
 import '../core/state/invite_prompt.dart';
+import '../core/state/invite_tree_intro.dart';
 import '../core/state/referral_state.dart';
 import '../api/referral_service.dart';
 import '../services/invite_share.dart';
@@ -79,6 +82,7 @@ import '../widgets/invite_card.dart';
 import '../widgets/invite_code_dialog.dart';
 
 part 'home_invite.dart';
+part 'home_tree_intro.dart';
 
 /// The home screen.
 ///
@@ -173,6 +177,20 @@ class _HomeScreenState extends State<HomeScreen> {
 
   /// The power button's focus. On a TV the remote starts on the button.
   final _powerFocus = FocusNode(debugLabel: 'power button');
+
+  /// The line under the power button, which the invite card must leave in
+  /// view (see _HomeInviteCard).
+  final _statusLineKey = GlobalKey(debugLabel: 'status line');
+
+  /// The layout of the power button and its line on a phone held upright,
+  /// which tells the invite card whether they would stay in view beside it
+  /// (see _HomeInviteCard). Not on a wide screen, where the card is in the
+  /// other half and takes no room from the button.
+  final _buttonLayoutKey = GlobalKey(debugLabel: 'power button layout');
+
+  /// The place of "Have an invite code?" under the server card, which the
+  /// invite card takes over when it shows.
+  final _haveCodeKey = GlobalKey(debugLabel: 'invite code row');
 
   /// True for the first frame after the app opened or came back to the
   /// front, and only that frame. A connect that finished while the app was
@@ -276,6 +294,13 @@ class _HomeScreenState extends State<HomeScreen> {
     },
   );
 
+  /// The introduction to the invite tree, which opens by itself once. See
+  /// _HomeTreeIntro, in home_tree_intro.dart. First read in initState.
+  late final _HomeTreeIntro _treeIntro = _HomeTreeIntro(
+    host: this,
+    record: context.read<InviteTreeIntroRecord?>(),
+  );
+
   /// The refill ([QuotaStatus.resetsAt], as ISO text) the limit sheet last
   /// opened for. It opens by itself at most once per refill. Cleared when
   /// the account is deleted.
@@ -327,7 +352,9 @@ class _HomeScreenState extends State<HomeScreen> {
         // The phone may be on another network now, or back from the APN
         // screen with an IPv6 route, which takes the card away.
         _refreshApnGuide();
+        _invite.resumed();
         _invite.check();
+        _treeIntro.check();
       },
       onHide: () {
         _checkPopup();
@@ -335,6 +362,7 @@ class _HomeScreenState extends State<HomeScreen> {
         _checkNoticePrompt();
         _checkPremiumPrompt();
         _invite.check();
+        _treeIntro.check();
         _limitTimer?.cancel();
         _limitTimer = null;
       },
@@ -346,6 +374,7 @@ class _HomeScreenState extends State<HomeScreen> {
     _watchForLimitSheet();
     _watchForApnGuide();
     _invite.watch(context);
+    _treeIntro.watch(context);
     unawaited(_checkNetwork());
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (!mounted) return;
@@ -425,6 +454,7 @@ class _HomeScreenState extends State<HomeScreen> {
     _limitFlow?.removeListener(_checkLimitSheet);
     _apnConfig?.removeListener(_refreshApnGuide);
     _invite.dispose();
+    _treeIntro.dispose();
     super.dispose();
   }
 
@@ -500,6 +530,9 @@ class _HomeScreenState extends State<HomeScreen> {
       if (_review?.askedThisRun ?? false) return;
       if (_premiumPrompt?.shownThisRun ?? false) return;
       if (_invite.prompt?.shownThisRun ?? false) return;
+      // The same once the introduction to the invite tree has opened: it
+      // is this run's popup, even when the message landed after it.
+      if (_treeIntro.shownThisRun) return;
       // Something else has the screen: another page on top, the update
       // dialog, or a popup already up. Look again shortly rather than
       // stacking on it.
@@ -599,6 +632,9 @@ class _HomeScreenState extends State<HomeScreen> {
     if (_calmCardUp || _limitSheetOpen) return false;
     if (_review?.askedThisRun ?? false) return false;
     if ((_invite.prompt?.shownThisRun ?? false) || _invite.up) return false;
+    // The introduction to the invite tree goes first, and once it has
+    // opened it is this run's popup.
+    if (_treeIntro.shownThisRun || _treeIntro.waiting) return false;
     // A message pops up only with the tunnel up; it goes first, and the
     // question follows once it is closed.
     final messages = _messages;
@@ -749,13 +785,19 @@ class _HomeScreenState extends State<HomeScreen> {
 
   /// The rule [_reviewMayShow] states, for the rating card and the calm
   /// Premium card alike. Neither shows in a run the other showed in.
-  bool _cardMayShow(VpnService vpn, ConnectFlow? flow) {
+  bool _cardMayShow(VpnService vpn, ConnectFlow? flow) =>
+      _calmWith(vpn, flow) && _runAllowsCard(vpn);
+
+  /// [_cardMayShow] apart from the calm: what keeps any card or popup of
+  /// this screen away, whether the tunnel is up or the user has just ended
+  /// it (see _HomeInviteCard).
+  bool _runAllowsCard(VpnService vpn) {
     // Play's rating card is made for phones. On a TV the Settings item,
     // which opens the store, is the way to rate.
     if (FormFactor.isTv) return false;
-    if (!_calmWith(vpn, flow)) return false;
     if (_premiumPrompt?.shownThisRun ?? false) return false;
     if (_invite.prompt?.shownThisRun ?? false) return false;
+    if (_treeIntro.shownThisRun) return false;
     if (NoticePermissionPrompt.instance.askedThisRun) return false;
     if (vpn.errorMessage != null || vpn.privateDnsHost != null) return false;
     if (!(ModalRoute.of(context)?.isCurrent ?? false)) return false;
@@ -1149,6 +1191,14 @@ class _HomeScreenState extends State<HomeScreen> {
       // The second tap of a double tap: the connect the first tap started
       // goes on. See HomeScreen.doubleTapGuard.
       if (fromButton && (_stopGuard?.isActive ?? false)) return;
+      // A good session the user ends here may bring the invite card once
+      // the tunnel is down. Only from the power button: the error bar's
+      // offer is not a stop of a good session.
+      if (fromButton) {
+        _invite.sessionEnded(vpn, flow);
+      } else {
+        _invite.connectTapped();
+      }
       _stopGuard?.cancel();
       _cameBackByItself = false;
       _tap++;
@@ -1166,6 +1216,7 @@ class _HomeScreenState extends State<HomeScreen> {
       return;
     }
     if (vpn.status == VpnStatus.disconnecting) return;
+    _invite.connectTapped();
     _stoppedNote?.cancel();
     final dedicated = context.read<DedicatedState>();
     final servers = context.read<ServerState>();
@@ -1659,6 +1710,7 @@ class _HomeScreenState extends State<HomeScreen> {
       ),
       const SizedBox(height: AppDesign.space24),
       _StatusLine(
+        key: _statusLineKey,
         label: status,
         sentence: _isSentence(l10n, status),
         // Elapsed time only once connected: a timer counting nothing is
@@ -1755,8 +1807,11 @@ class _HomeScreenState extends State<HomeScreen> {
           onNotNow: () => _closeCalmCard(buy: false),
         ),
 
-      // Send Fortiva to a friend, after good days. See _HomeInviteCard.
-      if (_invite.up && isConnected) _invite.card(),
+      // Send Fortiva to a friend, after good days, while the tunnel is up
+      // or right after the user ended a good session. See _HomeInviteCard.
+      // Always in the list, so the card grows into its place and shrinks
+      // out of it, and the power button above glides instead of jumping.
+      _invite.slot(drawn: _invite.drawnWith(vpn, connected: isConnected)),
     ];
 
     // While the tunnel goes through the backup network, the card says so,
@@ -1833,8 +1888,19 @@ class _HomeScreenState extends State<HomeScreen> {
     final footer = <Widget>[
       // Not beside the invite card, which needs the room, nor beside the
       // data line's two links. The invite link opens the invite screen,
-      // which has "Have an invite code?" too.
-      if (!_invite.up && !twoLinks) const _HaveCodeRow(),
+      // which has "Have an invite code?" too. It stays while the invite
+      // card is only being tried (_HomeInviteCard.trial), so the trial
+      // moves nothing, and it shrinks away as the card grows in, so the
+      // server card glides down instead of jumping.
+      AnimatedSize(
+        key: _haveCodeKey,
+        duration: _HomeInviteCard.slideIn,
+        curve: Curves.easeOutCubic,
+        alignment: Alignment.topCenter,
+        child: _invite.showing || twoLinks
+            ? const SizedBox(width: double.infinity)
+            : const _HaveCodeRow(),
+      ),
       // Over the allowance the status line and the card already say so; a
       // third mention would be nagging.
       if (!dedicated.isBlocked)
@@ -1932,6 +1998,7 @@ class _HomeScreenState extends State<HomeScreen> {
                 child: ConstrainedBox(
                   constraints: BoxConstraints(minHeight: constraints.maxHeight),
                   child: CornerButtonLayout(
+                    key: _buttonLayoutKey,
                     besideWidth: PowerButton.defaultSize,
                     // The view cuts what it scrolls, so on a short phone a
                     // button pressed to its top edge lost the top of its
@@ -2101,6 +2168,7 @@ class _HomeScreenState extends State<HomeScreen> {
 /// about half as tall and does not compete with the button above it.
 class _StatusLine extends StatelessWidget {
   const _StatusLine({
+    super.key,
     required this.label,
     required this.timer,
     this.sentence = false,

@@ -31,6 +31,41 @@ String inviteAmountText(BuildContext context, int bytes) =>
       context,
     ).replaceAll(' ', ' ');
 
+/// When a friend must enter the code, with the backend's hours, or the
+/// line that names no number when it sent none.
+String inviteTreeJoinCodeText(BuildContext context, int? hours) {
+  final l10n = S.of(context)!;
+  return hours == null
+      ? l10n.inviteTreeIntroJoinCodeNoNumber
+      : NumberLocalizer.localize(l10n.inviteTreeIntroJoinCode(hours), context);
+}
+
+/// On how many days a friend must use the VPN to qualify, with the
+/// backend's number, or the line that names no number.
+String inviteTreeJoinQualifyText(BuildContext context, int? days) {
+  final l10n = S.of(context)!;
+  return days == null
+      ? l10n.inviteTreeIntroJoinQualifyNoNumber
+      : NumberLocalizer.localize(
+          l10n.inviteTreeIntroJoinQualify(days),
+          context,
+        );
+}
+
+/// When a friend counts as active, with the backend's numbers, or the line
+/// that names no number.
+String inviteTreeActiveText(BuildContext context, ReferralStatus status) {
+  final l10n = S.of(context)!;
+  final days = status.activeDays;
+  final window = status.activeWindowDays;
+  return days != null && window != null
+      ? NumberLocalizer.localize(
+          l10n.inviteTreeHowActive(days, window),
+          context,
+        )
+      : l10n.inviteTreeHowActiveNoNumber;
+}
+
 /// How one kind of slot is drawn: its fill, its edge, its icon and the
 /// icon's color.
 @immutable
@@ -143,6 +178,8 @@ class SlotLegend extends StatelessWidget {
     final l10n = S.of(context)!;
     // A key, not content: a screen reader hears each slot's state on the
     // slot itself.
+    // Each item is one piece of text with its mark inside, so a long label
+    // on a narrow card wraps rather than overflows.
     return ExcludeSemantics(
       child: Wrap(
         spacing: AppDesign.space12,
@@ -150,18 +187,24 @@ class SlotLegend extends StatelessWidget {
         children: [
           for (final slot in TreeSlot.values.reversed)
             if (states.contains(slot))
-              Row(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  SlotMark(slot: slot, size: 16, labelled: false),
-                  const SizedBox(width: AppDesign.space4),
-                  Text(
-                    SlotMark.label(l10n, slot),
-                    style: AppDesign.textTheme.labelMedium?.copyWith(
-                      color: AppDesign.textTertiary,
+              Text.rich(
+                TextSpan(
+                  children: [
+                    WidgetSpan(
+                      alignment: PlaceholderAlignment.middle,
+                      child: Padding(
+                        padding: const EdgeInsetsDirectional.only(
+                          end: AppDesign.space4,
+                        ),
+                        child: SlotMark(slot: slot, size: 16, labelled: false),
+                      ),
                     ),
-                  ),
-                ],
+                    TextSpan(text: SlotMark.label(l10n, slot)),
+                  ],
+                ),
+                style: AppDesign.textTheme.labelMedium?.copyWith(
+                  color: AppDesign.textTertiary,
+                ),
               ),
         ],
       ),

@@ -17,8 +17,11 @@ import 'review_prompt.dart';
 /// (InvitePromptRules, the register answer's `invite_prompt`). With no block
 /// the card never shows.
 ///
-/// The home screen checks the rest: a calm screen, a checked tunnel, nothing
-/// else shown in this run, and the rating card and the Premium card first.
+/// It shows at two moments, with one count of shows: while a long enough
+/// tunnel is up with the app on screen, and right after the user ends a
+/// long enough session in the app (when the backend allows that moment).
+/// The home screen checks the rest: a calm screen, nothing else shown in
+/// this run, and the rating card and the Premium card first.
 /// The rating card and this card never share a run or a Tehran day, and
 /// neither reads the other's answers.
 ///
@@ -113,18 +116,22 @@ class InvitePrompt extends ChangeNotifier {
   }
 
   /// Whether the card may show now, as far as the backend's rules and the
-  /// record go. [upSince] is when the current tunnel came up, and
-  /// [ratingAskDay] the Tehran day the rating card was last asked for. The
-  /// screen checks the rest. Never throws.
+  /// record go. [upSince] is when the session came up, and [ratingAskDay]
+  /// the Tehran day the rating card was last asked for. [endedAt] is when
+  /// the user ended the session, for the card right after it, and null for
+  /// the card while the tunnel is up. Either way the session must have
+  /// lasted the backend's min_session_minutes, and no failure or drop may
+  /// have come after it began. The screen checks the rest. Never throws.
   Future<bool> due({
     required InvitePromptRules? rules,
     required DateTime? upSince,
     required String? ratingAskDay,
+    DateTime? endedAt,
   }) async {
     try {
       if (rules == null || _shownThisRun || upSince == null) return false;
       final now = _clock();
-      if (now.difference(upSince) <
+      if ((endedAt ?? now).difference(upSince) <
           Duration(minutes: rules.minSessionMinutes)) {
         return false;
       }
@@ -137,6 +144,7 @@ class InvitePrompt extends ChangeNotifier {
       if (state.goodDays < rules.minGoodDays) return false;
       if (state.shows >= rules.maxShows) return false;
       final failed = state.failedAt;
+      if (failed != null && !failed.isBefore(upSince)) return false;
       if (failed != null &&
           now.difference(failed) <
               Duration(hours: rules.quietAfterFailureHours)) {

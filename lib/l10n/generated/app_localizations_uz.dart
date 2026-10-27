@@ -669,7 +669,7 @@ class SUz extends S {
 
   @override
   String inviteBonusPerDay(String amount) {
-    return 'Har kuni +$amount';
+    return 'Kuniga +$amount';
   }
 
   @override
@@ -733,12 +733,12 @@ class SUz extends S {
       other: '$days turli kunda',
       one: '$days kun',
     );
-    return 'Taklif qabul qilindi. Siz VPNdan $_temp0 foydalanganingizdan keyin doʻstingiz bonus trafik oladi.';
+    return 'Taklif qabul qilindi. Bugundan boshlab VPNdan $_temp0 foydalanganingizdan keyin taklif hisoblanadi.';
   }
 
   @override
   String get inviteClaimAcceptedNoDays =>
-      'Taklif qabul qilindi. Siz VPNdan bir muddat foydalanganingizdan keyin doʻstingiz bonus trafik oladi.';
+      'Taklif qabul qilindi. Bugundan boshlab VPNdan biroz vaqt foydalanganingizdan keyin taklif hisoblanadi.';
 
   @override
   String get inviteClaimAlready =>
@@ -841,16 +841,16 @@ class SUz extends S {
 
   @override
   String get inviteTreeLive =>
-      'Bonusingiz doʻstlaringiz Fortiva ilovasidan foydalanib turgan paytda amal qiladi. Biror doʻst toʻxtasa, bonus kamayadi.';
+      'Bonusingiz doʻstlaringiz Fortiva ilovasidan foydalanishda davom etar ekan saqlanadi. Doʻst toʻxtatsa, bonusingiz kamayishi mumkin.';
 
   @override
   String inviteTreeNext(String amount) {
-    return 'Keyingi doʻstingiz Fortiva ilovasidan foydalana boshlagach, kuniga $amount qoʻshadi.';
+    return 'Keyingi doʻstingiz taklifi tasdiqlanib, faol boʻlganda kuniga $amount qoʻshadi.';
   }
 
   @override
   String inviteTreeKept(String amount) {
-    return 'Avval taklif qilgan doʻstlaringiz tufayli bonusingiz hech qachon kuniga $amount dan kam boʻlmaydi.';
+    return 'Bonusingiz kuniga $amount dan kam boʻlmaydi, bu avvalgi takliflaringizdan olgan bonusingiz. Bu miqdor faqat takliflaringizdan biri oʻchirilsa kamayishi mumkin.';
   }
 
   @override
@@ -883,9 +883,6 @@ class SUz extends S {
 
   @override
   String get inviteTreeRowFriends => 'Oʻrinlaringizda';
-
-  @override
-  String get inviteTreeRowFriendsSlots => 'Ularning oʻrinlarida';
 
   @override
   String inviteTreeRowSteps(int steps) {
@@ -936,12 +933,12 @@ class SUz extends S {
 
   @override
   String inviteTreeHowActive(int days, int window) {
-    return 'Doʻst oxirgi $window kun ichida kamida $days kun Fortiva ilovasidan foydalangan boʻlsa, faol hisoblanadi.';
+    return 'Doʻst oxirgi $window kun ichida kamida $days kun VPNdan foydalangan boʻlsa, faol hisoblanadi.';
   }
 
   @override
   String get inviteTreeHowActiveNoNumber =>
-      'Doʻst Fortiva ilovasidan foydalanishda davom etsa, faol hisoblanadi.';
+      'Doʻst VPNdan foydalanishda davom etar ekan, faol hisoblanadi.';
 
   @override
   String inviteTreeHowCap(String max) {
@@ -983,12 +980,8 @@ class SUz extends S {
       'Doʻstlar oʻrinlaringizni juft-juft toʻldiradi';
 
   @override
-  String get inviteTreeIntroSlotsWhen =>
-      'Doʻst Fortiva ilovasidan foydalana boshlagach, bir oʻrinni egallaydi.';
-
-  @override
   String get inviteTreeIntroSlotsArt =>
-      'Doʻstlar qoʻshilgani sari juft-juft toʻladigan oʻrinlaringiz.';
+      'Siz, taklif kodingiz va juft-juft oʻrinlaringiz. Har bir oʻrin boʻshligini yoki undagi odam faol yoki hozir faol emasligini koʻrsatadi.';
 
   @override
   String get inviteTreeIntroPairTitle =>
@@ -1019,26 +1012,7 @@ class SUz extends S {
   }
 
   @override
-  String get inviteTreeIntroPairArt =>
-      'Oʻrinlar juftligi. Undagi ikkala doʻst ham faol boʻlsa, koʻproq trafik qoʻshadi.';
-
-  @override
-  String get inviteTreeIntroFurtherTitle =>
-      'Uzoqroqdagi doʻstlar ham trafik qoʻshadi';
-
-  @override
-  String get inviteTreeIntroFirstPairOnly =>
-      'Doʻstingizning oʻrinlaridan faqat uning birinchi juftligi sizga trafik qoʻshadi.';
-
-  @override
   String get inviteTreeIntroYourFriend => 'Doʻstingiz';
-
-  @override
-  String get inviteTreeIntroTheirPair => 'Uning birinchi juftligi';
-
-  @override
-  String get inviteTreeIntroFurtherArt =>
-      'Doʻstingizning birinchi juftligi unga ham, sizga ham trafik qoʻshadi. Uzoqroqdagi juftliklar kamroq qoʻshadi.';
 
   @override
   String get inviteTreeIntroTotalTitle => 'Doʻstlardan kelgan trafikingiz';
@@ -1065,7 +1039,7 @@ class SUz extends S {
 
   @override
   String inviteTreeSheetNext(String amount) {
-    return 'Keyingi doʻstingiz Fortiva ilovasidan foydalana boshlagach, kuniga $amount qoʻshadi. Bu bugungi trafikka qoʻshilmaydi.';
+    return 'Keyingi doʻstingiz taklifi tasdiqlanib, faol boʻlganda kuniga $amount qoʻshadi. Bu bugungi trafikka qoʻshilmaydi.';
   }
 
   @override
@@ -1077,9 +1051,9 @@ class SUz extends S {
       days,
       locale: localeName,
       other:
-          'Fortiva ilovasidan foydalana boshlagan har bir doʻstingiz sizga yana $days kunlik Premium beradi.',
+          'Kodingiz bilan taklifi tasdiqlangan har bir doʻst sizga $days kunlik Premium ham qoʻshadi.',
       one:
-          'Fortiva ilovasidan foydalana boshlagan har bir doʻstingiz sizga yana $days kunlik Premium beradi.',
+          'Kodingiz bilan taklifi tasdiqlangan har bir doʻst sizga $days kunlik Premium ham qoʻshadi.',
     );
     return '$_temp0';
   }
@@ -1094,6 +1068,337 @@ class SUz extends S {
     );
     return '$_temp0';
   }
+
+  @override
+  String inviteTreeIntroSlotsBody(int slots) {
+    String _temp0 = intl.Intl.pluralLogic(
+      slots,
+      locale: localeName,
+      other:
+          'Kodingiz bilan qoʻshilgan doʻstlar kunlik trafikingizga qoʻshishi mumkin. Ular uchun sizda $slots ta oʻrin bor. Har bir oʻringa doʻst joylashadi, oʻrinlar esa juft-juft boʻladi. Avval birinchi juftligingiz toʻladi. Oʻrinlaringiz toʻlgandan keyin ham doʻstlar qoʻshilishi mumkin.',
+      one:
+          'Kodingiz bilan qoʻshilgan doʻstlar kunlik trafikingizga qoʻshishi mumkin. Ular uchun sizda $slots ta oʻrin bor. Har bir oʻringa doʻst joylashadi, oʻrinlar esa juft-juft boʻladi. Avval birinchi juftligingiz toʻladi. Oʻrinlaringiz toʻlgandan keyin ham doʻstlar qoʻshilishi mumkin.',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get inviteTreeIntroSlotsBodyNoNumber =>
+      'Kodingiz bilan qoʻshilgan doʻstlar kunlik trafikingizga qoʻshishi mumkin. Sizda ular uchun oʻrinlar bor. Har bir oʻringa doʻst joylashadi, oʻrinlar esa juft-juft boʻladi. Avval birinchi juftligingiz toʻladi. Oʻrinlaringiz toʻlgandan keyin ham doʻstlar qoʻshilishi mumkin.';
+
+  @override
+  String get inviteTreeIntroJoinTitle => 'Doʻst oʻrinni qanday egallaydi';
+
+  @override
+  String inviteTreeIntroJoinCode(int hours) {
+    String _temp0 = intl.Intl.pluralLogic(
+      hours,
+      locale: localeName,
+      other:
+          'Doʻstingiz Fortiva ilovasini oʻrnatgandan keyin $hours soat ichida oʻz taklif ekranida kodingizni kiritishi kerak.',
+      one:
+          'Doʻstingiz Fortiva ilovasini oʻrnatgandan keyin $hours soat ichida oʻz taklif ekranida kodingizni kiritishi kerak.',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get inviteTreeIntroJoinCodeNoNumber =>
+      'Doʻstingiz Fortiva ilovasini oʻrnatgandan keyin tez orada oʻz taklif ekranida kodingizni kiritishi kerak.';
+
+  @override
+  String inviteTreeIntroJoinQualify(int days) {
+    String _temp0 = intl.Intl.pluralLogic(
+      days,
+      locale: localeName,
+      other:
+          'Shundan keyin u VPNdan $days turli kunda foydalanishi kerak. Shunda taklifi tasdiqlanadi va u keyingi boʻsh oʻrinni egallaydi.',
+      one:
+          'Shundan keyin u VPNdan $days kun foydalanishi kerak. Shunda taklifi tasdiqlanadi va u keyingi boʻsh oʻrinni egallaydi.',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get inviteTreeIntroJoinQualifyNoNumber =>
+      'Shundan keyin u VPNdan biroz vaqt foydalanishi kerak. Shunda taklifi tasdiqlanadi va u keyingi boʻsh oʻrinni egallaydi.';
+
+  @override
+  String get inviteTreeIntroJoinPlay =>
+      'Agar u Fortiva ilovasini havolangiz orqali Google Play\'dan oʻrnatsa, kod uning uchun avtomatik kiritiladi.';
+
+  @override
+  String get inviteTreeIntroJoinWaiting =>
+      'Taklifi tasdiqlanmaguncha, taklif ekraningiz uni \"Taklif qilingan\" boʻlimida hisoblaydi, lekin hali \"Tasdiqlangan\" boʻlimida emas.';
+
+  @override
+  String get inviteTreeIntroJoinStepCode => 'Kodingizni kiritadi';
+
+  @override
+  String get inviteTreeIntroJoinStepUse => 'VPNdan foydalanadi';
+
+  @override
+  String get inviteTreeIntroJoinStepSlot => 'Oʻrinni egallaydi';
+
+  @override
+  String get inviteTreeIntroJoinArt =>
+      'Doʻst kodingizni kiritadi, turli kunlarda VPNdan foydalanadi, soʻng keyingi boʻsh oʻrinni egallaydi.';
+
+  @override
+  String get inviteTreeIntroPairsBody =>
+      'Har bir juftlik siz uchun trafik qoʻshishi mumkin. Undagi ikkala odam ham faol boʻlsa, eng koʻp qoʻshadi.';
+
+  @override
+  String get inviteTreeIntroPairsCaption =>
+      'Har bir juftlik trafikingizga kuniga qancha qoʻshadi';
+
+  @override
+  String get inviteTreeIntroBothActive => 'Ikkalasi faol';
+
+  @override
+  String get inviteTreeIntroOneActive => 'Biri faol';
+
+  @override
+  String inviteTreeIntroPlus(String amount) {
+    return '+$amount';
+  }
+
+  @override
+  String get inviteTreeIntroNothing => 'Hech narsa';
+
+  @override
+  String get inviteTreeIntroPairNow =>
+      'Ajratib koʻrsatilgan miqdorlar juftliklaringiz hozir qoʻshayotgan miqdordir.';
+
+  @override
+  String get inviteTreeIntroPairsArt =>
+      'Juftliklaringiz va har biri undagi ikkala odam ham faol boʻlganda hamda biri faol boʻlganda kuniga qancha qoʻshishi.';
+
+  @override
+  String get inviteTreeIntroActiveTitle => 'Doʻst faol ekan, trafik qoʻshadi';
+
+  @override
+  String get inviteTreeIntroActiveStops =>
+      'Agar doʻst Fortiva ilovasidan foydalanishni toʻxtatsa, uning juftligi kamroq qoʻshadi va bonusingiz kamayishi mumkin. Oʻrni oʻzida qoladi. U yana Fortiva ilovasidan foydalansa, juftligi yana koʻproq qoʻshadi.';
+
+  @override
+  String get inviteTreeIntroActiveFar =>
+      'Siz uchun trafik qoʻshadigan uzoqroqdagi odamlar ham faqat faol ekanlar hisobga olinadi.';
+
+  @override
+  String get inviteTreeIntroActiveArt =>
+      'Doʻsti Fortiva ilovasidan foydalanishni toʻxtatgan juftlik. Endi bu juftlik kamroq qoʻshadi.';
+
+  @override
+  String get inviteTreeIntroFullTitle => 'Oʻrinlaringiz toʻlganda';
+
+  @override
+  String get inviteTreeIntroFullBody =>
+      'Barcha oʻrinlaringiz band boʻlgach, keyingi doʻstingiz oʻrinlaringizdagi kimningdir birinchi juftligiga kiradi, birinchi oʻrningizdan boshlab navbat bilan. U juftlik oʻsha odam uchun trafik qoʻshadi, siz uchun esa kamroq.';
+
+  @override
+  String get inviteTreeIntroFullLess =>
+      'Oʻrin qanchalik uzoq boʻlsa, siz uchun shunchalik kam qoʻshadi. Juda uzoqdagi oʻrinlar hech narsa qoʻshmaydi.';
+
+  @override
+  String get inviteTreeIntroNextFriend => 'Keyingi doʻstingiz';
+
+  @override
+  String get inviteTreeIntroLaterFriend => 'Keyinroq keladigan doʻst';
+
+  @override
+  String get inviteTreeIntroFullArt =>
+      'Keyinroq keladigan doʻst oʻrinlaringizdagi kimningdir birinchi juftligidagi boʻsh oʻrinni egallaydi. U juftlik oʻsha odam uchun trafik qoʻshadi, siz uchun esa kamroq.';
+
+  @override
+  String get inviteTreeIntroOthersTitle =>
+      'Birinchi juftligingizda siz taklif qilmagan odamlar boʻlishi mumkin';
+
+  @override
+  String get inviteTreeIntroOthersWhy =>
+      'Siz doʻstingizning kodi bilan qoʻshilgansiz. Uning oʻrinlari toʻlganda, uning keyingi doʻstlari birinchi juftligingizdagi boʻsh oʻrinni egallashi mumkin. Boshqa odamlarning doʻstlari ham egallashi mumkin. Kim egallasa ham, u oʻz doʻstlaringiz kabi siz uchun trafik qoʻshadi.';
+
+  @override
+  String get inviteTreeIntroOthersYours =>
+      'Oʻz doʻstlaringiz qolgan boʻsh oʻrinlaringizni, soʻng uzoqroqdagi boʻsh oʻrinlarni toʻldiradi.';
+
+  @override
+  String get inviteTreeIntroNotInvited => 'Siz taklif qilmagan';
+
+  @override
+  String get inviteTreeIntroOthersArt =>
+      'Birinchi juftligingizga misol: siz taklif qilgan doʻst va siz taklif qilmagan odam. Ikkalasi ham faol ekan, siz uchun trafik qoʻshadi.';
+
+  @override
+  String get inviteTreeIntroShareTitle =>
+      'Fortiva ilovasidan foydalanadigan doʻstlarni taklif qiling';
+
+  @override
+  String get inviteTreeIntroShareBody =>
+      'Doʻst siz uchun faqat faol ekan trafik qoʻshadi. Taklifingizni VPN kerak boʻlgan doʻstlarga yuboring.';
+
+  @override
+  String get inviteTreeQaTitle => 'Savollar va javoblar';
+
+  @override
+  String get inviteTreeQaCountQ =>
+      'Doʻstim kodimni kiritdi. U qachon oʻrin egallaydi?';
+
+  @override
+  String get inviteTreeQaCountDay =>
+      'Kun faqat oʻsha kuni u VPN orqali biroz trafik ishlatsa hisoblanadi. Ilovani ochishning oʻzi yetarli emas. Bu kunlar uchun muddat yoʻq.';
+
+  @override
+  String get inviteTreeQaCountOther =>
+      'Avval kod kiritilgan telefon boshqa kod kirita olmaydi. Siz va doʻstingiz bir-biringizning kodini kirita olmaysiz.';
+
+  @override
+  String get inviteTreeQaDownQ => 'Bonusim nega kamaydi?';
+
+  @override
+  String get inviteTreeQaDownA =>
+      'Siz uchun trafik qoʻshadigan kimdir hozir faol emas. Bu oʻrinlaringizdagi doʻst yoki uzoqroqdagi kimdir boʻlishi mumkin. U yana Fortiva ilovasidan foydalansa, yana trafik qoʻshadi.';
+
+  @override
+  String get inviteTreeQaDownLater =>
+      'Foydalanishni toʻxtatgan doʻst yana biroz vaqt faol hisoblanadi. Shuning uchun bonusingiz u toʻxtatgandan biroz vaqt oʻtib kamayishi mumkin.';
+
+  @override
+  String get inviteTreeQaDownRemoved =>
+      'Taklif oʻchirilganda ham bonusingiz kamayishi mumkin, masalan oʻsha doʻst Fortiva hisobini oʻchirganda.';
+
+  @override
+  String get inviteTreeQaFullQ => 'Oʻrinlarim toʻlganda nima boʻladi?';
+
+  @override
+  String get inviteTreeQaFullFurther =>
+      'Oʻsha birinchi juftliklar ham toʻlganda, keyingi doʻstingiz uzoqroqqa, oʻsha juftliklardagi kimningdir birinchi juftligiga kiradi. U juftlik oʻsha odam uchun trafik qoʻshadi, sizga va oradagi har bir odamga esa kamroq miqdor qoʻshadi.';
+
+  @override
+  String get inviteTreeQaFriendsQ =>
+      'Doʻstlarimning doʻstlari men uchun trafik qoʻshadimi?';
+
+  @override
+  String get inviteTreeQaFriendsA =>
+      'Ayrimlari ha. Oʻrinlaringizdagi har bir odamning birinchi juftligi oʻsha odam uchun trafik qoʻshadi, siz uchun esa kamroq miqdor. Ularning boshqa juftliklari faqat ular uchun trafik qoʻshadi. Uzoqroqda faqat birinchi juftliklar siz uchun trafik qoʻshadi, ular qanchalik uzoq boʻlsa, shunchalik kam qoʻshadi va oxiri hech narsa qoʻshmaydi.';
+
+  @override
+  String get inviteTreeQaOthersQ =>
+      'Oʻrinlarimdagi men taklif qilmagan odamlar kimlar?';
+
+  @override
+  String get inviteTreeQaOthersA =>
+      'Ular oʻrinlari toʻlgan kimningdir doʻstlari, masalan sizni taklif qilgan odamning. Ular birinchi juftligingizdagi boʻsh oʻrinni egallagan, siz ularni tanlay yoki chiqarib yubora olmaysiz. Ular oʻz doʻstlaringiz kabi siz uchun trafik qoʻshadi.';
+
+  @override
+  String get inviteTreeQaSumQ =>
+      'Bonusim nega taklif ekranidagi miqdorlardan farq qiladi?';
+
+  @override
+  String get inviteTreeQaSumA =>
+      '\"Oʻrinlaringiz orqali\" boʻlimidagi har bir qator oʻsha qatordagi odamlar hozir qancha qoʻshayotganini koʻrsatadi. Bonusingiz ularning yigʻindisiga teng, lekin chegaradan oshmaydi.';
+
+  @override
+  String get inviteTreeQaSlotQ =>
+      'Oʻrinni boʻshatsam yoki uni kim egallashini tanlasam boʻladimi?';
+
+  @override
+  String get inviteTreeQaSlotA =>
+      'Yoʻq. Doʻst Fortiva ilovasidan foydalanishni toʻxtatsa ham, oʻrni oʻzida qoladi. Uning oʻrni faqat taklifi oʻchirilganda yana boʻshaydi, masalan u Fortiva hisobini oʻchirganda. Boʻsh oʻrinlar navbat bilan toʻladi va ularni kim egallashini hech kim tanlay olmaydi.';
+
+  @override
+  String get inviteTreeQaPrivacyQ =>
+      'Doʻstlarim Fortiva ilovasidan foydalanayotganimni koʻra oladimi?';
+
+  @override
+  String get inviteTreeQaPrivacyA =>
+      'Agar doʻstingizning kodi bilan qoʻshilgan boʻlsangiz, siz turgan oʻrinlar egasi sizning faol yoki hozir faol emasligingizni koʻradi. Boshqalar faqat nechta odam faolligini koʻradi, kimligini emas. Taklif ekrani hech qachon hech kimning ismini, telefonini yoki sarfini koʻrsatmaydi.';
+
+  @override
+  String get inviteTreeQaLimitQ => 'Chegara bormi?';
+
+  @override
+  String get inviteTreeQaLimitMore =>
+      'Takliflaringiz shuncha qoʻshgach, yangi doʻstlar boshqa trafik qoʻshmaydi.';
+
+  @override
+  String get inviteTreeQaKeptQ => 'Hozir bor bonusim nima boʻladi?';
+
+  @override
+  String get inviteTreeQaKeptMore =>
+      'Avvalgi takliflaringizdan kelgan bonus doʻstlaringiz hozir qoʻshayotganidan koʻp boʻlsa, oʻrniga oʻsha bonusni olasiz. Ular qoʻshilmaydi.';
+
+  @override
+  String get inviteTreeQaKeptRemoved =>
+      'Taklif oʻsha doʻst Fortiva hisobini oʻchirganda yoki Fortiva uni suiisteʼmol sababli bekor qilganda oʻchiriladi.';
+
+  @override
+  String get inviteTreeQaChangedQ => 'Takliflarda nima oʻzgardi?';
+
+  @override
+  String get inviteTreeQaChangedA =>
+      'Avval taklifi tasdiqlangan har bir doʻst belgilangan miqdorda trafik qoʻshardi. Endi doʻstlar faol ekan, oʻrinlaringiz va juftliklaringiz orqali trafik qoʻshadi, bonusingiz esa kamayishi mumkin.';
+
+  @override
+  String get inviteTreeQaPremiumQ =>
+      'Takliflar Premium kunlarini ham qoʻshadimi?';
+
+  @override
+  String get inviteTreeQaPremiumOwn =>
+      'Doʻstingiz qaysi oʻrinni egallashining farqi yoʻq. Siz taklif qilmagan odamlar Premium kunlarini qoʻshmaydi.';
+
+  @override
+  String get inviteTreeQaGetsQ => 'Doʻstim biror narsa oladimi?';
+
+  @override
+  String get inviteTreeQaGetsA =>
+      'Kodingizni kiritgani uchun yoʻq. Hammadagi kabi uning ham oʻz kodi va oʻrinlari bor, uning kodi bilan qoʻshilgan doʻstlar u uchun trafik qoʻshadi. Taklifi tasdiqlangach, uning birinchi juftligida ham u taklif qilmagan odamlar boʻlishi mumkin va ular ham u uchun trafik qoʻshadi.';
+
+  @override
+  String get inviteTreeQaGetsSee =>
+      'Agar u oʻrinlaringizda boʻlsa, uning faol yoki hozir faol emasligini koʻrasiz. Uning ismini yoki sarfini hech qachon koʻrmaysiz.';
+
+  @override
+  String get inviteTreeKeptFloor =>
+      'Bonusingiz hozir avvalgi takliflaringizdan saqlangan miqdorga teng. Doʻstlaringiz birgalikda bundan koʻproq qoʻshganda u oshadi.';
+
+  @override
+  String inviteTreeIntroTotalUpTo(String most, String total) {
+    return 'Doʻstlar kuniga koʻpi bilan $most qoʻshishi mumkin. Bepul trafikingiz va doʻstlardan kelgan trafik birga kuniga $total gacha yetishi mumkin.';
+  }
+
+  @override
+  String get inviteTreeIntroPairsOrder =>
+      'Eng koʻp birinchi juftligingiz qoʻshadi. Keyingi har bir juftlik kamroq qoʻshadi.';
+
+  @override
+  String get inviteTreeIntroInvitedYou => 'Sizni taklif qilgan';
+
+  @override
+  String get inviteTreeIntroGuide => 'Qadamma-qadam tushuntirish';
+
+  @override
+  String get inviteTreeQaCostQ => 'Doʻstim men sabab trafik yoʻqotadimi?';
+
+  @override
+  String get inviteTreeQaCostA =>
+      'Yoʻq. Doʻstingiz siz uchun qoʻshadigan trafik uning oʻz trafikidan ayirilmaydi. Uning kunlik trafigi siz sabab oʻzgarmaydi.';
+
+  @override
+  String get inviteTreeQaStartQ =>
+      'Doʻstdan keladigan trafik qachondan qoʻshila boshlaydi?';
+
+  @override
+  String get inviteTreeQaStartA =>
+      'Doʻstingiz oʻrin egallab, faol boʻlishi bilan. Bonusingiz kun davomida yangilanadi, shuning uchun u oʻsha kuniyoq, birozdan keyin oshadi. Doʻstingiz tasdiqlanmaguncha, u hech narsa qoʻshmaydi.';
+
+  @override
+  String get inviteTreeQaPhoneQ =>
+      'Doʻstim Fortiva ilovasini qayta oʻrnatsa yoki telefonini almashtirsa nima boʻladi?';
+
+  @override
+  String get inviteTreeQaPhoneA =>
+      'Oʻsha telefonga qayta oʻrnatilsa, Fortiva odatda telefonni yana taniydi va hech narsa oʻzgarmaydi. Yangi telefon Fortiva uchun yangi hisoblanadi. Oʻrin hamon eski telefonniki va eski telefon ishlatilmay qolgach, faol emas deb hisoblanadi.';
 
   @override
   String get premiumSourceInvite => 'Takliflaringiz uchun sovgʻa';

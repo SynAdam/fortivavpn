@@ -19,6 +19,7 @@ import '../widgets/remote_refresh_button.dart';
 import '../widgets/ui/pressable.dart';
 import '../l10n/generated/app_localizations.dart';
 import 'invite_tree_intro_screen.dart';
+import 'invite_tree_questions_screen.dart';
 
 /// The invite screen: this device's code, what it has earned, and a way
 /// to share it.
@@ -229,6 +230,18 @@ class _InviteScreenState extends State<InviteScreen> {
                     ),
                   ),
                 ],
+                // Under the tree the story and the questions are a tap
+                // away near the top, where people look when their bonus
+                // changes. How it works links to them again at the end.
+                if (tree) ...[
+                  const SizedBox(height: AppDesign.space4),
+                  _TreeLinks(
+                    onIntro: () =>
+                        unawaited(InviteTreeIntroScreen.open(context)),
+                    onQuestions: () =>
+                        unawaited(InviteTreeQuestionsScreen.open(context)),
+                  ),
+                ],
                 // A tree answer whose slots could not be read has no slots
                 // card. Its How it works then names no number of slots.
                 if (tree && status.pairs.isNotEmpty) ...[
@@ -254,8 +267,11 @@ class _InviteScreenState extends State<InviteScreen> {
                     cap: inviteAmount(context, status.maxBonusBytes),
                     premiumDays: status.earns ? status.rewardPremiumDays : null,
                     premiumMax: status.premiumDaysMax,
+                    claimed: status.hasClaimed,
                     onIntro: () =>
                         unawaited(InviteTreeIntroScreen.open(context)),
+                    onQuestions: () =>
+                        unawaited(InviteTreeQuestionsScreen.open(context)),
                   )
                 else
                   _HowItWorksCard(
@@ -504,6 +520,10 @@ class _StatsRow extends StatelessWidget {
 
   const _StatsRow({required this.status});
 
+  /// Below this width the three tiles do not fit in one row with their
+  /// captions whole.
+  static const double _narrow = 340;
+
   @override
   Widget build(BuildContext context) {
     final l10n = S.of(context)!;
@@ -513,37 +533,58 @@ class _StatsRow extends StatelessWidget {
         : l10n.inviteNoBonusYet;
     String count(int n) => NumberLocalizer.localize('$n', context);
 
-    // The three tiles stand as tall as the tallest, so their captions line
-    // up whatever the bonus line wraps to.
-    return IntrinsicHeight(
-      child: Row(
-        crossAxisAlignment: CrossAxisAlignment.stretch,
-        children: [
-          Expanded(
-            child: _Stat(
-              label: l10n.inviteStatInvited,
-              value: count(status.invitedCount),
-            ),
+    final invited = _Stat(
+      label: l10n.inviteStatInvited,
+      value: count(status.invitedCount),
+    );
+    final qualified = _Stat(
+      label: l10n.inviteStatEarning,
+      value: count(status.confirmedCount),
+    );
+    final bonusTile = _Stat(
+      label: l10n.inviteStatBonus,
+      value: bonus,
+      phrase: true,
+      highlight: earned,
+    );
+    // On a narrow phone the two counts share a row and the bonus has a row
+    // of its own, so no caption is squeezed. The tiles of a row stand as
+    // tall as the tallest, so their captions line up.
+    return LayoutBuilder(
+      key: const Key('invite-stats'),
+      builder: (context, constraints) {
+        if (constraints.maxWidth < _narrow) {
+          return Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              IntrinsicHeight(
+                child: Row(
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  children: [
+                    Expanded(child: invited),
+                    const SizedBox(width: AppDesign.space8),
+                    Expanded(child: qualified),
+                  ],
+                ),
+              ),
+              const SizedBox(height: AppDesign.space8),
+              bonusTile,
+            ],
+          );
+        }
+        return IntrinsicHeight(
+          child: Row(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              Expanded(child: invited),
+              const SizedBox(width: AppDesign.space8),
+              Expanded(child: qualified),
+              const SizedBox(width: AppDesign.space8),
+              Expanded(flex: 2, child: bonusTile),
+            ],
           ),
-          const SizedBox(width: AppDesign.space8),
-          Expanded(
-            child: _Stat(
-              label: l10n.inviteStatEarning,
-              value: count(status.confirmedCount),
-            ),
-          ),
-          const SizedBox(width: AppDesign.space8),
-          Expanded(
-            flex: 2,
-            child: _Stat(
-              label: l10n.inviteStatBonus,
-              value: bonus,
-              phrase: true,
-              highlight: earned,
-            ),
-          ),
-        ],
-      ),
+        );
+      },
     );
   }
 }
@@ -587,10 +628,18 @@ class _Stat extends StatelessWidget {
             ),
           ),
           const SizedBox(height: AppDesign.space4),
-          Text(
-            label,
-            style: AppDesign.textTheme.labelMedium?.copyWith(
-              color: AppDesign.textTertiary,
+          // One line: a caption never breaks inside a word, which tears a
+          // Persian word apart. A long one is drawn a little smaller.
+          FittedBox(
+            fit: BoxFit.scaleDown,
+            alignment: AlignmentDirectional.centerStart,
+            child: Text(
+              label,
+              maxLines: 1,
+              softWrap: false,
+              style: AppDesign.textTheme.labelMedium?.copyWith(
+                color: AppDesign.textTertiary,
+              ),
             ),
           ),
         ],
@@ -611,6 +660,51 @@ class _Note extends StatelessWidget {
     return Padding(
       padding: const EdgeInsetsDirectional.only(start: 4),
       child: Text(text, style: AppDesign.textTheme.bodySmall),
+    );
+  }
+}
+
+/// The step by step story and the questions, as two links in a row under
+/// the stats. They wrap to two rows when the words are long.
+class _TreeLinks extends StatelessWidget {
+  final VoidCallback onIntro;
+  final VoidCallback onQuestions;
+
+  const _TreeLinks({required this.onIntro, required this.onQuestions});
+
+  @override
+  Widget build(BuildContext context) {
+    final l10n = S.of(context)!;
+    return Wrap(
+      key: const Key('invite-tree-links'),
+      spacing: AppDesign.space4,
+      children: [
+        for (final (key, icon, label, onPressed) in [
+          (
+            const Key('invite-tree-intro-open-top'),
+            Icons.auto_stories_outlined,
+            l10n.inviteTreeIntroOpen,
+            onIntro,
+          ),
+          (
+            const Key('invite-tree-qa-open-top'),
+            Icons.help_outline_rounded,
+            l10n.inviteTreeQaTitle,
+            onQuestions,
+          ),
+        ])
+          TextButton.icon(
+            key: key,
+            onPressed: onPressed,
+            icon: Icon(icon, size: 18),
+            label: Text(label),
+            style: TextButton.styleFrom(
+              foregroundColor: AppDesign.brandBright,
+              minimumSize: const Size(48, 48),
+              padding: const EdgeInsetsDirectional.fromSTEB(4, 0, 12, 0),
+            ),
+          ),
+      ],
     );
   }
 }
@@ -777,13 +871,12 @@ class _FriendsRow extends StatelessWidget {
 
   const _FriendsRow({required this.level});
 
-  /// The row's name: the device's own friends, the people in their slots,
-  /// then how many steps away the people are.
+  /// The row's name: the people in the device's own slots, then how many
+  /// steps away the people are, from 2 on, so no step is skipped.
   static String label(BuildContext context, int level) {
     final l10n = S.of(context)!;
     return switch (level) {
       1 => l10n.inviteTreeRowFriends,
-      2 => l10n.inviteTreeRowFriendsSlots,
       _ => NumberLocalizer.localize(l10n.inviteTreeRowSteps(level), context),
     };
   }
@@ -948,15 +1041,24 @@ class _TreeHowItWorksCard extends StatelessWidget {
   final int? premiumDays;
   final int? premiumMax;
 
+  /// Whether this device joined with someone's code. Only such a device
+  /// can hold people it did not invite, in its first pair.
+  final bool claimed;
+
   /// Opens the introduction to the invite tree, step by step.
   final VoidCallback onIntro;
+
+  /// Opens the questions and answers about the invite tree.
+  final VoidCallback onQuestions;
 
   const _TreeHowItWorksCard({
     required this.slots,
     required this.days,
     required this.window,
     required this.cap,
+    required this.claimed,
     required this.onIntro,
+    required this.onQuestions,
     this.premiumDays,
     this.premiumMax,
   });
@@ -986,7 +1088,7 @@ class _TreeHowItWorksCard extends StatelessWidget {
         ),
         (Icons.people_outline_rounded, l10n.inviteTreeHowPair),
         (Icons.groups_outlined, l10n.inviteTreeHowFriendsSlots),
-        (Icons.person_add_alt_outlined, l10n.inviteTreeHowOthers),
+        if (claimed) (Icons.person_add_alt_outlined, l10n.inviteTreeHowOthers),
         (Icons.event_repeat_outlined, active),
         (
           Icons.add_circle_outline_rounded,
@@ -998,19 +1100,35 @@ class _TreeHowItWorksCard extends StatelessWidget {
       ],
       footer: Padding(
         padding: const EdgeInsets.only(top: AppDesign.space8),
-        child: Align(
-          alignment: AlignmentDirectional.centerStart,
-          child: TextButton.icon(
-            key: const Key('invite-tree-intro-open'),
-            onPressed: onIntro,
-            icon: const Icon(Icons.auto_stories_outlined, size: 18),
-            label: Text(l10n.inviteTreeIntroOpen),
-            style: TextButton.styleFrom(
-              foregroundColor: AppDesign.brandBright,
-              minimumSize: const Size(48, 48),
-              padding: const EdgeInsetsDirectional.fromSTEB(8, 0, 12, 0),
-            ),
-          ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            for (final (key, icon, label, onPressed) in [
+              (
+                const Key('invite-tree-intro-open'),
+                Icons.auto_stories_outlined,
+                l10n.inviteTreeIntroOpen,
+                onIntro,
+              ),
+              (
+                const Key('invite-tree-qa-open'),
+                Icons.help_outline_rounded,
+                l10n.inviteTreeQaTitle,
+                onQuestions,
+              ),
+            ])
+              TextButton.icon(
+                key: key,
+                onPressed: onPressed,
+                icon: Icon(icon, size: 18),
+                label: Text(label),
+                style: TextButton.styleFrom(
+                  foregroundColor: AppDesign.brandBright,
+                  minimumSize: const Size(48, 48),
+                  padding: const EdgeInsetsDirectional.fromSTEB(8, 0, 12, 0),
+                ),
+              ),
+          ],
         ),
       ),
     );

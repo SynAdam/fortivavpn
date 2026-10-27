@@ -128,9 +128,10 @@ void main() {
         as Map<String, dynamic>;
   }
 
-  testWidgets('shows after the calm wait, counted when drawn', (tester) async {
+  testWidgets('shows after the short wait when the app opens with the '
+      'tunnel up long enough, counted when drawn', (tester) async {
     final r = await pumpReady(tester);
-    await waitSeconds(tester, 19);
+    await waitSeconds(tester, 3);
     expect(card, findsNothing);
     await waitSeconds(tester, 2);
     expect(card, findsOneWidget);

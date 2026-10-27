@@ -204,19 +204,53 @@ class RenderCornerButtonLayout extends RenderBox
     content.layout(BoxConstraints(maxWidth: width), parentUsesSize: true);
     button.layout(BoxConstraints(maxWidth: width), parentUsesSize: true);
     final view = constraints.minHeight;
-    final h = content.size.height;
-    final hasButton = !button.size.isEmpty;
+    final (:top, :height, :edge, :beside) = _place(
+      width,
+      view,
+      content.size,
+      button.size,
+    );
+    size = constraints.constrain(Size(width, height));
+
+    (content.parentData! as CornerButtonParentData).offset = Offset(
+      (size.width - content.size.width) / 2,
+      top,
+    );
+    // Beside a column taller than the view, the button stays in the
+    // corner of the part on screen before any scrolling.
+    final floor = beside ? math.min(view, size.height) : size.height;
+    final x = _textDirection == TextDirection.ltr
+        ? size.width - edge - button.size.width
+        : edge;
+    (button.parentData! as CornerButtonParentData).offset = Offset(
+      x,
+      floor - _bottom - button.size.height,
+    );
+  }
+
+  /// Where the column goes in a view [view] tall, for a column of size
+  /// [content] and a button of size [button]: the column's top, the
+  /// layout's height, the button's distance from the side, and whether the
+  /// button sits beside the column. See the cases in [CornerButtonLayout].
+  ({double top, double height, double edge, bool beside}) _place(
+    double width,
+    double view,
+    Size content,
+    Size button,
+  ) {
+    final h = content.height;
+    final hasButton = !button.isEmpty;
 
     // As far from the side as fits beside the usual width, within the
     // margins.
-    final fits = (width - _besideWidth) / 2 - button.size.width - _gap;
+    final fits = (width - _besideWidth) / 2 - button.width - _gap;
     var edge = fits.clamp(_minEdge, math.max(_minEdge, _maxEdge)).toDouble();
     // The gap is kept from the usual width only: a status line a little
     // wider than the power button may come up to the button, never under.
     bool besideAt(double edge) =>
-        content.size.width <= width - 2 * (edge + button.size.width);
+        content.width <= width - 2 * (edge + button.width);
     var beside = besideAt(edge);
-    final reserve = button.size.height + _bottom + _clearance;
+    final reserve = button.height + _bottom + _clearance;
     // Under the column, the button would be out of view until the user
     // scrolls. Closer to the side, beside the column, it is in view.
     if (hasButton &&
@@ -249,22 +283,38 @@ class RenderCornerButtonLayout extends RenderBox
       height = h + reserve;
       top = 0;
     }
-    size = constraints.constrain(Size(width, height));
+    return (top: top, height: height, edge: edge, beside: beside);
+  }
 
-    (content.parentData! as CornerButtonParentData).offset = Offset(
-      (size.width - content.size.width) / 2,
-      top,
-    );
-    // Beside a column taller than the view, the button stays in the
-    // corner of the part on screen before any scrolling.
-    final floor = beside ? math.min(view, size.height) : size.height;
-    final x = _textDirection == TextDirection.ltr
-        ? size.width - edge - button.size.width
-        : edge;
-    (button.parentData! as CornerButtonParentData).offset = Offset(
-      x,
-      floor - _bottom - button.size.height,
-    );
+  /// Whether the column would be wholly in view, before any scrolling, in
+  /// a view [viewChange] taller than this one, or shorter when it is
+  /// negative. With [through], a part of the column, only the column down
+  /// to the bottom of that part counts. It goes by the children as they are
+  /// laid out now and moves nothing, so a screen can ask it before it puts
+  /// something under the view (or takes something away), to tell whether
+  /// the column would stay in sight without a frame drawn to find out. True
+  /// when it cannot be told: nothing laid out yet, or [through] not in the
+  /// column.
+  bool fitsWith(double viewChange, {RenderBox? through}) {
+    final content = firstChild;
+    final button = content == null ? null : childAfter(content);
+    if (!hasSize || content == null || button == null) return true;
+    if (!content.hasSize || !button.hasSize) return true;
+    var bottom = content.size.height;
+    if (through != null) {
+      if (!through.attached || !through.hasSize) return true;
+      RenderObject? up = through;
+      while (up != null && up != content) {
+        up = up.parent;
+      }
+      if (up == null) return true;
+      bottom = through
+          .localToGlobal(Offset(0, through.size.height), ancestor: content)
+          .dy;
+    }
+    final view = constraints.minHeight + viewChange;
+    final top = _place(size.width, view, content.size, button.size).top;
+    return top >= -0.5 && top + bottom <= view + 0.5;
   }
 
   @override

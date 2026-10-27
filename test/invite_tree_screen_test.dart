@@ -4,6 +4,10 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:fortiva_vpn/api/referral_service.dart';
+import 'package:fortiva_vpn/screens/invite_screen.dart';
+import 'package:fortiva_vpn/screens/invite_tree_intro_screen.dart';
+import 'package:fortiva_vpn/screens/invite_tree_questions_screen.dart';
+import 'package:fortiva_vpn/widgets/invite_slots.dart';
 
 import 'helpers/invite_tree.dart';
 
@@ -20,25 +24,26 @@ void main() {
       tester,
     ) async {
       await pumpInviteScreen(tester, ReferralStatus.fromJson(treeAnswer()));
-      expect(find.text('+2.5${nb}GB every day'), findsOneWidget);
+      expect(find.text('+2.5${nb}GB a day'), findsOneWidget);
       expect(
         find.text(
           'Your bonus lasts while your friends keep using Fortiva. If a '
-          'friend stops, it goes down.',
+          'friend stops, your bonus can go down.',
         ),
         findsOneWidget,
       );
       expect(
         find.text(
-          'Your next friend adds 300${nb}MB a day once they start using '
-          'Fortiva.',
+          'Your next friend adds 300${nb}MB a day once they qualify and are '
+          'active.',
         ),
         findsOneWidget,
       );
       expect(
         find.text(
-          'Your bonus never goes below 1${nb}GB a day, because of friends '
-          'you invited before.',
+          'Your bonus does not go below 1${nb}GB a day, the bonus you had '
+          'from earlier invites. This amount can go down only if one of your '
+          'invites is removed.',
         ),
         findsOneWidget,
       );
@@ -111,9 +116,10 @@ void main() {
         matching: f,
       );
       expect(inRow(0, find.text('In your slots')), findsOneWidget);
-      expect(inRow(0, find.text('3 people, 3 active')), findsOneWidget);
+      expect(inRow(0, find.text('4 people, 3 active')), findsOneWidget);
       expect(inRow(0, find.text('+2.5${nb}GB a day now')), findsOneWidget);
-      expect(inRow(1, find.text('In their slots')), findsOneWidget);
+      // Named by steps from the second row on, so no step is skipped.
+      expect(inRow(1, find.text('2 steps away')), findsOneWidget);
       expect(inRow(1, find.text('1 person, 0 active')), findsOneWidget);
       expect(inRow(1, find.text('Nothing yet')), findsOneWidget);
       expect(inRow(2, find.text('3 steps away')), findsOneWidget);
@@ -134,7 +140,7 @@ void main() {
       expect(find.text('In your slots'), findsOneWidget);
       expect(find.text('5 people, 5 active'), findsOneWidget);
       expect(find.text('4 people, 1 active'), findsNothing);
-      expect(find.text('In their slots'), findsOneWidget);
+      expect(find.text('2 steps away'), findsOneWidget);
     });
 
     testWidgets('no friends card while nobody is in it', (tester) async {
@@ -157,15 +163,16 @@ void main() {
       expect(status.keptBytes, status.bonusBytes);
       expect(status.keptBytes, greaterThan(levelsTotal));
       await pumpInviteScreen(tester, status);
-      expect(find.text('+3${nb}GB every day'), findsOneWidget);
+      expect(find.text('+3${nb}GB a day'), findsOneWidget);
       expect(find.byKey(const Key('invite-tree-live')), findsNothing);
-      expect(find.textContaining('goes down'), findsNothing);
+      expect(find.textContaining('If a friend stops'), findsNothing);
       expect(find.byKey(const Key('invite-tree-next')), findsNothing);
       expect(find.textContaining('Your next friend'), findsNothing);
       expect(
         find.text(
-          'Your bonus never goes below 3${nb}GB a day, because of friends '
-          'you invited before.',
+          'Your bonus does not go below 3${nb}GB a day, the bonus you had '
+          'from earlier invites. This amount can go down only if one of your '
+          'invites is removed.',
         ),
         findsOneWidget,
       );
@@ -250,8 +257,8 @@ void main() {
       await pumpInviteScreen(tester, ReferralStatus.fromJson(json));
       expect(
         find.text(
-          'Each friend who starts using Fortiva also gives you 3 days of '
-          'Premium.',
+          'Each friend who qualifies with your code also adds 3 days of '
+          'Premium for you.',
         ),
         findsOneWidget,
       );
@@ -278,9 +285,7 @@ void main() {
         'When your slots are full, your next friends who qualify take the '
             'next open slots, further from you. They still add data for you, '
             'less the further they are.',
-        'Your first pair can also take people you did not invite. They add '
-            'data for you in the same way.',
-        'A friend is active while they have used Fortiva on at least 2 days '
+        'A friend is active while they have used the VPN on at least 2 days '
             'in the last 30 days.',
         'Invites can add up to 7${nb}GB a day.',
       ]) {
@@ -292,6 +297,38 @@ void main() {
         findsNothing,
       );
       expect(find.textContaining('earn'), findsNothing);
+      // Only a device that joined with a code can hold people it did not
+      // invite, so only it is told so.
+      expect(find.textContaining('people you did not invite'), findsNothing);
+    });
+
+    testWidgets('a device that joined with a code is told its first pair can '
+        'hold people it did not invite', (tester) async {
+      await pumpInviteScreen(
+        tester,
+        ReferralStatus.fromJson(treeAnswer()..['claimed_code'] = 'QW8RT2'),
+      );
+      expect(
+        find.text(
+          'Your first pair can also take people you did not invite. They add '
+          'data for you in the same way.',
+        ),
+        findsOneWidget,
+      );
+    });
+
+    testWidgets('How it works opens the questions and answers', (tester) async {
+      await pumpInviteScreen(tester, ReferralStatus.fromJson(treeAnswer()));
+      final link = find.byKey(const Key('invite-tree-qa-open'));
+      expect(link, findsOneWidget);
+      expect(
+        find.descendant(of: link, matching: find.text('Questions and answers')),
+        findsOneWidget,
+      );
+      await tester.tap(link);
+      await tester.pumpAndSettle();
+      expect(find.byType(InviteTreeQuestionsScreen), findsOneWidget);
+      expect(find.byKey(const Key('invite-tree-qa-count')), findsOneWidget);
     });
 
     testWidgets('How it works in Persian, in Persian digits', (tester) async {
@@ -307,23 +344,25 @@ void main() {
         'وقتی جایگاه‌های شما پر شود، دوستان بعدی‌تان که واجد شرایط شوند '
             'جایگاه‌های خالی بعدی را می‌گیرند که از شما دورترند. آن‌ها هم به '
             'دیتای شما اضافه می‌کنند، ولی هرچه دورتر باشند، کمتر.',
-        'جفت اول شما ممکن است با کسانی پر شود که دعوتشان نکرده‌اید. آن‌ها هم '
-            'به همین شکل به دیتای شما اضافه می‌کنند.',
         'هر دوست تا وقتی فعال حساب می‌شود که در ۳۰ روز گذشته، دست‌کم در ۲ '
-            'روز از فورتیوا استفاده کرده باشد.',
+            'روز از وی‌پی‌ان استفاده کرده باشد.',
         'دعوت‌ها می‌توانند تا ۷${nb}GB در روز به دیتای شما اضافه کنند.',
       ]) {
         expect(find.text(line), findsOneWidget, reason: line);
       }
       expect(find.text('از طریق جایگاه‌هایتان'), findsOneWidget);
       expect(find.text('در جایگاه‌های شما'), findsOneWidget);
-      expect(find.text('در جایگاه‌های آن‌ها'), findsOneWidget);
+      expect(find.text('با ۲ قدم فاصله'), findsOneWidget);
       expect(find.text('با ۳ قدم فاصله'), findsOneWidget);
-      expect(find.text('فعلاً غیرفعال'), findsWidgets);
+      expect(
+        find.textContaining('فعلاً غیرفعال', findRichText: true),
+        findsWidgets,
+      );
       expect(
         find.text(
-          'پاداش شما به‌خاطر دوستانی که قبلاً دعوت کرده‌اید، هیچ‌وقت از '
-          '۱${nb}GB در روز کمتر نمی‌شود.',
+          'پاداش شما از ۱${nb}GB در روز کمتر نمی‌شود؛ این پاداشی است که از '
+          'دعوت‌های قبلی داشتید. این مقدار فقط وقتی ممکن است کم شود که یکی '
+          'از دعوت‌هایتان حذف شود.',
         ),
         findsOneWidget,
       );
@@ -350,7 +389,7 @@ void main() {
         ),
       );
       expect(
-        find.text('A friend is active while they keep using Fortiva.'),
+        find.text('A friend is active while they keep using the VPN.'),
         findsOneWidget,
       );
       expect(
@@ -381,10 +420,75 @@ void main() {
     }
   });
 
+  group('the stats tiles', () {
+    for (final locale in ['en', 'fa']) {
+      for (final width in [320.0, 360.0, 412.0]) {
+        testWidgets('[$locale ${width.toInt()} wide] each caption is on one '
+            'line, and a narrow phone gives the bonus its own row', (
+          tester,
+        ) async {
+          await pumpInviteScreen(
+            tester,
+            ReferralStatus.fromJson(treeAnswer()),
+            locale: locale,
+            size: Size(width, 3000),
+          );
+          expect(tester.takeException(), isNull);
+          final stats = find.byKey(const Key('invite-stats'));
+          final captions = locale == 'fa'
+              ? ['دعوت‌شده', 'واجد شرایط', 'دیتای پاداش']
+              : ['Invited', 'Qualified', 'Bonus data'];
+          final rects = <Rect>[];
+          for (final caption in captions) {
+            final text = find.descendant(
+              of: stats,
+              matching: find.text(caption),
+            );
+            expect(text, findsOneWidget, reason: caption);
+            final widget = tester.widget<Text>(text);
+            expect(widget.maxLines, 1, reason: caption);
+            expect(widget.softWrap, isFalse, reason: caption);
+            rects.add(tester.getRect(text));
+          }
+          // Invited and Qualified share a row, captions on one baseline at
+          // the foot of their tiles. The bonus is beside them only when the
+          // row is wide enough.
+          expect(rects[0].bottom, closeTo(rects[1].bottom, 1));
+          final narrow = width - 32 < 340;
+          expect(rects[2].top > rects[0].bottom, narrow);
+        });
+      }
+    }
+  });
+
+  group('the links under the stats', () {
+    testWidgets('under the tree, the story and the questions are near the '
+        'top as well as in How it works', (tester) async {
+      await pumpInviteScreen(tester, ReferralStatus.fromJson(treeAnswer()));
+      final links = tester.getRect(find.byKey(const Key('invite-tree-links')));
+      final stats = tester.getRect(find.byKey(const Key('invite-stats')));
+      final pairs = tester.getRect(find.byKey(const Key('invite-tree-pairs')));
+      expect(links.top, greaterThan(stats.bottom));
+      expect(links.bottom, lessThan(pairs.top));
+      for (final key in [
+        'invite-tree-intro-open-top',
+        'invite-tree-qa-open-top',
+        'invite-tree-intro-open',
+        'invite-tree-qa-open',
+      ]) {
+        expect(find.byKey(Key(key)), findsOneWidget, reason: key);
+      }
+    });
+  });
+
   group('the tree strings', () {
     /// Keys outside the inviteTree names that show under the tree rule
     /// too: the limit sheet's invite lines. The same word rules apply.
     const sheetKeys = {
+      // The confirmation to the person who entered a code, under both
+      // rules.
+      'inviteClaimAccepted',
+      'inviteClaimAcceptedNoDays',
       'premiumLimitInvite',
       'premiumLimitInviteNext',
       'premiumLimitInviteNextNoDays',
@@ -393,8 +497,14 @@ void main() {
       'premiumLimitSeeInvites',
       'premiumLimitShareAgain',
     };
+
+    /// The invite card and the stats tiles show under both rules, so they
+    /// keep to the tree's words too.
     bool shownUnderTree(String key) =>
-        key.startsWith('inviteTree') || sheetKeys.contains(key);
+        key.startsWith('inviteTree') ||
+        key.startsWith('inviteCard') ||
+        key.startsWith('inviteStat') ||
+        sheetKeys.contains(key);
 
     final arbs = {
       for (final f in Directory('lib/l10n').listSync().whereType<File>())
@@ -467,18 +577,22 @@ void main() {
       ),
       'ru': RegExp('уров|под тех|доход', caseSensitive: false),
       'uk': RegExp('рівен|рівн|під тих|дохід', caseSensitive: false),
-      'tr': RegExp('seviye|kişilerin altına|kazandır', caseSensitive: false),
+      // Kazanmak is to earn, in every form: kazanır, kazanan, kazandırır.
+      'tr': RegExp('seviye|kişilerin altına|kazan', caseSensitive: false),
       'id': RegExp(
         'level|di bawah orang|menghasilkan|penghasilan',
         caseSensitive: false,
       ),
       'vi': RegExp('cấp|xếp dưới|thu nhập', caseSensitive: false),
       'uz': RegExp('daraja|ostiga|daromad', caseSensitive: false),
-      'hi': RegExp('स्तर|नीचे|कमा|आय'),
-      'ur': RegExp('سطح|نیچے|کما|آمدنی'),
+      // भर्ती and भरती are recruitment.
+      'hi': RegExp('स्तर|नीचे|कमा|आय|भर्ती|भरती'),
+      // بھرتی is recruitment.
+      'ur': RegExp('سطح|نیچے|کما|آمدنی|بھرتی'),
       'ja': RegExp('レベル|段階|下に|収入'),
       'ko': RegExp('단계|레벨|아래에|수입'),
-      'zh': RegExp('层|级|下面|收入'),
+      // 级 is a level, but 高级版 is the name of Premium.
+      'zh': RegExp('层|(?<!高)级|下面|收入'),
     };
 
     test('the sheet keys are in every language', () {
@@ -511,7 +625,7 @@ void main() {
   group('under today\'s rule', () {
     testWidgets('the screen is as it was', (tester) async {
       await pumpInviteScreen(tester, ReferralStatus.fromJson(oldAnswer()));
-      expect(find.text('+3${nb}GB every day'), findsOneWidget);
+      expect(find.text('+3${nb}GB a day'), findsOneWidget);
       expect(
         find.text(
           'Share your code. When someone installs the app, enters it, and '
@@ -531,12 +645,83 @@ void main() {
         'invite-tree-kept',
         'invite-tree-live',
         'invite-tree-intro-open',
+        'invite-tree-qa-open',
+        'invite-tree-links',
       ]) {
         expect(find.byKey(Key(key)), findsNothing, reason: key);
       }
       expect(find.textContaining('slots'), findsNothing);
       expect(find.text('Earn extra daily data'), findsOneWidget);
       expect(find.text('Have an invite code?'), findsOneWidget);
+    });
+
+    testWidgets('no drawing of the tree is anywhere on the screen, with no '
+        'friends yet', (tester) async {
+      // The screen in the report of 2026-10-27: nobody invited yet.
+      final json = oldAnswer()
+        ..['invited_count'] = 0
+        ..['confirmed_count'] = 0
+        ..['bonus_bytes'] = 0;
+      await pumpInviteScreen(tester, ReferralStatus.fromJson(json));
+      expect(find.text('No bonus yet'), findsOneWidget);
+      for (final type in [
+        SlotDisc,
+        SlotMark,
+        PairCapsule,
+        SlotLegend,
+        InviteTreeIntroScreen,
+        InviteTreeQuestionsScreen,
+      ]) {
+        expect(find.byType(type), findsNothing, reason: '$type');
+      }
+      // Nothing paints anywhere in the app, not only under the screen, but
+      // the framework's own edges, its scroll glow and the debug banner: no
+      // lines, no discs, no rings. A drawing put in the root overlay would
+      // be found too.
+      const framework = {
+        '_ShapeBorderPainter',
+        '_GlowingOverscrollIndicatorPainter',
+        'BannerPainter',
+      };
+      bool ours(CustomPainter? p) =>
+          p != null && !framework.contains(p.runtimeType.toString());
+      expect([
+        for (final w in tester.widgetList<CustomPaint>(
+          find.byType(CustomPaint),
+        ))
+          for (final p in [w.painter, w.foregroundPainter])
+            if (ours(p)) p.runtimeType.toString(),
+      ], isEmpty);
+      // No Hero in flight or at rest.
+      expect(find.byType(Hero), findsNothing);
+      // The root overlay holds the one route's two entries (its barrier
+      // and its page), and nothing else.
+      expect(
+        find.descendant(
+          of: find.byType(Overlay).first,
+          matching: find.byWidgetPredicate(
+            (w) => w.runtimeType.toString() == '_OverlayEntryWidget',
+          ),
+        ),
+        findsNWidgets(2),
+      );
+      // Nothing sits over the tiles: every widget drawn inside their row
+      // is one of the row's own.
+      final row = tester.getRect(find.byKey(const Key('invite-stats')));
+      final stack = find.descendant(
+        of: find.byType(InviteScreen),
+        matching: find.byType(Stack),
+      );
+      for (final element in stack.evaluate()) {
+        final box = element.renderObject as RenderBox?;
+        if (box == null || !box.hasSize) continue;
+        final rect = box.localToGlobal(Offset.zero) & box.size;
+        // The app bar and the scaffold are stacks too, and hold the row.
+        if (rect.contains(row.topLeft) && rect.contains(row.bottomRight)) {
+          continue;
+        }
+        expect(rect.overlaps(row), isFalse, reason: '$element');
+      }
     });
 
     testWidgets('the screen draws the same widgets as before the tree', (

@@ -726,12 +726,12 @@ class SVi extends S {
       locale: localeName,
       other: '$days ngày khác nhau',
     );
-    return 'Đã chấp nhận lời mời. Bạn của bạn sẽ nhận dữ liệu thưởng sau khi bạn dùng VPN trong $_temp0.';
+    return 'Đã chấp nhận lời mời. Lời mời được tính sau khi bạn dùng VPN trong $_temp0, kể từ hôm nay.';
   }
 
   @override
   String get inviteClaimAcceptedNoDays =>
-      'Đã chấp nhận lời mời. Bạn của bạn sẽ nhận dữ liệu thưởng sau khi bạn dùng VPN đủ lâu.';
+      'Đã chấp nhận lời mời. Lời mời được tính sau khi bạn dùng VPN một thời gian, kể từ hôm nay.';
 
   @override
   String get inviteClaimAlready => 'Thiết bị này đã dùng mã mời rồi';
@@ -827,16 +827,16 @@ class SVi extends S {
 
   @override
   String get inviteTreeLive =>
-      'Phần thưởng của bạn kéo dài khi bạn bè còn dùng Fortiva. Nếu một người bạn ngừng dùng, phần thưởng sẽ giảm.';
+      'Phần thưởng của bạn kéo dài khi bạn bè vẫn tiếp tục dùng Fortiva. Nếu một người bạn ngừng dùng, phần thưởng có thể giảm.';
 
   @override
   String inviteTreeNext(String amount) {
-    return 'Người bạn tiếp theo sẽ thêm $amount mỗi ngày khi bắt đầu dùng Fortiva.';
+    return 'Người bạn tiếp theo cộng thêm $amount mỗi ngày khi họ đủ điều kiện và đang hoạt động.';
   }
 
   @override
   String inviteTreeKept(String amount) {
-    return 'Nhờ những người bạn đã mời trước đây, phần thưởng của bạn không bao giờ thấp hơn $amount mỗi ngày.';
+    return 'Phần thưởng của bạn không thấp hơn $amount mỗi ngày, là phần thưởng bạn có từ các lời mời trước đây. Mức này chỉ có thể giảm nếu một lời mời của bạn bị xóa.';
   }
 
   @override
@@ -869,9 +869,6 @@ class SVi extends S {
 
   @override
   String get inviteTreeRowFriends => 'Ở vị trí của bạn';
-
-  @override
-  String get inviteTreeRowFriendsSlots => 'Ở vị trí của họ';
 
   @override
   String inviteTreeRowSteps(int steps) {
@@ -922,12 +919,12 @@ class SVi extends S {
 
   @override
   String inviteTreeHowActive(int days, int window) {
-    return 'Một người bạn được tính là hoạt động khi đã dùng Fortiva ít nhất $days ngày trong $window ngày gần nhất.';
+    return 'Một người bạn được tính là hoạt động khi đã dùng VPN ít nhất $days ngày trong $window ngày gần nhất.';
   }
 
   @override
   String get inviteTreeHowActiveNoNumber =>
-      'Một người bạn được tính là hoạt động khi vẫn tiếp tục dùng Fortiva.';
+      'Một người bạn được tính là hoạt động khi họ vẫn tiếp tục dùng VPN.';
 
   @override
   String inviteTreeHowCap(String max) {
@@ -969,12 +966,8 @@ class SVi extends S {
       'Bạn bè lấp các vị trí của bạn theo từng cặp';
 
   @override
-  String get inviteTreeIntroSlotsWhen =>
-      'Một người bạn chiếm một vị trí khi bắt đầu dùng Fortiva.';
-
-  @override
   String get inviteTreeIntroSlotsArt =>
-      'Các vị trí của bạn, theo từng cặp, được lấp khi bạn bè tham gia.';
+      'Bạn, mã mời của bạn và các vị trí của bạn theo từng cặp. Mỗi vị trí cho thấy nó đang trống, hay người ở đó đang hoạt động hoặc hiện không hoạt động.';
 
   @override
   String get inviteTreeIntroPairTitle =>
@@ -1005,25 +998,7 @@ class SVi extends S {
   }
 
   @override
-  String get inviteTreeIntroPairArt =>
-      'Một cặp vị trí. Cặp này thêm nhiều dữ liệu hơn khi cả hai bạn trong đó đều hoạt động.';
-
-  @override
-  String get inviteTreeIntroFurtherTitle => 'Bạn bè ở xa hơn cũng thêm dữ liệu';
-
-  @override
-  String get inviteTreeIntroFirstPairOnly =>
-      'Trong các vị trí của bạn mình, chỉ cặp đầu tiên của họ thêm dữ liệu cho bạn.';
-
-  @override
   String get inviteTreeIntroYourFriend => 'Bạn của bạn';
-
-  @override
-  String get inviteTreeIntroTheirPair => 'Cặp đầu tiên của họ';
-
-  @override
-  String get inviteTreeIntroFurtherArt =>
-      'Cặp đầu tiên của bạn mình thêm dữ liệu cho họ và cho bạn. Các cặp ở xa hơn thêm ít hơn.';
 
   @override
   String get inviteTreeIntroTotalTitle => 'Dữ liệu của bạn từ bạn bè';
@@ -1049,7 +1024,7 @@ class SVi extends S {
 
   @override
   String inviteTreeSheetNext(String amount) {
-    return 'Người bạn tiếp theo sẽ thêm $amount mỗi ngày khi bắt đầu dùng Fortiva. Phần này không cộng vào dữ liệu hôm nay.';
+    return 'Người bạn tiếp theo cộng thêm $amount mỗi ngày khi họ đủ điều kiện và đang hoạt động. Phần này không cộng vào dữ liệu hôm nay.';
   }
 
   @override
@@ -1061,7 +1036,7 @@ class SVi extends S {
       days,
       locale: localeName,
       other:
-          'Mỗi người bạn bắt đầu dùng Fortiva còn mang lại cho bạn $days ngày Premium.',
+          'Mỗi người bạn đủ điều kiện bằng mã của bạn cũng cộng thêm $days ngày Premium cho bạn.',
     );
     return '$_temp0';
   }
@@ -1075,6 +1050,331 @@ class SVi extends S {
     );
     return '$_temp0';
   }
+
+  @override
+  String inviteTreeIntroSlotsBody(int slots) {
+    String _temp0 = intl.Intl.pluralLogic(
+      slots,
+      locale: localeName,
+      other:
+          'Bạn bè tham gia bằng mã của bạn có thể cộng thêm vào dữ liệu hằng ngày của bạn. Bạn có $slots vị trí dành cho họ. Mỗi vị trí dành cho một người bạn, và các vị trí đi theo từng cặp. Cặp đầu tiên của bạn được lấp trước. Khi các vị trí của bạn đã đầy, bạn bè vẫn có thể tham gia thêm.',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get inviteTreeIntroSlotsBodyNoNumber =>
+      'Bạn bè tham gia bằng mã của bạn có thể cộng thêm vào dữ liệu hằng ngày của bạn. Bạn có các vị trí dành cho họ. Mỗi vị trí dành cho một người bạn, và các vị trí đi theo từng cặp. Cặp đầu tiên của bạn được lấp trước. Khi các vị trí của bạn đã đầy, bạn bè vẫn có thể tham gia thêm.';
+
+  @override
+  String get inviteTreeIntroJoinTitle => 'Cách một người bạn nhận vị trí';
+
+  @override
+  String inviteTreeIntroJoinCode(int hours) {
+    String _temp0 = intl.Intl.pluralLogic(
+      hours,
+      locale: localeName,
+      other:
+          'Bạn của bạn phải nhập mã của bạn trên màn hình mời của họ trong vòng $hours giờ sau khi cài Fortiva.',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get inviteTreeIntroJoinCodeNoNumber =>
+      'Bạn của bạn phải nhập mã của bạn trên màn hình mời của họ ngay sau khi cài Fortiva.';
+
+  @override
+  String inviteTreeIntroJoinQualify(int days) {
+    String _temp0 = intl.Intl.pluralLogic(
+      days,
+      locale: localeName,
+      other:
+          'Sau đó, họ phải dùng VPN trong $days ngày khác nhau. Khi đó họ đủ điều kiện và nhận vị trí trống tiếp theo.',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get inviteTreeIntroJoinQualifyNoNumber =>
+      'Sau đó, họ phải dùng VPN một thời gian. Khi đó họ đủ điều kiện và nhận vị trí trống tiếp theo.';
+
+  @override
+  String get inviteTreeIntroJoinPlay =>
+      'Nếu họ cài từ Google Play qua liên kết của bạn, mã sẽ được nhập sẵn cho họ.';
+
+  @override
+  String get inviteTreeIntroJoinWaiting =>
+      'Cho đến khi họ đủ điều kiện, màn hình mời của bạn tính họ vào \"Đã mời\", nhưng chưa tính vào \"Đủ điều kiện\".';
+
+  @override
+  String get inviteTreeIntroJoinStepCode => 'Nhập mã của bạn';
+
+  @override
+  String get inviteTreeIntroJoinStepUse => 'Dùng VPN';
+
+  @override
+  String get inviteTreeIntroJoinStepSlot => 'Nhận vị trí';
+
+  @override
+  String get inviteTreeIntroJoinArt =>
+      'Một người bạn nhập mã của bạn, dùng VPN vào những ngày khác nhau, rồi nhận vị trí trống tiếp theo.';
+
+  @override
+  String get inviteTreeIntroPairsBody =>
+      'Mỗi cặp có thể cộng thêm dữ liệu cho bạn. Cặp cộng nhiều nhất khi cả hai đều đang hoạt động.';
+
+  @override
+  String get inviteTreeIntroPairsCaption =>
+      'Mỗi cặp cộng vào dữ liệu của bạn bao nhiêu mỗi ngày';
+
+  @override
+  String get inviteTreeIntroBothActive => 'Cả hai hoạt động';
+
+  @override
+  String get inviteTreeIntroOneActive => 'Một bên hoạt động';
+
+  @override
+  String inviteTreeIntroPlus(String amount) {
+    return '+$amount';
+  }
+
+  @override
+  String get inviteTreeIntroNothing => 'Không có';
+
+  @override
+  String get inviteTreeIntroPairNow =>
+      'Các mức được làm nổi bật là phần các cặp của bạn đang cộng thêm lúc này.';
+
+  @override
+  String get inviteTreeIntroPairsArt =>
+      'Các cặp của bạn, và mỗi cặp cộng thêm bao nhiêu mỗi ngày khi cả hai đều hoạt động và khi một bên hoạt động.';
+
+  @override
+  String get inviteTreeIntroActiveTitle =>
+      'Một người bạn cộng dữ liệu khi họ còn hoạt động';
+
+  @override
+  String get inviteTreeIntroActiveStops =>
+      'Nếu một người bạn ngừng dùng Fortiva, cặp của họ cộng ít hơn và phần thưởng của bạn có thể giảm. Họ vẫn giữ vị trí của mình. Khi họ dùng Fortiva trở lại, cặp của họ lại cộng nhiều hơn.';
+
+  @override
+  String get inviteTreeIntroActiveFar =>
+      'Những người ở xa hơn đang cộng dữ liệu cho bạn cũng chỉ được tính khi họ còn hoạt động.';
+
+  @override
+  String get inviteTreeIntroActiveArt =>
+      'Một cặp có một người bạn đã ngừng dùng Fortiva. Giờ cặp này cộng ít hơn.';
+
+  @override
+  String get inviteTreeIntroFullTitle => 'Khi các vị trí của bạn đã đầy';
+
+  @override
+  String get inviteTreeIntroFullBody =>
+      'Khi tất cả vị trí của bạn đã có người, người bạn tiếp theo của bạn sẽ vào cặp đầu tiên của một người đang ở vị trí của bạn, theo thứ tự từ vị trí đầu tiên của bạn. Cặp đó cộng dữ liệu cho người ấy, và ít hơn cho bạn.';
+
+  @override
+  String get inviteTreeIntroFullLess =>
+      'Vị trí càng xa thì càng cộng ít cho bạn. Các vị trí rất xa không cộng gì cả.';
+
+  @override
+  String get inviteTreeIntroNextFriend => 'Người bạn tiếp theo';
+
+  @override
+  String get inviteTreeIntroLaterFriend => 'Một người bạn sau này';
+
+  @override
+  String get inviteTreeIntroFullArt =>
+      'Một người bạn sau này nhận vị trí trống trong cặp đầu tiên của một người đang ở vị trí của bạn. Cặp đó cộng dữ liệu cho người ấy, và ít hơn cho bạn.';
+
+  @override
+  String get inviteTreeIntroOthersTitle =>
+      'Cặp đầu tiên của bạn có thể có người bạn không mời';
+
+  @override
+  String get inviteTreeIntroOthersWhy =>
+      'Bạn đã tham gia bằng mã của một người bạn. Khi các vị trí của người đó đã đầy, những người bạn tiếp theo của họ có thể nhận vị trí trống trong cặp đầu tiên của bạn. Bạn bè của người khác cũng có thể. Dù là ai, họ cộng dữ liệu cho bạn giống như bạn bè của chính bạn.';
+
+  @override
+  String get inviteTreeIntroOthersYours =>
+      'Bạn bè của chính bạn lấp các vị trí trống còn lại của bạn, sau đó là các vị trí trống xa hơn.';
+
+  @override
+  String get inviteTreeIntroNotInvited => 'Không do bạn mời';
+
+  @override
+  String get inviteTreeIntroOthersArt =>
+      'Ví dụ về cặp đầu tiên của bạn, với một người bạn bạn đã mời và một người bạn không mời. Cả hai đều cộng dữ liệu cho bạn khi họ còn hoạt động.';
+
+  @override
+  String get inviteTreeIntroShareTitle => 'Mời những người bạn sẽ dùng Fortiva';
+
+  @override
+  String get inviteTreeIntroShareBody =>
+      'Một người bạn chỉ cộng dữ liệu cho bạn khi họ còn hoạt động. Hãy gửi lời mời đến những người bạn cần VPN.';
+
+  @override
+  String get inviteTreeQaTitle => 'Hỏi và đáp';
+
+  @override
+  String get inviteTreeQaCountQ =>
+      'Bạn tôi đã nhập mã của tôi. Khi nào họ nhận vị trí?';
+
+  @override
+  String get inviteTreeQaCountDay =>
+      'Một ngày chỉ được tính khi trong ngày đó họ dùng một chút dữ liệu qua VPN. Chỉ mở ứng dụng là chưa đủ. Những ngày này không có hạn chót.';
+
+  @override
+  String get inviteTreeQaCountOther =>
+      'Điện thoại đã nhập mã thì không thể nhập mã khác. Bạn và bạn của bạn không thể nhập mã của nhau.';
+
+  @override
+  String get inviteTreeQaDownQ => 'Vì sao phần thưởng của tôi giảm?';
+
+  @override
+  String get inviteTreeQaDownA =>
+      'Có người đang cộng dữ liệu cho bạn hiện không hoạt động. Đó có thể là một người bạn ở vị trí của bạn hoặc ai đó ở xa hơn. Khi họ dùng Fortiva trở lại, họ lại cộng dữ liệu.';
+
+  @override
+  String get inviteTreeQaDownLater =>
+      'Người bạn đã ngừng dùng vẫn được tính là hoạt động thêm một thời gian. Vì vậy phần thưởng của bạn có thể giảm sau khi họ ngừng một thời gian.';
+
+  @override
+  String get inviteTreeQaDownRemoved =>
+      'Phần thưởng của bạn cũng có thể giảm khi lời mời bị xóa, ví dụ khi người bạn đó xóa tài khoản Fortiva của họ.';
+
+  @override
+  String get inviteTreeQaFullQ =>
+      'Điều gì xảy ra khi các vị trí của tôi đã đầy?';
+
+  @override
+  String get inviteTreeQaFullFurther =>
+      'Khi các cặp đầu tiên đó cũng đã đầy, người bạn tiếp theo của bạn sẽ vào xa hơn, vào cặp đầu tiên của một người trong các cặp đó. Cặp đó cộng dữ liệu cho người ấy, và mức nhỏ hơn cho bạn và cho mỗi người ở giữa.';
+
+  @override
+  String get inviteTreeQaFriendsQ =>
+      'Bạn bè của bạn bè tôi có cộng dữ liệu cho tôi không?';
+
+  @override
+  String get inviteTreeQaFriendsA =>
+      'Có, với một phần trong số họ. Cặp đầu tiên của mỗi người ở vị trí của bạn cộng dữ liệu cho người đó, và mức nhỏ hơn cho bạn. Các cặp khác của họ chỉ cộng dữ liệu cho chính họ. Ở xa hơn, chỉ các cặp đầu tiên cộng dữ liệu cho bạn, và càng xa thì càng cộng ít, cho đến khi không cộng gì nữa.';
+
+  @override
+  String get inviteTreeQaOthersQ =>
+      'Những người ở vị trí của tôi mà tôi không mời là ai?';
+
+  @override
+  String get inviteTreeQaOthersA =>
+      'Họ là bạn bè của một người có các vị trí đã đầy, ví dụ người đã mời bạn. Họ đã nhận vị trí trống trong cặp đầu tiên của bạn, và bạn không thể chọn hay gỡ họ. Họ cộng dữ liệu cho bạn giống như bạn bè của chính bạn.';
+
+  @override
+  String get inviteTreeQaSumQ =>
+      'Vì sao phần thưởng của tôi khác với các mức trên màn hình mời?';
+
+  @override
+  String get inviteTreeQaSumA =>
+      'Mỗi dòng trong mục \"Qua các vị trí của bạn\" cho thấy những người ở dòng đó đang cộng thêm bao nhiêu lúc này. Phần thưởng của bạn là tổng của họ, tối đa đến giới hạn.';
+
+  @override
+  String get inviteTreeQaSlotQ =>
+      'Tôi có thể làm trống một vị trí hoặc chọn ai nhận vị trí đó không?';
+
+  @override
+  String get inviteTreeQaSlotA =>
+      'Không. Một người bạn vẫn giữ vị trí của mình ngay cả khi ngừng dùng Fortiva. Vị trí đó chỉ trống lại khi lời mời của họ bị xóa, ví dụ khi họ xóa tài khoản Fortiva. Các vị trí trống được lấp theo thứ tự, và không ai chọn được ai sẽ nhận.';
+
+  @override
+  String get inviteTreeQaPrivacyQ =>
+      'Bạn bè tôi có thấy tôi có dùng Fortiva không?';
+
+  @override
+  String get inviteTreeQaPrivacyA =>
+      'Nếu bạn tham gia bằng mã của một người bạn, người có vị trí mà bạn đang ở có thể thấy bạn đang hoạt động hay hiện không hoạt động. Những người khác chỉ thấy có bao nhiêu người đang hoạt động, không thấy là ai. Màn hình mời không bao giờ hiển thị tên, điện thoại hay mức sử dụng của bất kỳ ai.';
+
+  @override
+  String get inviteTreeQaLimitQ => 'Có giới hạn không?';
+
+  @override
+  String get inviteTreeQaLimitMore =>
+      'Khi lời mời của bạn đã cộng đến mức đó, thêm bạn bè cũng không cộng thêm dữ liệu.';
+
+  @override
+  String get inviteTreeQaKeptQ => 'Phần thưởng tôi đang có thì sao?';
+
+  @override
+  String get inviteTreeQaKeptMore =>
+      'Khi phần thưởng từ các lời mời trước đây lớn hơn phần bạn bè đang cộng lúc này, bạn nhận phần thưởng đó thay thế. Hai phần này không cộng dồn.';
+
+  @override
+  String get inviteTreeQaKeptRemoved =>
+      'Lời mời bị xóa khi người bạn đó xóa tài khoản Fortiva của họ, hoặc khi Fortiva hủy lời mời vì sử dụng sai mục đích.';
+
+  @override
+  String get inviteTreeQaChangedQ => 'Lời mời đã thay đổi những gì?';
+
+  @override
+  String get inviteTreeQaChangedA =>
+      'Trước đây, mỗi người bạn đủ điều kiện cộng thêm một lượng dữ liệu cố định. Giờ bạn bè cộng dữ liệu khi họ còn hoạt động, qua các vị trí và cặp của bạn, và phần thưởng của bạn có thể giảm.';
+
+  @override
+  String get inviteTreeQaPremiumQ => 'Lời mời có cộng thêm ngày Premium không?';
+
+  @override
+  String get inviteTreeQaPremiumOwn =>
+      'Bạn của bạn nhận vị trí nào cũng không quan trọng. Những người bạn không mời không cộng thêm ngày Premium.';
+
+  @override
+  String get inviteTreeQaGetsQ => 'Bạn của tôi có nhận được gì không?';
+
+  @override
+  String get inviteTreeQaGetsA =>
+      'Không phải vì nhập mã của bạn. Như mọi người, họ có mã và vị trí riêng, và bạn bè tham gia bằng mã của họ sẽ cộng dữ liệu cho họ. Khi đã đủ điều kiện, cặp đầu tiên của họ cũng có thể có người họ không mời, và những người đó cũng cộng dữ liệu cho họ.';
+
+  @override
+  String get inviteTreeQaGetsSee =>
+      'Nếu họ ở vị trí của bạn, bạn có thể thấy họ đang hoạt động hay hiện không hoạt động. Bạn không bao giờ thấy tên hay mức sử dụng của họ.';
+
+  @override
+  String get inviteTreeKeptFloor =>
+      'Phần thưởng của bạn hiện bằng mức được giữ từ các lời mời trước đây. Phần thưởng sẽ tăng khi bạn bè cùng nhau cộng thêm nhiều hơn mức đó.';
+
+  @override
+  String inviteTreeIntroTotalUpTo(String most, String total) {
+    return 'Bạn bè có thể cộng thêm tối đa $most mỗi ngày. Dữ liệu miễn phí của bạn cộng dữ liệu từ bạn bè có thể đạt $total mỗi ngày.';
+  }
+
+  @override
+  String get inviteTreeIntroPairsOrder =>
+      'Cặp đầu tiên của bạn cộng thêm nhiều nhất. Mỗi cặp sau đó cộng thêm ít hơn.';
+
+  @override
+  String get inviteTreeIntroInvitedYou => 'Người mời bạn';
+
+  @override
+  String get inviteTreeIntroGuide => 'Hướng dẫn từng bước';
+
+  @override
+  String get inviteTreeQaCostQ => 'Bạn tôi có bị mất dữ liệu vì tôi không?';
+
+  @override
+  String get inviteTreeQaCostA =>
+      'Không. Phần bạn bè cộng thêm cho bạn không bị trừ vào dữ liệu của chính họ. Dữ liệu hằng ngày của họ không thay đổi vì bạn.';
+
+  @override
+  String get inviteTreeQaStartQ =>
+      'Khi nào dữ liệu từ một người bạn bắt đầu được cộng?';
+
+  @override
+  String get inviteTreeQaStartA =>
+      'Ngay khi bạn của bạn có một vị trí và đang hoạt động. Phần thưởng của bạn được cập nhật trong ngày, nên sẽ tăng ngay sau đó, trong cùng ngày. Trước khi người bạn đủ điều kiện, họ không cộng thêm gì.';
+
+  @override
+  String get inviteTreeQaPhoneQ =>
+      'Nếu bạn tôi cài lại Fortiva hoặc đổi điện thoại thì sao?';
+
+  @override
+  String get inviteTreeQaPhoneA =>
+      'Sau khi cài lại trên cùng điện thoại, Fortiva thường nhận ra điện thoại đó và không có gì thay đổi. Điện thoại mới là điện thoại mới với Fortiva. Vị trí vẫn thuộc về điện thoại cũ và được tính là không hoạt động khi điện thoại cũ không còn được dùng.';
 
   @override
   String get premiumSourceInvite => 'Từ lời mời của bạn';

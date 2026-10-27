@@ -145,6 +145,17 @@ class _SettingsScreenState extends State<SettingsScreen> {
     if (mounted) setState(() => _appVersion = version);
   }
 
+  /// Whether invites are known to run under today's flat rule, as a
+  /// referral answer loaded in this run or the config says. Watched, so the
+  /// invite row's line follows the rule. While the rule is not known, which
+  /// is most runs, the row uses the line that is true under both rules, so
+  /// the tree never shows a line that says the user earns.
+  static bool _inviteFlat(BuildContext context) {
+    final status = context.watch<ReferralState?>()?.status;
+    if (status != null) return !status.isTree;
+    return context.watch<AppConfigState>().flags.referralRules == 'flat';
+  }
+
   @override
   Widget build(BuildContext context) {
     final l10n = S.of(context)!;
@@ -327,7 +338,12 @@ class _SettingsScreenState extends State<SettingsScreen> {
                   context,
                   icon: Icons.card_giftcard_outlined,
                   title: l10n.inviteTitle,
-                  subtitle: l10n.inviteSubtitle,
+                  // Under the tree rule friends add data while they are
+                  // active, so the row never says the user earns it. Only
+                  // a rule known to be flat gets the flat line.
+                  subtitle: _inviteFlat(context)
+                      ? l10n.inviteSubtitle
+                      : l10n.inviteTreeHero,
                   onTap: () => Navigator.push(
                     context,
                     MaterialPageRoute(

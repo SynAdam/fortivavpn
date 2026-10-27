@@ -16,6 +16,7 @@ class InvitePromptRules {
     required this.maxShows,
     this.earns = false,
     this.rewardPremiumDays,
+    this.afterDisconnect = false,
   });
 
   /// Tehran days with a verified connect before the first card.
@@ -40,6 +41,12 @@ class InvitePromptRules {
   /// The Premium days the next confirmed friend gives. Null when [earns] is
   /// false or the backend sent no number, and then the line names none.
   final int? rewardPremiumDays;
+
+  /// Whether the card may also show right after a good session the user
+  /// ended in the app, under the same numbers. False when the backend sent
+  /// no `after_disconnect` (an older backend) or sent false. The card
+  /// during a session does not depend on it.
+  final bool afterDisconnect;
 
   /// Null unless all five numbers are whole numbers above zero.
   static InvitePromptRules? fromJson(Object? json) {
@@ -67,6 +74,7 @@ class InvitePromptRules {
       rewardPremiumDays: earns
           ? readPositiveInt(json['reward_premium_days'])
           : null,
+      afterDisconnect: json['after_disconnect'] == true,
     );
   }
 
@@ -78,5 +86,6 @@ class InvitePromptRules {
     'max_shows': maxShows,
     'earns': earns,
     'reward_premium_days': rewardPremiumDays,
+    'after_disconnect': afterDisconnect,
   };
 }

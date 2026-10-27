@@ -103,12 +103,12 @@ void main() {
         with_: InvitePromptRules.fromJson({...inviteRulesJson, 'earns': false}),
       );
       expect(find.textContaining('Premium'), findsNothing);
+      expect(find.textContaining('Send the install link'), findsOneWidget);
       expect(
-        find.textContaining('Send your friend the install link'),
-        findsOneWidget,
-      );
-      expect(
-        find.text('Is Fortiva working well for you? Send it to a friend'),
+        find.text(
+          'Does Fortiva work well for you? '
+          'Send\u00A0it\u00A0to\u00A0a\u00A0friend',
+        ),
         findsOneWidget,
       );
     });
@@ -131,7 +131,8 @@ void main() {
 
     testWidgets('Persian digits in Persian', (tester) async {
       await pumpCard(tester, locale: 'fa');
-      expect(find.textContaining('۳ روز پریمیوم'), findsOneWidget);
+      // No-break spaces keep the amount with its words.
+      expect(find.textContaining('۳\u00A0روز\u00A0پریمیوم'), findsOneWidget);
     });
   });
 

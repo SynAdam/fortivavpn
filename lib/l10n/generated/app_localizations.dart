@@ -1290,7 +1290,7 @@ abstract class S {
   /// No description provided for @inviteBonusPerDay.
   ///
   /// In en, this message translates to:
-  /// **'+{amount} every day'**
+  /// **'+{amount} a day'**
   String inviteBonusPerDay(String amount);
 
   /// No description provided for @inviteNoBonusYet.
@@ -1359,16 +1359,16 @@ abstract class S {
   /// **'Not now'**
   String get inviteNotNowAction;
 
-  /// Shown when the referral status sends confirm_active_days.
+  /// Shown to the person who just entered a code, under both invite rules, when the referral status sends confirm_active_days. Say when the invite counts. Never say earn, or that anyone is paid.
   ///
   /// In en, this message translates to:
-  /// **'Invite accepted. Your friend earns bonus data once you have used the VPN on {days, plural, one{{days} day} other{{days} different days}}.'**
+  /// **'Invite accepted. It counts once you have used the VPN on {days, plural, one{{days} day} other{{days} different days}}, starting today.'**
   String inviteClaimAccepted(int days);
 
-  /// No description provided for @inviteClaimAcceptedNoDays.
+  /// Shown to the person who just entered a code, under both invite rules, when the backend sends no days. Names no number. Never say earn, or that anyone is paid.
   ///
   /// In en, this message translates to:
-  /// **'Invite accepted. Your friend earns bonus data once you have used the VPN for a while.'**
+  /// **'Invite accepted. It counts once you have used the VPN for a while, starting today.'**
   String get inviteClaimAcceptedNoDays;
 
   /// No description provided for @inviteClaimAlready.
@@ -1389,16 +1389,16 @@ abstract class S {
   /// **'Could not reach the server. Try again'**
   String get inviteClaimNetwork;
 
-  /// The title of the invite card on the home screen, shown after good connection days.
+  /// The title of the invite card on the home screen, shown after good connection days, while connected or right after the user disconnects. No-break spaces keep the request "Send it to a friend" on one line, so the title wraps after the question.
   ///
   /// In en, this message translates to:
-  /// **'Is Fortiva working well for you? Send it to a friend'**
+  /// **'Does Fortiva work well for you? Send it to a friend'**
   String get inviteCardTitle;
 
   /// No description provided for @inviteCardBody.
   ///
   /// In en, this message translates to:
-  /// **'Send your friend the install link so they can connect for free too.'**
+  /// **'Send the install link so they can connect for free too.'**
   String get inviteCardBody;
 
   /// The invite card's reward line, shown when the backend sends reward_premium_days.
@@ -1491,22 +1491,22 @@ abstract class S {
   /// **'{max, plural, one{You can earn up to {max} day of Premium from invites.} other{You can earn up to {max} days of Premium from invites.}}'**
   String inviteHowItWorksPremiumCap(int max);
 
-  /// Invite screen, invite tree rule: under the bonus, shown only while the bonus is above the kept minimum (inviteTreeKept). The bonus is live: it goes down when a friend stops. Never say it stays or is permanent.
+  /// Invite screen and introduction, invite tree rule: the bonus is live. It can go down when a friend stops. Never say it stays or is permanent. Talk about friends, slots, pairs and data. Never use a word for level, tier or rank, never say people are under or below the user, and never say earn, income or pay.
   ///
   /// In en, this message translates to:
-  /// **'Your bonus lasts while your friends keep using Fortiva. If a friend stops, it goes down.'**
+  /// **'Your bonus lasts while your friends keep using Fortiva. If a friend stops, your bonus can go down.'**
   String get inviteTreeLive;
 
-  /// Invite screen, invite tree rule: under the share button, when the backend sends next_invite_bytes.
+  /// Invite screen and introduction, invite tree rule: what the next friend adds a day (next_invite_bytes) once their invite qualifies and while they are active. Talk about friends, slots, pairs and data. Never use a word for level, tier or rank, never say people are under or below the user, and never say earn, income or pay.
   ///
   /// In en, this message translates to:
-  /// **'Your next friend adds {amount} a day once they start using Fortiva.'**
+  /// **'Your next friend adds {amount} a day once they qualify and are active.'**
   String inviteTreeNext(String amount);
 
-  /// Invite screen, invite tree rule: the bonus kept from invites made under the old rule (kept_bytes), shown when above zero. It is a minimum, not an amount added on top: the bonus is the larger of what friends give now and this amount.
+  /// Invite screen and introduction, invite tree rule: the bonus kept from invites made under the old rule (kept_bytes), shown when above zero. It is a minimum, not an amount added on top: the bonus is the larger of what friends add now and this amount. It is the one tree text allowed to say the bonus is kept, but it must not say it is kept for good: it goes down when an invite is removed. "Earlier invites" matches inviteTreeIntroTotalKept. Talk about friends, slots, pairs and data. Never use a word for level, tier or rank, never say people are under or below the user, and never say earn, income or pay.
   ///
   /// In en, this message translates to:
-  /// **'Your bonus never goes below {amount} a day, because of friends you invited before.'**
+  /// **'Your bonus does not go below {amount} a day, the bonus you had from earlier invites. This amount can go down only if one of your invites is removed.'**
   String inviteTreeKept(String amount);
 
   /// Invite screen, invite tree rule: title over this device's own slots, drawn in pairs.
@@ -1563,13 +1563,7 @@ abstract class S {
   /// **'In your slots'**
   String get inviteTreeRowFriends;
 
-  /// Invite screen, invite tree rule: the second row under inviteTreeFriendsTitle, the people in the slots of the people in the user's own slots. Their means the people in the row above (inviteTreeRowFriends). Do not call them friends of friends. No level or rank wording, and never say under or below.
-  ///
-  /// In en, this message translates to:
-  /// **'In their slots'**
-  String get inviteTreeRowFriendsSlots;
-
-  /// Invite screen, invite tree rule: the rows after inviteTreeRowFriendsSlots, people further from the user. steps is how far they are, counted with the people in the user's own slots as one step. No level or rank wording, and never say under or below.
+  /// Invite screen, invite tree rule: the rows after inviteTreeRowFriends, people further from the user. steps is how far they are, counted with the people in the user's own slots as one step. No level or rank wording, and never say under or below.
   ///
   /// In en, this message translates to:
   /// **'{steps, plural, one{{steps} step away} other{{steps} steps away}}'**
@@ -1611,16 +1605,16 @@ abstract class S {
   /// **'Your first pair can also take people you did not invite. They add data for you in the same way.'**
   String get inviteTreeHowOthers;
 
-  /// How it works, invite tree rule: a friend counts while they used the VPN on at least active_days days in the last active_window_days days.
+  /// How it works and the introduction, invite tree rule: a friend counts while they used the VPN on at least active_days days in the last active_window_days days. Use the verb of inviteClaimAccepted for "use the VPN". Talk about friends, slots, pairs and data. Never use a word for level, tier or rank, never say people are under or below the user, and never say earn, income or pay.
   ///
   /// In en, this message translates to:
-  /// **'A friend is active while they have used Fortiva on at least {days, plural, one{{days} day} other{{days} days}} in the last {window, plural, one{{window} day} other{{window} days}}.'**
+  /// **'A friend is active while they have used the VPN on at least {days, plural, one{{days} day} other{{days} days}} in the last {window, plural, one{{window} day} other{{window} days}}.'**
   String inviteTreeHowActive(int days, int window);
 
-  /// How it works, invite tree rule, when the backend sends no days. Names no number.
+  /// How it works and the introduction, invite tree rule, when the backend sends no days. Names no number. Talk about friends, slots, pairs and data. Never use a word for level, tier or rank, never say people are under or below the user, and never say earn, income or pay.
   ///
   /// In en, this message translates to:
-  /// **'A friend is active while they keep using Fortiva.'**
+  /// **'A friend is active while they keep using the VPN.'**
   String get inviteTreeHowActiveNoNumber;
 
   /// How it works, invite tree rule: the most invites can add a day (max_bonus_bytes). The tree's own wording of inviteHowItWorksCap: say invites add data, never that the user earns, gets paid or makes it.
@@ -1689,16 +1683,10 @@ abstract class S {
   /// **'Friends fill your slots in pairs'**
   String get inviteTreeIntroSlotsTitle;
 
-  /// Invite tree introduction, step 1 note: a friend takes a slot once they start using the app, not when they enter the code. Talk about friends, slots, pairs and data. Never use a word for level, tier or rank, never say people are under or below the user, and never say earn, income, pay or that the bonus stays.
+  /// Screen reader label for the step 1 drawing: the user's disc, their invite code, and their own slots in pairs, each in its real state. Talk about friends, slots, pairs and data. Never use a word for level, tier or rank, never say people are under or below the user, and never say earn, income or pay.
   ///
   /// In en, this message translates to:
-  /// **'A friend takes a slot once they start using Fortiva.'**
-  String get inviteTreeIntroSlotsWhen;
-
-  /// Invite tree introduction, step 1: what the drawing shows, for a screen reader. Talk about friends, slots, pairs and data. Never use a word for level, tier or rank, never say people are under or below the user, and never say earn, income, pay or that the bonus stays.
-  ///
-  /// In en, this message translates to:
-  /// **'Your slots, in pairs, filling as friends join.'**
+  /// **'You, your invite code, and your slots in pairs. Each slot shows if it is open, or if the person in it is active or not active now.'**
   String get inviteTreeIntroSlotsArt;
 
   /// Invite tree introduction, step 2 title: a pair of slots adds the most data when both friends in it are active. Talk about friends, slots, pairs and data. Never use a word for level, tier or rank, never say people are under or below the user, and never say earn, income, pay or that the bonus stays.
@@ -1737,41 +1725,11 @@ abstract class S {
   /// **'+{amount} a day'**
   String inviteTreeIntroAdds(String amount);
 
-  /// Invite tree introduction, step 2: what the drawing shows, for a screen reader. Talk about friends, slots, pairs and data. Never use a word for level, tier or rank, never say people are under or below the user, and never say earn, income, pay or that the bonus stays.
-  ///
-  /// In en, this message translates to:
-  /// **'A pair of slots. It adds more data when both friends in it are active.'**
-  String get inviteTreeIntroPairArt;
-
-  /// Invite tree introduction, step 3 title: friends further from the user, in their friends' slots, still add data, but less. Talk about friends, slots, pairs and data. Never use a word for level, tier or rank, never say people are under or below the user, and never say earn, income, pay or that the bonus stays.
-  ///
-  /// In en, this message translates to:
-  /// **'Friends further away still add data'**
-  String get inviteTreeIntroFurtherTitle;
-
-  /// Invite tree introduction, step 3 note: of a friend's own slots, only that friend's first pair adds data for the user. Talk about friends, slots, pairs and data. Never use a word for level, tier or rank, never say people are under or below the user, and never say earn, income, pay or that the bonus stays.
-  ///
-  /// In en, this message translates to:
-  /// **'From your friend\'s slots, only their first pair adds data for you.'**
-  String get inviteTreeIntroFirstPairOnly;
-
   /// Invite tree introduction, step 3 drawing: the caption under the user's friend. Short, at most two lines.
   ///
   /// In en, this message translates to:
   /// **'Your friend'**
   String get inviteTreeIntroYourFriend;
-
-  /// Invite tree introduction, step 3 drawing: the caption under the friend's first pair. Short, at most two lines. Talk about friends, slots, pairs and data. Never use a word for level, tier or rank, never say people are under or below the user, and never say earn, income, pay or that the bonus stays.
-  ///
-  /// In en, this message translates to:
-  /// **'Their first pair'**
-  String get inviteTreeIntroTheirPair;
-
-  /// Invite tree introduction, step 3: what the drawing shows, for a screen reader. Talk about friends, slots, pairs and data. Never use a word for level, tier or rank, never say people are under or below the user, and never say earn, income, pay or that the bonus stays.
-  ///
-  /// In en, this message translates to:
-  /// **'Your friend\'s first pair adds data for your friend and for you. Pairs further away add less.'**
-  String get inviteTreeIntroFurtherArt;
 
   /// Invite tree introduction, step 4 title: the user's daily data from friends. Talk about friends, slots, pairs and data. Never use a word for level, tier or rank, never say people are under or below the user, and never say earn, income, pay or that the bonus stays.
   ///
@@ -1809,10 +1767,10 @@ abstract class S {
   /// **'{amount} a day'**
   String inviteTreeIntroPerDay(String amount);
 
-  /// Limit sheet under the invite tree rule, when the daily data is used up: what the next friend adds a day (next_invite_bytes) once they start using the app, and that it does not add to today's data. Talk about friends, slots, pairs and data. Never use a word for level, tier or rank, never say people are under or below the user, and never say earn, income, pay or that the bonus stays.
+  /// Limit sheet under the invite tree rule, when the daily data is used up: what the next friend adds a day (next_invite_bytes) once their invite qualifies and while they are active, and that it does not add to today's data. Talk about friends, slots, pairs and data. Never use a word for level, tier or rank, never say people are under or below the user, and never say earn, income or pay.
   ///
   /// In en, this message translates to:
-  /// **'Your next friend adds {amount} a day once they start using Fortiva. It does not add to today\'s data.'**
+  /// **'Your next friend adds {amount} a day once they qualify and are active. It does not add to today\'s data.'**
   String inviteTreeSheetNext(String amount);
 
   /// Invite screen under the invite tree rule: the line under the gift at the top, in place of inviteSubtitle. Talk about friends, slots, pairs and data. Never use a word for level, tier or rank, never say people are under or below the user, and never say earn, income, pay or that the bonus stays.
@@ -1821,10 +1779,10 @@ abstract class S {
   /// **'Friends add to your daily data'**
   String get inviteTreeHero;
 
-  /// Invite screen, How it works under the invite tree rule: the Premium days each friend who starts using the app gives. Say it adds or gives, never earn.
+  /// Invite screen, How it works under the invite tree rule: the Premium days the user gets when a friend who entered their code qualifies. Only the person who invited gets them. Say it adds, never earn or gives you. Talk about friends, slots, pairs and data. Never use a word for level, tier or rank, never say people are under or below the user, and never say earn, income or pay.
   ///
   /// In en, this message translates to:
-  /// **'{days, plural, one{Each friend who starts using Fortiva also gives you {days} day of Premium.} other{Each friend who starts using Fortiva also gives you {days} days of Premium.}}'**
+  /// **'{days, plural, one{Each friend who qualifies with your code also adds {days} day of Premium for you.} other{Each friend who qualifies with your code also adds {days} days of Premium for you.}}'**
   String inviteTreePremiumEach(int days);
 
   /// Invite screen, How it works under the invite tree rule: the most Premium days invites can give. Say invites add or give, never that the user earns.
@@ -1832,6 +1790,492 @@ abstract class S {
   /// In en, this message translates to:
   /// **'{max, plural, one{Invites can add up to {max} day of Premium.} other{Invites can add up to {max} days of Premium.}}'**
   String inviteTreePremiumCap(int max);
+
+  /// Invite tree introduction, step 1 body. slots is the number of the user's own slots, counted from the pairs the backend sends. It is always even. Both plural branches must say the same thing, because in some languages the one form is also used for other numbers. A slot is a place for one friend, and a pair is two slots side by side. Do not write a number word next to "friend". Talk about friends, slots, pairs and data. Never use a word for level, tier or rank, never say people are under or below the user, and never say earn, income or pay.
+  ///
+  /// In en, this message translates to:
+  /// **'{slots, plural, one{Friends who join with your code can add to your daily data. You have {slots} slot for them. Each slot holds a friend, and the slots come in pairs. Your first pair is filled first. More friends can still join when your slots are full.} other{Friends who join with your code can add to your daily data. You have {slots} slots for them. Each slot holds a friend, and the slots come in pairs. Your first pair is filled first. More friends can still join when your slots are full.}}'**
+  String inviteTreeIntroSlotsBody(int slots);
+
+  /// Fallback for inviteTreeIntroSlotsBody when the backend sent no pairs. It names no number. Talk about friends, slots, pairs and data. Never use a word for level, tier or rank, never say people are under or below the user, and never say earn, income or pay.
+  ///
+  /// In en, this message translates to:
+  /// **'Friends who join with your code can add to your daily data. You have slots for them. Each slot holds a friend, and the slots come in pairs. Your first pair is filled first. More friends can still join when your slots are full.'**
+  String get inviteTreeIntroSlotsBodyNoNumber;
+
+  /// Invite tree introduction, step 2 title. Talk about friends, slots, pairs and data. Never use a word for level, tier or rank, never say people are under or below the user, and never say earn, income or pay.
+  ///
+  /// In en, this message translates to:
+  /// **'How a friend takes a slot'**
+  String get inviteTreeIntroJoinTitle;
+
+  /// Invite tree introduction, step 2, and the answer to "My friend entered my code". hours is claim_window_hours from the backend. "Their invite screen" is the friend's own invite screen in Fortiva, where "Have an invite code?" is shown. Talk about friends, slots, pairs and data. Never use a word for level, tier or rank, never say people are under or below the user, and never say earn, income or pay.
+  ///
+  /// In en, this message translates to:
+  /// **'{hours, plural, one{Your friend must enter your code on their invite screen within {hours} hour of installing Fortiva.} other{Your friend must enter your code on their invite screen within {hours} hours of installing Fortiva.}}'**
+  String inviteTreeIntroJoinCode(int hours);
+
+  /// Fallback for inviteTreeIntroJoinCode. It names no number. Talk about friends, slots, pairs and data. Never use a word for level, tier or rank, never say people are under or below the user, and never say earn, income or pay.
+  ///
+  /// In en, this message translates to:
+  /// **'Your friend must enter your code on their invite screen soon after installing Fortiva.'**
+  String get inviteTreeIntroJoinCodeNoNumber;
+
+  /// Invite tree introduction, step 2, and the count answer. days is confirm_active_days from the backend. "After that" means after entering the code, because earlier days do not count. Use the verb of inviteClaimAccepted for "use the VPN". Use the word of the Qualified tile (inviteStatEarning) for qualify. Talk about friends, slots, pairs and data. Never use a word for level, tier or rank, never say people are under or below the user, and never say earn, income or pay.
+  ///
+  /// In en, this message translates to:
+  /// **'{days, plural, one{After that, they must use the VPN on {days} day. Then they qualify and take the next open slot.} other{After that, they must use the VPN on {days} different days. Then they qualify and take the next open slot.}}'**
+  String inviteTreeIntroJoinQualify(int days);
+
+  /// Fallback for inviteTreeIntroJoinQualify. It names no number. Talk about friends, slots, pairs and data. Never use a word for level, tier or rank, never say people are under or below the user, and never say earn, income or pay.
+  ///
+  /// In en, this message translates to:
+  /// **'After that, they must use the VPN for a while. Then they qualify and take the next open slot.'**
+  String get inviteTreeIntroJoinQualifyNoNumber;
+
+  /// Invite tree introduction, step 2 note, and the count answer. "Your link" is the link in the invite the user shares. Write Google Play as the other strings in your language do. Talk about friends, slots, pairs and data. Never use a word for level, tier or rank, never say people are under or below the user, and never say earn, income or pay.
+  ///
+  /// In en, this message translates to:
+  /// **'If they install from Google Play through your link, the code is entered for them.'**
+  String get inviteTreeIntroJoinPlay;
+
+  /// Answer to "My friend entered my code". Use the exact words of inviteStatInvited and inviteStatEarning. Talk about friends, slots, pairs and data. Never use a word for level, tier or rank, never say people are under or below the user, and never say earn, income or pay.
+  ///
+  /// In en, this message translates to:
+  /// **'Until they qualify, your invite screen counts them in \"Invited\", but not yet in \"Qualified\".'**
+  String get inviteTreeIntroJoinWaiting;
+
+  /// Invite tree introduction, step 2 drawing: the caption of the first stop. At most two short lines. Talk about friends, slots, pairs and data. Never use a word for level, tier or rank, never say people are under or below the user, and never say earn, income or pay.
+  ///
+  /// In en, this message translates to:
+  /// **'Enters your code'**
+  String get inviteTreeIntroJoinStepCode;
+
+  /// Invite tree introduction, step 2 drawing: the caption of the second stop, the days of use. At most two short lines. Talk about friends, slots, pairs and data. Never use a word for level, tier or rank, never say people are under or below the user, and never say earn, income or pay.
+  ///
+  /// In en, this message translates to:
+  /// **'Uses the VPN'**
+  String get inviteTreeIntroJoinStepUse;
+
+  /// Invite tree introduction, step 2 drawing: the caption of the last stop, the next open slot. At most two short lines. Talk about friends, slots, pairs and data. Never use a word for level, tier or rank, never say people are under or below the user, and never say earn, income or pay.
+  ///
+  /// In en, this message translates to:
+  /// **'Takes a slot'**
+  String get inviteTreeIntroJoinStepSlot;
+
+  /// Screen reader label for the step 2 drawing. Talk about friends, slots, pairs and data. Never use a word for level, tier or rank, never say people are under or below the user, and never say earn, income or pay.
+  ///
+  /// In en, this message translates to:
+  /// **'A friend enters your code, uses the VPN on different days, and then takes the next open slot.'**
+  String get inviteTreeIntroJoinArt;
+
+  /// Invite tree introduction, step 3 body, shown above the table of the user's pairs. Talk about friends, slots, pairs and data. Never use a word for level, tier or rank, never say people are under or below the user, and never say earn, income or pay.
+  ///
+  /// In en, this message translates to:
+  /// **'Each pair can add data for you. It adds the most when both people in it are active.'**
+  String get inviteTreeIntroPairsBody;
+
+  /// Invite tree introduction, step 3: the small label at the top of the table. Talk about friends, slots, pairs and data. Never use a word for level, tier or rank, never say people are under or below the user, and never say earn, income or pay.
+  ///
+  /// In en, this message translates to:
+  /// **'What each pair adds to your data a day'**
+  String get inviteTreeIntroPairsCaption;
+
+  /// Invite tree introduction, step 3 column heading: what a pair adds when both people in it are active. Keep it short. Do not write a number word with a unit. Talk about friends, slots, pairs and data. Never use a word for level, tier or rank, never say people are under or below the user, and never say earn, income or pay.
+  ///
+  /// In en, this message translates to:
+  /// **'Both active'**
+  String get inviteTreeIntroBothActive;
+
+  /// Invite tree introduction, step 3 column heading: what a pair adds when only one of its people is active. Keep it short. Talk about friends, slots, pairs and data. Never use a word for level, tier or rank, never say people are under or below the user, and never say earn, income or pay.
+  ///
+  /// In en, this message translates to:
+  /// **'One active'**
+  String get inviteTreeIntroOneActive;
+
+  /// Invite tree introduction, step 3: one amount in the table, such as +1 GB. amount is a data amount from the backend, already formatted. Talk about friends, slots, pairs and data. Never use a word for level, tier or rank, never say people are under or below the user, and never say earn, income or pay.
+  ///
+  /// In en, this message translates to:
+  /// **'+{amount}'**
+  String inviteTreeIntroPlus(String amount);
+
+  /// Invite tree introduction: shown in place of an amount when the backend says a pair adds nothing in that case. Talk about friends, slots, pairs and data. Never use a word for level, tier or rank, never say people are under or below the user, and never say earn, income or pay.
+  ///
+  /// In en, this message translates to:
+  /// **'Nothing'**
+  String get inviteTreeIntroNothing;
+
+  /// Invite tree introduction, step 3 note, shown when an amount in the table is highlighted. Talk about friends, slots, pairs and data. Never use a word for level, tier or rank, never say people are under or below the user, and never say earn, income or pay.
+  ///
+  /// In en, this message translates to:
+  /// **'The highlighted amounts are what your pairs add now.'**
+  String get inviteTreeIntroPairNow;
+
+  /// Screen reader label for the step 3 table. Talk about friends, slots, pairs and data. Never use a word for level, tier or rank, never say people are under or below the user, and never say earn, income or pay.
+  ///
+  /// In en, this message translates to:
+  /// **'Your pairs, and what each one adds a day when both people in it are active, and when one is.'**
+  String get inviteTreeIntroPairsArt;
+
+  /// Invite tree introduction, step 4 title. Talk about friends, slots, pairs and data. Never use a word for level, tier or rank, never say people are under or below the user, and never say earn, income or pay.
+  ///
+  /// In en, this message translates to:
+  /// **'A friend adds data while they are active'**
+  String get inviteTreeIntroActiveTitle;
+
+  /// Invite tree introduction, step 4 body. It must say the bonus can go down. Never say the bonus stays. Talk about friends, slots, pairs and data. Never use a word for level, tier or rank, never say people are under or below the user, and never say earn, income or pay.
+  ///
+  /// In en, this message translates to:
+  /// **'If a friend stops using Fortiva, their pair adds less and your bonus can go down. They keep their slot. When they use Fortiva again, their pair adds more again.'**
+  String get inviteTreeIntroActiveStops;
+
+  /// Invite tree introduction, step 4 note. "Further away" means in slots that are not the user's own. Talk about friends, slots, pairs and data. Never use a word for level, tier or rank, never say people are under or below the user, and never say earn, income or pay.
+  ///
+  /// In en, this message translates to:
+  /// **'People further away who add data for you also count only while they are active.'**
+  String get inviteTreeIntroActiveFar;
+
+  /// Screen reader label for the step 4 drawing. Talk about friends, slots, pairs and data. Never use a word for level, tier or rank, never say people are under or below the user, and never say earn, income or pay.
+  ///
+  /// In en, this message translates to:
+  /// **'A pair where a friend stopped using Fortiva. The pair now adds less.'**
+  String get inviteTreeIntroActiveArt;
+
+  /// Invite tree introduction, step 5 title. Talk about friends, slots, pairs and data. Never use a word for level, tier or rank, never say people are under or below the user, and never say earn, income or pay.
+  ///
+  /// In en, this message translates to:
+  /// **'When your slots are full'**
+  String get inviteTreeIntroFullTitle;
+
+  /// Invite tree introduction, step 5 body, and the answer to "What happens when my slots are full?". "Someone in your slots" is a person in one of the user's own slots. Talk about friends, slots, pairs and data. Never use a word for level, tier or rank, never say people are under or below the user, and never say earn, income or pay.
+  ///
+  /// In en, this message translates to:
+  /// **'When all your slots are taken, your next friend goes into the first pair of someone in your slots, in order from your first slot. That pair adds data for that person, and less for you.'**
+  String get inviteTreeIntroFullBody;
+
+  /// Invite tree introduction, step 5 note, and the answer to "What happens when my slots are full?". Talk about friends, slots, pairs and data. Never use a word for level, tier or rank, never say people are under or below the user, and never say earn, income or pay.
+  ///
+  /// In en, this message translates to:
+  /// **'The further away a slot is, the less it adds for you. Slots very far away add nothing.'**
+  String get inviteTreeIntroFullLess;
+
+  /// Invite tree introduction, step 5 drawing: short caption at the open slot where the user's next friend goes. It is shown with the amount that friend adds. Talk about friends, slots, pairs and data. Never use a word for level, tier or rank, never say people are under or below the user, and never say earn, income or pay.
+  ///
+  /// In en, this message translates to:
+  /// **'Your next friend'**
+  String get inviteTreeIntroNextFriend;
+
+  /// Invite tree introduction, step 5 drawing: short caption when the user still has open slots of their own. The drawing is then an example. Talk about friends, slots, pairs and data. Never use a word for level, tier or rank, never say people are under or below the user, and never say earn, income or pay.
+  ///
+  /// In en, this message translates to:
+  /// **'A later friend'**
+  String get inviteTreeIntroLaterFriend;
+
+  /// Screen reader label for the step 5 drawing. Talk about friends, slots, pairs and data. Never use a word for level, tier or rank, never say people are under or below the user, and never say earn, income or pay.
+  ///
+  /// In en, this message translates to:
+  /// **'A later friend takes an open slot in the first pair of someone in your slots. That pair adds data for that person, and less for you.'**
+  String get inviteTreeIntroFullArt;
+
+  /// Invite tree introduction, step 6 title. Shown only to users who joined with someone's code. Talk about friends, slots, pairs and data. Never use a word for level, tier or rank, never say people are under or below the user, and never say earn, income or pay.
+  ///
+  /// In en, this message translates to:
+  /// **'Your first pair can hold people you did not invite'**
+  String get inviteTreeIntroOthersTitle;
+
+  /// Invite tree introduction, step 6 body. "Their" is the friend whose code the user entered. Talk about friends, slots, pairs and data. Never use a word for level, tier or rank, never say people are under or below the user, and never say earn, income or pay.
+  ///
+  /// In en, this message translates to:
+  /// **'You joined with a friend\'s code. When their slots are full, their next friends can take an open slot in your first pair. Friends of other people can too. Whoever takes it adds data for you in the same way as your own friends.'**
+  String get inviteTreeIntroOthersWhy;
+
+  /// Part of the answer to "Who are the people in my slots I did not invite?". Talk about friends, slots, pairs and data. Never use a word for level, tier or rank, never say people are under or below the user, and never say earn, income or pay.
+  ///
+  /// In en, this message translates to:
+  /// **'Your own friends fill your other open slots, and after that, open slots further away.'**
+  String get inviteTreeIntroOthersYours;
+
+  /// Invite tree introduction, step 6 drawing: short caption at the person in the user's first pair who came from someone else. At most two short lines. Talk about friends, slots, pairs and data. Never use a word for level, tier or rank, never say people are under or below the user, and never say earn, income or pay.
+  ///
+  /// In en, this message translates to:
+  /// **'Not invited by you'**
+  String get inviteTreeIntroNotInvited;
+
+  /// Screen reader label for the step 6 drawing. The drawing is an example, not the user's own slots. Talk about friends, slots, pairs and data. Never use a word for level, tier or rank, never say people are under or below the user, and never say earn, income or pay.
+  ///
+  /// In en, this message translates to:
+  /// **'An example of your first pair, with a friend you invited and a person you did not invite. Both add data for you while they are active.'**
+  String get inviteTreeIntroOthersArt;
+
+  /// Invite tree introduction, last step title, above the Share button. Talk about friends, slots, pairs and data. Never use a word for level, tier or rank, never say people are under or below the user, and never say earn, income or pay.
+  ///
+  /// In en, this message translates to:
+  /// **'Invite friends who will use Fortiva'**
+  String get inviteTreeIntroShareTitle;
+
+  /// Invite tree introduction, last step body. Talk about friends, slots, pairs and data. Never use a word for level, tier or rank, never say people are under or below the user, and never say earn, income or pay.
+  ///
+  /// In en, this message translates to:
+  /// **'A friend adds data for you only while they are active. Send your invite to friends who need a VPN.'**
+  String get inviteTreeIntroShareBody;
+
+  /// Title of the invite tree questions page, and the link that opens it from the introduction and the invite screen. Talk about friends, slots, pairs and data. Never use a word for level, tier or rank, never say people are under or below the user, and never say earn, income or pay.
+  ///
+  /// In en, this message translates to:
+  /// **'Questions and answers'**
+  String get inviteTreeQaTitle;
+
+  /// Invite tree questions page: a question. End it with your script's question mark. Talk about friends, slots, pairs and data. Never use a word for level, tier or rank, never say people are under or below the user, and never say earn, income or pay.
+  ///
+  /// In en, this message translates to:
+  /// **'My friend entered my code. When do they take a slot?'**
+  String get inviteTreeQaCountQ;
+
+  /// Invite tree questions page: part of the count answer, after the line that names the days. Talk about friends, slots, pairs and data. Never use a word for level, tier or rank, never say people are under or below the user, and never say earn, income or pay.
+  ///
+  /// In en, this message translates to:
+  /// **'A day counts only when they use some data through the VPN that day. Opening the app is not enough. There is no deadline for these days.'**
+  String get inviteTreeQaCountDay;
+
+  /// Invite tree questions page: last part of the count answer. Talk about friends, slots, pairs and data. Never use a word for level, tier or rank, never say people are under or below the user, and never say earn, income or pay.
+  ///
+  /// In en, this message translates to:
+  /// **'A phone that already entered a code cannot enter another one. You and a friend cannot enter each other\'s codes.'**
+  String get inviteTreeQaCountOther;
+
+  /// Invite tree questions page: a question. Talk about friends, slots, pairs and data. Never use a word for level, tier or rank, never say people are under or below the user, and never say earn, income or pay.
+  ///
+  /// In en, this message translates to:
+  /// **'Why did my bonus go down?'**
+  String get inviteTreeQaDownQ;
+
+  /// Invite tree questions page: first part of the answer to "Why did my bonus go down?". Never say the bonus stays. Talk about friends, slots, pairs and data. Never use a word for level, tier or rank, never say people are under or below the user, and never say earn, income or pay.
+  ///
+  /// In en, this message translates to:
+  /// **'Someone who adds data for you is not active now. It can be a friend in your slots or someone further away. When they use Fortiva again, they add data again.'**
+  String get inviteTreeQaDownA;
+
+  /// Invite tree questions page: part of the down answer, after the line that says when a friend is active. Talk about friends, slots, pairs and data. Never use a word for level, tier or rank, never say people are under or below the user, and never say earn, income or pay.
+  ///
+  /// In en, this message translates to:
+  /// **'A friend who stops still counts as active for a while. So your bonus can go down a while after they stop.'**
+  String get inviteTreeQaDownLater;
+
+  /// Invite tree questions page: part of the down answer. "Removed" is neutral. Do not use a word for punished. Talk about friends, slots, pairs and data. Never use a word for level, tier or rank, never say people are under or below the user, and never say earn, income or pay.
+  ///
+  /// In en, this message translates to:
+  /// **'Your bonus can also go down when an invite is removed, for example when that friend deletes their Fortiva account.'**
+  String get inviteTreeQaDownRemoved;
+
+  /// Invite tree questions page: a question. Talk about friends, slots, pairs and data. Never use a word for level, tier or rank, never say people are under or below the user, and never say earn, income or pay.
+  ///
+  /// In en, this message translates to:
+  /// **'What happens when my slots are full?'**
+  String get inviteTreeQaFullQ;
+
+  /// Invite tree questions page: part of the full answer, after inviteTreeIntroFullBody. Say further away. Talk about friends, slots, pairs and data. Never use a word for level, tier or rank, never say people are under or below the user, and never say earn, income or pay.
+  ///
+  /// In en, this message translates to:
+  /// **'When those first pairs are full too, your next friend goes further away, into the first pair of someone in those pairs. That pair adds data for that person, and smaller amounts for you and for each person between you.'**
+  String get inviteTreeQaFullFurther;
+
+  /// Invite tree questions page: a question. Talk about friends, slots, pairs and data. Never use a word for level, tier or rank, never say people are under or below the user, and never say earn, income or pay.
+  ///
+  /// In en, this message translates to:
+  /// **'Do my friends\' friends add data for me?'**
+  String get inviteTreeQaFriendsQ;
+
+  /// Invite tree questions page: the answer to "Do my friends' friends add data for me?". Calm and plain. Talk about friends, slots, pairs and data. Never use a word for level, tier or rank, never say people are under or below the user, and never say earn, income or pay.
+  ///
+  /// In en, this message translates to:
+  /// **'Some of them do. The first pair of each person in your slots adds data for that person, and a smaller amount for you. Their other pairs add data only for them. Further away, only first pairs add data for you, and the further away they are, the less they add, until they add nothing.'**
+  String get inviteTreeQaFriendsA;
+
+  /// Invite tree questions page: a question. Shown only to users who joined with someone's code. Talk about friends, slots, pairs and data. Never use a word for level, tier or rank, never say people are under or below the user, and never say earn, income or pay.
+  ///
+  /// In en, this message translates to:
+  /// **'Who are the people in my slots I did not invite?'**
+  String get inviteTreeQaOthersQ;
+
+  /// Invite tree questions page: the answer to "Who are the people in my slots I did not invite?". Talk about friends, slots, pairs and data. Never use a word for level, tier or rank, never say people are under or below the user, and never say earn, income or pay.
+  ///
+  /// In en, this message translates to:
+  /// **'They are friends of someone whose slots are full, for example the person who invited you. They took an open slot in your first pair, and you cannot choose or remove them. They add data for you in the same way as your own friends.'**
+  String get inviteTreeQaOthersA;
+
+  /// Invite tree questions page: a question. Talk about friends, slots, pairs and data. Never use a word for level, tier or rank, never say people are under or below the user, and never say earn, income or pay.
+  ///
+  /// In en, this message translates to:
+  /// **'Why is my bonus different from the amounts on the invite screen?'**
+  String get inviteTreeQaSumQ;
+
+  /// Invite tree questions page: the answer to the sum question. Write "Through your slots" exactly as inviteTreeFriendsTitle, the title of that card. Talk about friends, slots, pairs and data. Never use a word for level, tier or rank, never say people are under or below the user, and never say earn, income or pay.
+  ///
+  /// In en, this message translates to:
+  /// **'Each row in \"Through your slots\" shows what the people in that row add now. Your bonus is their total, up to the limit.'**
+  String get inviteTreeQaSumA;
+
+  /// Invite tree questions page: a question. Talk about friends, slots, pairs and data. Never use a word for level, tier or rank, never say people are under or below the user, and never say earn, income or pay.
+  ///
+  /// In en, this message translates to:
+  /// **'Can I free a slot or choose who takes it?'**
+  String get inviteTreeQaSlotQ;
+
+  /// Invite tree questions page: the answer to "Can I free a slot or choose who takes it?". Talk about friends, slots, pairs and data. Never use a word for level, tier or rank, never say people are under or below the user, and never say earn, income or pay.
+  ///
+  /// In en, this message translates to:
+  /// **'No. A friend keeps their slot even when they stop using Fortiva. Their slot opens again only when their invite is removed, for example when they delete their Fortiva account. Open slots are filled in order, and nobody can choose who takes one.'**
+  String get inviteTreeQaSlotA;
+
+  /// Invite tree questions page: a question. Talk about friends, slots, pairs and data. Never use a word for level, tier or rank, never say people are under or below the user, and never say earn, income or pay.
+  ///
+  /// In en, this message translates to:
+  /// **'Can my friends see whether I use Fortiva?'**
+  String get inviteTreeQaPrivacyQ;
+
+  /// Invite tree questions page: the privacy answer. Use the words of inviteTreeSlotActive and inviteTreeSlotNotActive for active and not active now. Do not say nobody can see usage; say the invite screen never shows it. Talk about friends, slots, pairs and data. Never use a word for level, tier or rank, never say people are under or below the user, and never say earn, income or pay.
+  ///
+  /// In en, this message translates to:
+  /// **'If you joined with a friend\'s code, the person whose slot you are in can see whether you are active or not active now. Other people see only how many people are active, not who. The invite screen never shows anyone\'s name, phone or how much they use.'**
+  String get inviteTreeQaPrivacyA;
+
+  /// Invite tree questions page: a question. Talk about friends, slots, pairs and data. Never use a word for level, tier or rank, never say people are under or below the user, and never say earn, income or pay.
+  ///
+  /// In en, this message translates to:
+  /// **'Is there a limit?'**
+  String get inviteTreeQaLimitQ;
+
+  /// Invite tree questions page: part of the limit answer, after the line that names the limit or says there is one. Talk about friends, slots, pairs and data. Never use a word for level, tier or rank, never say people are under or below the user, and never say earn, income or pay.
+  ///
+  /// In en, this message translates to:
+  /// **'Once your invites add that much, more friends do not add more data.'**
+  String get inviteTreeQaLimitMore;
+
+  /// Invite tree questions page: a question. Shown only when the user kept a bonus from earlier invites. Talk about friends, slots, pairs and data. Never use a word for level, tier or rank, never say people are under or below the user, and never say earn, income or pay.
+  ///
+  /// In en, this message translates to:
+  /// **'What happens to the bonus I already have?'**
+  String get inviteTreeQaKeptQ;
+
+  /// Invite tree questions page: part of the kept answer and the sum answer. The user gets the larger amount, not both. Talk about friends, slots, pairs and data. Never use a word for level, tier or rank, never say people are under or below the user, and never say earn, income or pay.
+  ///
+  /// In en, this message translates to:
+  /// **'When the bonus from your earlier invites is more than what your friends add now, you get that bonus instead. The two are not added together.'**
+  String get inviteTreeQaKeptMore;
+
+  /// Invite tree questions page: last part of the kept answer. Neutral words. Do not name any rule or check. Talk about friends, slots, pairs and data. Never use a word for level, tier or rank, never say people are under or below the user, and never say earn, income or pay.
+  ///
+  /// In en, this message translates to:
+  /// **'An invite is removed when that friend deletes their Fortiva account, or when Fortiva cancels it for misuse.'**
+  String get inviteTreeQaKeptRemoved;
+
+  /// Invite tree questions page: a question, for users who knew the earlier fixed amount per friend. Talk about friends, slots, pairs and data. Never use a word for level, tier or rank, never say people are under or below the user, and never say earn, income or pay.
+  ///
+  /// In en, this message translates to:
+  /// **'What changed in invites?'**
+  String get inviteTreeQaChangedQ;
+
+  /// Invite tree questions page: the answer to "What changed in invites?". Name no amount. Talk about friends, slots, pairs and data. Never use a word for level, tier or rank, never say people are under or below the user, and never say earn, income or pay.
+  ///
+  /// In en, this message translates to:
+  /// **'Before, each friend who qualified added a fixed amount of data. Now friends add data while they are active, through your slots and pairs, and your bonus can go down.'**
+  String get inviteTreeQaChangedA;
+
+  /// Invite tree questions page: a question. Shown only when the invite screen shows Premium days. Talk about friends, slots, pairs and data. Never use a word for level, tier or rank, never say people are under or below the user, and never say earn, income or pay.
+  ///
+  /// In en, this message translates to:
+  /// **'Do invites add Premium days?'**
+  String get inviteTreeQaPremiumQ;
+
+  /// Invite tree questions page: last part of the Premium answer. Talk about friends, slots, pairs and data. Never use a word for level, tier or rank, never say people are under or below the user, and never say earn, income or pay.
+  ///
+  /// In en, this message translates to:
+  /// **'It does not matter which slot your friend takes. People you did not invite do not add Premium days.'**
+  String get inviteTreeQaPremiumOwn;
+
+  /// Invite tree questions page: a question. Talk about friends, slots, pairs and data. Never use a word for level, tier or rank, never say people are under or below the user, and never say earn, income or pay.
+  ///
+  /// In en, this message translates to:
+  /// **'Does my friend get anything?'**
+  String get inviteTreeQaGetsQ;
+
+  /// Invite tree questions page: the answer to "Does my friend get anything?". Never promise the friend a reward for entering the code. Talk about friends, slots, pairs and data. Never use a word for level, tier or rank, never say people are under or below the user, and never say earn, income or pay.
+  ///
+  /// In en, this message translates to:
+  /// **'Not for entering your code. Like everyone, they have their own code and slots, and friends who join with their code add data for them. Once they qualify, their first pair can also hold people they did not invite, and those people add data for them too.'**
+  String get inviteTreeQaGetsA;
+
+  /// Invite tree questions page: last part of the answer to "Does my friend get anything?". Talk about friends, slots, pairs and data. Never use a word for level, tier or rank, never say people are under or below the user, and never say earn, income or pay.
+  ///
+  /// In en, this message translates to:
+  /// **'If they are in your slots, you can see whether they are active or not active now. You never see their name or how much they use.'**
+  String get inviteTreeQaGetsSee;
+
+  /// Invite tree rule: shown when the bonus is the amount kept from the old rule (kept_bytes) and the next friend would not lift it, so the backend sends no next_invite_bytes. No number. Never say it stays. Talk about friends, slots, pairs and data. Never use a word for level, tier or rank, never say people are under or below the user, and never say earn, income or pay.
+  ///
+  /// In en, this message translates to:
+  /// **'Your bonus is now the amount kept from your earlier invites. It goes up once your friends together add more than that.'**
+  String get inviteTreeKeptFloor;
+
+  /// Invite tree introduction, step "Your data from friends", and the questions page: the most friends can add a day (max_bonus_bytes) and the most free data and data from friends can reach together (max_total_bytes). Both amounts come from the backend. Talk about friends, slots, pairs and data. Never use a word for level, tier or rank, never say people are under or below the user, and never say earn, income or pay.
+  ///
+  /// In en, this message translates to:
+  /// **'Friends can add up to {most} a day. Your free data and the data from friends together can reach {total} a day.'**
+  String inviteTreeIntroTotalUpTo(String most, String total);
+
+  /// Invite tree introduction, step 3: shown only when the backend's amounts for the user's pairs go down from the first pair to the last. No number. Talk about friends, slots, pairs and data. Never use a word for level, tier or rank, never say people are under or below the user, and never say earn, income or pay.
+  ///
+  /// In en, this message translates to:
+  /// **'Your first pair adds the most. Each later pair adds less.'**
+  String get inviteTreeIntroPairsOrder;
+
+  /// Invite tree introduction, step 6 drawing: short caption at the person who invited the user, where the people the user did not invite come from. At most two short lines. Talk about friends, slots, pairs and data. Never use a word for level, tier or rank, never say people are under or below the user, and never say earn, income or pay.
+  ///
+  /// In en, this message translates to:
+  /// **'Invited you'**
+  String get inviteTreeIntroInvitedYou;
+
+  /// Limit sheet, invite tree rule: the short link that opens the step by step introduction. One short line. Talk about friends, slots, pairs and data. Never use a word for level, tier or rank, never say people are under or below the user, and never say earn, income or pay.
+  ///
+  /// In en, this message translates to:
+  /// **'Step by step guide'**
+  String get inviteTreeIntroGuide;
+
+  /// Invite tree questions page: a question. End it with your script's question mark. Talk about friends, slots, pairs and data. Never use a word for level, tier or rank, never say people are under or below the user, and never say earn, income or pay.
+  ///
+  /// In en, this message translates to:
+  /// **'Does my friend lose any data because of me?'**
+  String get inviteTreeQaCostQ;
+
+  /// Invite tree questions page: the answer to inviteTreeQaCostQ. What a friend adds is not taken from the friend. Never say it stays. Talk about friends, slots, pairs and data. Never use a word for level, tier or rank, never say people are under or below the user, and never say earn, income or pay.
+  ///
+  /// In en, this message translates to:
+  /// **'No. What a friend adds for you does not come out of their own data. Their daily data does not change because of you.'**
+  String get inviteTreeQaCostA;
+
+  /// Invite tree questions page: a question. End it with your script's question mark. Talk about friends, slots, pairs and data. Never use a word for level, tier or rank, never say people are under or below the user, and never say earn, income or pay.
+  ///
+  /// In en, this message translates to:
+  /// **'When does the data from a friend start?'**
+  String get inviteTreeQaStartQ;
+
+  /// Invite tree questions page: the answer to inviteTreeQaStartQ. The backend updates the bonus through the day, so it goes up soon after the friend is in a slot and active. No number. Talk about friends, slots, pairs and data. Never use a word for level, tier or rank, never say people are under or below the user, and never say earn, income or pay.
+  ///
+  /// In en, this message translates to:
+  /// **'As soon as your friend is in a slot and active. Your bonus is updated through the day, so it goes up soon after, on the same day. Until your friend qualifies, they add nothing.'**
+  String get inviteTreeQaStartA;
+
+  /// Invite tree questions page: a question. End it with your script's question mark. Talk about friends, slots, pairs and data. Never use a word for level, tier or rank, never say people are under or below the user, and never say earn, income or pay.
+  ///
+  /// In en, this message translates to:
+  /// **'What if my friend reinstalls Fortiva or changes phone?'**
+  String get inviteTreeQaPhoneQ;
+
+  /// Invite tree questions page: the answer to inviteTreeQaPhoneQ. A reinstall on the same phone is usually the same phone to Fortiva; a new phone is a new one, and the slot keeps the old phone. Never say it stays. Talk about friends, slots, pairs and data. Never use a word for level, tier or rank, never say people are under or below the user, and never say earn, income or pay.
+  ///
+  /// In en, this message translates to:
+  /// **'After a reinstall on the same phone, Fortiva usually knows the phone again, and nothing changes. A new phone is new to Fortiva. The slot is still the old phone\'s, and it counts as not active once the old phone is no longer used.'**
+  String get inviteTreeQaPhoneA;
 
   /// How Premium was paid: days earned by inviting friends (source referral).
   ///

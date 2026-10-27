@@ -662,7 +662,7 @@ class SFa extends S {
 
   @override
   String inviteBonusPerDay(String amount) {
-    return '+$amount هر روز';
+    return '+$amount در روز';
   }
 
   @override
@@ -719,12 +719,12 @@ class SFa extends S {
       other: '$days روز مختلف',
       one: '$days روز',
     );
-    return 'دعوت پذیرفته شد. وقتی در $_temp0 از وی‌پی‌ان استفاده کنید، دوستتان دیتای پاداش می‌گیرد.';
+    return 'دعوت پذیرفته شد. وقتی از امروز در $_temp0 از وی‌پی‌ان استفاده کنید، دعوت حساب می‌شود.';
   }
 
   @override
   String get inviteClaimAcceptedNoDays =>
-      'دعوت پذیرفته شد. وقتی مدتی از وی‌پی‌ان استفاده کنید، دوستتان دیتای پاداش می‌گیرد.';
+      'دعوت پذیرفته شد. وقتی از امروز مدتی از وی‌پی‌ان استفاده کنید، دعوت حساب می‌شود.';
 
   @override
   String get inviteClaimAlready =>
@@ -739,25 +739,24 @@ class SFa extends S {
       'ارتباط با سرور برقرار نشد. دوباره تلاش کنید';
 
   @override
-  String get inviteCardTitle => 'فورتیوا برات خوب کار کرد؟ برای دوستت بفرست';
+  String get inviteCardTitle => 'فورتیوا برات خوب کار کرد؟ برای دوستت بفرست';
 
   @override
-  String get inviteCardBody =>
-      'لینک نصب رو برای دوستت بفرست تا اونم رایگان وصل بشه.';
+  String get inviteCardBody => 'لینک نصب رو بفرست تا اونم رایگان وصل بشه.';
 
   @override
   String inviteCardReward(int days) {
     String _temp0 = intl.Intl.pluralLogic(
       days,
       locale: localeName,
-      other: 'وقتی دوستت از فورتیوا استفاده کنه، $days روز پریمیوم می‌گیری.',
+      other: 'وقتی دوستت از فورتیوا استفاده کنه، $days روز پریمیوم می‌گیری.',
     );
     return '$_temp0';
   }
 
   @override
   String get inviteCardRewardNoAmount =>
-      'وقتی دوستت از فورتیوا استفاده کنه، پریمیوم هدیه می‌گیری.';
+      'وقتی دوستت از فورتیوا استفاده کنه، پریمیوم هدیه می‌گیری.';
 
   @override
   String get inviteSendTelegram => 'تلگرام';
@@ -817,16 +816,16 @@ class SFa extends S {
 
   @override
   String get inviteTreeLive =>
-      'پاداش شما تا وقتی ادامه دارد که دوستانتان از فورتیوا استفاده کنند. اگر دوستی استفاده را کنار بگذارد، پاداش کم می‌شود.';
+      'پاداش شما تا وقتی ادامه دارد که دوستانتان از فورتیوا استفاده کنند. اگر دوستی استفاده را کنار بگذارد، پاداش ممکن است کم شود.';
 
   @override
   String inviteTreeNext(String amount) {
-    return 'دوست بعدی که دعوت کنید، وقتی استفاده از فورتیوا را شروع کند، $amount در روز به دیتای شما اضافه می‌کند.';
+    return 'دوست بعدی شما وقتی واجد شرایط و فعال شود، $amount در روز اضافه می‌کند.';
   }
 
   @override
   String inviteTreeKept(String amount) {
-    return 'پاداش شما به‌خاطر دوستانی که قبلاً دعوت کرده‌اید، هیچ‌وقت از $amount در روز کمتر نمی‌شود.';
+    return 'پاداش شما از $amount در روز کمتر نمی‌شود؛ این پاداشی است که از دعوت‌های قبلی داشتید. این مقدار فقط وقتی ممکن است کم شود که یکی از دعوت‌هایتان حذف شود.';
   }
 
   @override
@@ -839,7 +838,7 @@ class SFa extends S {
   String get inviteTreeSlotNotActive => 'فعلاً غیرفعال';
 
   @override
-  String get inviteTreeSlotEmpty => 'جای خالی';
+  String get inviteTreeSlotEmpty => 'جایگاه خالی';
 
   @override
   String inviteTreePaysNow(String amount) {
@@ -859,9 +858,6 @@ class SFa extends S {
 
   @override
   String get inviteTreeRowFriends => 'در جایگاه‌های شما';
-
-  @override
-  String get inviteTreeRowFriendsSlots => 'در جایگاه‌های آن‌ها';
 
   @override
   String inviteTreeRowSteps(int steps) {
@@ -912,12 +908,12 @@ class SFa extends S {
 
   @override
   String inviteTreeHowActive(int days, int window) {
-    return 'هر دوست تا وقتی فعال حساب می‌شود که در $window روز گذشته، دست‌کم در $days روز از فورتیوا استفاده کرده باشد.';
+    return 'هر دوست تا وقتی فعال حساب می‌شود که در $window روز گذشته، دست‌کم در $days روز از وی‌پی‌ان استفاده کرده باشد.';
   }
 
   @override
   String get inviteTreeHowActiveNoNumber =>
-      'هر دوست تا وقتی فعال حساب می‌شود که به استفاده از فورتیوا ادامه دهد.';
+      'هر دوست تا وقتی فعال حساب می‌شود که به استفاده از وی‌پی‌ان ادامه دهد.';
 
   @override
   String inviteTreeHowCap(String max) {
@@ -939,7 +935,7 @@ class SFa extends S {
   }
 
   @override
-  String get inviteTreeIntroSkip => 'رد کردن';
+  String get inviteTreeIntroSkip => 'رد شدن';
 
   @override
   String get inviteTreeIntroNext => 'بعدی';
@@ -958,12 +954,8 @@ class SFa extends S {
       'دوستان، جایگاه‌های شما را جفت‌جفت پر می‌کنند';
 
   @override
-  String get inviteTreeIntroSlotsWhen =>
-      'هر دوست وقتی استفاده از فورتیوا را شروع کند، جایگاهی را پر می‌کند.';
-
-  @override
   String get inviteTreeIntroSlotsArt =>
-      'جایگاه‌های شما که جفت‌جفت، با پیوستن دوستان پر می‌شوند.';
+      'شما، کد دعوتتان و جایگاه‌هایتان به شکل جفت‌جفت. هر جایگاه نشان می‌دهد خالی است، یا کسی که در آن است فعال است یا فعلاً غیرفعال.';
 
   @override
   String get inviteTreeIntroPairTitle =>
@@ -994,26 +986,7 @@ class SFa extends S {
   }
 
   @override
-  String get inviteTreeIntroPairArt =>
-      'جفتی از جایگاه‌ها. وقتی هر دوی دوستانش فعال باشند، دیتای بیشتری اضافه می‌کند.';
-
-  @override
-  String get inviteTreeIntroFurtherTitle =>
-      'دوستانی که دورترند هم دیتا اضافه می‌کنند';
-
-  @override
-  String get inviteTreeIntroFirstPairOnly =>
-      'از جایگاه‌های دوستتان، فقط جفت اول او برای شما دیتا اضافه می‌کند.';
-
-  @override
   String get inviteTreeIntroYourFriend => 'دوست شما';
-
-  @override
-  String get inviteTreeIntroTheirPair => 'جفت اول او';
-
-  @override
-  String get inviteTreeIntroFurtherArt =>
-      'جفت اول دوستتان برای او و برای شما دیتا اضافه می‌کند. جفت‌های دورتر کمتر اضافه می‌کنند.';
 
   @override
   String get inviteTreeIntroTotalTitle => 'دیتای شما از دوستان';
@@ -1022,8 +995,7 @@ class SFa extends S {
   String get inviteTreeIntroTotalNow => 'از دوستان، اکنون';
 
   @override
-  String get inviteTreeIntroTotalMost =>
-      'بیشترین مقداری که دعوت‌ها می‌توانند اضافه کنند';
+  String get inviteTreeIntroTotalMost => 'سقف دیتای دعوت‌ها';
 
   @override
   String get inviteTreeIntroTotalKept => 'حفظ‌شده از دعوت‌های قبلی';
@@ -1040,7 +1012,7 @@ class SFa extends S {
 
   @override
   String inviteTreeSheetNext(String amount) {
-    return 'دوست بعدی که دعوت کنید، وقتی استفاده از فورتیوا را شروع کند، $amount در روز به دیتای شما اضافه می‌کند. این مقدار به دیتای امروز اضافه نمی‌شود.';
+    return 'دوست بعدی شما وقتی واجد شرایط و فعال شود، $amount در روز اضافه می‌کند. این مقدار به حجم امروز اضافه نمی‌شود.';
   }
 
   @override
@@ -1052,7 +1024,7 @@ class SFa extends S {
       days,
       locale: localeName,
       other:
-          'هر دوستی که استفاده از فورتیوا را شروع کند، $days روز پریمیوم هم به شما می‌دهد.',
+          'هر دوستی که با کد شما واجد شرایط شود، $days روز پریمیوم هم برای شما اضافه می‌کند.',
     );
     return '$_temp0';
   }
@@ -1066,6 +1038,332 @@ class SFa extends S {
     );
     return '$_temp0';
   }
+
+  @override
+  String inviteTreeIntroSlotsBody(int slots) {
+    String _temp0 = intl.Intl.pluralLogic(
+      slots,
+      locale: localeName,
+      other:
+          'دوستانی که با کد شما وارد می‌شوند، می‌توانند به دیتای روزانهٔ شما اضافه کنند. شما $slots جایگاه برای آن‌ها دارید. در هر جایگاه یک دوست قرار می‌گیرد و جایگاه‌ها جفت‌جفت هستند. جفت اول شما زودتر از بقیه پر می‌شود. حتی وقتی جایگاه‌هایتان پر شود، باز هم دوستان دیگری می‌توانند با کد شما وارد شوند.',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get inviteTreeIntroSlotsBodyNoNumber =>
+      'دوستانی که با کد شما وارد می‌شوند، می‌توانند به دیتای روزانهٔ شما اضافه کنند. شما برای آن‌ها جایگاه‌هایی دارید. در هر جایگاه یک دوست قرار می‌گیرد و جایگاه‌ها جفت‌جفت هستند. جفت اول شما زودتر از بقیه پر می‌شود. حتی وقتی جایگاه‌هایتان پر شود، باز هم دوستان دیگری می‌توانند با کد شما وارد شوند.';
+
+  @override
+  String get inviteTreeIntroJoinTitle => 'دوست شما چگونه جایگاه می‌گیرد';
+
+  @override
+  String inviteTreeIntroJoinCode(int hours) {
+    String _temp0 = intl.Intl.pluralLogic(
+      hours,
+      locale: localeName,
+      other:
+          'دوستتان باید تا $hours ساعت پس از نصب فورتیوا، کد شما را در صفحهٔ دعوت خودش وارد کند.',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get inviteTreeIntroJoinCodeNoNumber =>
+      'دوستتان باید کمی پس از نصب فورتیوا، کد شما را در صفحهٔ دعوت خودش وارد کند.';
+
+  @override
+  String inviteTreeIntroJoinQualify(int days) {
+    String _temp0 = intl.Intl.pluralLogic(
+      days,
+      locale: localeName,
+      other:
+          'پس از آن، باید در $days روز مختلف از وی‌پی‌ان استفاده کند. آن‌وقت واجد شرایط می‌شود و جایگاه خالی بعدی را می‌گیرد.',
+      one:
+          'پس از آن، باید در $days روز از وی‌پی‌ان استفاده کند. آن‌وقت واجد شرایط می‌شود و جایگاه خالی بعدی را می‌گیرد.',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get inviteTreeIntroJoinQualifyNoNumber =>
+      'پس از آن، باید مدتی از وی‌پی‌ان استفاده کند. آن‌وقت واجد شرایط می‌شود و جایگاه خالی بعدی را می‌گیرد.';
+
+  @override
+  String get inviteTreeIntroJoinPlay =>
+      'اگر دوستتان فورتیوا را با لینک شما از گوگل پلی نصب کند، کد خودبه‌خود برایش وارد می‌شود.';
+
+  @override
+  String get inviteTreeIntroJoinWaiting =>
+      'تا وقتی واجد شرایط نشده، صفحهٔ دعوت شما او را در «دعوت‌شده» می‌شمارد، اما هنوز در «واجد شرایط» نه.';
+
+  @override
+  String get inviteTreeIntroJoinStepCode => 'کد شما را وارد می‌کند';
+
+  @override
+  String get inviteTreeIntroJoinStepUse => 'از وی‌پی‌ان استفاده می‌کند';
+
+  @override
+  String get inviteTreeIntroJoinStepSlot => 'جایگاه می‌گیرد';
+
+  @override
+  String get inviteTreeIntroJoinArt =>
+      'دوستی کد شما را وارد می‌کند، در روزهای مختلف از وی‌پی‌ان استفاده می‌کند و سپس جایگاه خالی بعدی را می‌گیرد.';
+
+  @override
+  String get inviteTreeIntroPairsBody =>
+      'هر جفت می‌تواند برای شما دیتا اضافه کند. وقتی هر دوی آن‌ها فعال باشند، بیشترین دیتا را اضافه می‌کند.';
+
+  @override
+  String get inviteTreeIntroPairsCaption =>
+      'آنچه هر جفت در روز به دیتای شما اضافه می‌کند';
+
+  @override
+  String get inviteTreeIntroBothActive => 'هر دو فعال';
+
+  @override
+  String get inviteTreeIntroOneActive => 'یکی فعال';
+
+  @override
+  String inviteTreeIntroPlus(String amount) {
+    return '+$amount';
+  }
+
+  @override
+  String get inviteTreeIntroNothing => 'هیچ';
+
+  @override
+  String get inviteTreeIntroPairNow =>
+      'مقدارهای برجسته همان چیزی است که جفت‌های شما اکنون اضافه می‌کنند.';
+
+  @override
+  String get inviteTreeIntroPairsArt =>
+      'جفت‌های شما و آنچه هر کدام در روز اضافه می‌کند، وقتی هر دوی آن‌ها فعال باشند و وقتی یکی فعال باشد.';
+
+  @override
+  String get inviteTreeIntroActiveTitle =>
+      'هر دوست تا وقتی فعال است، دیتا اضافه می‌کند';
+
+  @override
+  String get inviteTreeIntroActiveStops =>
+      'اگر دوستی استفاده از فورتیوا را کنار بگذارد، جفتش کمتر اضافه می‌کند و پاداش شما ممکن است کم شود. جایگاهش را نگه می‌دارد. وقتی دوباره از فورتیوا استفاده کند، جفتش دوباره بیشتر اضافه می‌کند.';
+
+  @override
+  String get inviteTreeIntroActiveFar =>
+      'کسانی که دورترند و برای شما دیتا اضافه می‌کنند هم فقط تا وقتی فعال باشند به حساب می‌آیند.';
+
+  @override
+  String get inviteTreeIntroActiveArt =>
+      'جفتی که یکی از دوستانش استفاده از فورتیوا را کنار گذاشته است. این جفت حالا کمتر اضافه می‌کند.';
+
+  @override
+  String get inviteTreeIntroFullTitle => 'وقتی جایگاه‌های شما پر شود';
+
+  @override
+  String get inviteTreeIntroFullBody =>
+      'وقتی همهٔ جایگاه‌های شما گرفته شود، دوست بعدی‌تان به جفت اول یکی از کسانی می‌رود که در جایگاه‌های شما هستند، به ترتیب از جایگاه اول شما. آن جفت برای آن شخص دیتا اضافه می‌کند و برای شما کمتر.';
+
+  @override
+  String get inviteTreeIntroFullLess =>
+      'هرچه جایگاهی دورتر باشد، برای شما کمتر اضافه می‌کند. جایگاه‌های خیلی دور چیزی اضافه نمی‌کنند.';
+
+  @override
+  String get inviteTreeIntroNextFriend => 'دوست بعدی شما';
+
+  @override
+  String get inviteTreeIntroLaterFriend => 'دوستی که بعداً بیاید';
+
+  @override
+  String get inviteTreeIntroFullArt =>
+      'دوستی که بعداً بیاید، جایگاه خالی‌ای را در جفت اول یکی از کسانی می‌گیرد که در جایگاه‌های شما هستند. آن جفت برای آن شخص دیتا اضافه می‌کند و برای شما کمتر.';
+
+  @override
+  String get inviteTreeIntroOthersTitle =>
+      'جفت اول شما ممکن است کسانی را داشته باشد که دعوتشان نکرده‌اید';
+
+  @override
+  String get inviteTreeIntroOthersWhy =>
+      'شما با کد یکی از دوستانتان وارد شدید. وقتی جایگاه‌های او پر شود، دوستان بعدی‌اش می‌توانند جایگاه خالی‌ای در جفت اول شما بگیرند. دوستانِ دیگران هم می‌توانند. هر کسی که آن را بگیرد، درست مانند دوستان خودتان برای شما دیتا اضافه می‌کند.';
+
+  @override
+  String get inviteTreeIntroOthersYours =>
+      'دوستان خودتان جایگاه‌های خالی دیگرتان را پر می‌کنند و پس از آن، جایگاه‌های خالی دورتر را.';
+
+  @override
+  String get inviteTreeIntroNotInvited => 'شما دعوتش نکرده‌اید';
+
+  @override
+  String get inviteTreeIntroOthersArt =>
+      'نمونه‌ای از جفت اول شما، با دوستی که دعوتش کرده‌اید و کسی که دعوتش نکرده‌اید. هر دوی آن‌ها تا وقتی فعال باشند، برای شما دیتا اضافه می‌کنند.';
+
+  @override
+  String get inviteTreeIntroShareTitle =>
+      'دوستانی را دعوت کنید که از فورتیوا استفاده کنند';
+
+  @override
+  String get inviteTreeIntroShareBody =>
+      'هر دوست فقط تا وقتی فعال است برای شما دیتا اضافه می‌کند. دعوتتان را برای دوستانی بفرستید که به وی‌پی‌ان نیاز دارند.';
+
+  @override
+  String get inviteTreeQaTitle => 'پرسش‌ها و پاسخ‌ها';
+
+  @override
+  String get inviteTreeQaCountQ =>
+      'دوستم کد من را وارد کرده است. چه زمانی جایگاه می‌گیرد؟';
+
+  @override
+  String get inviteTreeQaCountDay =>
+      'روزی حساب می‌شود که در آن روز مقداری دیتا از طریق وی‌پی‌ان مصرف کند. باز کردن برنامه کافی نیست. برای این روزها مهلتی وجود ندارد.';
+
+  @override
+  String get inviteTreeQaCountOther =>
+      'گوشی‌ای که قبلاً کدی وارد کرده، نمی‌تواند کد دیگری وارد کند. شما و دوستتان نمی‌توانید کد همدیگر را وارد کنید.';
+
+  @override
+  String get inviteTreeQaDownQ => 'چرا پاداشم کم شد؟';
+
+  @override
+  String get inviteTreeQaDownA =>
+      'کسی که برای شما دیتا اضافه می‌کند، اکنون فعال نیست. ممکن است دوستی در جایگاه‌های شما باشد یا کسی دورتر. وقتی دوباره از فورتیوا استفاده کند، دوباره دیتا اضافه می‌کند.';
+
+  @override
+  String get inviteTreeQaDownLater =>
+      'دوستی که استفاده را کنار می‌گذارد، تا مدتی هنوز فعال حساب می‌شود. برای همین پاداش شما ممکن است مدتی بعد از کنار گذاشتنش کم شود.';
+
+  @override
+  String get inviteTreeQaDownRemoved =>
+      'وقتی دعوتی حذف شود هم پاداش شما ممکن است کم شود؛ مثلاً وقتی آن دوست حساب فورتیوای خود را حذف کند.';
+
+  @override
+  String get inviteTreeQaFullQ => 'وقتی جایگاه‌هایم پر شود چه می‌شود؟';
+
+  @override
+  String get inviteTreeQaFullFurther =>
+      'وقتی آن جفت‌های اول هم پر شوند، دوست بعدی‌تان دورتر می‌رود: به جفت اول یکی از کسانی که در آن جفت‌ها هستند. آن جفت برای آن شخص دیتا اضافه می‌کند و مقدار کمتری برای شما و برای هر کسی که میان شما و اوست.';
+
+  @override
+  String get inviteTreeQaFriendsQ =>
+      'آیا دوستانِ دوستانم هم برای من دیتا اضافه می‌کنند؟';
+
+  @override
+  String get inviteTreeQaFriendsA =>
+      'بعضی از آن‌ها بله. جفت اول هر کسی که در جایگاه‌های شماست، برای همان شخص دیتا اضافه می‌کند و مقدار کمتری برای شما. جفت‌های دیگرشان فقط برای خودشان دیتا اضافه می‌کنند. دورتر هم فقط جفت‌های اول برای شما دیتا اضافه می‌کنند، و هرچه دورتر باشند کمتر، تا جایی که دیگر چیزی اضافه نکنند.';
+
+  @override
+  String get inviteTreeQaOthersQ =>
+      'کسانی که در جایگاه‌های من هستند و دعوتشان نکرده‌ام چه کسانی‌اند؟';
+
+  @override
+  String get inviteTreeQaOthersA =>
+      'آن‌ها دوستان کسی هستند که جایگاه‌هایش پر است؛ مثلاً کسی که شما را دعوت کرد. آن‌ها جایگاه خالی‌ای در جفت اول شما گرفته‌اند و شما نمی‌توانید آن‌ها را انتخاب یا حذف کنید. آن‌ها درست مانند دوستان خودتان برای شما دیتا اضافه می‌کنند.';
+
+  @override
+  String get inviteTreeQaSumQ => 'چرا پاداشم با مقدارهای صفحهٔ دعوت فرق دارد؟';
+
+  @override
+  String get inviteTreeQaSumA =>
+      'هر ردیفِ «از طریق جایگاه‌هایتان» نشان می‌دهد افراد آن ردیف اکنون چقدر اضافه می‌کنند. پاداش شما جمع آن‌هاست، تا سقف مشخص.';
+
+  @override
+  String get inviteTreeQaSlotQ =>
+      'آیا می‌توانم جایگاهی را خالی کنم یا انتخاب کنم چه کسی آن را بگیرد؟';
+
+  @override
+  String get inviteTreeQaSlotA =>
+      'نه. هر دوست حتی وقتی استفاده از فورتیوا را کنار بگذارد، جایگاهش را نگه می‌دارد. جایگاهش فقط وقتی دوباره خالی می‌شود که دعوتش حذف شود؛ مثلاً وقتی حساب فورتیوای خود را حذف کند. جایگاه‌های خالی به ترتیب پر می‌شوند و هیچ‌کس نمی‌تواند انتخاب کند چه کسی آن‌ها را بگیرد.';
+
+  @override
+  String get inviteTreeQaPrivacyQ =>
+      'آیا دوستانم می‌توانند ببینند که از فورتیوا استفاده می‌کنم یا نه؟';
+
+  @override
+  String get inviteTreeQaPrivacyA =>
+      'اگر با کد یکی از دوستانتان وارد شده‌اید، کسی که در جایگاه‌های او هستید می‌بیند که شما «فعال» هستید یا «فعلاً غیرفعال». بقیه فقط تعداد افراد فعال را می‌بینند، نه اینکه چه کسانی هستند. صفحهٔ دعوت هرگز نام، گوشی یا میزان مصرف کسی را نشان نمی‌دهد.';
+
+  @override
+  String get inviteTreeQaLimitQ => 'آیا سقفی وجود دارد؟';
+
+  @override
+  String get inviteTreeQaLimitMore =>
+      'وقتی دعوت‌هایتان به این مقدار برسند، دوستان بیشتر دیتای بیشتری اضافه نمی‌کنند.';
+
+  @override
+  String get inviteTreeQaKeptQ => 'پاداشی که اکنون دارم چه می‌شود؟';
+
+  @override
+  String get inviteTreeQaKeptMore =>
+      'وقتی پاداش دعوت‌های قبلی‌تان از دیتایی که دوستانتان اکنون اضافه می‌کنند بیشتر باشد، همان پاداش را می‌گیرید. این دو با هم جمع نمی‌شوند.';
+
+  @override
+  String get inviteTreeQaKeptRemoved =>
+      'دعوت وقتی حذف می‌شود که آن دوست حساب فورتیوای خود را حذف کند، یا فورتیوا آن را به دلیل سوءاستفاده لغو کند.';
+
+  @override
+  String get inviteTreeQaChangedQ => 'در دعوت‌ها چه چیزی تغییر کرده است؟';
+
+  @override
+  String get inviteTreeQaChangedA =>
+      'پیش‌تر، هر دوستی که واجد شرایط می‌شد مقدار ثابتی دیتا اضافه می‌کرد. اکنون دوستان تا وقتی فعال باشند، از طریق جایگاه‌ها و جفت‌های شما دیتا اضافه می‌کنند و پاداش شما ممکن است کم شود.';
+
+  @override
+  String get inviteTreeQaPremiumQ =>
+      'آیا دعوت‌ها روز پریمیوم هم اضافه می‌کنند؟';
+
+  @override
+  String get inviteTreeQaPremiumOwn =>
+      'فرقی نمی‌کند دوستتان کدام جایگاه را بگیرد. کسانی که دعوتشان نکرده‌اید روز پریمیوم اضافه نمی‌کنند.';
+
+  @override
+  String get inviteTreeQaGetsQ => 'آیا دوستم چیزی می‌گیرد؟';
+
+  @override
+  String get inviteTreeQaGetsA =>
+      'برای وارد کردن کد شما، نه. او هم مثل همه کد و جایگاه‌های خودش را دارد و دوستانی که با کد او وارد شوند، برای او دیتا اضافه می‌کنند. وقتی واجد شرایط شود، جفت اولش هم ممکن است کسانی را داشته باشد که دعوتشان نکرده است و آن‌ها هم برای او دیتا اضافه می‌کنند.';
+
+  @override
+  String get inviteTreeQaGetsSee =>
+      'اگر در جایگاه‌های شما باشد، می‌توانید ببینید «فعال» است یا «فعلاً غیرفعال». هرگز نام او یا میزان مصرفش را نمی‌بینید.';
+
+  @override
+  String get inviteTreeKeptFloor =>
+      'پاداش شما اکنون همان مقداری است که از دعوت‌های قبلی‌تان نگه داشته شده است. وقتی دوستانتان روی هم بیشتر از این مقدار اضافه کنند، پاداشتان بیشتر می‌شود.';
+
+  @override
+  String inviteTreeIntroTotalUpTo(String most, String total) {
+    return 'دوستان می‌توانند تا $most در روز اضافه کنند. دیتای رایگان شما و دیتای دوستان روی هم می‌تواند به $total در روز برسد.';
+  }
+
+  @override
+  String get inviteTreeIntroPairsOrder =>
+      'جفت اول شما بیشترین دیتا را اضافه می‌کند. هر جفت بعدی کمتر اضافه می‌کند.';
+
+  @override
+  String get inviteTreeIntroInvitedYou => 'دعوت‌کنندهٔ شما';
+
+  @override
+  String get inviteTreeIntroGuide => 'راهنمای گام‌به‌گام';
+
+  @override
+  String get inviteTreeQaCostQ => 'آیا دوستم به‌خاطر من دیتایی از دست می‌دهد؟';
+
+  @override
+  String get inviteTreeQaCostA =>
+      'نه. دیتایی که دوستتان برای شما اضافه می‌کند از دیتای خود او کم نمی‌شود. دیتای روزانهٔ او به‌خاطر شما تغییری نمی‌کند.';
+
+  @override
+  String get inviteTreeQaStartQ => 'دیتای یک دوست از کی اضافه می‌شود؟';
+
+  @override
+  String get inviteTreeQaStartA =>
+      'از وقتی که دوستتان در یک جایگاه قرار بگیرد و فعال باشد. پاداش شما در طول روز به‌روز می‌شود، پس کمی بعد از آن و در همان روز بیشتر می‌شود. تا وقتی دوستتان واجد شرایط نشده، چیزی اضافه نمی‌کند.';
+
+  @override
+  String get inviteTreeQaPhoneQ =>
+      'اگر دوستم فورتیوا را دوباره نصب کند یا گوشی‌اش را عوض کند چه می‌شود؟';
+
+  @override
+  String get inviteTreeQaPhoneA =>
+      'اگر روی همان گوشی دوباره نصب کند، فورتیوا معمولاً گوشی را دوباره می‌شناسد و چیزی تغییر نمی‌کند. فورتیوا گوشی تازه را گوشی جدیدی می‌شناسد. جایگاه همچنان مال گوشی قبلی است و وقتی از گوشی قبلی دیگر استفاده نشود، «فعلاً غیرفعال» حساب می‌شود.';
 
   @override
   String get premiumSourceInvite => 'هدیه دعوت از دوستان';
@@ -1788,18 +2086,19 @@ class SFa extends S {
       days,
       locale: localeName,
       other: '$days روز مختلف',
+      one: '$days روز',
     );
-    return 'دوست بعدی که دعوت کنید، وقتی در $_temp0 از فورتیوا استفاده کند، $amount در روز به دیتای شما اضافه می‌کند. این مقدار به دیتای امروز اضافه نمی‌شود.';
+    return 'دوست بعدی که دعوت کنید، وقتی در $_temp0 از فورتیوا استفاده کند، $amount در روز به دیتای شما اضافه می‌کند. این مقدار به حجم امروز اضافه نمی‌شود.';
   }
 
   @override
   String premiumLimitInviteNextNoDays(String amount) {
-    return 'دوست بعدی که دعوت کنید، وقتی مدتی از فورتیوا استفاده کند، $amount در روز به دیتای شما اضافه می‌کند. این مقدار به دیتای امروز اضافه نمی‌شود.';
+    return 'دوست بعدی که دعوت کنید، وقتی مدتی از فورتیوا استفاده کند، $amount در روز به دیتای شما اضافه می‌کند. این مقدار به حجم امروز اضافه نمی‌شود.';
   }
 
   @override
   String get premiumLimitInviteNoAmount =>
-      'دوستانی که دعوت می‌کنید، وقتی استفاده از فورتیوا را شروع کنند، به دیتای روزانهٔ شما اضافه می‌کنند. این مقدار به دیتای امروز اضافه نمی‌شود.';
+      'دوستانی که دعوت می‌کنید، وقتی استفاده از فورتیوا را شروع کنند، به دیتای روزانهٔ شما اضافه می‌کنند. این مقدار به حجم امروز اضافه نمی‌شود.';
 
   @override
   String get premiumLimitInvitesFull =>

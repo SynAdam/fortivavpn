@@ -354,8 +354,8 @@ void main() {
       await tester.pumpAndSettle();
       expect(
         find.text(
-          'Invite accepted. Your friend earns bonus data once you have '
-          'used the VPN on 4 different days.',
+          'Invite accepted. It counts once you have used the VPN on 4 '
+          'different days, starting today.',
         ),
         findsOneWidget,
       );

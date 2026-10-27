@@ -665,7 +665,7 @@ class SHi extends S {
 
   @override
   String inviteBonusPerDay(String amount) {
-    return 'हर दिन +$amount';
+    return '+$amount हर दिन';
   }
 
   @override
@@ -729,12 +729,12 @@ class SHi extends S {
       other: '$days अलग-अलग दिनों में',
       one: '$days दिन',
     );
-    return 'आमंत्रण स्वीकार हुआ। जब आप $_temp0 VPN इस्तेमाल करेंगे, तब आपके दोस्त को बोनस डेटा मिलेगा।';
+    return 'आमंत्रण स्वीकार हुआ। आज से जब आप $_temp0 VPN इस्तेमाल करेंगे, तब यह गिना जाएगा।';
   }
 
   @override
   String get inviteClaimAcceptedNoDays =>
-      'आमंत्रण स्वीकार हुआ। जब आप कुछ समय VPN इस्तेमाल करेंगे, तब आपके दोस्त को बोनस डेटा मिलेगा।';
+      'आमंत्रण स्वीकार हुआ। आज से जब आप कुछ समय तक VPN इस्तेमाल करेंगे, तब यह गिना जाएगा।';
 
   @override
   String get inviteClaimAlready =>
@@ -838,16 +838,16 @@ class SHi extends S {
 
   @override
   String get inviteTreeLive =>
-      'आपका बोनस तब तक चलता है जब तक आपके दोस्त Fortiva इस्तेमाल करते रहें। अगर कोई दोस्त रुक जाए, तो बोनस घट जाता है।';
+      'आपका बोनस तब तक चलता है जब तक आपके दोस्त Fortiva इस्तेमाल करते रहें। अगर कोई दोस्त बंद कर दे, तो आपका बोनस घट सकता है।';
 
   @override
   String inviteTreeNext(String amount) {
-    return 'आपका अगला दोस्त Fortiva इस्तेमाल करना शुरू करेगा, तो हर दिन $amount जोड़ेगा।';
+    return 'आपका अगला दोस्त योग्य और सक्रिय होने पर हर दिन $amount जोड़ता है।';
   }
 
   @override
   String inviteTreeKept(String amount) {
-    return 'पहले बुलाए गए दोस्तों की वजह से आपका बोनस कभी भी हर दिन $amount से कम नहीं होता।';
+    return 'आपका बोनस हर दिन $amount से कम नहीं होता, यह वह बोनस है जो आपको पिछले आमंत्रणों से मिला था। यह मात्रा तभी घट सकती है जब आपका कोई आमंत्रण हटाया जाए।';
   }
 
   @override
@@ -880,9 +880,6 @@ class SHi extends S {
 
   @override
   String get inviteTreeRowFriends => 'आपके स्लॉट में';
-
-  @override
-  String get inviteTreeRowFriendsSlots => 'उनके स्लॉट में';
 
   @override
   String inviteTreeRowSteps(int steps) {
@@ -934,12 +931,12 @@ class SHi extends S {
 
   @override
   String inviteTreeHowActive(int days, int window) {
-    return 'कोई दोस्त तब तक सक्रिय गिना जाता है जब तक उसने पिछले $window दिनों में कम से कम $days दिन Fortiva इस्तेमाल किया हो।';
+    return 'कोई दोस्त तब तक सक्रिय गिना जाता है जब तक उसने पिछले $window दिनों में कम से कम $days दिन VPN इस्तेमाल किया हो।';
   }
 
   @override
   String get inviteTreeHowActiveNoNumber =>
-      'कोई दोस्त तब तक सक्रिय गिना जाता है जब तक वह Fortiva इस्तेमाल करता रहे।';
+      'कोई दोस्त तब तक सक्रिय गिना जाता है जब तक वह VPN इस्तेमाल करता रहे।';
 
   @override
   String inviteTreeHowCap(String max) {
@@ -981,12 +978,8 @@ class SHi extends S {
       'दोस्त आपके स्लॉट जोड़ियों में भरते हैं';
 
   @override
-  String get inviteTreeIntroSlotsWhen =>
-      'कोई दोस्त Fortiva इस्तेमाल करना शुरू करते ही एक स्लॉट ले लेता है।';
-
-  @override
   String get inviteTreeIntroSlotsArt =>
-      'आपके स्लॉट, जोड़ियों में, जो दोस्तों के जुड़ने पर भरते हैं।';
+      'आप, आपका आमंत्रण कोड, और जोड़ियों में आपके स्लॉट। हर स्लॉट दिखाता है कि वह खाली है, या उसमें मौजूद व्यक्ति सक्रिय है या अभी सक्रिय नहीं।';
 
   @override
   String get inviteTreeIntroPairTitle =>
@@ -1017,25 +1010,7 @@ class SHi extends S {
   }
 
   @override
-  String get inviteTreeIntroPairArt =>
-      'स्लॉट की एक जोड़ी। जब इसके दोनों दोस्त सक्रिय हों, तो यह ज़्यादा डेटा जोड़ती है।';
-
-  @override
-  String get inviteTreeIntroFurtherTitle => 'दूर के दोस्त भी डेटा जोड़ते हैं';
-
-  @override
-  String get inviteTreeIntroFirstPairOnly =>
-      'आपके दोस्त के स्लॉट में से सिर्फ़ उनकी पहली जोड़ी आपके लिए डेटा जोड़ती है।';
-
-  @override
   String get inviteTreeIntroYourFriend => 'आपका दोस्त';
-
-  @override
-  String get inviteTreeIntroTheirPair => 'उनकी पहली जोड़ी';
-
-  @override
-  String get inviteTreeIntroFurtherArt =>
-      'आपके दोस्त की पहली जोड़ी उनके लिए और आपके लिए डेटा जोड़ती है। दूर की जोड़ियाँ कम जोड़ती हैं।';
 
   @override
   String get inviteTreeIntroTotalTitle => 'दोस्तों से आपका डेटा';
@@ -1062,7 +1037,7 @@ class SHi extends S {
 
   @override
   String inviteTreeSheetNext(String amount) {
-    return 'आपका अगला दोस्त Fortiva इस्तेमाल करना शुरू करेगा, तो हर दिन $amount जोड़ेगा। यह आज के डेटा में नहीं जुड़ता।';
+    return 'आपका अगला दोस्त योग्य और सक्रिय होने पर हर दिन $amount जोड़ता है। यह आज के डेटा में नहीं जुड़ता।';
   }
 
   @override
@@ -1074,9 +1049,9 @@ class SHi extends S {
       days,
       locale: localeName,
       other:
-          'Fortiva इस्तेमाल करना शुरू करने वाला हर दोस्त आपको $days दिन का प्रीमियम भी देता है।',
+          'आपके कोड से योग्य होने वाला हर दोस्त आपके लिए $days दिन का प्रीमियम भी जोड़ता है।',
       one:
-          'Fortiva इस्तेमाल करना शुरू करने वाला हर दोस्त आपको $days दिन का प्रीमियम भी देता है।',
+          'आपके कोड से योग्य होने वाला हर दोस्त आपके लिए $days दिन का प्रीमियम भी जोड़ता है।',
     );
     return '$_temp0';
   }
@@ -1091,6 +1066,340 @@ class SHi extends S {
     );
     return '$_temp0';
   }
+
+  @override
+  String inviteTreeIntroSlotsBody(int slots) {
+    String _temp0 = intl.Intl.pluralLogic(
+      slots,
+      locale: localeName,
+      other:
+          'जो दोस्त आपके कोड से जुड़ते हैं, वे आपके रोज़ के डेटा में जोड़ सकते हैं। उनके लिए आपके पास $slots स्लॉट हैं। हर स्लॉट में एक दोस्त आता है, और स्लॉट जोड़ियों में होते हैं। सबसे पहले आपकी पहली जोड़ी भर जाती है। आपके स्लॉट भर जाने के बाद भी और दोस्त जुड़ सकते हैं।',
+      one:
+          'जो दोस्त आपके कोड से जुड़ते हैं, वे आपके रोज़ के डेटा में जोड़ सकते हैं। उनके लिए आपके पास $slots स्लॉट है। हर स्लॉट में एक दोस्त आता है, और स्लॉट जोड़ियों में होते हैं। सबसे पहले आपकी पहली जोड़ी भर जाती है। आपके स्लॉट भर जाने के बाद भी और दोस्त जुड़ सकते हैं।',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get inviteTreeIntroSlotsBodyNoNumber =>
+      'जो दोस्त आपके कोड से जुड़ते हैं, वे आपके रोज़ के डेटा में जोड़ सकते हैं। उनके लिए आपके पास स्लॉट हैं। हर स्लॉट में एक दोस्त आता है, और स्लॉट जोड़ियों में होते हैं। सबसे पहले आपकी पहली जोड़ी भर जाती है। आपके स्लॉट भर जाने के बाद भी और दोस्त जुड़ सकते हैं।';
+
+  @override
+  String get inviteTreeIntroJoinTitle => 'दोस्त को स्लॉट कैसे मिलता है';
+
+  @override
+  String inviteTreeIntroJoinCode(int hours) {
+    String _temp0 = intl.Intl.pluralLogic(
+      hours,
+      locale: localeName,
+      other:
+          'आपके दोस्त को Fortiva इंस्टॉल करने के $hours घंटों के अंदर अपनी आमंत्रण स्क्रीन पर आपका कोड डालना होगा।',
+      one:
+          'आपके दोस्त को Fortiva इंस्टॉल करने के $hours घंटे के अंदर अपनी आमंत्रण स्क्रीन पर आपका कोड डालना होगा।',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get inviteTreeIntroJoinCodeNoNumber =>
+      'आपके दोस्त को Fortiva इंस्टॉल करने के जल्द बाद अपनी आमंत्रण स्क्रीन पर आपका कोड डालना होगा।';
+
+  @override
+  String inviteTreeIntroJoinQualify(int days) {
+    String _temp0 = intl.Intl.pluralLogic(
+      days,
+      locale: localeName,
+      other:
+          'इसके बाद उसे $days अलग-अलग दिनों में VPN इस्तेमाल करना होगा। तब वह योग्य हो जाता है और अगला खाली स्लॉट लेता है।',
+      one:
+          'इसके बाद उसे $days दिन VPN इस्तेमाल करना होगा। तब वह योग्य हो जाता है और अगला खाली स्लॉट लेता है।',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get inviteTreeIntroJoinQualifyNoNumber =>
+      'इसके बाद उसे कुछ समय तक VPN इस्तेमाल करना होगा। तब वह योग्य हो जाता है और अगला खाली स्लॉट लेता है।';
+
+  @override
+  String get inviteTreeIntroJoinPlay =>
+      'अगर वह आपके लिंक से Google Play से इंस्टॉल करता है, तो कोड उसके लिए अपने-आप डल जाता है।';
+
+  @override
+  String get inviteTreeIntroJoinWaiting =>
+      'जब तक वह योग्य नहीं होता, आपकी आमंत्रण स्क्रीन उसे \"आमंत्रित\" में गिनती है, पर अभी \"योग्य\" में नहीं।';
+
+  @override
+  String get inviteTreeIntroJoinStepCode => 'आपका कोड डालता है';
+
+  @override
+  String get inviteTreeIntroJoinStepUse => 'VPN इस्तेमाल करता है';
+
+  @override
+  String get inviteTreeIntroJoinStepSlot => 'स्लॉट लेता है';
+
+  @override
+  String get inviteTreeIntroJoinArt =>
+      'एक दोस्त आपका कोड डालता है, अलग-अलग दिनों में VPN इस्तेमाल करता है, और फिर अगला खाली स्लॉट लेता है।';
+
+  @override
+  String get inviteTreeIntroPairsBody =>
+      'हर जोड़ी आपके लिए डेटा जोड़ सकती है। जब उसके दोनों लोग सक्रिय हों, तब वह सबसे ज़्यादा जोड़ती है।';
+
+  @override
+  String get inviteTreeIntroPairsCaption =>
+      'हर जोड़ी आपके डेटा में हर दिन क्या जोड़ती है';
+
+  @override
+  String get inviteTreeIntroBothActive => 'दोनों सक्रिय';
+
+  @override
+  String get inviteTreeIntroOneActive => 'एक सक्रिय';
+
+  @override
+  String inviteTreeIntroPlus(String amount) {
+    return '+$amount';
+  }
+
+  @override
+  String get inviteTreeIntroNothing => 'कुछ नहीं';
+
+  @override
+  String get inviteTreeIntroPairNow =>
+      'हाइलाइट की गई मात्राएँ वह हैं जो आपकी जोड़ियाँ अभी जोड़ रही हैं।';
+
+  @override
+  String get inviteTreeIntroPairsArt =>
+      'आपकी जोड़ियाँ, और हर जोड़ी हर दिन क्या जोड़ती है जब उसके दोनों लोग सक्रिय हों, और जब एक हो।';
+
+  @override
+  String get inviteTreeIntroActiveTitle =>
+      'दोस्त तब तक डेटा जोड़ता है जब तक वह सक्रिय है';
+
+  @override
+  String get inviteTreeIntroActiveStops =>
+      'अगर कोई दोस्त Fortiva इस्तेमाल करना बंद कर दे, तो उसकी जोड़ी कम जोड़ती है और आपका बोनस घट सकता है। उसका स्लॉट उसी के पास रहता है। जब वह फिर से Fortiva इस्तेमाल करता है, तो उसकी जोड़ी फिर से ज़्यादा जोड़ती है।';
+
+  @override
+  String get inviteTreeIntroActiveFar =>
+      'और दूर के लोग जो आपके लिए डेटा जोड़ते हैं, वे भी तभी तक गिने जाते हैं जब तक वे सक्रिय हैं।';
+
+  @override
+  String get inviteTreeIntroActiveArt =>
+      'एक जोड़ी जिसमें एक दोस्त ने Fortiva इस्तेमाल करना बंद कर दिया है। अब यह जोड़ी कम जोड़ती है।';
+
+  @override
+  String get inviteTreeIntroFullTitle => 'जब आपके स्लॉट भर जाएँ';
+
+  @override
+  String get inviteTreeIntroFullBody =>
+      'जब आपके सभी स्लॉट भर जाते हैं, तो आपका अगला दोस्त आपके स्लॉट में मौजूद किसी व्यक्ति की पहली जोड़ी में जाता है, आपके पहले स्लॉट से क्रम में। वह जोड़ी उस व्यक्ति के लिए डेटा जोड़ती है, और आपके लिए कम।';
+
+  @override
+  String get inviteTreeIntroFullLess =>
+      'कोई स्लॉट जितना दूर होता है, वह आपके लिए उतना कम जोड़ता है। बहुत दूर के स्लॉट कुछ नहीं जोड़ते।';
+
+  @override
+  String get inviteTreeIntroNextFriend => 'आपका अगला दोस्त';
+
+  @override
+  String get inviteTreeIntroLaterFriend => 'बाद का कोई दोस्त';
+
+  @override
+  String get inviteTreeIntroFullArt =>
+      'बाद का कोई दोस्त आपके स्लॉट में मौजूद किसी व्यक्ति की पहली जोड़ी में खाली स्लॉट लेता है। वह जोड़ी उस व्यक्ति के लिए डेटा जोड़ती है, और आपके लिए कम।';
+
+  @override
+  String get inviteTreeIntroOthersTitle =>
+      'आपकी पहली जोड़ी में ऐसे लोग हो सकते हैं जिन्हें आपने आमंत्रित नहीं किया';
+
+  @override
+  String get inviteTreeIntroOthersWhy =>
+      'आप किसी दोस्त के कोड से जुड़े हैं। जब उसके स्लॉट भर जाते हैं, तो उसके अगले दोस्त आपकी पहली जोड़ी में खाली स्लॉट ले सकते हैं। दूसरे लोगों के दोस्त भी ले सकते हैं। जो भी उसे लेता है, वह आपके अपने दोस्तों की तरह ही आपके लिए डेटा जोड़ता है।';
+
+  @override
+  String get inviteTreeIntroOthersYours =>
+      'आपके अपने दोस्त आपके बाकी खाली स्लॉट भरते हैं, और उसके बाद और दूर के खाली स्लॉट।';
+
+  @override
+  String get inviteTreeIntroNotInvited => 'आपने आमंत्रित नहीं किया';
+
+  @override
+  String get inviteTreeIntroOthersArt =>
+      'आपकी पहली जोड़ी का एक उदाहरण, जिसमें एक दोस्त है जिसे आपने आमंत्रित किया और एक व्यक्ति जिसे आपने आमंत्रित नहीं किया। दोनों जब तक सक्रिय हैं, आपके लिए डेटा जोड़ते हैं।';
+
+  @override
+  String get inviteTreeIntroShareTitle =>
+      'उन दोस्तों को आमंत्रित करें जो Fortiva इस्तेमाल करेंगे';
+
+  @override
+  String get inviteTreeIntroShareBody =>
+      'कोई दोस्त आपके लिए डेटा तभी तक जोड़ता है जब तक वह सक्रिय है। अपना आमंत्रण उन दोस्तों को भेजें जिन्हें VPN की ज़रूरत है।';
+
+  @override
+  String get inviteTreeQaTitle => 'सवाल और जवाब';
+
+  @override
+  String get inviteTreeQaCountQ =>
+      'मेरे दोस्त ने मेरा कोड डाला। उसे स्लॉट कब मिलेगा?';
+
+  @override
+  String get inviteTreeQaCountDay =>
+      'कोई दिन तभी गिना जाता है जब उस दिन वह VPN के ज़रिए थोड़ा डेटा इस्तेमाल करे। सिर्फ़ ऐप खोलना काफ़ी नहीं है। इन दिनों के लिए कोई समय-सीमा नहीं है।';
+
+  @override
+  String get inviteTreeQaCountOther =>
+      'जिस फ़ोन पर पहले से कोई कोड डाला जा चुका है, उस पर दूसरा कोड नहीं डाला जा सकता। आप और आपका दोस्त एक-दूसरे का कोड नहीं डाल सकते।';
+
+  @override
+  String get inviteTreeQaDownQ => 'मेरा बोनस क्यों घटा?';
+
+  @override
+  String get inviteTreeQaDownA =>
+      'आपके लिए डेटा जोड़ने वाला कोई व्यक्ति अभी सक्रिय नहीं है। वह आपके स्लॉट में कोई दोस्त हो सकता है या और दूर का कोई व्यक्ति। जब वह फिर से Fortiva इस्तेमाल करेगा, तो फिर से डेटा जोड़ेगा।';
+
+  @override
+  String get inviteTreeQaDownLater =>
+      'इस्तेमाल बंद करने वाला दोस्त कुछ समय तक सक्रिय गिना जाता रहता है। इसलिए आपका बोनस उसके बंद करने के कुछ समय बाद घट सकता है।';
+
+  @override
+  String get inviteTreeQaDownRemoved =>
+      'कोई आमंत्रण हटाए जाने पर भी आपका बोनस घट सकता है, जैसे जब वह दोस्त अपना Fortiva खाता मिटा दे।';
+
+  @override
+  String get inviteTreeQaFullQ => 'जब मेरे स्लॉट भर जाएँ तो क्या होता है?';
+
+  @override
+  String get inviteTreeQaFullFurther =>
+      'जब वे पहली जोड़ियाँ भी भर जाती हैं, तो आपका अगला दोस्त और दूर जाता है, उन जोड़ियों में मौजूद किसी व्यक्ति की पहली जोड़ी में। वह जोड़ी उस व्यक्ति के लिए डेटा जोड़ती है, और आपके लिए और बीच के हर व्यक्ति के लिए कम मात्रा।';
+
+  @override
+  String get inviteTreeQaFriendsQ =>
+      'क्या मेरे दोस्तों के दोस्त भी मेरे लिए डेटा जोड़ते हैं?';
+
+  @override
+  String get inviteTreeQaFriendsA =>
+      'उनमें से कुछ हाँ। आपके स्लॉट में मौजूद हर व्यक्ति की पहली जोड़ी उस व्यक्ति के लिए डेटा जोड़ती है, और आपके लिए कम मात्रा। उनकी बाकी जोड़ियाँ सिर्फ़ उनके लिए डेटा जोड़ती हैं। और दूर, सिर्फ़ पहली जोड़ियाँ आपके लिए डेटा जोड़ती हैं, और वे जितनी दूर हों उतना कम जोड़ती हैं, जब तक कि कुछ भी न जोड़ें।';
+
+  @override
+  String get inviteTreeQaOthersQ =>
+      'मेरे स्लॉट में वे लोग कौन हैं जिन्हें मैंने आमंत्रित नहीं किया?';
+
+  @override
+  String get inviteTreeQaOthersA =>
+      'वे किसी ऐसे व्यक्ति के दोस्त हैं जिसके स्लॉट भरे हुए हैं, जैसे वह व्यक्ति जिसने आपको आमंत्रित किया। उन्होंने आपकी पहली जोड़ी में खाली स्लॉट लिया है, और आप उन्हें न चुन सकते हैं न हटा सकते हैं। वे आपके अपने दोस्तों की तरह ही आपके लिए डेटा जोड़ते हैं।';
+
+  @override
+  String get inviteTreeQaSumQ =>
+      'मेरा बोनस आमंत्रण स्क्रीन की मात्राओं से अलग क्यों है?';
+
+  @override
+  String get inviteTreeQaSumA =>
+      '\"आपके स्लॉट के ज़रिए\" की हर पंक्ति दिखाती है कि उस पंक्ति के लोग अभी कितना जोड़ रहे हैं। आपका बोनस उनका कुल योग है, अधिकतम सीमा तक।';
+
+  @override
+  String get inviteTreeQaSlotQ =>
+      'क्या मैं कोई स्लॉट खाली कर सकता हूँ या चुन सकता हूँ कि उसे कौन ले?';
+
+  @override
+  String get inviteTreeQaSlotA =>
+      'नहीं। कोई दोस्त Fortiva इस्तेमाल करना बंद कर दे, तब भी उसका स्लॉट उसी के पास रहता है। उसका स्लॉट तभी फिर से खाली होता है जब उसका आमंत्रण हटाया जाए, जैसे जब वह अपना Fortiva खाता मिटा दे। खाली स्लॉट क्रम से भरते हैं, और कोई नहीं चुन सकता कि उन्हें कौन ले।';
+
+  @override
+  String get inviteTreeQaPrivacyQ =>
+      'क्या मेरे दोस्त देख सकते हैं कि मैं Fortiva इस्तेमाल करता हूँ?';
+
+  @override
+  String get inviteTreeQaPrivacyA =>
+      'अगर आप किसी दोस्त के कोड से जुड़े हैं, तो जिस व्यक्ति के स्लॉट में आप हैं, वह देख सकता है कि आप सक्रिय हैं या अभी सक्रिय नहीं। बाकी लोग सिर्फ़ यह देखते हैं कि कितने लोग सक्रिय हैं, यह नहीं कि कौन। आमंत्रण स्क्रीन कभी किसी का नाम, फ़ोन या इस्तेमाल की मात्रा नहीं दिखाती।';
+
+  @override
+  String get inviteTreeQaLimitQ => 'क्या कोई सीमा है?';
+
+  @override
+  String get inviteTreeQaLimitMore =>
+      'जब आपके आमंत्रण इतना जोड़ने लगते हैं, तो और दोस्त और डेटा नहीं जोड़ते।';
+
+  @override
+  String get inviteTreeQaKeptQ =>
+      'मेरे पास पहले से जो बोनस है, उसका क्या होगा?';
+
+  @override
+  String get inviteTreeQaKeptMore =>
+      'जब आपके पिछले आमंत्रणों का बोनस आपके दोस्तों के अभी जोड़े जा रहे डेटा से ज़्यादा हो, तो आपको वही बोनस मिलता है। दोनों को जोड़ा नहीं जाता।';
+
+  @override
+  String get inviteTreeQaKeptRemoved =>
+      'कोई आमंत्रण तब हटता है जब वह दोस्त अपना Fortiva खाता मिटा दे, या जब Fortiva उसे गलत इस्तेमाल की वजह से रद्द कर दे।';
+
+  @override
+  String get inviteTreeQaChangedQ => 'आमंत्रणों में क्या बदला है?';
+
+  @override
+  String get inviteTreeQaChangedA =>
+      'पहले, योग्य होने वाला हर दोस्त तय मात्रा में डेटा जोड़ता था। अब दोस्त तब तक डेटा जोड़ते हैं जब तक वे सक्रिय हैं, आपके स्लॉट और जोड़ियों के ज़रिए, और आपका बोनस घट सकता है।';
+
+  @override
+  String get inviteTreeQaPremiumQ =>
+      'क्या आमंत्रण प्रीमियम के दिन भी जोड़ते हैं?';
+
+  @override
+  String get inviteTreeQaPremiumOwn =>
+      'इससे फ़र्क नहीं पड़ता कि आपका दोस्त कौन-सा स्लॉट लेता है। जिन लोगों को आपने आमंत्रित नहीं किया, वे प्रीमियम के दिन नहीं जोड़ते।';
+
+  @override
+  String get inviteTreeQaGetsQ => 'क्या मेरे दोस्त को कुछ मिलता है?';
+
+  @override
+  String get inviteTreeQaGetsA =>
+      'आपका कोड डालने के लिए नहीं। सबकी तरह उसका भी अपना कोड और स्लॉट हैं, और जो दोस्त उसके कोड से जुड़ते हैं, वे उसके लिए डेटा जोड़ते हैं। योग्य होने के बाद उसकी पहली जोड़ी में भी ऐसे लोग हो सकते हैं जिन्हें उसने आमंत्रित नहीं किया, और वे भी उसके लिए डेटा जोड़ते हैं।';
+
+  @override
+  String get inviteTreeQaGetsSee =>
+      'अगर वह आपके स्लॉट में है, तो आप देख सकते हैं कि वह सक्रिय है या अभी सक्रिय नहीं। आप कभी उसका नाम या उसके इस्तेमाल की मात्रा नहीं देखते।';
+
+  @override
+  String get inviteTreeKeptFloor =>
+      'आपका बोनस अभी उतना है जितना आपके पिछले आमंत्रणों से बचा हुआ है। जब आपके दोस्त मिलकर इससे ज़्यादा जोड़ेंगे, तब यह बढ़ेगा।';
+
+  @override
+  String inviteTreeIntroTotalUpTo(String most, String total) {
+    return 'दोस्त हर दिन ज़्यादा से ज़्यादा $most जोड़ सकते हैं। आपका मुफ़्त डेटा और दोस्तों का डेटा मिलकर हर दिन $total तक पहुँच सकता है।';
+  }
+
+  @override
+  String get inviteTreeIntroPairsOrder =>
+      'आपकी पहली जोड़ी सबसे ज़्यादा जोड़ती है। उसके बाद की हर जोड़ी कम जोड़ती है।';
+
+  @override
+  String get inviteTreeIntroInvitedYou => 'जिसने आपको आमंत्रित किया';
+
+  @override
+  String get inviteTreeIntroGuide => 'कदम-दर-कदम गाइड';
+
+  @override
+  String get inviteTreeQaCostQ =>
+      'क्या मेरी वजह से मेरे दोस्त का कोई डेटा कम होता है?';
+
+  @override
+  String get inviteTreeQaCostA =>
+      'नहीं। दोस्त आपके लिए जो डेटा जोड़ता है, वह उसके अपने डेटा से नहीं कटता। आपकी वजह से उसका रोज़ का डेटा नहीं बदलता।';
+
+  @override
+  String get inviteTreeQaStartQ =>
+      'किसी दोस्त का डेटा कब से जुड़ना शुरू होता है?';
+
+  @override
+  String get inviteTreeQaStartA =>
+      'जैसे ही आपका दोस्त किसी स्लॉट में आ जाए और सक्रिय हो। आपका बोनस दिन भर अपडेट होता रहता है, इसलिए उसी दिन थोड़ी देर बाद बढ़ जाता है। जब तक आपका दोस्त योग्य नहीं होता, वह कुछ नहीं जोड़ता।';
+
+  @override
+  String get inviteTreeQaPhoneQ =>
+      'अगर मेरा दोस्त Fortiva दोबारा इंस्टॉल करे या फ़ोन बदल ले, तो क्या होगा?';
+
+  @override
+  String get inviteTreeQaPhoneA =>
+      'उसी फ़ोन पर दोबारा इंस्टॉल करने के बाद Fortiva आम तौर पर फ़ोन को पहचान लेता है, और कुछ नहीं बदलता। नया फ़ोन Fortiva के लिए नया होता है। स्लॉट पुराने फ़ोन का ही रहता है, और पुराना फ़ोन इस्तेमाल न होने पर उसे सक्रिय नहीं गिना जाता।';
 
   @override
   String get premiumSourceInvite => 'आपके आमंत्रणों से';
@@ -1827,7 +2136,7 @@ class SHi extends S {
     String _temp0 = intl.Intl.pluralLogic(
       days,
       locale: localeName,
-      other: '$days अलग-अलग दिनों',
+      other: '$days अलग-अलग दिनों में',
       one: '$days दिन',
     );
     return 'आपका अगला दोस्त $_temp0 Fortiva इस्तेमाल कर ले, तो हर दिन $amount जोड़ेगा। यह आज के डेटा में नहीं जुड़ता।';

@@ -11,6 +11,7 @@ import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import 'helpers/app_theme.dart';
+import 'helpers/invite_home.dart';
 
 /// The look of Settings (lib/screens/settings_screen.dart) that the
 /// redesign set: sentence case headings, rows with a visible ripple, the
@@ -239,5 +240,59 @@ void main() {
     await tester.tap(keep);
     await tester.pumpAndSettle();
     expect(find.byType(AlertDialog), findsNothing);
+  });
+
+  group('the invite row', () {
+    Future<void> pumpWith(WidgetTester tester, AppConfigState config) async {
+      tester.view.physicalSize = const Size(400, 3000);
+      tester.view.devicePixelRatio = 1;
+      addTearDown(tester.view.reset);
+      await tester.pumpWidget(
+        MultiProvider(
+          providers: [
+            ChangeNotifierProvider<AppConfigState>.value(value: config),
+            ChangeNotifierProvider<LocaleState>(create: (_) => LocaleState()),
+            ChangeNotifierProvider<ReferralState>(
+              create: (_) => ReferralState(),
+            ),
+          ],
+          child: MaterialApp(
+            locale: const Locale('en'),
+            theme: appThemeFor(const Locale('en')),
+            localizationsDelegates: S.localizationsDelegates,
+            supportedLocales: S.supportedLocales,
+            home: const SettingsScreen(),
+          ),
+        ),
+      );
+      await tester.runAsync(
+        () => Future<void>.delayed(const Duration(milliseconds: 20)),
+      );
+      await tester.pumpAndSettle();
+    }
+
+    testWidgets('under the tree rule says friends add data, never earn', (
+      tester,
+    ) async {
+      await pumpWith(tester, await inviteConfig(referralRules: 'tree'));
+      expect(find.text('Invite friends'), findsOneWidget);
+      expect(find.text('Friends add to your daily data'), findsOneWidget);
+      expect(find.text('Earn extra daily data'), findsNothing);
+    });
+
+    testWidgets('under today\'s rule is as it was', (tester) async {
+      await pumpWith(tester, await inviteConfig(referralRules: 'flat'));
+      expect(find.text('Earn extra daily data'), findsOneWidget);
+      expect(find.text('Friends add to your daily data'), findsNothing);
+    });
+
+    testWidgets('while the rule is not known, says the line that is true '
+        'under both rules', (tester) async {
+      // An older backend names no rule, and no referral answer is loaded:
+      // the tree may be on, so the row never says earn.
+      await pumpWith(tester, await inviteConfig());
+      expect(find.text('Friends add to your daily data'), findsOneWidget);
+      expect(find.text('Earn extra daily data'), findsNothing);
+    });
   });
 }

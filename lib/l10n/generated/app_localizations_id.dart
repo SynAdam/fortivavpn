@@ -667,7 +667,7 @@ class SId extends S {
 
   @override
   String inviteBonusPerDay(String amount) {
-    return '+$amount setiap hari';
+    return '+$amount per hari';
   }
 
   @override
@@ -729,12 +729,12 @@ class SId extends S {
       locale: localeName,
       other: '$days hari yang berbeda',
     );
-    return 'Undangan diterima. Teman Anda mendapat data bonus setelah Anda memakai VPN pada $_temp0.';
+    return 'Undangan diterima. Undangan ini dihitung setelah Anda memakai VPN pada $_temp0, mulai hari ini.';
   }
 
   @override
   String get inviteClaimAcceptedNoDays =>
-      'Undangan diterima. Teman Anda mendapat data bonus setelah Anda memakai VPN selama beberapa waktu.';
+      'Undangan diterima. Undangan ini dihitung setelah Anda memakai VPN selama beberapa waktu, mulai hari ini.';
 
   @override
   String get inviteClaimAlready => 'Perangkat ini sudah memakai kode undangan';
@@ -829,16 +829,16 @@ class SId extends S {
 
   @override
   String get inviteTreeLive =>
-      'Bonus Anda berlaku selama teman Anda terus memakai Fortiva. Jika ada teman yang berhenti, bonus berkurang.';
+      'Bonus Anda berlaku selama teman Anda terus memakai Fortiva. Jika seorang teman berhenti, bonus bisa turun.';
 
   @override
   String inviteTreeNext(String amount) {
-    return 'Teman Anda berikutnya menambah $amount per hari setelah mulai memakai Fortiva.';
+    return 'Teman Anda berikutnya menambah $amount per hari setelah ia memenuhi syarat dan aktif.';
   }
 
   @override
   String inviteTreeKept(String amount) {
-    return 'Bonus Anda tidak pernah turun di bawah $amount per hari, berkat teman yang Anda undang sebelumnya.';
+    return 'Bonus Anda tidak turun di bawah $amount per hari, yaitu bonus yang Anda dapat dari undangan sebelumnya. Jumlah ini hanya bisa turun jika salah satu undangan Anda dihapus.';
   }
 
   @override
@@ -871,9 +871,6 @@ class SId extends S {
 
   @override
   String get inviteTreeRowFriends => 'Di slot Anda';
-
-  @override
-  String get inviteTreeRowFriendsSlots => 'Di slot mereka';
 
   @override
   String inviteTreeRowSteps(int steps) {
@@ -924,12 +921,12 @@ class SId extends S {
 
   @override
   String inviteTreeHowActive(int days, int window) {
-    return 'Seorang teman dihitung aktif selama ia memakai Fortiva setidaknya $days hari dalam $window hari terakhir.';
+    return 'Seorang teman dihitung aktif selama ia memakai VPN setidaknya $days hari dalam $window hari terakhir.';
   }
 
   @override
   String get inviteTreeHowActiveNoNumber =>
-      'Seorang teman dihitung aktif selama ia terus memakai Fortiva.';
+      'Seorang teman dihitung aktif selama ia terus memakai VPN.';
 
   @override
   String inviteTreeHowCap(String max) {
@@ -971,12 +968,8 @@ class SId extends S {
       'Teman mengisi slot Anda secara berpasangan';
 
   @override
-  String get inviteTreeIntroSlotsWhen =>
-      'Seorang teman mengisi slot setelah mulai memakai Fortiva.';
-
-  @override
   String get inviteTreeIntroSlotsArt =>
-      'Slot Anda, berpasangan, terisi saat teman bergabung.';
+      'Anda, kode undangan Anda, dan slot Anda yang berpasangan. Setiap slot menunjukkan apakah kosong, atau apakah orang di dalamnya aktif atau sedang tidak aktif.';
 
   @override
   String get inviteTreeIntroPairTitle =>
@@ -1007,26 +1000,7 @@ class SId extends S {
   }
 
   @override
-  String get inviteTreeIntroPairArt =>
-      'Pasangan slot. Menambah lebih banyak data saat kedua teman di dalamnya aktif.';
-
-  @override
-  String get inviteTreeIntroFurtherTitle =>
-      'Teman yang lebih jauh juga menambah data';
-
-  @override
-  String get inviteTreeIntroFirstPairOnly =>
-      'Dari slot teman Anda, hanya pasangan pertamanya yang menambah data untuk Anda.';
-
-  @override
   String get inviteTreeIntroYourFriend => 'Teman Anda';
-
-  @override
-  String get inviteTreeIntroTheirPair => 'Pasangan pertamanya';
-
-  @override
-  String get inviteTreeIntroFurtherArt =>
-      'Pasangan pertama teman Anda menambah data untuk teman Anda dan untuk Anda. Pasangan yang lebih jauh menambah lebih sedikit.';
 
   @override
   String get inviteTreeIntroTotalTitle => 'Data Anda dari teman';
@@ -1053,7 +1027,7 @@ class SId extends S {
 
   @override
   String inviteTreeSheetNext(String amount) {
-    return 'Teman Anda berikutnya menambah $amount per hari setelah mulai memakai Fortiva. Ini tidak menambah data hari ini.';
+    return 'Teman Anda berikutnya menambah $amount per hari setelah ia memenuhi syarat dan aktif. Ini tidak menambah data hari ini.';
   }
 
   @override
@@ -1065,7 +1039,7 @@ class SId extends S {
       days,
       locale: localeName,
       other:
-          'Setiap teman yang mulai memakai Fortiva juga memberi Anda Premium selama $days hari.',
+          'Setiap teman yang memenuhi syarat dengan kode Anda juga menambah $days hari Premium untuk Anda.',
     );
     return '$_temp0';
   }
@@ -1079,6 +1053,333 @@ class SId extends S {
     );
     return '$_temp0';
   }
+
+  @override
+  String inviteTreeIntroSlotsBody(int slots) {
+    String _temp0 = intl.Intl.pluralLogic(
+      slots,
+      locale: localeName,
+      other:
+          'Teman yang bergabung dengan kode Anda bisa menambah data harian Anda. Anda punya $slots slot untuk mereka. Setiap slot diisi seorang teman, dan slot tersusun berpasangan. Pasangan pertama Anda terisi lebih dulu. Teman lain tetap bisa bergabung saat slot Anda sudah penuh.',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get inviteTreeIntroSlotsBodyNoNumber =>
+      'Teman yang bergabung dengan kode Anda bisa menambah data harian Anda. Anda punya slot untuk mereka. Setiap slot diisi seorang teman, dan slot tersusun berpasangan. Pasangan pertama Anda terisi lebih dulu. Teman lain tetap bisa bergabung saat slot Anda sudah penuh.';
+
+  @override
+  String get inviteTreeIntroJoinTitle => 'Cara teman mendapat slot';
+
+  @override
+  String inviteTreeIntroJoinCode(int hours) {
+    String _temp0 = intl.Intl.pluralLogic(
+      hours,
+      locale: localeName,
+      other:
+          'Teman Anda harus memasukkan kode Anda di layar undangannya dalam $hours jam setelah memasang Fortiva.',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get inviteTreeIntroJoinCodeNoNumber =>
+      'Teman Anda harus memasukkan kode Anda di layar undangannya tidak lama setelah memasang Fortiva.';
+
+  @override
+  String inviteTreeIntroJoinQualify(int days) {
+    String _temp0 = intl.Intl.pluralLogic(
+      days,
+      locale: localeName,
+      other:
+          'Setelah itu, ia harus memakai VPN pada $days hari yang berbeda. Lalu ia memenuhi syarat dan mengisi slot kosong berikutnya.',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get inviteTreeIntroJoinQualifyNoNumber =>
+      'Setelah itu, ia harus memakai VPN selama beberapa waktu. Lalu ia memenuhi syarat dan mengisi slot kosong berikutnya.';
+
+  @override
+  String get inviteTreeIntroJoinPlay =>
+      'Jika ia memasang Fortiva dari Google Play lewat tautan Anda, kodenya dimasukkan otomatis.';
+
+  @override
+  String get inviteTreeIntroJoinWaiting =>
+      'Sampai ia memenuhi syarat, layar undangan Anda menghitungnya di \"Diundang\", tetapi belum di \"Memenuhi syarat\".';
+
+  @override
+  String get inviteTreeIntroJoinStepCode => 'Memasukkan kode Anda';
+
+  @override
+  String get inviteTreeIntroJoinStepUse => 'Memakai VPN';
+
+  @override
+  String get inviteTreeIntroJoinStepSlot => 'Mengisi slot';
+
+  @override
+  String get inviteTreeIntroJoinArt =>
+      'Seorang teman memasukkan kode Anda, memakai VPN pada hari yang berbeda, lalu mengisi slot kosong berikutnya.';
+
+  @override
+  String get inviteTreeIntroPairsBody =>
+      'Setiap pasangan bisa menambah data untuk Anda. Pasangan menambah paling banyak saat keduanya aktif.';
+
+  @override
+  String get inviteTreeIntroPairsCaption =>
+      'Yang ditambahkan setiap pasangan ke data Anda per hari';
+
+  @override
+  String get inviteTreeIntroBothActive => 'Keduanya aktif';
+
+  @override
+  String get inviteTreeIntroOneActive => 'Salah satu aktif';
+
+  @override
+  String inviteTreeIntroPlus(String amount) {
+    return '+$amount';
+  }
+
+  @override
+  String get inviteTreeIntroNothing => 'Tidak ada';
+
+  @override
+  String get inviteTreeIntroPairNow =>
+      'Jumlah yang disorot adalah yang ditambahkan pasangan Anda saat ini.';
+
+  @override
+  String get inviteTreeIntroPairsArt =>
+      'Pasangan Anda, dan yang ditambahkan masing-masing per hari saat keduanya aktif, dan saat salah satunya aktif.';
+
+  @override
+  String get inviteTreeIntroActiveTitle =>
+      'Teman menambah data selama ia aktif';
+
+  @override
+  String get inviteTreeIntroActiveStops =>
+      'Jika seorang teman berhenti memakai Fortiva, pasangannya menambah lebih sedikit dan bonus Anda bisa turun. Ia tetap memegang slotnya. Saat ia memakai Fortiva lagi, pasangannya kembali menambah lebih banyak.';
+
+  @override
+  String get inviteTreeIntroActiveFar =>
+      'Orang yang lebih jauh yang menambah data untuk Anda juga dihitung hanya selama mereka aktif.';
+
+  @override
+  String get inviteTreeIntroActiveArt =>
+      'Pasangan yang salah satu temannya berhenti memakai Fortiva. Sekarang pasangan itu menambah lebih sedikit.';
+
+  @override
+  String get inviteTreeIntroFullTitle => 'Saat slot Anda penuh';
+
+  @override
+  String get inviteTreeIntroFullBody =>
+      'Saat semua slot Anda sudah terisi, teman Anda berikutnya masuk ke pasangan pertama seseorang yang ada di slot Anda, berurutan mulai dari slot pertama Anda. Pasangan itu menambah data untuk orang tersebut, dan lebih sedikit untuk Anda.';
+
+  @override
+  String get inviteTreeIntroFullLess =>
+      'Makin jauh sebuah slot, makin sedikit yang ditambahkannya untuk Anda. Slot yang sangat jauh tidak menambah apa pun.';
+
+  @override
+  String get inviteTreeIntroNextFriend => 'Teman Anda berikutnya';
+
+  @override
+  String get inviteTreeIntroLaterFriend => 'Teman di kemudian hari';
+
+  @override
+  String get inviteTreeIntroFullArt =>
+      'Teman di kemudian hari mengisi slot kosong di pasangan pertama seseorang yang ada di slot Anda. Pasangan itu menambah data untuk orang tersebut, dan lebih sedikit untuk Anda.';
+
+  @override
+  String get inviteTreeIntroOthersTitle =>
+      'Pasangan pertama Anda bisa berisi orang yang tidak Anda undang';
+
+  @override
+  String get inviteTreeIntroOthersWhy =>
+      'Anda bergabung dengan kode seorang teman. Saat slotnya penuh, teman-temannya berikutnya bisa mengisi slot kosong di pasangan pertama Anda. Teman dari orang lain juga bisa. Siapa pun yang mengisinya menambah data untuk Anda dengan cara yang sama seperti teman Anda sendiri.';
+
+  @override
+  String get inviteTreeIntroOthersYours =>
+      'Teman Anda sendiri mengisi slot kosong Anda yang lain, lalu slot kosong yang lebih jauh.';
+
+  @override
+  String get inviteTreeIntroNotInvited => 'Tidak Anda undang';
+
+  @override
+  String get inviteTreeIntroOthersArt =>
+      'Contoh pasangan pertama Anda, dengan teman yang Anda undang dan orang yang tidak Anda undang. Keduanya menambah data untuk Anda selama mereka aktif.';
+
+  @override
+  String get inviteTreeIntroShareTitle =>
+      'Undang teman yang akan memakai Fortiva';
+
+  @override
+  String get inviteTreeIntroShareBody =>
+      'Seorang teman menambah data untuk Anda hanya selama ia aktif. Kirim undangan Anda ke teman yang butuh VPN.';
+
+  @override
+  String get inviteTreeQaTitle => 'Tanya jawab';
+
+  @override
+  String get inviteTreeQaCountQ =>
+      'Teman saya sudah memasukkan kode saya. Kapan ia mendapat slot?';
+
+  @override
+  String get inviteTreeQaCountDay =>
+      'Hari dihitung hanya jika pada hari itu ia memakai sedikit data lewat VPN. Membuka aplikasi saja tidak cukup. Tidak ada batas waktu untuk hari-hari ini.';
+
+  @override
+  String get inviteTreeQaCountOther =>
+      'Ponsel yang sudah memasukkan kode tidak bisa memasukkan kode lain. Anda dan teman Anda tidak bisa saling memasukkan kode.';
+
+  @override
+  String get inviteTreeQaDownQ => 'Kenapa bonus saya turun?';
+
+  @override
+  String get inviteTreeQaDownA =>
+      'Seseorang yang menambah data untuk Anda sedang tidak aktif. Bisa teman di slot Anda atau seseorang yang lebih jauh. Saat ia memakai Fortiva lagi, ia kembali menambah data.';
+
+  @override
+  String get inviteTreeQaDownLater =>
+      'Teman yang berhenti masih dihitung aktif untuk sementara. Jadi bonus Anda bisa turun beberapa waktu setelah ia berhenti.';
+
+  @override
+  String get inviteTreeQaDownRemoved =>
+      'Bonus Anda juga bisa turun saat undangan dihapus, misalnya saat teman itu menghapus akun Fortiva-nya.';
+
+  @override
+  String get inviteTreeQaFullQ => 'Apa yang terjadi saat slot saya penuh?';
+
+  @override
+  String get inviteTreeQaFullFurther =>
+      'Saat pasangan-pasangan pertama itu juga penuh, teman Anda berikutnya masuk lebih jauh, ke pasangan pertama seseorang yang ada di pasangan-pasangan itu. Pasangan itu menambah data untuk orang tersebut, dan jumlah yang lebih kecil untuk Anda dan untuk setiap orang di antara kalian.';
+
+  @override
+  String get inviteTreeQaFriendsQ =>
+      'Apakah teman dari teman saya menambah data untuk saya?';
+
+  @override
+  String get inviteTreeQaFriendsA =>
+      'Sebagian, ya. Pasangan pertama setiap orang di slot Anda menambah data untuk orang itu, dan jumlah yang lebih kecil untuk Anda. Pasangan mereka yang lain menambah data hanya untuk mereka sendiri. Lebih jauh lagi, hanya pasangan pertama yang menambah data untuk Anda, dan makin jauh, makin sedikit, sampai tidak menambah apa pun.';
+
+  @override
+  String get inviteTreeQaOthersQ =>
+      'Siapa orang di slot saya yang tidak saya undang?';
+
+  @override
+  String get inviteTreeQaOthersA =>
+      'Mereka teman dari seseorang yang slotnya sudah penuh, misalnya orang yang mengundang Anda. Mereka mengisi slot kosong di pasangan pertama Anda, dan Anda tidak bisa memilih atau mengeluarkan mereka. Mereka menambah data untuk Anda dengan cara yang sama seperti teman Anda sendiri.';
+
+  @override
+  String get inviteTreeQaSumQ =>
+      'Kenapa bonus saya berbeda dari jumlah di layar undangan?';
+
+  @override
+  String get inviteTreeQaSumA =>
+      'Setiap baris di \"Lewat slot Anda\" menunjukkan yang ditambahkan orang di baris itu saat ini. Bonus Anda adalah totalnya, sampai batasnya.';
+
+  @override
+  String get inviteTreeQaSlotQ =>
+      'Bisakah saya mengosongkan slot atau memilih siapa yang mengisinya?';
+
+  @override
+  String get inviteTreeQaSlotA =>
+      'Tidak. Seorang teman tetap memegang slotnya meski ia berhenti memakai Fortiva. Slotnya kosong lagi hanya jika undangannya dihapus, misalnya saat ia menghapus akun Fortiva-nya. Slot kosong terisi berurutan, dan tidak ada yang bisa memilih siapa yang mengisinya.';
+
+  @override
+  String get inviteTreeQaPrivacyQ =>
+      'Bisakah teman saya melihat apakah saya memakai Fortiva?';
+
+  @override
+  String get inviteTreeQaPrivacyA =>
+      'Jika Anda bergabung dengan kode seorang teman, orang yang slotnya Anda tempati bisa melihat apakah Anda aktif atau sedang tidak aktif. Orang lain hanya melihat berapa orang yang aktif, bukan siapa. Layar undangan tidak pernah menampilkan nama, ponsel, atau pemakaian siapa pun.';
+
+  @override
+  String get inviteTreeQaLimitQ => 'Apakah ada batasnya?';
+
+  @override
+  String get inviteTreeQaLimitMore =>
+      'Setelah undangan Anda menambah sebanyak itu, teman tambahan tidak menambah data lagi.';
+
+  @override
+  String get inviteTreeQaKeptQ =>
+      'Bagaimana dengan bonus yang sudah saya punya?';
+
+  @override
+  String get inviteTreeQaKeptMore =>
+      'Jika bonus dari undangan Anda sebelumnya lebih besar daripada yang ditambahkan teman Anda saat ini, Anda mendapat bonus itu sebagai gantinya. Keduanya tidak dijumlahkan.';
+
+  @override
+  String get inviteTreeQaKeptRemoved =>
+      'Undangan dihapus saat teman itu menghapus akun Fortiva-nya, atau saat Fortiva membatalkannya karena penyalahgunaan.';
+
+  @override
+  String get inviteTreeQaChangedQ => 'Apa yang berubah pada undangan?';
+
+  @override
+  String get inviteTreeQaChangedA =>
+      'Dulu, setiap teman yang memenuhi syarat menambah data dalam jumlah tetap. Sekarang teman menambah data selama mereka aktif, lewat slot dan pasangan Anda, dan bonus Anda bisa turun.';
+
+  @override
+  String get inviteTreeQaPremiumQ => 'Apakah undangan menambah hari Premium?';
+
+  @override
+  String get inviteTreeQaPremiumOwn =>
+      'Tidak masalah slot mana yang diisi teman Anda. Orang yang tidak Anda undang tidak menambah hari Premium.';
+
+  @override
+  String get inviteTreeQaGetsQ => 'Apakah teman saya mendapat sesuatu?';
+
+  @override
+  String get inviteTreeQaGetsA =>
+      'Tidak untuk memasukkan kode Anda. Seperti semua orang, ia punya kode dan slot sendiri, dan teman yang bergabung dengan kodenya menambah data untuknya. Setelah ia memenuhi syarat, pasangan pertamanya juga bisa berisi orang yang tidak ia undang, dan orang itu juga menambah data untuknya.';
+
+  @override
+  String get inviteTreeQaGetsSee =>
+      'Jika ia ada di slot Anda, Anda bisa melihat apakah ia aktif atau sedang tidak aktif. Anda tidak pernah melihat nama atau pemakaiannya.';
+
+  @override
+  String get inviteTreeKeptFloor =>
+      'Bonus Anda saat ini adalah jumlah yang tersimpan dari undangan sebelumnya. Bonus naik saat teman-teman Anda bersama-sama menambah lebih dari jumlah itu.';
+
+  @override
+  String inviteTreeIntroTotalUpTo(String most, String total) {
+    return 'Teman bisa menambah hingga $most per hari. Data gratis Anda dan data dari teman, jika digabung, bisa mencapai $total per hari.';
+  }
+
+  @override
+  String get inviteTreeIntroPairsOrder =>
+      'Pasangan pertama Anda menambah paling banyak. Setiap pasangan berikutnya menambah lebih sedikit.';
+
+  @override
+  String get inviteTreeIntroInvitedYou => 'Mengundang Anda';
+
+  @override
+  String get inviteTreeIntroGuide => 'Panduan langkah demi langkah';
+
+  @override
+  String get inviteTreeQaCostQ =>
+      'Apakah teman saya kehilangan data karena saya?';
+
+  @override
+  String get inviteTreeQaCostA =>
+      'Tidak. Data yang ditambahkan teman untuk Anda tidak diambil dari datanya sendiri. Data hariannya tidak berubah karena Anda.';
+
+  @override
+  String get inviteTreeQaStartQ =>
+      'Kapan data dari seorang teman mulai ditambahkan?';
+
+  @override
+  String get inviteTreeQaStartA =>
+      'Begitu teman Anda menempati slot dan aktif. Bonus Anda diperbarui sepanjang hari, jadi bonus naik tidak lama setelahnya, di hari yang sama. Sebelum teman Anda memenuhi syarat, ia tidak menambah apa pun.';
+
+  @override
+  String get inviteTreeQaPhoneQ =>
+      'Bagaimana jika teman saya memasang ulang Fortiva atau ganti ponsel?';
+
+  @override
+  String get inviteTreeQaPhoneA =>
+      'Setelah dipasang ulang di ponsel yang sama, Fortiva biasanya mengenali ponsel itu lagi, dan tidak ada yang berubah. Ponsel baru adalah ponsel baru bagi Fortiva. Slotnya masih milik ponsel lama, dan dihitung tidak aktif setelah ponsel lama tidak dipakai lagi.';
 
   @override
   String get premiumSourceInvite => 'Dari undangan Anda';
