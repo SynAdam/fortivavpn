@@ -10,6 +10,7 @@ import '../core/state/dedicated_state.dart';
 import '../core/state/dial_server.dart';
 import '../core/state/server_state.dart';
 import '../data/models/server.dart';
+import '../services/connect_trace.dart';
 import '../services/vpn_service.dart';
 import '../widgets/remote_refresh_button.dart';
 import '../widgets/server_card.dart';
@@ -104,6 +105,7 @@ class _ServerListScreenState extends State<ServerListScreen> {
           flow: flow,
           dedicated: context.read<DedicatedState>(),
           servers: servers,
+          trigger: TraceTrigger.pick,
         ),
       );
     }

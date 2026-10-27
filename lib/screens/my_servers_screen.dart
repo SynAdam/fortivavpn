@@ -18,6 +18,7 @@ import '../core/state/server_state.dart';
 import '../data/models/billing.dart';
 import '../data/models/server.dart';
 import '../l10n/generated/app_localizations.dart';
+import '../services/connect_trace.dart';
 import '../services/vpn_service.dart';
 import '../utils/vless_link.dart';
 import '../widgets/premium_offers.dart';
@@ -132,6 +133,7 @@ class _MyServersScreenState extends State<MyServersScreen> {
       flow: flow,
       dedicated: dedicated,
       servers: servers,
+      trigger: TraceTrigger.pick,
     );
     if (!messenger.mounted) return;
     if (!vpn.isConnected && !vpn.isConnecting) return;

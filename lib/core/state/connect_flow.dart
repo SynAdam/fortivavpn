@@ -933,6 +933,11 @@ class ConnectFlow extends ChangeNotifier {
   ///
   /// While the backend has the connect trace on, the tap is recorded step
   /// by step ([ConnectTrace]) and queued when it ends, however it ends.
+  ///
+  /// [trigger] is what started this run, for its trace: a tap on Connect
+  /// or a pick of a server. With [afterStall] it is [TraceTrigger.stall]
+  /// whatever is given. Each try the flow makes by itself after it says
+  /// how that try started instead ([_retryLater]).
   Future<void> connect(
     List<Server> paths, {
     Server? preferred,
@@ -946,6 +951,7 @@ class ConnectFlow extends ChangeNotifier {
     Future<void> Function()? beforeRetry,
     List<Server> Function()? latest,
     bool afterStall = false,
+    TraceTrigger trigger = TraceTrigger.tap,
   }) async {
     if (isBusy || paths.isEmpty) return;
     _retries = 0;
@@ -960,8 +966,9 @@ class ConnectFlow extends ChangeNotifier {
       return now == null || now.isEmpty ? paths : now;
     }
 
-    Future<void> tap() => _tap(
+    Future<void> tap(TraceTrigger trigger) => _tap(
       doors(),
+      trigger: trigger,
       preferred: preferred,
       selection: selection,
       picked: picked,
@@ -971,7 +978,7 @@ class ConnectFlow extends ChangeNotifier {
       onShared: onShared,
       allowanceSpent: allowanceSpent,
     );
-    await tap();
+    await tap(afterStall ? TraceTrigger.stall : trigger);
     _tapOver(armed);
     // A tap a newer one replaced schedules no try of its own: the newer
     // tap's run owns the stage it would read.
@@ -1076,8 +1083,13 @@ class ConnectFlow extends ChangeNotifier {
   /// connected. A tap on the button is not skipped: 58 of 374 first taps
   /// with no network connected. Without a longest wait the waits end after
   /// the backend's list, and none is skipped.
+  ///
+  /// [again] is told what started each try, for its trace: the wait ran
+  /// out ([TraceTrigger.retry]), the phone moved to another network
+  /// ([TraceTrigger.network]), or a site abroad answered again
+  /// ([TraceTrigger.recheck]).
   void _retryLater(
-    Future<void> Function() again,
+    Future<void> Function(TraceTrigger trigger) again,
     Future<void> Function()? before,
   ) {
     _stopWatchingNetwork();
@@ -1091,7 +1103,7 @@ class ConnectFlow extends ChangeNotifier {
     _retries++;
     final run = _run;
     bool still() => run == _run && _stage == ConnectStage.waiting;
-    Future<void> fire() async {
+    Future<void> fire(TraceTrigger trigger) async {
       _retry?.cancel();
       _retry = null;
       _stopWatchingNetwork();
@@ -1124,7 +1136,7 @@ class ConnectFlow extends ChangeNotifier {
         debugPrint('ConnectFlow: could not get ready to try again: $e');
       }
       if (!still()) return;
-      await again();
+      await again(trigger);
       _retryLater(again, before);
     }
 
@@ -1154,7 +1166,7 @@ class ConnectFlow extends ChangeNotifier {
         notifyListeners();
         return;
       }
-      await fire();
+      await fire(TraceTrigger.retry);
     }
 
     _waitingAfter = _stage;
@@ -1169,7 +1181,10 @@ class ConnectFlow extends ChangeNotifier {
       _noWayAbroad = false;
       _retries = 0;
       _retry?.cancel();
-      _retry = Timer(networkSettle, fire);
+      _retry = Timer(
+        networkSettle,
+        () => unawaited(fire(TraceTrigger.network)),
+      );
       _retryAt = DateTime.now().add(networkSettle);
       notifyListeners();
     });
@@ -1182,7 +1197,10 @@ class ConnectFlow extends ChangeNotifier {
         _retries = 0;
         _retry?.cancel();
         // fire() runs next and says the next try starts now.
-        _retry = Timer(Duration.zero, fire);
+        _retry = Timer(
+          Duration.zero,
+          () => unawaited(fire(TraceTrigger.recheck)),
+        );
       });
     }
   }
@@ -1313,7 +1331,8 @@ class ConnectFlow extends ChangeNotifier {
   /// are unmetered, so a spent allowance ends the run before any dial.
   ///
   /// With the backend's [RetrySettings], a tap that found nothing open
-  /// tries again by itself, as [connect] does.
+  /// tries again by itself, as [connect] does. [trigger] is read as
+  /// [connect] reads it.
   Future<void> connectShared(
     Server picked, {
     required Future<List<Server>> Function() shared,
@@ -1328,6 +1347,7 @@ class ConnectFlow extends ChangeNotifier {
     Future<bool> Function()? allowanceSpent,
     Future<void> Function()? beforeRetry,
     bool afterStall = false,
+    TraceTrigger trigger = TraceTrigger.tap,
   }) async {
     if (isBusy) return;
     _retries = 0;
@@ -1360,7 +1380,8 @@ class ConnectFlow extends ChangeNotifier {
       onShared: onShared,
       allowanceSpent: allowanceSpent,
     );
-    Future<void> tap() => _begin(
+    Future<void> tap(TraceTrigger trigger) => _begin(
+      trigger: trigger,
       onSwitchedServer: onSwitchedServer,
       selection: selection,
       onShared: onShared,
@@ -1392,7 +1413,7 @@ class ConnectFlow extends ChangeNotifier {
         );
       },
     );
-    await tap();
+    await tap(afterStall ? TraceTrigger.stall : trigger);
     _tapOver(armed);
     // A tap a newer one replaced schedules no try of its own: the newer
     // tap's run owns the stage it would read.
@@ -1851,6 +1872,7 @@ class ConnectFlow extends ChangeNotifier {
 
   Future<void> _tap(
     List<Server> paths, {
+    required TraceTrigger trigger,
     Server? preferred,
     Server? Function()? selection,
     Server? picked,
@@ -1860,6 +1882,7 @@ class ConnectFlow extends ChangeNotifier {
     void Function(Server server)? onShared,
     Future<bool> Function()? allowanceSpent,
   }) => _begin(
+    trigger: trigger,
     onSwitchedServer: onSwitchedServer,
     selection: selection,
     onShared: onShared,
@@ -1885,7 +1908,12 @@ class ConnectFlow extends ChangeNotifier {
   /// before the trace goes ([_backupNetwork]). With the backend's
   /// [PsiphonSettings.startAfter], [body] can be cut short for it
   /// ([_cutSearch]).
+  ///
+  /// The trace says what started the run ([trigger]). Each run has its
+  /// own attempt id, the tries the flow makes by itself included, and
+  /// nothing else the phone sends tells a person's tap from those tries.
   Future<void> _begin({
+    required TraceTrigger trigger,
     required Future<void> Function(
       int run,
       String attemptId,
@@ -1926,6 +1954,7 @@ class ConnectFlow extends ChangeNotifier {
     final trace = _trace =
         sent ??
         ConnectTrace.outcomeOnly(attemptId: attemptId, startedAt: started);
+    trace.startedBy(trigger);
     _sinceTry
       ..reset()
       ..start();

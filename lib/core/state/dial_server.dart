@@ -4,6 +4,7 @@ import 'dart:io';
 import 'package:flutter/foundation.dart';
 
 import '../../data/models/server.dart';
+import '../../services/connect_trace.dart';
 import '../../services/vpn_service.dart';
 import 'connect_flow.dart';
 import 'dedicated_state.dart';
@@ -67,7 +68,9 @@ Future<void> refreshAllowance({
 /// and every tap dialled the fallback link. [onWaitingForOwn] is told
 /// when that wait starts and ends, so the caller can show the button as
 /// busy, and [stillWanted] is asked after it, so a screen that has gone
-/// away does not dial.
+/// away does not dial. [trigger] says what started it, for the connect
+/// trace: a tap on Connect, or the error bar's offer of another server
+/// ([TraceTrigger.pick]).
 /// How long a tap with no servers of its own waits for them before it
 /// dials the shared links. Long enough for a phone whose network carries
 /// our calls; on one that cuts them, the fetch would take every route's
@@ -82,6 +85,7 @@ Future<void> connectFromButton(
   required ServerState servers,
   void Function(bool waiting)? onWaitingForOwn,
   bool Function()? stillWanted,
+  TraceTrigger trigger = TraceTrigger.tap,
 }) async {
   if (server == null) {
     unawaited(refreshAllowance(vpn: vpn, dedicated: dedicated));
@@ -120,6 +124,7 @@ Future<void> connectFromButton(
     flow: flow,
     dedicated: dedicated,
     servers: servers,
+    trigger: trigger,
   );
 }
 
@@ -171,6 +176,10 @@ Future<void> stopConnecting({
 /// [afterStall] when no one tapped: the tunnel stopped carrying data and
 /// StallRecovery looks for another door. The screen says so while it
 /// looks ([ConnectFlow.afterStall]).
+///
+/// [trigger] says what started the run, for the connect trace: a tap on
+/// Connect, or a pick of a server or a link ([TraceTrigger.pick]). With
+/// [afterStall] the flow reads it as [TraceTrigger.stall].
 Future<void> dialServer(
   Server server, {
   required VpnService vpn,
@@ -178,6 +187,7 @@ Future<void> dialServer(
   required DedicatedState dedicated,
   required ServerState servers,
   bool afterStall = false,
+  TraceTrigger trigger = TraceTrigger.tap,
 }) async {
   final paths = dedicated.isBlocked ? const <Server>[] : dedicated.paths;
   if (paths.isEmpty && !dedicated.isBlocked && !server.isDedicated) {
@@ -214,6 +224,7 @@ Future<void> dialServer(
       allowanceSpent: () => askAllowance(vpn, dedicated),
       beforeRetry: () => _beforeRetry(vpn, dedicated, servers),
       afterStall: afterStall,
+      trigger: trigger,
     );
     // A pick of the user's that failed while one of ours carried the
     // tunnel: the next tap goes straight to ours.
@@ -271,6 +282,7 @@ Future<void> dialServer(
     beforeRetry: () => _beforeRetry(vpn, dedicated, servers),
     latest: () => dedicated.isBlocked ? const <Server>[] : dedicated.paths,
     afterStall: afterStall,
+    trigger: trigger,
   );
   // The pick failed and one of ours carried the tunnel, so the next tap
   // goes straight to ours instead of dialling the dead link again.

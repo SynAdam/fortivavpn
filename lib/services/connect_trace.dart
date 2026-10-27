@@ -80,10 +80,47 @@ enum TraceReason {
 
   /// The core said the TLS handshake failed.
   tls('tls'),
+
+  /// TCP and the handshake passed, and the request sent through the door
+  /// got no answer (the check's phase "proxy"). Until this such a check
+  /// was traced as [timeout] or [other], which said nothing about how far
+  /// it got.
+  proxy('proxy'),
   refused('refused'),
   other('other');
 
   const TraceReason(this.wire);
+  final String wire;
+}
+
+/// What started one run of the connect flow: a person, or the app by
+/// itself. Every run gets its own attempt id and its own trace, the tries
+/// the app makes by itself included, so the trace says which it was.
+enum TraceTrigger {
+  /// The user tapped Connect: the home screen's button, or Connect or
+  /// Reconnect on the forced update dialog.
+  tap('tap'),
+
+  /// The user chose a server or a link (on a servers list, or the error
+  /// bar's offer of another server), and that started the run.
+  pick('pick'),
+
+  /// The app tried again by itself when a wait ran out (RetrySettings).
+  retry('retry'),
+
+  /// The app tried again by itself because the phone moved to another
+  /// network during the wait.
+  network('network'),
+
+  /// The app tried again by itself because a site abroad answered again
+  /// during the wait (RetrySettings.recheck).
+  recheck('recheck'),
+
+  /// The app searched by itself because the tunnel stopped carrying data
+  /// (StallRecovery).
+  stall('stall');
+
+  const TraceTrigger(this.wire);
   final String wire;
 }
 
@@ -200,9 +237,11 @@ class ConnectTrace {
     DateTime? stepsFrom,
     Future<String?>? networkType,
     Future<String?>? transport,
+    TraceTrigger? trigger,
   }) : _stepsFrom = stepsFrom ?? startedAt,
        _networkType = networkType ?? Future.value(),
        _transport = transport ?? Future.value(),
+       _trigger = trigger,
        _keepsSteps = true;
 
   /// A trace that keeps only how the tap ended, for a tap the backend does
@@ -237,8 +276,16 @@ class ConnectTrace {
   final List<TraceStep> _steps = [];
   TraceOutcome? _outcome;
   String? _chosen;
+  TraceTrigger? _trigger;
 
   List<TraceStep> get steps => List.unmodifiable(_steps);
+
+  /// What started the run, or null when nothing said. ConnectFlow sets it
+  /// when the run begins ([startedBy]).
+  TraceTrigger? get trigger => _trigger;
+
+  /// The run was started by [trigger].
+  void startedBy(TraceTrigger trigger) => _trigger = trigger;
 
   /// How the tap ended, or null while it runs.
   TraceOutcome? get outcome => _outcome;
@@ -352,6 +399,10 @@ class ConnectTrace {
 
   /// The trace as the items of the upload, in parts. A trace that did not
   /// record an end is a tap that was stopped.
+  ///
+  /// `trigger` says what started the run ([TraceTrigger]). It is left out
+  /// when nothing set it. A backend that does not know the key ignores it,
+  /// and one that does not know the word stores none.
   Future<List<Map<String, dynamic>>> items() async {
     return parts(
       {
@@ -361,6 +412,7 @@ class ConnectTrace {
         'transport': await _transport,
         'outcome': (_outcome ?? TraceOutcome.stopped).wire,
         'chosen': _chosen,
+        'trigger': _trigger?.wire,
       },
       [for (final s in _steps) s.toJson()],
     );
@@ -369,7 +421,8 @@ class ConnectTrace {
   /// [steps] cut into items that each fit an upload of at most
   /// [VpnEventReporter.probeUploadBytes] on their own, numbered from 0 in
   /// `part`, each carrying [head]. A trace with no steps is one item. A
-  /// step that does not fit beside [head] on its own goes alone.
+  /// step that does not fit beside [head] on its own goes alone. A null
+  /// `trigger` in [head] is left out of every item.
   @visibleForTesting
   static List<Map<String, dynamic>> parts(
     Map<String, dynamic> head,
@@ -383,6 +436,7 @@ class ConnectTrace {
       'transport': head['transport'],
       'outcome': head['outcome'],
       'chosen': head['chosen'],
+      'trigger': ?head['trigger'],
       'steps': s,
     };
 
@@ -442,6 +496,7 @@ class ConnectTrace {
     if (error.contains('refused')) return TraceReason.refused;
     if (check.phase == 'tcp') return TraceReason.tcp;
     if (check.phase == 'tls') return TraceReason.tls;
+    if (check.phase == 'proxy') return TraceReason.proxy;
     if (error.contains('timeout') ||
         error.contains('timed out') ||
         error.contains('no answer in') ||

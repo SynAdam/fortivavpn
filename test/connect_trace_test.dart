@@ -384,9 +384,12 @@ void main() {
           'transport',
           'outcome',
           'chosen',
+          'trigger',
           'steps',
         ]);
         expect(item['attempt_id'], attemptId);
+        // A tap on Connect, in every part.
+        expect(item['trigger'], 'tap');
         expect(item['client_ts'], '2026-10-05T07:57:00.000Z');
         expect(item['network_type'], 'wifi');
         expect(item['transport'], 'wifi');
@@ -645,6 +648,60 @@ void main() {
       expect(parts, hasLength(1));
       expect(parts.single['part'], 0);
       expect(parts.single['steps'], isEmpty);
+    });
+
+    test('what started the run goes in every part, and a trace that says '
+        'nothing leaves the key out', () {
+      final steps = [for (var i = 0; i < 60; i++) aStep(i)];
+      final parts = ConnectTrace.parts({...head, 'trigger': 'recheck'}, steps);
+
+      expect(parts.length, greaterThan(5));
+      for (final p in parts) {
+        expect(p['trigger'], 'recheck');
+        expect(
+          ReportQueue.uploadBytes([p]),
+          lessThanOrEqualTo(VpnEventReporter.probeUploadBytes),
+        );
+      }
+      expect([for (final p in parts) ...p['steps'] as List], steps);
+
+      for (final p in [
+        ...ConnectTrace.parts(head, steps),
+        ...ConnectTrace.parts({...head, 'trigger': null}, const []),
+      ]) {
+        expect(p.containsKey('trigger'), isFalse);
+      }
+    });
+
+    test('items() sends the trigger the run was started by', () async {
+      final trace = ConnectTrace(
+        attemptId: 'a' * 32,
+        startedAt: tapAt,
+        trigger: TraceTrigger.tap,
+      )..end(TraceOutcome.allClosed);
+      expect((await trace.items()).single['trigger'], 'tap');
+
+      trace.startedBy(TraceTrigger.stall);
+      expect(trace.trigger, TraceTrigger.stall);
+      expect((await trace.items()).single['trigger'], 'stall');
+
+      final none = ConnectTrace(attemptId: 'b' * 32, startedAt: tapAt);
+      expect(none.trigger, isNull);
+      expect((await none.items()).single.containsKey('trigger'), isFalse);
+    });
+
+    test('each trigger has its own word on the wire', () {
+      expect(
+        {for (final t in TraceTrigger.values) t: t.wire},
+        {
+          TraceTrigger.tap: 'tap',
+          TraceTrigger.pick: 'pick',
+          TraceTrigger.retry: 'retry',
+          TraceTrigger.network: 'network',
+          TraceTrigger.recheck: 'recheck',
+          TraceTrigger.stall: 'stall',
+        },
+      );
     });
 
     test('every upload the queue sends stays under 1 KB', () async {
@@ -1353,5 +1410,25 @@ void main() {
     expect(of('TimeoutException after 0:00:04.000000'), TraceReason.timeout);
     expect(of('tcp ok 80ms; EOF'), TraceReason.other);
     expect(of(null), TraceReason.other);
+  });
+
+  test('a check that passed TCP and the handshake and got no answer through '
+      'the door says proxy, not timeout or other', () {
+    TraceReason of(String? error, [String? phase]) => ConnectTrace.reasonOf(
+      PathCheck(row1.first, state: PathCheckState.blocked)
+        ..error = error
+        ..phase = phase,
+    );
+    expect(of('tcp ok 40ms; no answer in 3000 ms', 'proxy'), TraceReason.proxy);
+    expect(of('tcp ok 80ms; EOF', 'proxy'), TraceReason.proxy);
+    expect(of(null, 'proxy'), TraceReason.proxy);
+    expect(TraceReason.proxy.wire, 'proxy');
+    // A refusal still reads as one, as for every other phase.
+    expect(of('connection refused', 'proxy'), TraceReason.refused);
+    // A reply that came after the wait is not this.
+    expect(
+      of('tcp ok 40ms; no answer in 3000 ms', 'late'),
+      TraceReason.timeout,
+    );
   });
 }

@@ -14,6 +14,7 @@ import 'package:fortiva_vpn/data/models/connection_info.dart';
 import 'package:fortiva_vpn/data/models/server.dart';
 import 'package:fortiva_vpn/l10n/generated/app_localizations.dart';
 import 'package:fortiva_vpn/screens/home_screen.dart';
+import 'package:fortiva_vpn/services/connect_trace.dart';
 import 'package:fortiva_vpn/services/failure_verdict.dart';
 import 'package:fortiva_vpn/services/path_finder.dart';
 import 'package:fortiva_vpn/services/path_memory.dart';
@@ -73,6 +74,26 @@ final _community = Server(
   connectionUri: 'vless://c@198.51.100.11:443#c',
   flagEmoji: '',
 );
+
+/// Keeps what started each run, in order.
+class _Kept extends ConnectTraces {
+  _Kept() : super(enabled: () => true);
+
+  final _started = <ConnectTrace>[];
+
+  @override
+  ConnectTrace? start(String attemptId) {
+    final trace = ConnectTrace(attemptId: attemptId, startedAt: DateTime.now());
+    _started.add(trace);
+    return trace;
+  }
+
+  @override
+  Future<void> send(ConnectTrace trace) async {}
+
+  /// The trigger of every run started so far, ended or not.
+  List<TraceTrigger?> get started => [for (final t in _started) t.trigger];
+}
 
 class _Dedicated extends DedicatedState {
   _Dedicated(this.own);
@@ -576,6 +597,7 @@ void main() {
     testWidgets('an offer while the app waits to try again starts a new '
         'search', (tester) async {
       final vpn = _Vpn(VpnStatus.error, error: true);
+      final kept = _Kept();
       // Every door closed, and a long wait before the next try.
       final flow = ConnectFlow(
         vpn: vpn,
@@ -594,6 +616,7 @@ void main() {
         checklist: () => const ChecklistSettings(
           retry: RetrySettings(after: [Duration(minutes: 5)]),
         ),
+        traces: kept,
       );
       final stages = <ConnectStage>[];
       flow.addListener(() {
@@ -618,6 +641,9 @@ void main() {
       // where before the tap only stopped the wait.
       expect(stages.first, ConnectStage.cancelled);
       expect(stages, contains(ConnectStage.diagnosing));
+      // The search before was a tap, and the one the offer started is the
+      // user's pick of a server, not a tap on Connect.
+      expect(kept.started, [TraceTrigger.tap, TraceTrigger.pick]);
       flow.cancel();
       await tester.pump(const Duration(seconds: 30));
       await done(tester);

@@ -33,6 +33,7 @@ import '../data/models/connection_info.dart';
 import '../data/models/server.dart';
 import '../l10n/generated/app_localizations.dart';
 import '../services/candidate_prober.dart';
+import '../services/connect_trace.dart';
 import '../services/failure_verdict.dart';
 import '../services/notice_channel.dart';
 import '../services/peer_pick.dart';
@@ -1084,11 +1085,15 @@ class _HomeScreenState extends State<HomeScreen> {
   /// While the tunnel is still coming down from a stop, a tap does
   /// nothing, so a quick second tap cannot start a connect over the
   /// teardown. Otherwise a tap connects.
+  ///
+  /// [trigger] says what started a connect, for its trace: the button
+  /// ([TraceTrigger.tap]), or the error bar's offer ([TraceTrigger.pick]).
   void _toggle(
     VpnService vpn,
     ConnectFlow flow,
     Server? server, {
     bool fromButton = false,
+    TraceTrigger trigger = TraceTrigger.tap,
   }) {
     if (_starting ||
         flow.isBusy ||
@@ -1131,6 +1136,7 @@ class _HomeScreenState extends State<HomeScreen> {
       onWaitingForOwn: (waiting) {
         if (mounted && tap == _tap) setState(() => _waitingForOwn = waiting);
       },
+      trigger: trigger,
     );
     if (server == null && dedicated.isBlocked) {
       // Over the allowance there is no server to dial, and the tap used to
@@ -1336,7 +1342,7 @@ class _HomeScreenState extends State<HomeScreen> {
     // The wait for the next try belongs to the search the offer replaces.
     // Left running, the tap below would read as a stop.
     if (flow.stage == ConnectStage.waiting) flow.cancel();
-    _toggle(vpn, flow, server);
+    _toggle(vpn, flow, server, trigger: TraceTrigger.pick);
   }
 
   /// One short line describing the current state, in plain words.

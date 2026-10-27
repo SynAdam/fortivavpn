@@ -11,6 +11,7 @@ import 'package:fortiva_vpn/data/models/psiphon_settings.dart';
 import 'package:fortiva_vpn/data/models/server.dart';
 import 'package:fortiva_vpn/l10n/generated/app_localizations.dart';
 import 'package:fortiva_vpn/screens/my_servers_screen.dart';
+import 'package:fortiva_vpn/services/connect_trace.dart';
 import 'package:fortiva_vpn/services/door_sweep.dart';
 import 'package:fortiva_vpn/services/path_finder.dart';
 import 'package:fortiva_vpn/services/path_memory.dart';
@@ -192,13 +193,34 @@ class _FakeVpn extends VpnService {
   }
 }
 
+/// Keeps every trace a run started, in order.
+class _Kept extends ConnectTraces {
+  _Kept() : super(enabled: () => true);
+
+  final started = <ConnectTrace>[];
+
+  List<TraceTrigger?> get triggers => [for (final t in started) t.trigger];
+
+  @override
+  ConnectTrace? start(String attemptId) {
+    final trace = ConnectTrace(attemptId: attemptId, startedAt: DateTime.now());
+    started.add(trace);
+    return trace;
+  }
+
+  @override
+  Future<void> send(ConnectTrace trace) async {}
+}
+
 /// [checksPass] are the doors whose checks pass, by id. Without it, a
 /// door's check passes exactly when its tunnel would come up. [backup]
 /// turns the backup network on for an Android phone the backend let in.
+/// [traces] keeps the traces of the runs.
 ConnectFlow _flowFor(
   _FakeVpn vpn, {
   Set<String>? checksPass,
   PsiphonSettings? backup,
+  ConnectTraces? traces,
 }) {
   final reporter = VpnEventReporter(
     send: (_, _, _) async {},
@@ -226,6 +248,7 @@ ConnectFlow _flowFor(
         : () => const PsiphonDevice(allowed: true, quotaFresh: true),
     android: () => true,
     tv: () => false,
+    traces: traces,
   );
 }
 
@@ -431,6 +454,64 @@ void main() {
       expect(dedicated.selectedByUser, isTrue);
     });
 
+    test('the trace says what started the run: a tap by default, a pick '
+        'when the caller says so, and a stall after a dead tunnel', () async {
+      final vpn = _FakeVpn({_a1.id});
+      final kept = _Kept();
+      final flow = _flowFor(vpn, traces: kept);
+      Future<void> dial({TraceTrigger? trigger, bool afterStall = false}) =>
+          trigger == null
+          ? dialServer(
+              _serverA,
+              vpn: vpn,
+              flow: flow,
+              dedicated: _FakeDedicated(),
+              servers: _FakeServers(),
+              afterStall: afterStall,
+            )
+          : dialServer(
+              _serverA,
+              vpn: vpn,
+              flow: flow,
+              dedicated: _FakeDedicated(),
+              servers: _FakeServers(),
+              afterStall: afterStall,
+              trigger: trigger,
+            );
+
+      await dial();
+      await dial(trigger: TraceTrigger.pick);
+      await dial(afterStall: true);
+
+      expect(kept.triggers, [
+        TraceTrigger.tap,
+        TraceTrigger.pick,
+        TraceTrigger.stall,
+      ]);
+    });
+
+    test('a phone with no doors of its own yet traces a pick of a shared '
+        'link as a pick', () async {
+      final link = Server.fromConnectionUri(
+        'vless://u@shared.example:443?type=tcp&security=reality'
+        '&sni=www.samsung.com&pbk=key#Shared',
+        index: 0,
+      );
+      final vpn = _FakeVpn({link.id});
+      final kept = _Kept();
+
+      await dialServer(
+        link,
+        vpn: vpn,
+        flow: _flowFor(vpn, traces: kept),
+        dedicated: _FakeDedicated(withPaths: false),
+        servers: _FakeServers(),
+        trigger: TraceTrigger.pick,
+      );
+
+      expect(kept.triggers, [TraceTrigger.pick]);
+    });
+
     test('dials the server on its own when the device has no doors', () async {
       final vpn = _FakeVpn({_serverB.id});
 
@@ -452,6 +533,7 @@ void main() {
   ) async {
     final vpn = _FakeVpn({_a1.id, _b2.id});
     final dedicated = _FakeDedicated();
+    final kept = _Kept();
 
     await tester.pumpWidget(
       MultiProvider(
@@ -459,7 +541,9 @@ void main() {
           ChangeNotifierProvider<DedicatedState>.value(value: dedicated),
           ChangeNotifierProvider<ServerState>.value(value: _FakeServers()),
           ChangeNotifierProvider<VpnService>.value(value: vpn),
-          ChangeNotifierProvider<ConnectFlow>(create: (_) => _flowFor(vpn)),
+          ChangeNotifierProvider<ConnectFlow>(
+            create: (_) => _flowFor(vpn, traces: kept),
+          ),
         ],
         child: const MaterialApp(
           localizationsDelegates: S.localizationsDelegates,
@@ -480,6 +564,8 @@ void main() {
     expect(vpn.connects, [_b2]);
     expect(vpn.isConnected, isTrue);
     expect(dedicated.selectedServer?.sameServerAs(_serverB), isTrue);
+    // The run the pick started says it was a pick.
+    expect(kept.triggers, [TraceTrigger.pick]);
 
     // Down, which stops the heartbeat and throughput timers a connected
     // tunnel starts.
