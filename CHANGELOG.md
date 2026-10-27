@@ -5,7 +5,7 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ## [Unreleased]
 
-## [2.3.0] - 2026-10-25
+## [2.3.0] - 2026-10-27
 
 <div dir="rtl">
 
@@ -14,6 +14,7 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ### بهبودها
 - فورتیوا دیگه فیلترشکن‌های دیگه‌ی گوشیت رو قطع نمی‌کنه، فقط وقتی خودت دکمه اتصال رو بزنی جاشون رو می‌گیره
+- وقتی برنامه رو دوباره باز می‌کنی، خیلی سریع‌تر باز می‌شه و حافظه‌ی کمتری مصرف می‌کنه
 
 </div>
 

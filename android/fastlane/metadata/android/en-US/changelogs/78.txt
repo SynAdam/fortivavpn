@@ -1,2 +1,3 @@
 - When your daily data is running low, the app now offers more data for inviting friends.
 - Fortiva no longer turns off other VPN apps. It takes over only when you tap Connect.
+- The app opens much faster when you come back to it, and it uses less memory.
