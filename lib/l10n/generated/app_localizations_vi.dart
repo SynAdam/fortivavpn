@@ -939,6 +939,144 @@ class SVi extends S {
       'Phần thêm từ lời mời có giới hạn mỗi ngày.';
 
   @override
+  String get inviteTreeIntroTitle => 'Bạn bè thêm dữ liệu như thế nào';
+
+  @override
+  String get inviteTreeIntroOpen => 'Xem từng bước';
+
+  @override
+  String inviteTreeIntroStep(int current, int total) {
+    return 'Bước $current/$total';
+  }
+
+  @override
+  String get inviteTreeIntroSkip => 'Bỏ qua';
+
+  @override
+  String get inviteTreeIntroNext => 'Tiếp';
+
+  @override
+  String get inviteTreeIntroBack => 'Quay lại';
+
+  @override
+  String get inviteTreeIntroDone => 'Xong';
+
+  @override
+  String get inviteTreeIntroYou => 'Bạn';
+
+  @override
+  String get inviteTreeIntroSlotsTitle =>
+      'Bạn bè lấp các vị trí của bạn theo từng cặp';
+
+  @override
+  String get inviteTreeIntroSlotsWhen =>
+      'Một người bạn chiếm một vị trí khi bắt đầu dùng Fortiva.';
+
+  @override
+  String get inviteTreeIntroSlotsArt =>
+      'Các vị trí của bạn, theo từng cặp, được lấp khi bạn bè tham gia.';
+
+  @override
+  String get inviteTreeIntroPairTitle =>
+      'Một cặp thêm nhiều nhất khi cả hai đều hoạt động';
+
+  @override
+  String inviteTreeIntroPairBoth(String full, String one) {
+    return 'Khi cả hai bạn trong cặp đầu tiên của bạn đều hoạt động, cặp đó thêm $full mỗi ngày. Khi chỉ có một bạn hoạt động, cặp đó thêm $one mỗi ngày.';
+  }
+
+  @override
+  String inviteTreeIntroPairBothOnly(String full) {
+    return 'Khi cả hai bạn trong cặp đầu tiên của bạn đều hoạt động, cặp đó thêm $full mỗi ngày. Khi chỉ có một bạn hoạt động, cặp đó không thêm gì.';
+  }
+
+  @override
+  String inviteTreeIntroPairNoOne(String full) {
+    return 'Khi cả hai bạn trong cặp đầu tiên của bạn đều hoạt động, cặp đó thêm $full mỗi ngày. Khi chỉ có một bạn hoạt động, cặp đó thêm ít hơn.';
+  }
+
+  @override
+  String get inviteTreeIntroPairOthersLess =>
+      'Các cặp khác của bạn thêm ít hơn.';
+
+  @override
+  String inviteTreeIntroAdds(String amount) {
+    return '+$amount mỗi ngày';
+  }
+
+  @override
+  String get inviteTreeIntroPairArt =>
+      'Một cặp vị trí. Cặp này thêm nhiều dữ liệu hơn khi cả hai bạn trong đó đều hoạt động.';
+
+  @override
+  String get inviteTreeIntroFurtherTitle => 'Bạn bè ở xa hơn cũng thêm dữ liệu';
+
+  @override
+  String get inviteTreeIntroFirstPairOnly =>
+      'Trong các vị trí của bạn mình, chỉ cặp đầu tiên của họ thêm dữ liệu cho bạn.';
+
+  @override
+  String get inviteTreeIntroYourFriend => 'Bạn của bạn';
+
+  @override
+  String get inviteTreeIntroTheirPair => 'Cặp đầu tiên của họ';
+
+  @override
+  String get inviteTreeIntroFurtherArt =>
+      'Cặp đầu tiên của bạn mình thêm dữ liệu cho họ và cho bạn. Các cặp ở xa hơn thêm ít hơn.';
+
+  @override
+  String get inviteTreeIntroTotalTitle => 'Dữ liệu của bạn từ bạn bè';
+
+  @override
+  String get inviteTreeIntroTotalNow => 'Từ bạn bè, hiện tại';
+
+  @override
+  String get inviteTreeIntroTotalMost => 'Mức tối đa lời mời có thể thêm';
+
+  @override
+  String get inviteTreeIntroTotalKept => 'Giữ lại từ lời mời trước đây';
+
+  @override
+  String inviteTreeIntroTotalReach(String max) {
+    return 'Dữ liệu miễn phí cộng dữ liệu từ bạn bè có thể đạt $max mỗi ngày.';
+  }
+
+  @override
+  String inviteTreeIntroPerDay(String amount) {
+    return '$amount mỗi ngày';
+  }
+
+  @override
+  String inviteTreeSheetNext(String amount) {
+    return 'Người bạn tiếp theo sẽ thêm $amount mỗi ngày khi bắt đầu dùng Fortiva. Phần này không cộng vào dữ liệu hôm nay.';
+  }
+
+  @override
+  String get inviteTreeHero => 'Bạn bè giúp tăng dữ liệu hằng ngày của bạn';
+
+  @override
+  String inviteTreePremiumEach(int days) {
+    String _temp0 = intl.Intl.pluralLogic(
+      days,
+      locale: localeName,
+      other:
+          'Mỗi người bạn bắt đầu dùng Fortiva còn mang lại cho bạn $days ngày Premium.',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String inviteTreePremiumCap(int max) {
+    String _temp0 = intl.Intl.pluralLogic(
+      max,
+      locale: localeName,
+      other: 'Lời mời có thể thêm tối đa $max ngày Premium.',
+    );
+    return '$_temp0';
+  }
+
+  @override
   String get premiumSourceInvite => 'Từ lời mời của bạn';
 
   @override
@@ -1672,6 +1810,35 @@ class SVi extends S {
 
   @override
   String get premiumLimitInvite => 'Mời bạn bè để có thêm dữ liệu';
+
+  @override
+  String premiumLimitInviteNext(String amount, int days) {
+    String _temp0 = intl.Intl.pluralLogic(
+      days,
+      locale: localeName,
+      other: '$days ngày khác nhau',
+    );
+    return 'Người bạn tiếp theo sẽ thêm $amount mỗi ngày khi đã dùng Fortiva trong $_temp0. Phần này không cộng vào dữ liệu hôm nay.';
+  }
+
+  @override
+  String premiumLimitInviteNextNoDays(String amount) {
+    return 'Người bạn tiếp theo sẽ thêm $amount mỗi ngày khi đã dùng Fortiva một thời gian. Phần này không cộng vào dữ liệu hôm nay.';
+  }
+
+  @override
+  String get premiumLimitInviteNoAmount =>
+      'Bạn bè bạn mời sẽ tăng dữ liệu hằng ngày của bạn khi họ bắt đầu dùng Fortiva. Phần này không cộng vào dữ liệu hôm nay.';
+
+  @override
+  String get premiumLimitInvitesFull =>
+      'Lời mời của bạn đã thêm mức dữ liệu tối đa.';
+
+  @override
+  String get premiumLimitSeeInvites => 'Xem lời mời của bạn';
+
+  @override
+  String get premiumLimitShareAgain => 'Chia sẻ với một người bạn khác';
 
   @override
   String get premiumNoDailyLimit => 'Premium không có giới hạn hằng ngày.';

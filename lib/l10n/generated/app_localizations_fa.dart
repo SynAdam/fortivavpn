@@ -928,6 +928,146 @@ class SFa extends S {
   String get inviteTreeHowCapNoAmount => 'پاداش دعوت در روز سقف مشخصی دارد.';
 
   @override
+  String get inviteTreeIntroTitle => 'دوستان چگونه به دیتای شما اضافه می‌کنند';
+
+  @override
+  String get inviteTreeIntroOpen => 'نمایش گام‌به‌گام';
+
+  @override
+  String inviteTreeIntroStep(int current, int total) {
+    return 'گام $current از $total';
+  }
+
+  @override
+  String get inviteTreeIntroSkip => 'رد کردن';
+
+  @override
+  String get inviteTreeIntroNext => 'بعدی';
+
+  @override
+  String get inviteTreeIntroBack => 'قبلی';
+
+  @override
+  String get inviteTreeIntroDone => 'تمام';
+
+  @override
+  String get inviteTreeIntroYou => 'شما';
+
+  @override
+  String get inviteTreeIntroSlotsTitle =>
+      'دوستان، جایگاه‌های شما را جفت‌جفت پر می‌کنند';
+
+  @override
+  String get inviteTreeIntroSlotsWhen =>
+      'هر دوست وقتی استفاده از فورتیوا را شروع کند، جایگاهی را پر می‌کند.';
+
+  @override
+  String get inviteTreeIntroSlotsArt =>
+      'جایگاه‌های شما که جفت‌جفت، با پیوستن دوستان پر می‌شوند.';
+
+  @override
+  String get inviteTreeIntroPairTitle =>
+      'هر جفت وقتی هر دوی آن‌ها فعال باشند، بیشترین دیتا را اضافه می‌کند';
+
+  @override
+  String inviteTreeIntroPairBoth(String full, String one) {
+    return 'اگر هر دوی دوستان جفت اول شما فعال باشند، این جفت $full در روز اضافه می‌کند. اگر فقط یکی از آن‌ها فعال باشد، $one در روز اضافه می‌کند.';
+  }
+
+  @override
+  String inviteTreeIntroPairBothOnly(String full) {
+    return 'اگر هر دوی دوستان جفت اول شما فعال باشند، این جفت $full در روز اضافه می‌کند. اگر فقط یکی از آن‌ها فعال باشد، چیزی اضافه نمی‌کند.';
+  }
+
+  @override
+  String inviteTreeIntroPairNoOne(String full) {
+    return 'اگر هر دوی دوستان جفت اول شما فعال باشند، این جفت $full در روز اضافه می‌کند. اگر فقط یکی از آن‌ها فعال باشد، کمتر اضافه می‌کند.';
+  }
+
+  @override
+  String get inviteTreeIntroPairOthersLess =>
+      'جفت‌های دیگر شما کمتر اضافه می‌کنند.';
+
+  @override
+  String inviteTreeIntroAdds(String amount) {
+    return '+$amount در روز';
+  }
+
+  @override
+  String get inviteTreeIntroPairArt =>
+      'جفتی از جایگاه‌ها. وقتی هر دوی دوستانش فعال باشند، دیتای بیشتری اضافه می‌کند.';
+
+  @override
+  String get inviteTreeIntroFurtherTitle =>
+      'دوستانی که دورترند هم دیتا اضافه می‌کنند';
+
+  @override
+  String get inviteTreeIntroFirstPairOnly =>
+      'از جایگاه‌های دوستتان، فقط جفت اول او برای شما دیتا اضافه می‌کند.';
+
+  @override
+  String get inviteTreeIntroYourFriend => 'دوست شما';
+
+  @override
+  String get inviteTreeIntroTheirPair => 'جفت اول او';
+
+  @override
+  String get inviteTreeIntroFurtherArt =>
+      'جفت اول دوستتان برای او و برای شما دیتا اضافه می‌کند. جفت‌های دورتر کمتر اضافه می‌کنند.';
+
+  @override
+  String get inviteTreeIntroTotalTitle => 'دیتای شما از دوستان';
+
+  @override
+  String get inviteTreeIntroTotalNow => 'از دوستان، اکنون';
+
+  @override
+  String get inviteTreeIntroTotalMost =>
+      'بیشترین مقداری که دعوت‌ها می‌توانند اضافه کنند';
+
+  @override
+  String get inviteTreeIntroTotalKept => 'حفظ‌شده از دعوت‌های قبلی';
+
+  @override
+  String inviteTreeIntroTotalReach(String max) {
+    return 'دیتای رایگان به‌همراه دیتای دوستان می‌تواند به $max در روز برسد.';
+  }
+
+  @override
+  String inviteTreeIntroPerDay(String amount) {
+    return '$amount در روز';
+  }
+
+  @override
+  String inviteTreeSheetNext(String amount) {
+    return 'دوست بعدی که دعوت کنید، وقتی استفاده از فورتیوا را شروع کند، $amount در روز به دیتای شما اضافه می‌کند. این مقدار به دیتای امروز اضافه نمی‌شود.';
+  }
+
+  @override
+  String get inviteTreeHero => 'دوستان به دیتای روزانهٔ شما اضافه می‌کنند';
+
+  @override
+  String inviteTreePremiumEach(int days) {
+    String _temp0 = intl.Intl.pluralLogic(
+      days,
+      locale: localeName,
+      other:
+          'هر دوستی که استفاده از فورتیوا را شروع کند، $days روز پریمیوم هم به شما می‌دهد.',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String inviteTreePremiumCap(int max) {
+    String _temp0 = intl.Intl.pluralLogic(
+      max,
+      locale: localeName,
+      other: 'دعوت‌ها می‌توانند تا $max روز پریمیوم به شما بدهند.',
+    );
+    return '$_temp0';
+  }
+
+  @override
   String get premiumSourceInvite => 'هدیه دعوت از دوستان';
 
   @override
@@ -1641,6 +1781,35 @@ class SFa extends S {
 
   @override
   String get premiumLimitInvite => 'دوستانتان را دعوت کنید و حجم بیشتری بگیرید';
+
+  @override
+  String premiumLimitInviteNext(String amount, int days) {
+    String _temp0 = intl.Intl.pluralLogic(
+      days,
+      locale: localeName,
+      other: '$days روز مختلف',
+    );
+    return 'دوست بعدی که دعوت کنید، وقتی در $_temp0 از فورتیوا استفاده کند، $amount در روز به دیتای شما اضافه می‌کند. این مقدار به دیتای امروز اضافه نمی‌شود.';
+  }
+
+  @override
+  String premiumLimitInviteNextNoDays(String amount) {
+    return 'دوست بعدی که دعوت کنید، وقتی مدتی از فورتیوا استفاده کند، $amount در روز به دیتای شما اضافه می‌کند. این مقدار به دیتای امروز اضافه نمی‌شود.';
+  }
+
+  @override
+  String get premiumLimitInviteNoAmount =>
+      'دوستانی که دعوت می‌کنید، وقتی استفاده از فورتیوا را شروع کنند، به دیتای روزانهٔ شما اضافه می‌کنند. این مقدار به دیتای امروز اضافه نمی‌شود.';
+
+  @override
+  String get premiumLimitInvitesFull =>
+      'دعوت‌های شما هم‌اکنون بیشترین دیتای ممکن را اضافه می‌کنند.';
+
+  @override
+  String get premiumLimitSeeInvites => 'مشاهدهٔ دعوت‌ها';
+
+  @override
+  String get premiumLimitShareAgain => 'ارسال برای دوستی دیگر';
 
   @override
   String get premiumNoDailyLimit => 'پریمیوم سقف روزانه ندارد.';

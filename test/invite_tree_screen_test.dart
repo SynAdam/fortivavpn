@@ -233,6 +233,40 @@ void main() {
       }
     });
 
+    testWidgets('the line at the top says friends add data, not that the '
+        'user earns it', (tester) async {
+      await pumpInviteScreen(tester, ReferralStatus.fromJson(treeAnswer()));
+      expect(find.text('Friends add to your daily data'), findsOneWidget);
+      expect(find.text('Earn extra daily data'), findsNothing);
+    });
+
+    testWidgets('the Premium rows say what invites add, never earn', (
+      tester,
+    ) async {
+      final json = treeAnswer()
+        ..['earns'] = true
+        ..['reward_premium_days'] = 3
+        ..['premium_days_max'] = 30;
+      await pumpInviteScreen(tester, ReferralStatus.fromJson(json));
+      expect(
+        find.text(
+          'Each friend who starts using Fortiva also gives you 3 days of '
+          'Premium.',
+        ),
+        findsOneWidget,
+      );
+      expect(
+        find.text('Invites can add up to 30 days of Premium.'),
+        findsOneWidget,
+      );
+      expect(
+        textsOnScreen(
+          tester,
+        ).where((t) => RegExp(r'\bearn', caseSensitive: false).hasMatch(t)),
+        isEmpty,
+      );
+    });
+
     testWidgets('How it works names the backend numbers in English', (
       tester,
     ) async {
@@ -348,6 +382,20 @@ void main() {
   });
 
   group('the tree strings', () {
+    /// Keys outside the inviteTree names that show under the tree rule
+    /// too: the limit sheet's invite lines. The same word rules apply.
+    const sheetKeys = {
+      'premiumLimitInvite',
+      'premiumLimitInviteNext',
+      'premiumLimitInviteNextNoDays',
+      'premiumLimitInviteNoAmount',
+      'premiumLimitInvitesFull',
+      'premiumLimitSeeInvites',
+      'premiumLimitShareAgain',
+    };
+    bool shownUnderTree(String key) =>
+        key.startsWith('inviteTree') || sheetKeys.contains(key);
+
     final arbs = {
       for (final f in Directory('lib/l10n').listSync().whereType<File>())
         if (RegExp(r'app_(\w+)\.arb$').firstMatch(f.path) case final m?)
@@ -386,7 +434,7 @@ void main() {
         final arb = arbs[lang]!;
         final hits = [
           for (final e in arb.entries)
-            if (e.key.startsWith('inviteTree') &&
+            if (shownUnderTree(e.key) &&
                 e.key != 'inviteTreeKept' &&
                 staysWords[lang]!.hasMatch(e.value as String))
               e.key,
@@ -433,6 +481,14 @@ void main() {
       'zh': RegExp('层|级|下面|收入'),
     };
 
+    test('the sheet keys are in every language', () {
+      for (final MapEntry(key: lang, value: arb) in arbs.entries) {
+        for (final key in sheetKeys) {
+          expect(arb.containsKey(key), isTrue, reason: '$lang $key');
+        }
+      }
+    });
+
     test('every language is checked for level words', () {
       expect(levelWords.keys.toSet(), arbs.keys.toSet());
     });
@@ -442,7 +498,7 @@ void main() {
         final arb = arbs[lang]!;
         final hits = [
           for (final e in arb.entries)
-            if (e.key.startsWith('inviteTree') &&
+            if (shownUnderTree(e.key) &&
                 e.value is String &&
                 levelWords[lang]!.hasMatch(e.value as String))
               '${e.key}: ${e.value}',
@@ -474,10 +530,12 @@ void main() {
         'invite-tree-next',
         'invite-tree-kept',
         'invite-tree-live',
+        'invite-tree-intro-open',
       ]) {
         expect(find.byKey(Key(key)), findsNothing, reason: key);
       }
       expect(find.textContaining('slots'), findsNothing);
+      expect(find.text('Earn extra daily data'), findsOneWidget);
       expect(find.text('Have an invite code?'), findsOneWidget);
     });
 

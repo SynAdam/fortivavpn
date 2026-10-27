@@ -902,6 +902,138 @@ class SKo extends S {
   String get inviteTreeHowCapNoAmount => '초대로 늘릴 수 있는 데이터에는 하루 한도가 있습니다.';
 
   @override
+  String get inviteTreeIntroTitle => '친구가 데이터를 늘리는 방법';
+
+  @override
+  String get inviteTreeIntroOpen => '차근차근 보기';
+
+  @override
+  String inviteTreeIntroStep(int current, int total) {
+    return '$current/$total';
+  }
+
+  @override
+  String get inviteTreeIntroSkip => '건너뛰기';
+
+  @override
+  String get inviteTreeIntroNext => '다음';
+
+  @override
+  String get inviteTreeIntroBack => '이전';
+
+  @override
+  String get inviteTreeIntroDone => '완료';
+
+  @override
+  String get inviteTreeIntroYou => '나';
+
+  @override
+  String get inviteTreeIntroSlotsTitle => '친구들이 짝을 지어 내 자리를 채웁니다';
+
+  @override
+  String get inviteTreeIntroSlotsWhen => '친구가 Fortiva를 쓰기 시작하면 자리를 하나 차지합니다.';
+
+  @override
+  String get inviteTreeIntroSlotsArt => '친구들이 함께할수록 짝을 지어 채워지는 내 자리.';
+
+  @override
+  String get inviteTreeIntroPairTitle => '짝은 둘 다 활성일 때 가장 많이 늘려 줍니다';
+
+  @override
+  String inviteTreeIntroPairBoth(String full, String one) {
+    return '첫 번째 짝의 친구가 둘 다 활성이면 하루 $full씩 늘어납니다. 한쪽만 활성이면 하루 $one씩 늘어납니다.';
+  }
+
+  @override
+  String inviteTreeIntroPairBothOnly(String full) {
+    return '첫 번째 짝의 친구가 둘 다 활성이면 하루 $full씩 늘어납니다. 한쪽만 활성이면 늘어나지 않습니다.';
+  }
+
+  @override
+  String inviteTreeIntroPairNoOne(String full) {
+    return '첫 번째 짝의 친구가 둘 다 활성이면 하루 $full씩 늘어납니다. 한쪽만 활성이면 덜 늘어납니다.';
+  }
+
+  @override
+  String get inviteTreeIntroPairOthersLess => '다른 짝은 덜 늘려 줍니다.';
+
+  @override
+  String inviteTreeIntroAdds(String amount) {
+    return '하루 +$amount';
+  }
+
+  @override
+  String get inviteTreeIntroPairArt =>
+      '자리 한 쌍. 안의 친구가 둘 다 활성이면 데이터가 더 많이 늘어납니다.';
+
+  @override
+  String get inviteTreeIntroFurtherTitle => '더 멀리 있는 친구도 데이터를 늘려 줍니다';
+
+  @override
+  String get inviteTreeIntroFirstPairOnly =>
+      '친구의 자리 중에서는 그 친구의 첫 번째 짝만 내 데이터를 늘려 줍니다.';
+
+  @override
+  String get inviteTreeIntroYourFriend => '내 친구';
+
+  @override
+  String get inviteTreeIntroTheirPair => '친구의 첫 번째 짝';
+
+  @override
+  String get inviteTreeIntroFurtherArt =>
+      '친구의 첫 번째 짝은 친구와 나의 데이터를 늘려 줍니다. 더 멀리 있는 짝은 덜 늘려 줍니다.';
+
+  @override
+  String get inviteTreeIntroTotalTitle => '친구에게서 받는 데이터';
+
+  @override
+  String get inviteTreeIntroTotalNow => '지금 친구에게서';
+
+  @override
+  String get inviteTreeIntroTotalMost => '초대로 늘릴 수 있는 최대치';
+
+  @override
+  String get inviteTreeIntroTotalKept => '이전 초대에서 이어진 양';
+
+  @override
+  String inviteTreeIntroTotalReach(String max) {
+    return '무료 데이터와 친구에게서 받는 데이터를 합쳐 하루 최대 $max까지 늘어날 수 있습니다.';
+  }
+
+  @override
+  String inviteTreeIntroPerDay(String amount) {
+    return '하루 $amount';
+  }
+
+  @override
+  String inviteTreeSheetNext(String amount) {
+    return '다음 친구가 Fortiva를 쓰기 시작하면 하루 $amount씩 늘어납니다. 오늘 데이터에는 더해지지 않습니다.';
+  }
+
+  @override
+  String get inviteTreeHero => '친구가 매일 데이터를 늘려 줍니다';
+
+  @override
+  String inviteTreePremiumEach(int days) {
+    String _temp0 = intl.Intl.pluralLogic(
+      days,
+      locale: localeName,
+      other: 'Fortiva를 쓰기 시작한 친구마다 프리미엄 $days일도 함께 받습니다.',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String inviteTreePremiumCap(int max) {
+    String _temp0 = intl.Intl.pluralLogic(
+      max,
+      locale: localeName,
+      other: '초대로 받을 수 있는 프리미엄은 최대 $max일입니다.',
+    );
+    return '$_temp0';
+  }
+
+  @override
   String get premiumSourceInvite => '친구 초대로 받음';
 
   @override
@@ -1578,6 +1710,34 @@ class SKo extends S {
 
   @override
   String get premiumLimitInvite => '친구를 초대하고 데이터 더 받기';
+
+  @override
+  String premiumLimitInviteNext(String amount, int days) {
+    String _temp0 = intl.Intl.pluralLogic(
+      days,
+      locale: localeName,
+      other: '$days일',
+    );
+    return '다음 친구가 서로 다른 $_temp0 동안 Fortiva를 쓰면 하루 $amount씩 늘어납니다. 오늘 데이터에는 더해지지 않습니다.';
+  }
+
+  @override
+  String premiumLimitInviteNextNoDays(String amount) {
+    return '다음 친구가 Fortiva를 한동안 쓰면 하루 $amount씩 늘어납니다. 오늘 데이터에는 더해지지 않습니다.';
+  }
+
+  @override
+  String get premiumLimitInviteNoAmount =>
+      '초대한 친구가 Fortiva를 쓰기 시작하면 매일 데이터가 늘어납니다. 오늘 데이터에는 더해지지 않습니다.';
+
+  @override
+  String get premiumLimitInvitesFull => '초대로 늘릴 수 있는 데이터를 이미 모두 받고 있습니다.';
+
+  @override
+  String get premiumLimitSeeInvites => '내 초대 보기';
+
+  @override
+  String get premiumLimitShareAgain => '다른 친구에게도 공유';
 
   @override
   String get premiumNoDailyLimit => '프리미엄은 일일 한도가 없습니다.';

@@ -19,8 +19,20 @@ enum InviteSurface {
   /// The invite screen, opened from Settings, and every tap on it.
   inviteScreen('invite_screen'),
 
-  /// The limit sheet's invite row opened the invite screen.
+  /// The limit sheet's "See your invites" link opened the invite screen.
   limitSheet('limit_sheet'),
+
+  /// The limit sheet with its invite card: opened, shared from, or closed
+  /// with no share. Its shown event counts the sheet's opens.
+  limitSheetOffer('limit_sheet_offer'),
+
+  /// The introduction to the invite tree: opened, shared from on its last
+  /// page, or closed before its last page.
+  treeIntro('tree_intro'),
+
+  /// The invite link on the server card while the daily data is used up
+  /// opened the limit sheet.
+  serverCard('server_card'),
 
   /// The invite link on the home data line, offered before the daily data
   /// runs out, opened the invite screen.

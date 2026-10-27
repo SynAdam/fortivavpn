@@ -965,6 +965,146 @@ class SEn extends S {
       'There is a daily limit to what invites can add.';
 
   @override
+  String get inviteTreeIntroTitle => 'How friends add data';
+
+  @override
+  String get inviteTreeIntroOpen => 'Show me step by step';
+
+  @override
+  String inviteTreeIntroStep(int current, int total) {
+    return 'Step $current of $total';
+  }
+
+  @override
+  String get inviteTreeIntroSkip => 'Skip';
+
+  @override
+  String get inviteTreeIntroNext => 'Next';
+
+  @override
+  String get inviteTreeIntroBack => 'Back';
+
+  @override
+  String get inviteTreeIntroDone => 'Done';
+
+  @override
+  String get inviteTreeIntroYou => 'You';
+
+  @override
+  String get inviteTreeIntroSlotsTitle => 'Friends fill your slots in pairs';
+
+  @override
+  String get inviteTreeIntroSlotsWhen =>
+      'A friend takes a slot once they start using Fortiva.';
+
+  @override
+  String get inviteTreeIntroSlotsArt =>
+      'Your slots, in pairs, filling as friends join.';
+
+  @override
+  String get inviteTreeIntroPairTitle =>
+      'A pair adds the most when both are active';
+
+  @override
+  String inviteTreeIntroPairBoth(String full, String one) {
+    return 'When both friends in your first pair are active, it adds $full a day. When only one of them is active, it adds $one a day.';
+  }
+
+  @override
+  String inviteTreeIntroPairBothOnly(String full) {
+    return 'When both friends in your first pair are active, it adds $full a day. When only one of them is active, it adds nothing.';
+  }
+
+  @override
+  String inviteTreeIntroPairNoOne(String full) {
+    return 'When both friends in your first pair are active, it adds $full a day. When only one of them is active, it adds less.';
+  }
+
+  @override
+  String get inviteTreeIntroPairOthersLess => 'Your other pairs add less.';
+
+  @override
+  String inviteTreeIntroAdds(String amount) {
+    return '+$amount a day';
+  }
+
+  @override
+  String get inviteTreeIntroPairArt =>
+      'A pair of slots. It adds more data when both friends in it are active.';
+
+  @override
+  String get inviteTreeIntroFurtherTitle =>
+      'Friends further away still add data';
+
+  @override
+  String get inviteTreeIntroFirstPairOnly =>
+      'From your friend\'s slots, only their first pair adds data for you.';
+
+  @override
+  String get inviteTreeIntroYourFriend => 'Your friend';
+
+  @override
+  String get inviteTreeIntroTheirPair => 'Their first pair';
+
+  @override
+  String get inviteTreeIntroFurtherArt =>
+      'Your friend\'s first pair adds data for your friend and for you. Pairs further away add less.';
+
+  @override
+  String get inviteTreeIntroTotalTitle => 'Your data from friends';
+
+  @override
+  String get inviteTreeIntroTotalNow => 'From friends now';
+
+  @override
+  String get inviteTreeIntroTotalMost => 'The most invites can add';
+
+  @override
+  String get inviteTreeIntroTotalKept => 'Kept from earlier invites';
+
+  @override
+  String inviteTreeIntroTotalReach(String max) {
+    return 'Free data plus data from friends can reach $max a day.';
+  }
+
+  @override
+  String inviteTreeIntroPerDay(String amount) {
+    return '$amount a day';
+  }
+
+  @override
+  String inviteTreeSheetNext(String amount) {
+    return 'Your next friend adds $amount a day once they start using Fortiva. It does not add to today\'s data.';
+  }
+
+  @override
+  String get inviteTreeHero => 'Friends add to your daily data';
+
+  @override
+  String inviteTreePremiumEach(int days) {
+    String _temp0 = intl.Intl.pluralLogic(
+      days,
+      locale: localeName,
+      other:
+          'Each friend who starts using Fortiva also gives you $days days of Premium.',
+      one:
+          'Each friend who starts using Fortiva also gives you $days day of Premium.',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String inviteTreePremiumCap(int max) {
+    String _temp0 = intl.Intl.pluralLogic(
+      max,
+      locale: localeName,
+      other: 'Invites can add up to $max days of Premium.',
+      one: 'Invites can add up to $max day of Premium.',
+    );
+    return '$_temp0';
+  }
+
+  @override
   String get premiumSourceInvite => 'From your invites';
 
   @override
@@ -1693,6 +1833,36 @@ class SEn extends S {
 
   @override
   String get premiumLimitInvite => 'Invite friends for more data';
+
+  @override
+  String premiumLimitInviteNext(String amount, int days) {
+    String _temp0 = intl.Intl.pluralLogic(
+      days,
+      locale: localeName,
+      other: '$days different days',
+      one: '$days day',
+    );
+    return 'Your next friend adds $amount a day once they have used Fortiva on $_temp0. It does not add to today\'s data.';
+  }
+
+  @override
+  String premiumLimitInviteNextNoDays(String amount) {
+    return 'Your next friend adds $amount a day once they have used Fortiva for a while. It does not add to today\'s data.';
+  }
+
+  @override
+  String get premiumLimitInviteNoAmount =>
+      'Friends you invite add to your daily data once they start using Fortiva. It does not add to today\'s data.';
+
+  @override
+  String get premiumLimitInvitesFull =>
+      'Your invites already add the most data they can.';
+
+  @override
+  String get premiumLimitSeeInvites => 'See your invites';
+
+  @override
+  String get premiumLimitShareAgain => 'Share with another friend';
 
   @override
   String get premiumNoDailyLimit => 'Premium has no daily limit.';

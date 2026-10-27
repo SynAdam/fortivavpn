@@ -120,6 +120,16 @@ class HomeScreen extends StatefulWidget {
   /// after 10 to 15 seconds on Tehran day 2026-10-23 (clients #342).
   static const slowSearchHint = Duration(seconds: 15);
 
+  /// How long after a tap's search ended without a tunnel a late answer
+  /// that the data is used up still counts as that tap's, and opens the
+  /// limit sheet at once.
+  ///
+  /// On a slow line the allowance question can outlast the 4 seconds the
+  /// search waits for it, and the tap then ends as an ordinary failure. The
+  /// question keeps running, and its answer turns the phone blocked a
+  /// moment later. App-side timing, not a rule of the service.
+  static const tapSheetLate = Duration(seconds: 15);
+
   @override
   State<HomeScreen> createState() => _HomeScreenState();
 }
@@ -281,6 +291,17 @@ class _HomeScreenState extends State<HomeScreen> {
   bool _limitSheetOpen = false;
   bool _limitSheetShownThisRun = false;
 
+  /// The tap that already got its limit sheet, so a late answer for the
+  /// same tap does not open a second one.
+  int _tapSheetFor = 0;
+
+  /// The tap whose search last ended with no tunnel. A blocked answer
+  /// while [_tapLate] runs, HomeScreen.tapSheetLate after that end, is
+  /// that tap's. A timer, not a clock reading, so the window follows the
+  /// same time as every other wait on this screen.
+  int? _tapEndedFor;
+  Timer? _tapLate;
+
   /// What the APN guide card reads. Null when there is no ApnGuide or
   /// AppConfigState above this screen, as in tests of the screen itself.
   ApnGuide? _apnGuide;
@@ -397,6 +418,7 @@ class _HomeScreenState extends State<HomeScreen> {
     _limitTimer?.cancel();
     _stopGuard?.cancel();
     _stoppedNote?.cancel();
+    _tapLate?.cancel();
     _limitConfig?.removeListener(_checkLimitSheet);
     _limitDedicated?.removeListener(_checkLimitSheet);
     _limitVpn?.removeListener(_checkLimitSheet);
@@ -911,6 +933,21 @@ class _HomeScreenState extends State<HomeScreen> {
   /// Never throws.
   void _checkLimitSheet() {
     try {
+      // A blocked answer that lands just after a tap's search ended is
+      // that tap's answer: the sheet opens at once, as it would have if
+      // the answer had come in time.
+      if ((_tapLate?.isActive ?? false) &&
+          _tapEndedFor == _tap &&
+          _tapSheetFor != _tap &&
+          _limitDedicated?.isBlocked == true &&
+          !(_limitVpn?.status.isActive ?? false) &&
+          _limitSheetMayOpen()) {
+        _tapSheetFor = _tap;
+        _tapLate?.cancel();
+        _tapLate = null;
+        unawaited(_limitSheetAfterTap());
+        return;
+      }
       if (_limitTimer != null || !_limitSheetWanted()) return;
       _limitTimer = Timer(popupSettle, () => unawaited(_autoLimitSheet()));
     } catch (e) {
@@ -968,6 +1005,15 @@ class _HomeScreenState extends State<HomeScreen> {
       await prefs.setString(_limitSheetKey, resets.toUtc().toIso8601String());
     } catch (e) {
       debugPrint('HomeScreen: limit sheet not noted ($e)');
+    }
+  }
+
+  /// Note an invite event while the user shares diagnostics. Never throws.
+  void _logInvite(InviteSurface surface, InviteAction action) {
+    try {
+      context.read<InviteEvents?>()?.log(surface, action);
+    } catch (e) {
+      debugPrint('HomeScreen: invite event not kept ($e)');
     }
   }
 
@@ -1144,6 +1190,7 @@ class _HomeScreenState extends State<HomeScreen> {
       // since the last look, and the limit sheet says when it will, at
       // once and on every tap, without waiting for that answer.
       unawaited(connect());
+      _tapSheetFor = tap;
       unawaited(_limitSheetAfterTap());
       return;
     }
@@ -1164,8 +1211,15 @@ class _HomeScreenState extends State<HomeScreen> {
         if (dedicated.isBlocked && !vpn.status.isActive) {
           // The tap was made on an older reading of the allowance, and the
           // look before dialling found it spent: the same sheet.
+          _tapSheetFor = tap;
           unawaited(_limitSheetAfterTap());
         } else {
+          if (!vpn.status.isActive) {
+            // The answer may still land: see HomeScreen.tapSheetLate.
+            _tapEndedFor = tap;
+            _tapLate?.cancel();
+            _tapLate = Timer(HomeScreen.tapSheetLate, () => _tapLate = null);
+          }
           // A sheet the connect kept from opening by itself may open now.
           _checkLimitSheet();
         }
@@ -1725,6 +1779,19 @@ class _HomeScreenState extends State<HomeScreen> {
               PremiumScreen.open(context, source: PremiumSource.serverCard);
             }
           : null,
+      // Invites, the free way to more data, one tap from the spent card:
+      // the link opens the limit sheet, which shares from where it is.
+      onInvite:
+          dedicated.isBlocked &&
+              (context.watch<AppConfigState?>()?.referralsEnabled ?? false) &&
+              !FormFactor.isTv &&
+              _limitSheetOn() &&
+              !(context.watch<ReferralState?>()?.invitesAddNoMore ?? false)
+          ? () {
+              _logInvite(InviteSurface.serverCard, InviteAction.shown);
+              unawaited(_openLimitSheet());
+            }
+          : null,
     );
 
     final nudge = billing?.upsell?.nudgeUsedPercent;
@@ -1746,7 +1813,7 @@ class _HomeScreenState extends State<HomeScreen> {
     // no more data, or once the data is spent (the limit sheet's turn).
     final invitePercent = context.watch<AppConfigState?>()?.inviteNudgePercent;
     final invitesSpent =
-        context.watch<ReferralState?>()?.dataBonusSpent ?? false;
+        context.watch<ReferralState?>()?.invitesAddNoMore ?? false;
     final inviteNudge =
         invitePercent != null &&
         offerCalm &&
@@ -2281,6 +2348,10 @@ class _ServerCard extends StatelessWidget {
   /// Opens the Premium screen from the spent card. Null hides the button.
   final VoidCallback? onGetUnlimited;
 
+  /// Opens the limit sheet from the spent card, beside the reset time.
+  /// Null hides the link.
+  final VoidCallback? onInvite;
+
   /// On the backup network, the region its traffic leaves from once the
   /// tunnel has said, as two capital letters.
   final String? backupRegion;
@@ -2292,6 +2363,7 @@ class _ServerCard extends StatelessWidget {
     required this.onTap,
     this.blockedQuota,
     this.onGetUnlimited,
+    this.onInvite,
     this.backupRegion,
   });
 
@@ -2469,10 +2541,40 @@ class _ServerCard extends StatelessWidget {
             // From the card's start, under the disc, not lined up with the
             // text beside the disc: the extra 52dp of width keeps a long
             // caption to fewer lines, and the card is in the height budget.
-            Text(
-              _caption(l10n),
-              style: text.bodySmall?.copyWith(color: AppDesign.textTertiary),
-            ),
+            if (_blocked && onInvite != null)
+              // The link goes under the reset time where a long language
+              // has no room beside it.
+              Wrap(
+                alignment: WrapAlignment.spaceBetween,
+                crossAxisAlignment: WrapCrossAlignment.center,
+                spacing: AppDesign.space8,
+                children: [
+                  Text(
+                    _caption(l10n),
+                    style: text.bodySmall?.copyWith(
+                      color: AppDesign.textTertiary,
+                    ),
+                  ),
+                  TextButton.icon(
+                    key: const Key('server-card-invite'),
+                    onPressed: onInvite,
+                    icon: const Icon(Icons.card_giftcard_outlined, size: 16),
+                    label: Text(l10n.inviteTitle),
+                    style: TextButton.styleFrom(
+                      foregroundColor: AppDesign.brandBright,
+                      minimumSize: const Size(48, 48),
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: AppDesign.space8,
+                      ),
+                    ),
+                  ),
+                ],
+              )
+            else
+              Text(
+                _caption(l10n),
+                style: text.bodySmall?.copyWith(color: AppDesign.textTertiary),
+              ),
             if (_blocked && onGetUnlimited != null) ...[
               const SizedBox(height: AppDesign.space12),
               UpsellShown(

@@ -21,6 +21,7 @@ import 'core/state/dedicated_state.dart';
 import 'core/state/dial_server.dart';
 import 'core/state/invite_events.dart';
 import 'core/state/invite_prompt.dart';
+import 'core/state/invite_tree_intro.dart';
 import 'core/state/referral_state.dart';
 import 'core/state/locale_state.dart';
 import 'core/state/message_state.dart';
@@ -275,6 +276,8 @@ class FortivaVpnApp extends StatelessWidget {
         // the user shares connection diagnostics. Above the rating card,
         // which hands it every tunnel outcome.
         ChangeNotifierProvider(lazy: false, create: (_) => InvitePrompt()),
+        // Whether the introduction to the invite tree has opened by itself.
+        Provider<InviteTreeIntroRecord>(create: (_) => InviteTreeIntroRecord()),
         Provider(
           create: (_) => InviteEvents(),
           dispose: (_, InviteEvents events) => events.dispose(),

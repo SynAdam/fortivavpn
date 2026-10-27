@@ -76,17 +76,41 @@ class ReferralState extends ChangeNotifier {
   /// invite screen loads it), so before then invites still count as a free
   /// way to more data.
   bool get dataBonusSpent {
-    final status = _status;
+    final status = this.status;
     final most = status?.maxBonusBytes;
     return status != null && most != null && status.bonusBytes >= most;
+  }
+
+  /// Whether a further invite adds no daily data: the bonus is at the most
+  /// ([dataBonusSpent]), or, under the tree rule, the backend says the next
+  /// friend adds nothing (ReferralStatus.nextInviteBytes is null). False
+  /// while no status is loaded, so before then invites still count as a
+  /// free way to more data. The limit sheet, the invite link on the spent
+  /// server card, the home data line and the tree introduction all ask
+  /// this one question.
+  bool get invitesAddNoMore {
+    final status = this.status;
+    if (status == null) return false;
+    return dataBonusSpent || (status.isTree && status.nextInviteBytes == null);
   }
 
   Future<ReferralStatus> _load(String deviceId) =>
       _service.getStatus(deviceId, lang: _language?.call());
 
+  /// The load under way, which a second caller waits for.
+  Future<void>? _inFlight;
+
   /// Load the code and counts, minting the code on the backend if this is
   /// the first time this device has asked for one.
-  Future<void> refresh() async {
+  ///
+  /// A call made while a load is under way waits for that load instead of
+  /// starting a second one. The limit sheet starts a load as it opens, and
+  /// a quick tap on its Share button must wait for that load rather than
+  /// find no code.
+  Future<void> refresh() =>
+      _inFlight ??= _refresh().whenComplete(() => _inFlight = null);
+
+  Future<void> _refresh() async {
     if (_isLoading) return;
     _isLoading = true;
     _errorMessage = null;

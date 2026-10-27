@@ -176,6 +176,9 @@ class AccountService {
     // so a new account starts as a first launch does, seeded again from
     // the rating card's days.
     'invite_prompt_state',
+    // Whether the introduction to the invite tree has opened by itself. A
+    // new account sees it once again.
+    'invite_tree_intro_seen',
     'renewal_lapse_seen',
     'upsell_after_first_connect',
   ];

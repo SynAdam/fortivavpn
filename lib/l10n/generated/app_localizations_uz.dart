@@ -953,6 +953,149 @@ class SUz extends S {
       'Takliflar qoʻshadigan trafikning kunlik chegarasi bor.';
 
   @override
+  String get inviteTreeIntroTitle => 'Doʻstlar trafikni qanday qoʻshadi';
+
+  @override
+  String get inviteTreeIntroOpen => 'Qadamma-qadam koʻrsatish';
+
+  @override
+  String inviteTreeIntroStep(int current, int total) {
+    return 'Qadam: $current/$total';
+  }
+
+  @override
+  String get inviteTreeIntroSkip => 'Oʻtkazib yuborish';
+
+  @override
+  String get inviteTreeIntroNext => 'Keyingi';
+
+  @override
+  String get inviteTreeIntroBack => 'Orqaga';
+
+  @override
+  String get inviteTreeIntroDone => 'Tayyor';
+
+  @override
+  String get inviteTreeIntroYou => 'Siz';
+
+  @override
+  String get inviteTreeIntroSlotsTitle =>
+      'Doʻstlar oʻrinlaringizni juft-juft toʻldiradi';
+
+  @override
+  String get inviteTreeIntroSlotsWhen =>
+      'Doʻst Fortiva ilovasidan foydalana boshlagach, bir oʻrinni egallaydi.';
+
+  @override
+  String get inviteTreeIntroSlotsArt =>
+      'Doʻstlar qoʻshilgani sari juft-juft toʻladigan oʻrinlaringiz.';
+
+  @override
+  String get inviteTreeIntroPairTitle =>
+      'Juftlikdagi ikkalasi ham faol boʻlsa, u eng koʻp qoʻshadi';
+
+  @override
+  String inviteTreeIntroPairBoth(String full, String one) {
+    return 'Birinchi juftligingizdagi ikkala doʻst ham faol boʻlsa, u kuniga $full qoʻshadi. Ulardan faqat biri faol boʻlsa, kuniga $one qoʻshadi.';
+  }
+
+  @override
+  String inviteTreeIntroPairBothOnly(String full) {
+    return 'Birinchi juftligingizdagi ikkala doʻst ham faol boʻlsa, u kuniga $full qoʻshadi. Ulardan faqat biri faol boʻlsa, hech narsa qoʻshmaydi.';
+  }
+
+  @override
+  String inviteTreeIntroPairNoOne(String full) {
+    return 'Birinchi juftligingizdagi ikkala doʻst ham faol boʻlsa, u kuniga $full qoʻshadi. Ulardan faqat biri faol boʻlsa, kamroq qoʻshadi.';
+  }
+
+  @override
+  String get inviteTreeIntroPairOthersLess =>
+      'Boshqa juftliklaringiz kamroq qoʻshadi.';
+
+  @override
+  String inviteTreeIntroAdds(String amount) {
+    return 'Kuniga +$amount';
+  }
+
+  @override
+  String get inviteTreeIntroPairArt =>
+      'Oʻrinlar juftligi. Undagi ikkala doʻst ham faol boʻlsa, koʻproq trafik qoʻshadi.';
+
+  @override
+  String get inviteTreeIntroFurtherTitle =>
+      'Uzoqroqdagi doʻstlar ham trafik qoʻshadi';
+
+  @override
+  String get inviteTreeIntroFirstPairOnly =>
+      'Doʻstingizning oʻrinlaridan faqat uning birinchi juftligi sizga trafik qoʻshadi.';
+
+  @override
+  String get inviteTreeIntroYourFriend => 'Doʻstingiz';
+
+  @override
+  String get inviteTreeIntroTheirPair => 'Uning birinchi juftligi';
+
+  @override
+  String get inviteTreeIntroFurtherArt =>
+      'Doʻstingizning birinchi juftligi unga ham, sizga ham trafik qoʻshadi. Uzoqroqdagi juftliklar kamroq qoʻshadi.';
+
+  @override
+  String get inviteTreeIntroTotalTitle => 'Doʻstlardan kelgan trafikingiz';
+
+  @override
+  String get inviteTreeIntroTotalNow => 'Hozir doʻstlardan';
+
+  @override
+  String get inviteTreeIntroTotalMost =>
+      'Takliflar qoʻsha oladigan eng koʻp miqdor';
+
+  @override
+  String get inviteTreeIntroTotalKept => 'Avvalgi takliflardan saqlangan';
+
+  @override
+  String inviteTreeIntroTotalReach(String max) {
+    return 'Bepul trafik va doʻstlardan kelgan trafik birga kuniga $max gacha yetishi mumkin.';
+  }
+
+  @override
+  String inviteTreeIntroPerDay(String amount) {
+    return 'Kuniga $amount';
+  }
+
+  @override
+  String inviteTreeSheetNext(String amount) {
+    return 'Keyingi doʻstingiz Fortiva ilovasidan foydalana boshlagach, kuniga $amount qoʻshadi. Bu bugungi trafikka qoʻshilmaydi.';
+  }
+
+  @override
+  String get inviteTreeHero => 'Doʻstlar kunlik trafikingizni oshiradi';
+
+  @override
+  String inviteTreePremiumEach(int days) {
+    String _temp0 = intl.Intl.pluralLogic(
+      days,
+      locale: localeName,
+      other:
+          'Fortiva ilovasidan foydalana boshlagan har bir doʻstingiz sizga yana $days kunlik Premium beradi.',
+      one:
+          'Fortiva ilovasidan foydalana boshlagan har bir doʻstingiz sizga yana $days kunlik Premium beradi.',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String inviteTreePremiumCap(int max) {
+    String _temp0 = intl.Intl.pluralLogic(
+      max,
+      locale: localeName,
+      other: 'Takliflar koʻpi bilan $max kunlik Premium qoʻsha oladi.',
+      one: 'Takliflar koʻpi bilan $max kunlik Premium qoʻsha oladi.',
+    );
+    return '$_temp0';
+  }
+
+  @override
   String get premiumSourceInvite => 'Takliflaringiz uchun sovgʻa';
 
   @override
@@ -1698,6 +1841,36 @@ class SUz extends S {
   @override
   String get premiumLimitInvite =>
       'Koʻproq trafik uchun doʻstlarni taklif qiling';
+
+  @override
+  String premiumLimitInviteNext(String amount, int days) {
+    String _temp0 = intl.Intl.pluralLogic(
+      days,
+      locale: localeName,
+      other: '$days xil kun',
+      one: '$days kun',
+    );
+    return 'Keyingi doʻstingiz Fortiva ilovasidan $_temp0 foydalangach, kuniga $amount qoʻshadi. Bu bugungi trafikka qoʻshilmaydi.';
+  }
+
+  @override
+  String premiumLimitInviteNextNoDays(String amount) {
+    return 'Keyingi doʻstingiz Fortiva ilovasidan bir muddat foydalangach, kuniga $amount qoʻshadi. Bu bugungi trafikka qoʻshilmaydi.';
+  }
+
+  @override
+  String get premiumLimitInviteNoAmount =>
+      'Siz taklif qilgan doʻstlar Fortiva ilovasidan foydalana boshlagach, kunlik trafikingizni oshiradi. Bu bugungi trafikka qoʻshilmaydi.';
+
+  @override
+  String get premiumLimitInvitesFull =>
+      'Takliflaringiz allaqachon eng koʻp trafikni qoʻshmoqda.';
+
+  @override
+  String get premiumLimitSeeInvites => 'Takliflaringizni koʻrish';
+
+  @override
+  String get premiumLimitShareAgain => 'Boshqa doʻstga ulashish';
 
   @override
   String get premiumNoDailyLimit => 'Premiumda kunlik limit yoʻq.';

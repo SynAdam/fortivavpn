@@ -904,6 +904,137 @@ class SJa extends S {
   String get inviteTreeHowCapNoAmount => '招待で増やせるデータには、毎日の上限があります。';
 
   @override
+  String get inviteTreeIntroTitle => '友だちがデータを増やすしくみ';
+
+  @override
+  String get inviteTreeIntroOpen => 'ステップごとに見る';
+
+  @override
+  String inviteTreeIntroStep(int current, int total) {
+    return 'ステップ $current/$total';
+  }
+
+  @override
+  String get inviteTreeIntroSkip => 'スキップ';
+
+  @override
+  String get inviteTreeIntroNext => '次へ';
+
+  @override
+  String get inviteTreeIntroBack => '戻る';
+
+  @override
+  String get inviteTreeIntroDone => '完了';
+
+  @override
+  String get inviteTreeIntroYou => 'あなた';
+
+  @override
+  String get inviteTreeIntroSlotsTitle => '友だちがペアごとにあなたの枠を埋めます';
+
+  @override
+  String get inviteTreeIntroSlotsWhen => '友だちは Fortiva を使い始めると、枠に入ります。';
+
+  @override
+  String get inviteTreeIntroSlotsArt => '友だちが参加するにつれて、ペアごとに埋まっていくあなたの枠。';
+
+  @override
+  String get inviteTreeIntroPairTitle => 'ペアは両方がアクティブだと最も多く増やします';
+
+  @override
+  String inviteTreeIntroPairBoth(String full, String one) {
+    return '最初のペアの友だちが両方アクティブなら、毎日 $full 増えます。片方だけアクティブなら、毎日 $one 増えます。';
+  }
+
+  @override
+  String inviteTreeIntroPairBothOnly(String full) {
+    return '最初のペアの友だちが両方アクティブなら、毎日 $full 増えます。片方だけアクティブなら、何も増えません。';
+  }
+
+  @override
+  String inviteTreeIntroPairNoOne(String full) {
+    return '最初のペアの友だちが両方アクティブなら、毎日 $full 増えます。片方だけアクティブなら、増える量は少なくなります。';
+  }
+
+  @override
+  String get inviteTreeIntroPairOthersLess => 'ほかのペアで増える量は少なめです。';
+
+  @override
+  String inviteTreeIntroAdds(String amount) {
+    return '毎日 +$amount';
+  }
+
+  @override
+  String get inviteTreeIntroPairArt => '枠のペア。中の友だちが両方アクティブだと、データがより多く増えます。';
+
+  @override
+  String get inviteTreeIntroFurtherTitle => '離れた友だちもデータを増やします';
+
+  @override
+  String get inviteTreeIntroFirstPairOnly =>
+      '友だちの枠のうち、あなたのデータを増やすのはその友だちの最初のペアだけです。';
+
+  @override
+  String get inviteTreeIntroYourFriend => 'あなたの友だち';
+
+  @override
+  String get inviteTreeIntroTheirPair => '友だちの最初のペア';
+
+  @override
+  String get inviteTreeIntroFurtherArt =>
+      '友だちの最初のペアは、その友だちとあなたのデータを増やします。さらに離れたペアは増える量が少なくなります。';
+
+  @override
+  String get inviteTreeIntroTotalTitle => '友だちからのデータ';
+
+  @override
+  String get inviteTreeIntroTotalNow => '今、友だちから';
+
+  @override
+  String get inviteTreeIntroTotalMost => '招待で増やせる上限';
+
+  @override
+  String get inviteTreeIntroTotalKept => '以前の招待から引き継いだ分';
+
+  @override
+  String inviteTreeIntroTotalReach(String max) {
+    return '無料データと友だちからのデータを合わせて、毎日最大 $max になります。';
+  }
+
+  @override
+  String inviteTreeIntroPerDay(String amount) {
+    return '毎日 $amount';
+  }
+
+  @override
+  String inviteTreeSheetNext(String amount) {
+    return '次に招待した友だちが Fortiva を使い始めると、毎日 $amount 増えます。今日のデータには加わりません。';
+  }
+
+  @override
+  String get inviteTreeHero => '友だちで毎日のデータが増えます';
+
+  @override
+  String inviteTreePremiumEach(int days) {
+    String _temp0 = intl.Intl.pluralLogic(
+      days,
+      locale: localeName,
+      other: '友だちが Fortiva を使い始めるたびに、プレミアムも$days日分もらえます。',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String inviteTreePremiumCap(int max) {
+    String _temp0 = intl.Intl.pluralLogic(
+      max,
+      locale: localeName,
+      other: '招待で増やせるプレミアムは最大$max日分です。',
+    );
+    return '$_temp0';
+  }
+
+  @override
   String get premiumSourceInvite => '招待で獲得';
 
   @override
@@ -1574,6 +1705,34 @@ class SJa extends S {
 
   @override
   String get premiumLimitInvite => '友達を招待してデータを増やす';
+
+  @override
+  String premiumLimitInviteNext(String amount, int days) {
+    String _temp0 = intl.Intl.pluralLogic(
+      days,
+      locale: localeName,
+      other: '異なる$days日',
+    );
+    return '次に招待した友だちが Fortiva を$_temp0使うと、毎日 $amount 増えます。今日のデータには加わりません。';
+  }
+
+  @override
+  String premiumLimitInviteNextNoDays(String amount) {
+    return '次に招待した友だちが Fortiva をしばらく使うと、毎日 $amount 増えます。今日のデータには加わりません。';
+  }
+
+  @override
+  String get premiumLimitInviteNoAmount =>
+      '招待した友だちが Fortiva を使い始めると、毎日のデータが増えます。今日のデータには加わりません。';
+
+  @override
+  String get premiumLimitInvitesFull => '招待で増やせるデータは、すでに上限に達しています。';
+
+  @override
+  String get premiumLimitSeeInvites => '招待を見る';
+
+  @override
+  String get premiumLimitShareAgain => '別の友だちにも共有';
 
   @override
   String get premiumNoDailyLimit => 'プレミアムには日ごとの上限がありません。';

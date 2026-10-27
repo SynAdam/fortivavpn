@@ -901,6 +901,135 @@ class SZh extends S {
   String get inviteTreeHowCapNoAmount => '邀请可增加的流量有每日上限。';
 
   @override
+  String get inviteTreeIntroTitle => '好友如何增加流量';
+
+  @override
+  String get inviteTreeIntroOpen => '逐步了解';
+
+  @override
+  String inviteTreeIntroStep(int current, int total) {
+    return '第$current步，共$total步';
+  }
+
+  @override
+  String get inviteTreeIntroSkip => '跳过';
+
+  @override
+  String get inviteTreeIntroNext => '下一步';
+
+  @override
+  String get inviteTreeIntroBack => '上一步';
+
+  @override
+  String get inviteTreeIntroDone => '完成';
+
+  @override
+  String get inviteTreeIntroYou => '您';
+
+  @override
+  String get inviteTreeIntroSlotsTitle => '好友成对填满您的位置';
+
+  @override
+  String get inviteTreeIntroSlotsWhen => '好友开始使用 Fortiva 后，就会占据您的一个位置。';
+
+  @override
+  String get inviteTreeIntroSlotsArt => '您的位置成对排列，随着好友加入逐渐填满。';
+
+  @override
+  String get inviteTreeIntroPairTitle => '一对中双方都活跃时，增加最多';
+
+  @override
+  String inviteTreeIntroPairBoth(String full, String one) {
+    return '当您第一对中的双方都活跃时，每天增加 $full。只有一方活跃时，每天增加 $one。';
+  }
+
+  @override
+  String inviteTreeIntroPairBothOnly(String full) {
+    return '当您第一对中的双方都活跃时，每天增加 $full。只有一方活跃时，不增加流量。';
+  }
+
+  @override
+  String inviteTreeIntroPairNoOne(String full) {
+    return '当您第一对中的双方都活跃时，每天增加 $full。只有一方活跃时，增加得更少。';
+  }
+
+  @override
+  String get inviteTreeIntroPairOthersLess => '您的其他对增加得更少。';
+
+  @override
+  String inviteTreeIntroAdds(String amount) {
+    return '每天 +$amount';
+  }
+
+  @override
+  String get inviteTreeIntroPairArt => '一对位置。其中双方都活跃时，增加更多流量。';
+
+  @override
+  String get inviteTreeIntroFurtherTitle => '更远的好友也会增加流量';
+
+  @override
+  String get inviteTreeIntroFirstPairOnly => '在您好友的位置中，只有其第一对会为您增加流量。';
+
+  @override
+  String get inviteTreeIntroYourFriend => '您的好友';
+
+  @override
+  String get inviteTreeIntroTheirPair => '其第一对';
+
+  @override
+  String get inviteTreeIntroFurtherArt => '您好友的第一对会为好友和您增加流量。更远的对增加得更少。';
+
+  @override
+  String get inviteTreeIntroTotalTitle => '来自好友的流量';
+
+  @override
+  String get inviteTreeIntroTotalNow => '当前来自好友';
+
+  @override
+  String get inviteTreeIntroTotalMost => '邀请最多可增加';
+
+  @override
+  String get inviteTreeIntroTotalKept => '从之前邀请保留的部分';
+
+  @override
+  String inviteTreeIntroTotalReach(String max) {
+    return '免费流量加上好友带来的流量，每天最多可达 $max。';
+  }
+
+  @override
+  String inviteTreeIntroPerDay(String amount) {
+    return '每天 $amount';
+  }
+
+  @override
+  String inviteTreeSheetNext(String amount) {
+    return '您接下来邀请的好友开始使用 Fortiva 后，每天可为您增加 $amount。不会计入今天的流量。';
+  }
+
+  @override
+  String get inviteTreeHero => '好友让您每天的流量更多';
+
+  @override
+  String inviteTreePremiumEach(int days) {
+    String _temp0 = intl.Intl.pluralLogic(
+      days,
+      locale: localeName,
+      other: '每位开始使用 Fortiva 的好友还会为您带来 $days 天 Premium。',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String inviteTreePremiumCap(int max) {
+    String _temp0 = intl.Intl.pluralLogic(
+      max,
+      locale: localeName,
+      other: '邀请最多可为您增加 $max 天 Premium。',
+    );
+    return '$_temp0';
+  }
+
+  @override
   String get premiumSourceInvite => '来自您的邀请';
 
   @override
@@ -1573,6 +1702,34 @@ class SZh extends S {
 
   @override
   String get premiumLimitInvite => '邀请好友获得更多流量';
+
+  @override
+  String premiumLimitInviteNext(String amount, int days) {
+    String _temp0 = intl.Intl.pluralLogic(
+      days,
+      locale: localeName,
+      other: '$days 个不同的日子',
+    );
+    return '您接下来邀请的好友在 $_temp0里使用过 Fortiva 后，每天可为您增加 $amount。不会计入今天的流量。';
+  }
+
+  @override
+  String premiumLimitInviteNextNoDays(String amount) {
+    return '您接下来邀请的好友使用 Fortiva 一段时间后，每天可为您增加 $amount。不会计入今天的流量。';
+  }
+
+  @override
+  String get premiumLimitInviteNoAmount =>
+      '您邀请的好友开始使用 Fortiva 后，会增加您每天的流量。不会计入今天的流量。';
+
+  @override
+  String get premiumLimitInvitesFull => '您的邀请已增加到可增加的最多流量。';
+
+  @override
+  String get premiumLimitSeeInvites => '查看您的邀请';
+
+  @override
+  String get premiumLimitShareAgain => '分享给其他好友';
 
   @override
   String get premiumNoDailyLimit => '高级版没有每日上限。';

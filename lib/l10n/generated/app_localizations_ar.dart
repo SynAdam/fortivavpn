@@ -987,6 +987,152 @@ class SAr extends S {
   String get inviteTreeHowCapNoAmount => 'لما تضيفه الدعوات حد يومي.';
 
   @override
+  String get inviteTreeIntroTitle => 'كيف يضيف الأصدقاء البيانات';
+
+  @override
+  String get inviteTreeIntroOpen => 'اعرضها خطوة بخطوة';
+
+  @override
+  String inviteTreeIntroStep(int current, int total) {
+    return 'الخطوة $current من $total';
+  }
+
+  @override
+  String get inviteTreeIntroSkip => 'تخطي';
+
+  @override
+  String get inviteTreeIntroNext => 'التالي';
+
+  @override
+  String get inviteTreeIntroBack => 'رجوع';
+
+  @override
+  String get inviteTreeIntroDone => 'تم';
+
+  @override
+  String get inviteTreeIntroYou => 'أنت';
+
+  @override
+  String get inviteTreeIntroSlotsTitle => 'يملأ أصدقاؤك خاناتك على شكل ثنائيات';
+
+  @override
+  String get inviteTreeIntroSlotsWhen =>
+      'يأخذ الصديق خانة عندما يبدأ باستخدام فورتيفا.';
+
+  @override
+  String get inviteTreeIntroSlotsArt =>
+      'خاناتك على شكل ثنائيات، تمتلئ مع انضمام الأصدقاء.';
+
+  @override
+  String get inviteTreeIntroPairTitle =>
+      'يضيف الثنائي أكثر ما يمكن عندما يكون كلاهما نشطًا';
+
+  @override
+  String inviteTreeIntroPairBoth(String full, String one) {
+    return 'عندما يكون كلاهما في ثنائيك الأول نشطًا، يضيف هذا الثنائي $full يوميًا. وعندما يكون أحدهما فقط نشطًا، يضيف $one يوميًا.';
+  }
+
+  @override
+  String inviteTreeIntroPairBothOnly(String full) {
+    return 'عندما يكون كلاهما في ثنائيك الأول نشطًا، يضيف هذا الثنائي $full يوميًا. وعندما يكون أحدهما فقط نشطًا، لا يضيف شيئًا.';
+  }
+
+  @override
+  String inviteTreeIntroPairNoOne(String full) {
+    return 'عندما يكون كلاهما في ثنائيك الأول نشطًا، يضيف هذا الثنائي $full يوميًا. وعندما يكون أحدهما فقط نشطًا، يضيف أقل.';
+  }
+
+  @override
+  String get inviteTreeIntroPairOthersLess => 'ثنائياتك الأخرى تضيف أقل.';
+
+  @override
+  String inviteTreeIntroAdds(String amount) {
+    return '+$amount يوميًا';
+  }
+
+  @override
+  String get inviteTreeIntroPairArt =>
+      'ثنائي من الخانات. يضيف بيانات أكثر عندما يكون الصديقان فيه نشطين معًا.';
+
+  @override
+  String get inviteTreeIntroFurtherTitle =>
+      'الأصدقاء الأبعد يضيفون البيانات أيضًا';
+
+  @override
+  String get inviteTreeIntroFirstPairOnly =>
+      'من خانات صديقك، ثنائيه الأول فقط يضيف لك بيانات.';
+
+  @override
+  String get inviteTreeIntroYourFriend => 'صديقك';
+
+  @override
+  String get inviteTreeIntroTheirPair => 'ثنائيه الأول';
+
+  @override
+  String get inviteTreeIntroFurtherArt =>
+      'يضيف الثنائي الأول لصديقك بيانات له ولك. والثنائيات الأبعد تضيف أقل.';
+
+  @override
+  String get inviteTreeIntroTotalTitle => 'بياناتك من الأصدقاء';
+
+  @override
+  String get inviteTreeIntroTotalNow => 'من الأصدقاء الآن';
+
+  @override
+  String get inviteTreeIntroTotalMost => 'أقصى ما يمكن أن تضيفه الدعوات';
+
+  @override
+  String get inviteTreeIntroTotalKept => 'محفوظ من دعوات سابقة';
+
+  @override
+  String inviteTreeIntroTotalReach(String max) {
+    return 'يمكن أن تصل البيانات المجانية مع بيانات الأصدقاء إلى $max يوميًا.';
+  }
+
+  @override
+  String inviteTreeIntroPerDay(String amount) {
+    return '$amount يوميًا';
+  }
+
+  @override
+  String inviteTreeSheetNext(String amount) {
+    return 'صديقك التالي يضيف $amount يوميًا عندما يبدأ باستخدام فورتيفا. لا يُضاف ذلك إلى بيانات اليوم.';
+  }
+
+  @override
+  String get inviteTreeHero => 'الأصدقاء يزيدون بياناتك اليومية';
+
+  @override
+  String inviteTreePremiumEach(int days) {
+    String _temp0 = intl.Intl.pluralLogic(
+      days,
+      locale: localeName,
+      other:
+          'كل صديق يبدأ باستخدام فورتيفا يمنحك أيضًا بريميوم لمدة $days يوم.',
+      many:
+          'كل صديق يبدأ باستخدام فورتيفا يمنحك أيضًا بريميوم لمدة $days يومًا.',
+      few: 'كل صديق يبدأ باستخدام فورتيفا يمنحك أيضًا بريميوم لمدة $days أيام.',
+      two: 'كل صديق يبدأ باستخدام فورتيفا يمنحك أيضًا بريميوم لمدة يومين.',
+      one: 'كل صديق يبدأ باستخدام فورتيفا يمنحك أيضًا بريميوم لمدة يوم واحد.',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String inviteTreePremiumCap(int max) {
+    String _temp0 = intl.Intl.pluralLogic(
+      max,
+      locale: localeName,
+      other: 'يمكن أن تضيف الدعوات بريميوم لمدة تصل إلى $max يوم.',
+      many: 'يمكن أن تضيف الدعوات بريميوم لمدة تصل إلى $max يومًا.',
+      few: 'يمكن أن تضيف الدعوات بريميوم لمدة تصل إلى $max أيام.',
+      two: 'يمكن أن تضيف الدعوات بريميوم لمدة تصل إلى يومين.',
+      one: 'يمكن أن تضيف الدعوات بريميوم لمدة تصل إلى يوم واحد.',
+    );
+    return '$_temp0';
+  }
+
+  @override
   String get premiumSourceInvite => 'هدية من دعوة الأصدقاء';
 
   @override
@@ -1716,6 +1862,39 @@ class SAr extends S {
 
   @override
   String get premiumLimitInvite => 'ادعُ أصدقاءك لتحصل على بيانات أكثر';
+
+  @override
+  String premiumLimitInviteNext(String amount, int days) {
+    String _temp0 = intl.Intl.pluralLogic(
+      days,
+      locale: localeName,
+      other: 'في $days يوم مختلف',
+      many: 'في $days يومًا مختلفًا',
+      few: 'في $days أيام مختلفة',
+      two: 'في يومين مختلفين',
+      one: 'في يوم واحد',
+    );
+    return 'صديقك التالي يضيف $amount يوميًا بعد أن يستخدم فورتيفا $_temp0. لا يُضاف ذلك إلى بيانات اليوم.';
+  }
+
+  @override
+  String premiumLimitInviteNextNoDays(String amount) {
+    return 'صديقك التالي يضيف $amount يوميًا بعد أن يستخدم فورتيفا لفترة. لا يُضاف ذلك إلى بيانات اليوم.';
+  }
+
+  @override
+  String get premiumLimitInviteNoAmount =>
+      'الأصدقاء الذين تدعوهم يزيدون بياناتك اليومية عندما يبدؤون باستخدام فورتيفا. لا يُضاف ذلك إلى بيانات اليوم.';
+
+  @override
+  String get premiumLimitInvitesFull =>
+      'دعواتك تضيف بالفعل أقصى ما يمكن من البيانات.';
+
+  @override
+  String get premiumLimitSeeInvites => 'عرض دعواتك';
+
+  @override
+  String get premiumLimitShareAgain => 'شارك مع صديق آخر';
 
   @override
   String get premiumNoDailyLimit => 'لا يوجد حد يومي في بريميوم.';

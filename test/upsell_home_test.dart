@@ -775,7 +775,17 @@ void main() {
       await tester.tap(find.byType(PowerButton));
       await settle(tester);
       expect(sheet, findsOneWidget);
-      expect(find.text('Wait for the reset'), findsOneWidget);
+      // The reset line, under the title. The server card under the sheet
+      // says the same.
+      expect(
+        find.descendant(
+          of: find.byType(BottomSheet),
+          matching: find.text(
+            'Your allowance resets automatically. Check back soon.',
+          ),
+        ),
+        findsOneWidget,
+      );
       expect(premiumRow, findsOneWidget);
 
       await tester.tap(find.text('Not now'));
@@ -816,7 +826,7 @@ void main() {
       expect(filled, findsOneWidget);
       expect(find.descendant(of: filled, matching: premiumRow), findsOneWidget);
       expect(
-        tester.getTopLeft(find.text('Wait for the reset')).dy,
+        tester.getTopLeft(find.byKey(const Key('limit-sheet-reset'))).dy,
         lessThan(tester.getTopLeft(premiumRow).dy),
       );
       await done(tester);
@@ -836,7 +846,17 @@ void main() {
       await tester.tap(find.byType(PowerButton));
       await settle(tester);
       expect(sheet, findsOneWidget);
-      expect(find.text('Wait for the reset'), findsOneWidget);
+      // The reset line, under the title. The server card under the sheet
+      // says the same.
+      expect(
+        find.descendant(
+          of: find.byType(BottomSheet),
+          matching: find.text(
+            'Your allowance resets automatically. Check back soon.',
+          ),
+        ),
+        findsOneWidget,
+      );
       expect(premiumRow, findsNothing);
       expect(find.text('Get unlimited'), findsNothing);
       await tester.tap(find.text('Not now'));

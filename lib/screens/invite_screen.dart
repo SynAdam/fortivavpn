@@ -9,15 +9,16 @@ import '../core/design_system.dart';
 import '../core/form_factor.dart';
 import '../core/state/invite_events.dart';
 import '../core/state/invite_prompt.dart';
+import '../core/state/invite_tree_intro.dart';
 import '../core/state/referral_state.dart';
-import '../services/invite_share.dart';
 import '../utils/number_localizer.dart';
 import '../widgets/invite_code_dialog.dart';
-import '../widgets/outside_link.dart';
-import '../widgets/quota_card.dart';
+import '../widgets/invite_send.dart';
+import '../widgets/invite_slots.dart';
 import '../widgets/remote_refresh_button.dart';
 import '../widgets/ui/pressable.dart';
 import '../l10n/generated/app_localizations.dart';
+import 'invite_tree_intro_screen.dart';
 
 /// The invite screen: this device's code, what it has earned, and a way
 /// to share it.
@@ -66,6 +67,28 @@ class _InviteScreenState extends State<InviteScreen> {
     } finally {
       if (mounted) setState(() => _asked = true);
     }
+    await _maybeOpenIntro(state);
+  }
+
+  /// Open the introduction to the invite tree by itself, once per install,
+  /// the first time this screen loads a status under the tree rule. Never
+  /// under today's rule, never on a TV, and never without the record that
+  /// keeps it to once. It opens a moment after the screen has settled, and
+  /// only while this screen is still the one on top. Never throws.
+  Future<void> _maybeOpenIntro(ReferralState state) async {
+    try {
+      if (!mounted || state.status?.isTree != true || FormFactor.isTv) return;
+      final record = context.read<InviteTreeIntroRecord?>();
+      if (record == null) return;
+      if (!(ModalRoute.of(context)?.isCurrent ?? false)) return;
+      if (await record.seen()) return;
+      await Future<void>.delayed(AppMotion.slow);
+      if (!mounted || !(ModalRoute.of(context)?.isCurrent ?? false)) return;
+      if (state.status?.isTree != true) return;
+      await InviteTreeIntroScreen.open(context);
+    } catch (e) {
+      debugPrint('InviteScreen: tree introduction not opened ($e)');
+    }
   }
 
   /// Note an invite event while the user shares diagnostics. Never throws.
@@ -96,30 +119,9 @@ class _InviteScreenState extends State<InviteScreen> {
   }
 
   Future<void> _share(ReferralStatus status) async {
-    // A TV has no share sheet worth the name, and nothing on it to send an
-    // invite through. The link goes to the user's phone as a QR code, and
-    // is shared from there.
-    final link = Uri.tryParse(status.shareUrl);
-    if (FormFactor.isTv && link != null) {
-      await LinkQrDialog.show(link);
-      return;
-    }
-    final l10n = S.of(context)!;
-    // sharePositionOrigin is what anchors the popover on iPad; without it
-    // the share sheet has nowhere to point and iPadOS throws.
-    final box = context.findRenderObject() as RenderBox?;
-    // The share sheet hides the state messengers: the backend's list, or
-    // the app's own while the backend sent none.
-    final opened = await InviteShare.send(
-      text: l10n.inviteShareMessage(status.code, status.shareUrl),
-      target: InviteTarget.otherApps,
-      exclude: status.shareExcludePackages.isEmpty
-          ? null
-          : status.shareExcludePackages,
-      title: l10n.inviteTitle,
-      origin: box == null ? null : box.localToGlobal(Offset.zero) & box.size,
-    );
-    if (!mounted || opened == InviteShareOutcome.none) return;
+    // On a TV the link goes to the phone as a QR code (sendInvite).
+    final opened = await sendInvite(context, status);
+    if (!mounted || !opened) return;
     _shared(InviteAction.otherApps);
   }
 
@@ -168,8 +170,10 @@ class _InviteScreenState extends State<InviteScreen> {
           // the slots and the friends it comes from. Under today's rule it
           // looks as it always has.
           final tree = status.isTree;
-          final next = tree ? _amount(context, status.nextInviteBytes) : null;
-          final kept = tree ? _amount(context, status.keptBytes) : null;
+          final next = tree
+              ? inviteAmount(context, status.nextInviteBytes)
+              : null;
+          final kept = tree ? inviteAmount(context, status.keptBytes) : null;
           // The bonus never drops below the part kept from the old rule.
           // While it is at that floor, a friend who stops changes nothing,
           // so the screen does not say it goes down.
@@ -184,7 +188,11 @@ class _InviteScreenState extends State<InviteScreen> {
                 const EdgeInsets.fromLTRB(16, 8, 16, 32),
               ),
               children: [
-                _InviteHero(text: l10n.inviteSubtitle),
+                // Under the tree rule the line says what friends add,
+                // never that the user earns it.
+                _InviteHero(
+                  text: tree ? l10n.inviteTreeHero : l10n.inviteSubtitle,
+                ),
                 const SizedBox(height: AppDesign.space24),
                 _CodeCard(
                   code: status.code,
@@ -243,14 +251,16 @@ class _InviteScreenState extends State<InviteScreen> {
                     slots: status.treeSlots > 0 ? status.treeSlots : null,
                     days: status.activeDays,
                     window: status.activeWindowDays,
-                    cap: _amount(context, status.maxBonusBytes),
+                    cap: inviteAmount(context, status.maxBonusBytes),
                     premiumDays: status.earns ? status.rewardPremiumDays : null,
                     premiumMax: status.premiumDaysMax,
+                    onIntro: () =>
+                        unawaited(InviteTreeIntroScreen.open(context)),
                   )
                 else
                   _HowItWorksCard(
-                    bonus: _amount(context, status.bonusPerReferralBytes),
-                    cap: _amount(context, status.maxBonusBytes),
+                    bonus: inviteAmount(context, status.bonusPerReferralBytes),
+                    cap: inviteAmount(context, status.maxBonusBytes),
                     days: status.confirmActiveDays,
                     premiumDays: status.earns ? status.rewardPremiumDays : null,
                     premiumMax: status.premiumDaysMax,
@@ -280,27 +290,6 @@ class _InviteScreenState extends State<InviteScreen> {
     );
   }
 }
-
-/// A reward amount as the backend reports it, ready to show ("1 GB",
-/// localized digits), or null when the backend did not say. The app never
-/// states these numbers on its own, because a number written into the app
-/// stays wrong on every phone until the next release reaches it. It used
-/// to say 250 MB per friend here.
-String? _amount(BuildContext context, int? bytes) {
-  if (bytes == null) return null;
-  return _amountText(context, bytes);
-}
-
-/// [bytes] as an amount with its unit ("1 GB") in the app's digits, and
-/// with the same decimal sign as the quota card ("۱٫۵ GB"). A no-break
-/// space joins the number to its unit, so a line never ends between them:
-/// in Persian a lone "۱" at the end of one line and "GB" at the start of
-/// the next read as two separate words.
-String _amountText(BuildContext context, int bytes) =>
-    NumberLocalizer.localizeAmount(
-      QuotaCard.formatAllowance(bytes),
-      context,
-    ).replaceAll(' ', '\u00A0');
 
 /// The space between the letters of the invite code.
 ///
@@ -520,7 +509,7 @@ class _StatsRow extends StatelessWidget {
     final l10n = S.of(context)!;
     final earned = status.bonusBytes > 0;
     final bonus = earned
-        ? l10n.inviteBonusPerDay(_amountText(context, status.bonusBytes))
+        ? l10n.inviteBonusPerDay(inviteAmountText(context, status.bonusBytes))
         : l10n.inviteNoBonusYet;
     String count(int n) => NumberLocalizer.localize('$n', context);
 
@@ -667,7 +656,7 @@ String? _paysNow(BuildContext context, int? bytes) {
   if (bytes == null) return null;
   final l10n = S.of(context)!;
   if (bytes == 0) return l10n.inviteTreeNothingYet;
-  return l10n.inviteTreePaysNow(_amountText(context, bytes));
+  return l10n.inviteTreePaysNow(inviteAmountText(context, bytes));
 }
 
 /// This device's own slots under the tree rule, one row per pair: the two
@@ -685,7 +674,7 @@ class _PairsCard extends StatelessWidget {
       title: l10n.inviteTreeSlotsTitle,
       children: [
         const SizedBox(height: AppDesign.space8),
-        const _SlotLegend(),
+        const SlotLegend(),
         for (final (i, pair) in pairs.indexed) ...[
           if (i > 0)
             const Divider(height: 1, thickness: 1, color: AppDesign.hairline),
@@ -710,7 +699,7 @@ class _PairRow extends StatelessWidget {
     // second line would say the same thing again.
     final full = fullBytes == null || pair.full
         ? null
-        : l10n.inviteTreePairFull(_amountText(context, fullBytes));
+        : l10n.inviteTreePairFull(inviteAmountText(context, fullBytes));
     final paying = (pair.nowBytes ?? 0) > 0;
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: AppDesign.space12),
@@ -718,7 +707,7 @@ class _PairRow extends StatelessWidget {
         children: [
           for (final (i, slot) in pair.slots.indexed) ...[
             if (i > 0) const SizedBox(width: AppDesign.space4),
-            _SlotMark(slot: slot),
+            SlotMark(slot: slot),
           ],
           const SizedBox(width: AppDesign.space12),
           Expanded(
@@ -747,95 +736,6 @@ class _PairRow extends StatelessWidget {
               ],
             ),
           ),
-        ],
-      ),
-    );
-  }
-}
-
-/// One slot drawn as a disc: filled for an active friend, outlined with a
-/// person for a friend who is not active now, and a faint ring with a plus
-/// when open. A screen reader reads its state.
-class _SlotMark extends StatelessWidget {
-  final TreeSlot slot;
-  final double size;
-
-  const _SlotMark({required this.slot, this.size = 32});
-
-  static String label(S l10n, TreeSlot slot) => switch (slot) {
-    TreeSlot.active => l10n.inviteTreeSlotActive,
-    TreeSlot.joined => l10n.inviteTreeSlotNotActive,
-    TreeSlot.empty => l10n.inviteTreeSlotEmpty,
-  };
-
-  @override
-  Widget build(BuildContext context) {
-    final (fill, edge, icon, color) = switch (slot) {
-      TreeSlot.active => (
-        AppDesign.protected,
-        AppDesign.protected,
-        Icons.person_rounded,
-        AppDesign.onProtected,
-      ),
-      TreeSlot.joined => (
-        AppDesign.surfaceHigh,
-        AppDesign.steelMid,
-        Icons.person_outline_rounded,
-        AppDesign.textSecondary,
-      ),
-      TreeSlot.empty => (
-        Colors.transparent,
-        AppDesign.outlineVariant,
-        Icons.add_rounded,
-        AppDesign.textTertiary,
-      ),
-    };
-    return Semantics(
-      label: label(S.of(context)!, slot),
-      child: ExcludeSemantics(
-        child: Container(
-          width: size,
-          height: size,
-          decoration: BoxDecoration(
-            color: fill,
-            shape: BoxShape.circle,
-            border: Border.all(color: edge, width: 1.5),
-          ),
-          child: Icon(icon, size: size * 0.55, color: color),
-        ),
-      ),
-    );
-  }
-}
-
-/// What the three kinds of slot look like, under the title of the slots.
-class _SlotLegend extends StatelessWidget {
-  const _SlotLegend();
-
-  @override
-  Widget build(BuildContext context) {
-    final l10n = S.of(context)!;
-    // A key, not content: a screen reader hears each slot's state on the
-    // slot itself.
-    return ExcludeSemantics(
-      child: Wrap(
-        spacing: AppDesign.space12,
-        runSpacing: AppDesign.space4,
-        children: [
-          for (final slot in TreeSlot.values.reversed)
-            Row(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                _SlotMark(slot: slot, size: 16),
-                const SizedBox(width: AppDesign.space4),
-                Text(
-                  _SlotMark.label(l10n, slot),
-                  style: AppDesign.textTheme.labelMedium?.copyWith(
-                    color: AppDesign.textTertiary,
-                  ),
-                ),
-              ],
-            ),
         ],
       ),
     );
@@ -989,31 +889,40 @@ class _HowItWorksCard extends StatelessWidget {
         (Icons.group_add_outlined, NumberLocalizer.localize(body, context)),
         if (max != null)
           (Icons.add_circle_outline_rounded, l10n.inviteHowItWorksCap(max)),
-        ..._premiumRows(context, premiumDays, premiumMax),
+        ..._premiumRows(context, premiumDays, premiumMax, tree: false),
       ],
     );
   }
 }
 
 /// Reward B: Premium days per confirmed friend and the most invites give,
-/// as the backend says. Nothing while it is off.
+/// as the backend says. Nothing while it is off. Under the tree rule
+/// ([tree]) the rows say what invites add, never that the user earns it.
 List<(IconData, String)> _premiumRows(
   BuildContext context,
   int? premiumDays,
-  int? premiumMax,
-) {
+  int? premiumMax, {
+  required bool tree,
+}) {
   final l10n = S.of(context)!;
   return [
     if (premiumDays case final days?)
       (
         Icons.card_giftcard_outlined,
-        NumberLocalizer.localize(l10n.inviteHowItWorksPremium(days), context),
+        NumberLocalizer.localize(
+          tree
+              ? l10n.inviteTreePremiumEach(days)
+              : l10n.inviteHowItWorksPremium(days),
+          context,
+        ),
       ),
     if (premiumMax case final most?)
       (
         Icons.event_available_outlined,
         NumberLocalizer.localize(
-          l10n.inviteHowItWorksPremiumCap(most),
+          tree
+              ? l10n.inviteTreePremiumCap(most)
+              : l10n.inviteHowItWorksPremiumCap(most),
           context,
         ),
       ),
@@ -1039,11 +948,15 @@ class _TreeHowItWorksCard extends StatelessWidget {
   final int? premiumDays;
   final int? premiumMax;
 
+  /// Opens the introduction to the invite tree, step by step.
+  final VoidCallback onIntro;
+
   const _TreeHowItWorksCard({
     required this.slots,
     required this.days,
     required this.window,
     required this.cap,
+    required this.onIntro,
     this.premiumDays,
     this.premiumMax,
   });
@@ -1081,18 +994,36 @@ class _TreeHowItWorksCard extends StatelessWidget {
               ? l10n.inviteTreeHowCapNoAmount
               : l10n.inviteTreeHowCap(cap),
         ),
-        ..._premiumRows(context, premiumDays, premiumMax),
+        ..._premiumRows(context, premiumDays, premiumMax, tree: true),
       ],
+      footer: Padding(
+        padding: const EdgeInsets.only(top: AppDesign.space8),
+        child: Align(
+          alignment: AlignmentDirectional.centerStart,
+          child: TextButton.icon(
+            key: const Key('invite-tree-intro-open'),
+            onPressed: onIntro,
+            icon: const Icon(Icons.auto_stories_outlined, size: 18),
+            label: Text(l10n.inviteTreeIntroOpen),
+            style: TextButton.styleFrom(
+              foregroundColor: AppDesign.brandBright,
+              minimumSize: const Size(48, 48),
+              padding: const EdgeInsetsDirectional.fromSTEB(8, 0, 12, 0),
+            ),
+          ),
+        ),
+      ),
     );
   }
 }
 
 /// The "How it works" card: its title, then each sentence on its own row
-/// with an icon for what it is about.
+/// with an icon for what it is about, then [footer] when there is one.
 class _HowItWorksRows extends StatelessWidget {
   final List<(IconData, String)> rows;
+  final Widget? footer;
 
-  const _HowItWorksRows({required this.rows});
+  const _HowItWorksRows({required this.rows, this.footer});
 
   @override
   Widget build(BuildContext context) {
@@ -1130,6 +1061,7 @@ class _HowItWorksRows extends StatelessWidget {
                 ],
               ),
             ),
+          ?footer,
         ],
       ),
     );

@@ -87,6 +87,41 @@ void main() {
     events.dispose();
   });
 
+  test('the limit sheet offer, the tree introduction and the spent card '
+      'link go out under their own names', () async {
+    final events = make(sharing: () async => true);
+    await Future<void>.delayed(Duration.zero);
+    events.log(InviteSurface.limitSheetOffer, InviteAction.shown);
+    events.log(InviteSurface.limitSheetOffer, InviteAction.otherApps);
+    events.log(InviteSurface.limitSheetOffer, InviteAction.dismissed);
+    events.log(InviteSurface.treeIntro, InviteAction.shown);
+    events.log(InviteSurface.treeIntro, InviteAction.dismissed);
+    events.log(InviteSurface.treeIntro, InviteAction.otherApps);
+    events.log(InviteSurface.serverCard, InviteAction.shown);
+    await events.send();
+    final body = jsonDecode(calls.single.body) as Map<String, dynamic>;
+    expect(
+      [
+        for (final e in body['events'] as List)
+          '${(e as Map)['surface']}/${e['action']}',
+      ],
+      [
+        'limit_sheet_offer/shown',
+        'limit_sheet_offer/other_apps',
+        'limit_sheet_offer/dismissed',
+        'tree_intro/shown',
+        'tree_intro/dismissed',
+        'tree_intro/other_apps',
+        'server_card/shown',
+      ],
+    );
+    // The backend column is String(32).
+    for (final surface in InviteSurface.values) {
+      expect(surface.wire.length, lessThanOrEqualTo(32));
+    }
+    events.dispose();
+  });
+
   test('nothing is queued while diagnostics are off', () async {
     SharedPreferences.setMockInitialValues({
       VpnEventReporter.sharePrefKey: false,

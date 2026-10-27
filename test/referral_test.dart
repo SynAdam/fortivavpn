@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:convert';
 
 import 'package:flutter_test/flutter_test.dart';
@@ -608,6 +609,87 @@ void main() {
       expect(result.claimedCode, isNull);
       expect(result.already, isFalse);
       expect(result.confirmActiveDays, isNull);
+    });
+  });
+
+  group('ReferralState.invitesAddNoMore', () {
+    ReferralState holding(Map<String, dynamic> json) =>
+        ReferralState(deviceId: () async => 'DEV-1', register: () async {})
+          ..adoptForTest(ReferralStatus.fromJson(json));
+
+    test('is false while no status is loaded', () {
+      final state = ReferralState(
+        deviceId: () async => 'DEV-1',
+        register: () async {},
+      );
+      expect(state.invitesAddNoMore, isFalse);
+    });
+
+    test('under today\'s rule, only at the most', () {
+      expect(holding(oldAnswer()).invitesAddNoMore, isFalse);
+      expect(
+        holding(oldAnswer()..['bonus_bytes'] = 10 << 30).invitesAddNoMore,
+        isTrue,
+      );
+      // No next amount means nothing under today's rule: it never sends one.
+      expect(
+        holding(oldAnswer()..remove('max_bonus_bytes')).invitesAddNoMore,
+        isFalse,
+      );
+    });
+
+    test('under the tree, when the next friend adds nothing or the bonus is '
+        'at the most', () {
+      expect(holding(treeAnswer()).invitesAddNoMore, isFalse);
+      expect(
+        holding(treeAnswer(nextInviteBytes: null)).invitesAddNoMore,
+        isTrue,
+      );
+      expect(
+        holding(treeAnswer()..['bonus_bytes'] = 7 << 30).invitesAddNoMore,
+        isTrue,
+      );
+    });
+  });
+
+  group('ReferralState.refresh', () {
+    test('a second call during a load waits for it, with one read', () async {
+      var reads = 0;
+      final gate = Completer<void>();
+      final state = ReferralState(
+        service: ReferralService.forTest(
+          client: ApiClient.forTest(
+            direct: MockClient((request) async {
+              reads++;
+              await gate.future;
+              return http.Response(
+                jsonEncode(treeAnswer()),
+                200,
+                headers: {'content-type': 'application/json'},
+              );
+            }),
+          ),
+        ),
+        deviceId: () async => 'DEV-1',
+        register: () async {},
+      );
+      var first = false;
+      var second = false;
+      unawaited(state.refresh().then((_) => first = true));
+      await Future<void>.delayed(Duration.zero);
+      expect(state.isLoading, isTrue);
+      unawaited(state.refresh().then((_) => second = true));
+      await Future<void>.delayed(Duration.zero);
+      expect(first || second, isFalse);
+      gate.complete();
+      await Future<void>.delayed(const Duration(milliseconds: 10));
+      expect(first && second, isTrue);
+      expect(reads, 1);
+      expect(state.status?.isTree, isTrue);
+
+      // A call after the load has ended reads again.
+      await state.refresh();
+      expect(reads, 2);
     });
   });
 

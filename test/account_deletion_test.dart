@@ -175,6 +175,13 @@ void main() {
       );
     });
 
+    test('the invite tree introduction opens once again for a new account', () {
+      expect(
+        AccountService.accountPrefKeys,
+        contains('invite_tree_intro_seen'),
+      );
+    });
+
     test('the app comes back looking like a first launch', () {
       expect(
         AccountService.accountPrefKeys,

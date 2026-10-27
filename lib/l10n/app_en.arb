@@ -603,6 +603,194 @@
   "@inviteTreeHowCapNoAmount": {
     "description": "How it works, invite tree rule, when the backend sends no max_bonus_bytes. Names no number."
   },
+  "inviteTreeIntroTitle": "How friends add data",
+  "@inviteTreeIntroTitle": {
+    "description": "Invite tree introduction: its name, read by a screen reader as the screen opens, and the link to it on the limit sheet. Shown only under the invite tree rule. Talk about friends, slots, pairs and data. Never use a word for level, tier or rank, never say people are under or below the user, and never say earn, income, pay or that the bonus stays."
+  },
+  "inviteTreeIntroOpen": "Show me step by step",
+  "@inviteTreeIntroOpen": {
+    "description": "Invite screen, How it works card under the invite tree rule: the link that opens the step by step introduction. Short."
+  },
+  "inviteTreeIntroStep": "Step {current} of {total}",
+  "@inviteTreeIntroStep": {
+    "description": "Invite tree introduction: which step is on screen, as \"Step 2 of 4\". current and total are the screen's own step numbers.",
+    "placeholders": {
+      "current": {
+        "type": "int"
+      },
+      "total": {
+        "type": "int"
+      }
+    }
+  },
+  "inviteTreeIntroSkip": "Skip",
+  "@inviteTreeIntroSkip": {
+    "description": "Invite tree introduction: closes it before the last step. Short."
+  },
+  "inviteTreeIntroNext": "Next",
+  "@inviteTreeIntroNext": {
+    "description": "Invite tree introduction: goes to the next step. Short."
+  },
+  "inviteTreeIntroBack": "Back",
+  "@inviteTreeIntroBack": {
+    "description": "Invite tree introduction: goes back one step. Short."
+  },
+  "inviteTreeIntroDone": "Done",
+  "@inviteTreeIntroDone": {
+    "description": "Invite tree introduction: closes it on the last step. Short."
+  },
+  "inviteTreeIntroYou": "You",
+  "@inviteTreeIntroYou": {
+    "description": "Invite tree introduction, drawing: the label under the user's own disc. One short word."
+  },
+  "inviteTreeIntroSlotsTitle": "Friends fill your slots in pairs",
+  "@inviteTreeIntroSlotsTitle": {
+    "description": "Invite tree introduction, step 1 title: friends who qualify fill the user's own slots, two at a time. Talk about friends, slots, pairs and data. Never use a word for level, tier or rank, never say people are under or below the user, and never say earn, income, pay or that the bonus stays."
+  },
+  "inviteTreeIntroSlotsWhen": "A friend takes a slot once they start using Fortiva.",
+  "@inviteTreeIntroSlotsWhen": {
+    "description": "Invite tree introduction, step 1 note: a friend takes a slot once they start using the app, not when they enter the code. Talk about friends, slots, pairs and data. Never use a word for level, tier or rank, never say people are under or below the user, and never say earn, income, pay or that the bonus stays."
+  },
+  "inviteTreeIntroSlotsArt": "Your slots, in pairs, filling as friends join.",
+  "@inviteTreeIntroSlotsArt": {
+    "description": "Invite tree introduction, step 1: what the drawing shows, for a screen reader. Talk about friends, slots, pairs and data. Never use a word for level, tier or rank, never say people are under or below the user, and never say earn, income, pay or that the bonus stays."
+  },
+  "inviteTreeIntroPairTitle": "A pair adds the most when both are active",
+  "@inviteTreeIntroPairTitle": {
+    "description": "Invite tree introduction, step 2 title: a pair of slots adds the most data when both friends in it are active. Talk about friends, slots, pairs and data. Never use a word for level, tier or rank, never say people are under or below the user, and never say earn, income, pay or that the bonus stays."
+  },
+  "inviteTreeIntroPairBoth": "When both friends in your first pair are active, it adds {full} a day. When only one of them is active, it adds {one} a day.",
+  "@inviteTreeIntroPairBoth": {
+    "description": "Invite tree introduction, step 2: what the user's first pair adds a day with both friends active (full) and with one active (one). Both amounts come from the backend. Talk about friends, slots, pairs and data. Never use a word for level, tier or rank, never say people are under or below the user, and never say earn, income, pay or that the bonus stays.",
+    "placeholders": {
+      "full": {
+        "type": "String"
+      },
+      "one": {
+        "type": "String"
+      }
+    }
+  },
+  "inviteTreeIntroPairBothOnly": "When both friends in your first pair are active, it adds {full} a day. When only one of them is active, it adds nothing.",
+  "@inviteTreeIntroPairBothOnly": {
+    "description": "Invite tree introduction, step 2, when the backend says one active friend alone adds nothing. full is what the pair adds with both active. Talk about friends, slots, pairs and data. Never use a word for level, tier or rank, never say people are under or below the user, and never say earn, income, pay or that the bonus stays.",
+    "placeholders": {
+      "full": {
+        "type": "String"
+      }
+    }
+  },
+  "inviteTreeIntroPairNoOne": "When both friends in your first pair are active, it adds {full} a day. When only one of them is active, it adds less.",
+  "@inviteTreeIntroPairNoOne": {
+    "description": "Invite tree introduction, step 2, when the backend did not say what one active friend adds. full is what the pair adds with both active. Talk about friends, slots, pairs and data. Never use a word for level, tier or rank, never say people are under or below the user, and never say earn, income, pay or that the bonus stays.",
+    "placeholders": {
+      "full": {
+        "type": "String"
+      }
+    }
+  },
+  "inviteTreeIntroPairOthersLess": "Your other pairs add less.",
+  "@inviteTreeIntroPairOthersLess": {
+    "description": "Invite tree introduction, step 2 note: the user's later pairs add less than the first. Talk about friends, slots, pairs and data. Never use a word for level, tier or rank, never say people are under or below the user, and never say earn, income, pay or that the bonus stays."
+  },
+  "inviteTreeIntroAdds": "+{amount} a day",
+  "@inviteTreeIntroAdds": {
+    "description": "Invite tree introduction, step 2 drawing: the chip over the pair, what it adds a day.",
+    "placeholders": {
+      "amount": {
+        "type": "String"
+      }
+    }
+  },
+  "inviteTreeIntroPairArt": "A pair of slots. It adds more data when both friends in it are active.",
+  "@inviteTreeIntroPairArt": {
+    "description": "Invite tree introduction, step 2: what the drawing shows, for a screen reader. Talk about friends, slots, pairs and data. Never use a word for level, tier or rank, never say people are under or below the user, and never say earn, income, pay or that the bonus stays."
+  },
+  "inviteTreeIntroFurtherTitle": "Friends further away still add data",
+  "@inviteTreeIntroFurtherTitle": {
+    "description": "Invite tree introduction, step 3 title: friends further from the user, in their friends' slots, still add data, but less. Talk about friends, slots, pairs and data. Never use a word for level, tier or rank, never say people are under or below the user, and never say earn, income, pay or that the bonus stays."
+  },
+  "inviteTreeIntroFirstPairOnly": "From your friend's slots, only their first pair adds data for you.",
+  "@inviteTreeIntroFirstPairOnly": {
+    "description": "Invite tree introduction, step 3 note: of a friend's own slots, only that friend's first pair adds data for the user. Talk about friends, slots, pairs and data. Never use a word for level, tier or rank, never say people are under or below the user, and never say earn, income, pay or that the bonus stays."
+  },
+  "inviteTreeIntroYourFriend": "Your friend",
+  "@inviteTreeIntroYourFriend": {
+    "description": "Invite tree introduction, step 3 drawing: the caption under the user's friend. Short, at most two lines."
+  },
+  "inviteTreeIntroTheirPair": "Their first pair",
+  "@inviteTreeIntroTheirPair": {
+    "description": "Invite tree introduction, step 3 drawing: the caption under the friend's first pair. Short, at most two lines. Talk about friends, slots, pairs and data. Never use a word for level, tier or rank, never say people are under or below the user, and never say earn, income, pay or that the bonus stays."
+  },
+  "inviteTreeIntroFurtherArt": "Your friend's first pair adds data for your friend and for you. Pairs further away add less.",
+  "@inviteTreeIntroFurtherArt": {
+    "description": "Invite tree introduction, step 3: what the drawing shows, for a screen reader. Talk about friends, slots, pairs and data. Never use a word for level, tier or rank, never say people are under or below the user, and never say earn, income, pay or that the bonus stays."
+  },
+  "inviteTreeIntroTotalTitle": "Your data from friends",
+  "@inviteTreeIntroTotalTitle": {
+    "description": "Invite tree introduction, step 4 title: the user's daily data from friends. Talk about friends, slots, pairs and data. Never use a word for level, tier or rank, never say people are under or below the user, and never say earn, income, pay or that the bonus stays."
+  },
+  "inviteTreeIntroTotalNow": "From friends now",
+  "@inviteTreeIntroTotalNow": {
+    "description": "Invite tree introduction, step 4: the label over what friends add a day now."
+  },
+  "inviteTreeIntroTotalMost": "The most invites can add",
+  "@inviteTreeIntroTotalMost": {
+    "description": "Invite tree introduction, step 4: the legend row for the most invites can add a day (max_bonus_bytes). Talk about friends, slots, pairs and data. Never use a word for level, tier or rank, never say people are under or below the user, and never say earn, income, pay or that the bonus stays."
+  },
+  "inviteTreeIntroTotalKept": "Kept from earlier invites",
+  "@inviteTreeIntroTotalKept": {
+    "description": "Invite tree introduction, step 4: the legend row for the bonus kept from invites made under the old rule (kept_bytes). The bonus never drops below it."
+  },
+  "inviteTreeIntroTotalReach": "Free data plus data from friends can reach {max} a day.",
+  "@inviteTreeIntroTotalReach": {
+    "description": "Invite tree introduction, step 4: the most the daily data can reach with invites (max_total_bytes), free data and data from friends together. Talk about friends, slots, pairs and data. Never use a word for level, tier or rank, never say people are under or below the user, and never say earn, income, pay or that the bonus stays.",
+    "placeholders": {
+      "max": {
+        "type": "String"
+      }
+    }
+  },
+  "inviteTreeIntroPerDay": "{amount} a day",
+  "@inviteTreeIntroPerDay": {
+    "description": "Invite tree introduction, step 4: an amount a day, beside a legend row and as the total from friends.",
+    "placeholders": {
+      "amount": {
+        "type": "String"
+      }
+    }
+  },
+  "inviteTreeSheetNext": "Your next friend adds {amount} a day once they start using Fortiva. It does not add to today's data.",
+  "@inviteTreeSheetNext": {
+    "description": "Limit sheet under the invite tree rule, when the daily data is used up: what the next friend adds a day (next_invite_bytes) once they start using the app, and that it does not add to today's data. Talk about friends, slots, pairs and data. Never use a word for level, tier or rank, never say people are under or below the user, and never say earn, income, pay or that the bonus stays.",
+    "placeholders": {
+      "amount": {
+        "type": "String"
+      }
+    }
+  },
+  "inviteTreeHero": "Friends add to your daily data",
+  "@inviteTreeHero": {
+    "description": "Invite screen under the invite tree rule: the line under the gift at the top, in place of inviteSubtitle. Talk about friends, slots, pairs and data. Never use a word for level, tier or rank, never say people are under or below the user, and never say earn, income, pay or that the bonus stays."
+  },
+  "inviteTreePremiumEach": "{days, plural, one{Each friend who starts using Fortiva also gives you {days} day of Premium.} other{Each friend who starts using Fortiva also gives you {days} days of Premium.}}",
+  "@inviteTreePremiumEach": {
+    "description": "Invite screen, How it works under the invite tree rule: the Premium days each friend who starts using the app gives. Say it adds or gives, never earn.",
+    "placeholders": {
+      "days": {
+        "type": "int"
+      }
+    }
+  },
+  "inviteTreePremiumCap": "{max, plural, one{Invites can add up to {max} day of Premium.} other{Invites can add up to {max} days of Premium.}}",
+  "@inviteTreePremiumCap": {
+    "description": "Invite screen, How it works under the invite tree rule: the most Premium days invites can give. Say invites add or give, never that the user earns.",
+    "placeholders": {
+      "max": {
+        "type": "int"
+      }
+    }
+  },
   "premiumSourceInvite": "From your invites",
   "@premiumSourceInvite": {
     "description": "How Premium was paid: days earned by inviting friends (source referral)."
@@ -1212,6 +1400,43 @@
   "premiumLimitInvite": "Invite friends for more data",
   "@premiumLimitInvite": {
     "description": "Row of that sheet that opens the invite screen. Names no amount."
+  },
+  "premiumLimitInviteNext": "Your next friend adds {amount} a day once they have used Fortiva on {days, plural, one{{days} day} other{{days} different days}}. It does not add to today's data.",
+  "@premiumLimitInviteNext": {
+    "description": "Limit sheet, under today's rule: what the next confirmed friend adds a day, once they have used the VPN on that many different days (days), and that it does not add to today's data. Shown under the tree rule too, so the same word rules apply. Talk about friends, slots, pairs and data. Never use a word for level, tier or rank, never say people are under or below the user, and never say earn, income, pay or that the bonus stays.",
+    "placeholders": {
+      "amount": {
+        "type": "String"
+      },
+      "days": {
+        "type": "int"
+      }
+    }
+  },
+  "premiumLimitInviteNextNoDays": "Your next friend adds {amount} a day once they have used Fortiva for a while. It does not add to today's data.",
+  "@premiumLimitInviteNextNoDays": {
+    "description": "Limit sheet, under today's rule, when the backend sends no day count. Names no number of days. Talk about friends, slots, pairs and data. Never use a word for level, tier or rank, never say people are under or below the user, and never say earn, income, pay or that the bonus stays.",
+    "placeholders": {
+      "amount": {
+        "type": "String"
+      }
+    }
+  },
+  "premiumLimitInviteNoAmount": "Friends you invite add to your daily data once they start using Fortiva. It does not add to today's data.",
+  "@premiumLimitInviteNoAmount": {
+    "description": "Limit sheet, when no amount is known: friends add to the daily data once they start using the app, and not to today's data. Names no number. Talk about friends, slots, pairs and data. Never use a word for level, tier or rank, never say people are under or below the user, and never say earn, income, pay or that the bonus stays."
+  },
+  "premiumLimitInvitesFull": "Your invites already add the most data they can.",
+  "@premiumLimitInvitesFull": {
+    "description": "Limit sheet and the last step of the invite tree introduction: invites already add the most data they can, so a further invite adds none. Talk about friends, slots, pairs and data. Never use a word for level, tier or rank, never say people are under or below the user, and never say earn, income, pay or that the bonus stays."
+  },
+  "premiumLimitSeeInvites": "See your invites",
+  "@premiumLimitSeeInvites": {
+    "description": "Limit sheet: the link that opens the invite screen. Short."
+  },
+  "premiumLimitShareAgain": "Share with another friend",
+  "@premiumLimitShareAgain": {
+    "description": "Limit sheet: the Share button's label after a share, because a pair needs two friends. Short."
   },
   "premiumNoDailyLimit": "Premium has no daily limit.",
   "@premiumNoDailyLimit": {

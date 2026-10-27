@@ -970,6 +970,148 @@ class SDe extends S {
       'Was Einladungen pro Tag bringen, hat eine Obergrenze.';
 
   @override
+  String get inviteTreeIntroTitle => 'Wie Freunde dir Daten bringen';
+
+  @override
+  String get inviteTreeIntroOpen => 'Schritt für Schritt zeigen';
+
+  @override
+  String inviteTreeIntroStep(int current, int total) {
+    return 'Schritt $current von $total';
+  }
+
+  @override
+  String get inviteTreeIntroSkip => 'Überspringen';
+
+  @override
+  String get inviteTreeIntroNext => 'Weiter';
+
+  @override
+  String get inviteTreeIntroBack => 'Zurück';
+
+  @override
+  String get inviteTreeIntroDone => 'Fertig';
+
+  @override
+  String get inviteTreeIntroYou => 'Du';
+
+  @override
+  String get inviteTreeIntroSlotsTitle =>
+      'Freunde füllen deine Plätze paarweise';
+
+  @override
+  String get inviteTreeIntroSlotsWhen =>
+      'Ein Freund belegt einen Platz, sobald er anfängt, Fortiva zu nutzen.';
+
+  @override
+  String get inviteTreeIntroSlotsArt =>
+      'Deine Plätze, paarweise, die sich füllen, wenn Freunde dazukommen.';
+
+  @override
+  String get inviteTreeIntroPairTitle =>
+      'Ein Paar bringt am meisten, wenn beide aktiv sind';
+
+  @override
+  String inviteTreeIntroPairBoth(String full, String one) {
+    return 'Wenn beide Freunde in deinem ersten Paar aktiv sind, bringt es $full pro Tag. Wenn nur einer von ihnen aktiv ist, bringt es $one pro Tag.';
+  }
+
+  @override
+  String inviteTreeIntroPairBothOnly(String full) {
+    return 'Wenn beide Freunde in deinem ersten Paar aktiv sind, bringt es $full pro Tag. Wenn nur einer von ihnen aktiv ist, bringt es nichts.';
+  }
+
+  @override
+  String inviteTreeIntroPairNoOne(String full) {
+    return 'Wenn beide Freunde in deinem ersten Paar aktiv sind, bringt es $full pro Tag. Wenn nur einer von ihnen aktiv ist, bringt es weniger.';
+  }
+
+  @override
+  String get inviteTreeIntroPairOthersLess =>
+      'Deine anderen Paare bringen weniger.';
+
+  @override
+  String inviteTreeIntroAdds(String amount) {
+    return '+$amount pro Tag';
+  }
+
+  @override
+  String get inviteTreeIntroPairArt =>
+      'Ein Paar aus Plätzen. Es bringt mehr Daten, wenn beide Freunde darin aktiv sind.';
+
+  @override
+  String get inviteTreeIntroFurtherTitle =>
+      'Auch Freunde weiter weg bringen Daten';
+
+  @override
+  String get inviteTreeIntroFirstPairOnly =>
+      'Von den Plätzen deines Freundes bringt nur sein erstes Paar dir Daten.';
+
+  @override
+  String get inviteTreeIntroYourFriend => 'Dein Freund';
+
+  @override
+  String get inviteTreeIntroTheirPair => 'Sein erstes Paar';
+
+  @override
+  String get inviteTreeIntroFurtherArt =>
+      'Das erste Paar deines Freundes bringt ihm und dir Daten. Paare weiter weg bringen weniger.';
+
+  @override
+  String get inviteTreeIntroTotalTitle => 'Deine Daten von Freunden';
+
+  @override
+  String get inviteTreeIntroTotalNow => 'Jetzt von Freunden';
+
+  @override
+  String get inviteTreeIntroTotalMost => 'Höchstens durch Einladungen';
+
+  @override
+  String get inviteTreeIntroTotalKept => 'Behalten aus früheren Einladungen';
+
+  @override
+  String inviteTreeIntroTotalReach(String max) {
+    return 'Gratis-Daten und Daten von Freunden zusammen können $max pro Tag erreichen.';
+  }
+
+  @override
+  String inviteTreeIntroPerDay(String amount) {
+    return '$amount pro Tag';
+  }
+
+  @override
+  String inviteTreeSheetNext(String amount) {
+    return 'Dein nächster Freund bringt dir $amount pro Tag, sobald er anfängt, Fortiva zu nutzen. Für heute kommt dadurch nichts dazu.';
+  }
+
+  @override
+  String get inviteTreeHero => 'Freunde erweitern dein tägliches Datenvolumen';
+
+  @override
+  String inviteTreePremiumEach(int days) {
+    String _temp0 = intl.Intl.pluralLogic(
+      days,
+      locale: localeName,
+      other:
+          'Jeder Freund, der anfängt, Fortiva zu nutzen, bringt dir zusätzlich $days Tage Premium.',
+      one:
+          'Jeder Freund, der anfängt, Fortiva zu nutzen, bringt dir zusätzlich $days Tag Premium.',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String inviteTreePremiumCap(int max) {
+    String _temp0 = intl.Intl.pluralLogic(
+      max,
+      locale: localeName,
+      other: 'Einladungen können bis zu $max Tage Premium bringen.',
+      one: 'Einladungen können bis zu $max Tag Premium bringen.',
+    );
+    return '$_temp0';
+  }
+
+  @override
   String get premiumSourceInvite => 'Durch deine Einladungen';
 
   @override
@@ -1713,6 +1855,36 @@ class SDe extends S {
 
   @override
   String get premiumLimitInvite => 'Freunde einladen für mehr Datenvolumen';
+
+  @override
+  String premiumLimitInviteNext(String amount, int days) {
+    String _temp0 = intl.Intl.pluralLogic(
+      days,
+      locale: localeName,
+      other: '$days verschiedenen Tagen',
+      one: '$days Tag',
+    );
+    return 'Dein nächster Freund bringt dir $amount pro Tag, sobald er Fortiva an $_temp0 genutzt hat. Für heute kommt dadurch nichts dazu.';
+  }
+
+  @override
+  String premiumLimitInviteNextNoDays(String amount) {
+    return 'Dein nächster Freund bringt dir $amount pro Tag, sobald er Fortiva eine Weile genutzt hat. Für heute kommt dadurch nichts dazu.';
+  }
+
+  @override
+  String get premiumLimitInviteNoAmount =>
+      'Freunde, die du einlädst, erweitern dein tägliches Datenvolumen, sobald sie anfangen, Fortiva zu nutzen. Für heute kommt dadurch nichts dazu.';
+
+  @override
+  String get premiumLimitInvitesFull =>
+      'Deine Einladungen bringen schon so viele Daten, wie sie können.';
+
+  @override
+  String get premiumLimitSeeInvites => 'Deine Einladungen ansehen';
+
+  @override
+  String get premiumLimitShareAgain => 'Mit einem weiteren Freund teilen';
 
   @override
   String get premiumNoDailyLimit => 'Premium hat kein Tageslimit.';

@@ -340,6 +340,7 @@ Future<void> pumpInviteHome(
   MessageState? messages,
   DedicatedState? dedicated,
   ServerState? servers,
+  ConnectFlow? flow,
   String locale = 'en',
 }) async {
   tester.binding.handleAppLifecycleStateChanged(AppLifecycleState.resumed);
@@ -354,7 +355,7 @@ Future<void> pumpInviteHome(
         ),
         ChangeNotifierProvider<VpnService>.value(value: vpn),
         ChangeNotifierProvider<ConnectFlow>(
-          create: (_) => ConnectFlow(vpn: vpn),
+          create: (_) => flow ?? ConnectFlow(vpn: vpn),
         ),
         ChangeNotifierProvider<LocaleState>(create: (_) => LocaleState()),
         if (config != null)

@@ -936,6 +936,147 @@ class STr extends S {
       'Davetlerin ekleyebileceği verinin günlük bir sınırı var.';
 
   @override
+  String get inviteTreeIntroTitle => 'Arkadaşlar nasıl veri ekler';
+
+  @override
+  String get inviteTreeIntroOpen => 'Adım adım göster';
+
+  @override
+  String inviteTreeIntroStep(int current, int total) {
+    return 'Adım $current/$total';
+  }
+
+  @override
+  String get inviteTreeIntroSkip => 'Geç';
+
+  @override
+  String get inviteTreeIntroNext => 'İleri';
+
+  @override
+  String get inviteTreeIntroBack => 'Geri';
+
+  @override
+  String get inviteTreeIntroDone => 'Tamam';
+
+  @override
+  String get inviteTreeIntroYou => 'Sen';
+
+  @override
+  String get inviteTreeIntroSlotsTitle =>
+      'Arkadaşlar yerlerini çiftler halinde doldurur';
+
+  @override
+  String get inviteTreeIntroSlotsWhen =>
+      'Bir arkadaş, Fortiva\'yı kullanmaya başlayınca bir yer alır.';
+
+  @override
+  String get inviteTreeIntroSlotsArt =>
+      'Arkadaşlar katıldıkça çiftler halinde dolan yerlerin.';
+
+  @override
+  String get inviteTreeIntroPairTitle =>
+      'Bir çift, ikisi de aktif olunca en çok veriyi ekler';
+
+  @override
+  String inviteTreeIntroPairBoth(String full, String one) {
+    return 'İlk çiftindeki arkadaşların ikisi de aktifken bu çift günde $full ekler. Yalnızca biri aktifken günde $one ekler.';
+  }
+
+  @override
+  String inviteTreeIntroPairBothOnly(String full) {
+    return 'İlk çiftindeki arkadaşların ikisi de aktifken bu çift günde $full ekler. Yalnızca biri aktifken hiçbir şey eklemez.';
+  }
+
+  @override
+  String inviteTreeIntroPairNoOne(String full) {
+    return 'İlk çiftindeki arkadaşların ikisi de aktifken bu çift günde $full ekler. Yalnızca biri aktifken daha az ekler.';
+  }
+
+  @override
+  String get inviteTreeIntroPairOthersLess => 'Diğer çiftlerin daha az ekler.';
+
+  @override
+  String inviteTreeIntroAdds(String amount) {
+    return 'Günde +$amount';
+  }
+
+  @override
+  String get inviteTreeIntroPairArt =>
+      'Bir çift yer. İçindeki arkadaşların ikisi de aktif olunca daha fazla veri ekler.';
+
+  @override
+  String get inviteTreeIntroFurtherTitle =>
+      'Daha uzaktaki arkadaşlar da veri ekler';
+
+  @override
+  String get inviteTreeIntroFirstPairOnly =>
+      'Arkadaşının yerlerinden yalnızca onun ilk çifti sana veri ekler.';
+
+  @override
+  String get inviteTreeIntroYourFriend => 'Arkadaşın';
+
+  @override
+  String get inviteTreeIntroTheirPair => 'Onun ilk çifti';
+
+  @override
+  String get inviteTreeIntroFurtherArt =>
+      'Arkadaşının ilk çifti hem ona hem sana veri ekler. Daha uzaktaki çiftler daha az ekler.';
+
+  @override
+  String get inviteTreeIntroTotalTitle => 'Arkadaşlardan gelen verin';
+
+  @override
+  String get inviteTreeIntroTotalNow => 'Şu an arkadaşlardan';
+
+  @override
+  String get inviteTreeIntroTotalMost => 'Davetlerin ekleyebileceği en fazla';
+
+  @override
+  String get inviteTreeIntroTotalKept => 'Önceki davetlerden korunan';
+
+  @override
+  String inviteTreeIntroTotalReach(String max) {
+    return 'Ücretsiz veri ve arkadaşlardan gelen veri birlikte günde $max değerine ulaşabilir.';
+  }
+
+  @override
+  String inviteTreeIntroPerDay(String amount) {
+    return 'Günde $amount';
+  }
+
+  @override
+  String inviteTreeSheetNext(String amount) {
+    return 'Sıradaki arkadaşın Fortiva\'yı kullanmaya başlayınca günde $amount ekler. Bu, bugünkü verine eklenmez.';
+  }
+
+  @override
+  String get inviteTreeHero => 'Arkadaşlar günlük verini artırır';
+
+  @override
+  String inviteTreePremiumEach(int days) {
+    String _temp0 = intl.Intl.pluralLogic(
+      days,
+      locale: localeName,
+      other:
+          'Fortiva\'yı kullanmaya başlayan her arkadaşın sana ayrıca $days günlük Premium verir.',
+      one:
+          'Fortiva\'yı kullanmaya başlayan her arkadaşın sana ayrıca $days günlük Premium verir.',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String inviteTreePremiumCap(int max) {
+    String _temp0 = intl.Intl.pluralLogic(
+      max,
+      locale: localeName,
+      other: 'Davetler en fazla $max günlük Premium ekleyebilir.',
+      one: 'Davetler en fazla $max günlük Premium ekleyebilir.',
+    );
+    return '$_temp0';
+  }
+
+  @override
   String get premiumSourceInvite => 'Davetlerinizle kazanıldı';
 
   @override
@@ -1656,6 +1797,36 @@ class STr extends S {
   @override
   String get premiumLimitInvite =>
       'Daha fazla veri için arkadaşlarınızı davet edin';
+
+  @override
+  String premiumLimitInviteNext(String amount, int days) {
+    String _temp0 = intl.Intl.pluralLogic(
+      days,
+      locale: localeName,
+      other: '$days farklı gün',
+      one: '$days gün',
+    );
+    return 'Sıradaki arkadaşın Fortiva\'yı $_temp0 kullanınca günde $amount ekler. Bu, bugünkü verine eklenmez.';
+  }
+
+  @override
+  String premiumLimitInviteNextNoDays(String amount) {
+    return 'Sıradaki arkadaşın Fortiva\'yı bir süre kullanınca günde $amount ekler. Bu, bugünkü verine eklenmez.';
+  }
+
+  @override
+  String get premiumLimitInviteNoAmount =>
+      'Davet ettiğin arkadaşlar Fortiva\'yı kullanmaya başlayınca günlük verini artırır. Bu, bugünkü verine eklenmez.';
+
+  @override
+  String get premiumLimitInvitesFull =>
+      'Davetlerin zaten ekleyebileceği en fazla veriyi ekliyor.';
+
+  @override
+  String get premiumLimitSeeInvites => 'Davetlerini gör';
+
+  @override
+  String get premiumLimitShareAgain => 'Başka bir arkadaşla paylaş';
 
   @override
   String get premiumNoDailyLimit => 'Premium\'da günlük sınır yok.';

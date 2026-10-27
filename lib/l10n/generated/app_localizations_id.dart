@@ -941,6 +941,146 @@ class SId extends S {
       'Tambahan dari undangan punya batas harian.';
 
   @override
+  String get inviteTreeIntroTitle => 'Cara teman menambah data';
+
+  @override
+  String get inviteTreeIntroOpen => 'Lihat langkah demi langkah';
+
+  @override
+  String inviteTreeIntroStep(int current, int total) {
+    return 'Langkah $current dari $total';
+  }
+
+  @override
+  String get inviteTreeIntroSkip => 'Lewati';
+
+  @override
+  String get inviteTreeIntroNext => 'Berikutnya';
+
+  @override
+  String get inviteTreeIntroBack => 'Kembali';
+
+  @override
+  String get inviteTreeIntroDone => 'Selesai';
+
+  @override
+  String get inviteTreeIntroYou => 'Anda';
+
+  @override
+  String get inviteTreeIntroSlotsTitle =>
+      'Teman mengisi slot Anda secara berpasangan';
+
+  @override
+  String get inviteTreeIntroSlotsWhen =>
+      'Seorang teman mengisi slot setelah mulai memakai Fortiva.';
+
+  @override
+  String get inviteTreeIntroSlotsArt =>
+      'Slot Anda, berpasangan, terisi saat teman bergabung.';
+
+  @override
+  String get inviteTreeIntroPairTitle =>
+      'Pasangan menambah paling banyak saat keduanya aktif';
+
+  @override
+  String inviteTreeIntroPairBoth(String full, String one) {
+    return 'Saat kedua teman di pasangan pertama Anda aktif, pasangan itu menambah $full per hari. Saat hanya salah satu yang aktif, pasangan itu menambah $one per hari.';
+  }
+
+  @override
+  String inviteTreeIntroPairBothOnly(String full) {
+    return 'Saat kedua teman di pasangan pertama Anda aktif, pasangan itu menambah $full per hari. Saat hanya salah satu yang aktif, pasangan itu tidak menambah apa pun.';
+  }
+
+  @override
+  String inviteTreeIntroPairNoOne(String full) {
+    return 'Saat kedua teman di pasangan pertama Anda aktif, pasangan itu menambah $full per hari. Saat hanya salah satu yang aktif, pasangan itu menambah lebih sedikit.';
+  }
+
+  @override
+  String get inviteTreeIntroPairOthersLess =>
+      'Pasangan Anda yang lain menambah lebih sedikit.';
+
+  @override
+  String inviteTreeIntroAdds(String amount) {
+    return '+$amount per hari';
+  }
+
+  @override
+  String get inviteTreeIntroPairArt =>
+      'Pasangan slot. Menambah lebih banyak data saat kedua teman di dalamnya aktif.';
+
+  @override
+  String get inviteTreeIntroFurtherTitle =>
+      'Teman yang lebih jauh juga menambah data';
+
+  @override
+  String get inviteTreeIntroFirstPairOnly =>
+      'Dari slot teman Anda, hanya pasangan pertamanya yang menambah data untuk Anda.';
+
+  @override
+  String get inviteTreeIntroYourFriend => 'Teman Anda';
+
+  @override
+  String get inviteTreeIntroTheirPair => 'Pasangan pertamanya';
+
+  @override
+  String get inviteTreeIntroFurtherArt =>
+      'Pasangan pertama teman Anda menambah data untuk teman Anda dan untuk Anda. Pasangan yang lebih jauh menambah lebih sedikit.';
+
+  @override
+  String get inviteTreeIntroTotalTitle => 'Data Anda dari teman';
+
+  @override
+  String get inviteTreeIntroTotalNow => 'Dari teman, sekarang';
+
+  @override
+  String get inviteTreeIntroTotalMost =>
+      'Paling banyak yang bisa ditambah undangan';
+
+  @override
+  String get inviteTreeIntroTotalKept => 'Disimpan dari undangan sebelumnya';
+
+  @override
+  String inviteTreeIntroTotalReach(String max) {
+    return 'Data gratis ditambah data dari teman bisa mencapai $max per hari.';
+  }
+
+  @override
+  String inviteTreeIntroPerDay(String amount) {
+    return '$amount per hari';
+  }
+
+  @override
+  String inviteTreeSheetNext(String amount) {
+    return 'Teman Anda berikutnya menambah $amount per hari setelah mulai memakai Fortiva. Ini tidak menambah data hari ini.';
+  }
+
+  @override
+  String get inviteTreeHero => 'Teman menambah data harian Anda';
+
+  @override
+  String inviteTreePremiumEach(int days) {
+    String _temp0 = intl.Intl.pluralLogic(
+      days,
+      locale: localeName,
+      other:
+          'Setiap teman yang mulai memakai Fortiva juga memberi Anda Premium selama $days hari.',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String inviteTreePremiumCap(int max) {
+    String _temp0 = intl.Intl.pluralLogic(
+      max,
+      locale: localeName,
+      other: 'Undangan bisa menambah Premium hingga $max hari.',
+    );
+    return '$_temp0';
+  }
+
+  @override
   String get premiumSourceInvite => 'Dari undangan Anda';
 
   @override
@@ -1678,6 +1818,35 @@ class SId extends S {
 
   @override
   String get premiumLimitInvite => 'Undang teman untuk data lebih banyak';
+
+  @override
+  String premiumLimitInviteNext(String amount, int days) {
+    String _temp0 = intl.Intl.pluralLogic(
+      days,
+      locale: localeName,
+      other: '$days hari berbeda',
+    );
+    return 'Teman Anda berikutnya menambah $amount per hari setelah memakai Fortiva pada $_temp0. Ini tidak menambah data hari ini.';
+  }
+
+  @override
+  String premiumLimitInviteNextNoDays(String amount) {
+    return 'Teman Anda berikutnya menambah $amount per hari setelah cukup lama memakai Fortiva. Ini tidak menambah data hari ini.';
+  }
+
+  @override
+  String get premiumLimitInviteNoAmount =>
+      'Teman yang Anda undang menambah data harian Anda setelah mulai memakai Fortiva. Ini tidak menambah data hari ini.';
+
+  @override
+  String get premiumLimitInvitesFull =>
+      'Undangan Anda sudah menambah data sebanyak mungkin.';
+
+  @override
+  String get premiumLimitSeeInvites => 'Lihat undangan Anda';
+
+  @override
+  String get premiumLimitShareAgain => 'Bagikan ke teman lain';
 
   @override
   String get premiumNoDailyLimit => 'Premium tidak punya batas harian.';

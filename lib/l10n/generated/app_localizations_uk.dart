@@ -997,6 +997,151 @@ class SUk extends S {
   String get inviteTreeHowCapNoAmount => 'Бонус за запрошення має денну межу.';
 
   @override
+  String get inviteTreeIntroTitle => 'Як друзі додають трафік';
+
+  @override
+  String get inviteTreeIntroOpen => 'Показати крок за кроком';
+
+  @override
+  String inviteTreeIntroStep(int current, int total) {
+    return 'Крок $current з $total';
+  }
+
+  @override
+  String get inviteTreeIntroSkip => 'Пропустити';
+
+  @override
+  String get inviteTreeIntroNext => 'Далі';
+
+  @override
+  String get inviteTreeIntroBack => 'Назад';
+
+  @override
+  String get inviteTreeIntroDone => 'Готово';
+
+  @override
+  String get inviteTreeIntroYou => 'Ви';
+
+  @override
+  String get inviteTreeIntroSlotsTitle => 'Друзі займають ваші місця парами';
+
+  @override
+  String get inviteTreeIntroSlotsWhen =>
+      'Друг займає місце, коли починає користуватися Fortiva.';
+
+  @override
+  String get inviteTreeIntroSlotsArt =>
+      'Ваші місця парами, які заповнюються, коли приходять друзі.';
+
+  @override
+  String get inviteTreeIntroPairTitle =>
+      'Пара додає найбільше, коли обидва активні';
+
+  @override
+  String inviteTreeIntroPairBoth(String full, String one) {
+    return 'Коли обидва друзі у вашій першій парі активні, вона додає $full на день. Коли активний лише один із них, вона додає $one на день.';
+  }
+
+  @override
+  String inviteTreeIntroPairBothOnly(String full) {
+    return 'Коли обидва друзі у вашій першій парі активні, вона додає $full на день. Коли активний лише один із них, вона нічого не додає.';
+  }
+
+  @override
+  String inviteTreeIntroPairNoOne(String full) {
+    return 'Коли обидва друзі у вашій першій парі активні, вона додає $full на день. Коли активний лише один із них, вона додає менше.';
+  }
+
+  @override
+  String get inviteTreeIntroPairOthersLess => 'Ваші інші пари додають менше.';
+
+  @override
+  String inviteTreeIntroAdds(String amount) {
+    return '+$amount на день';
+  }
+
+  @override
+  String get inviteTreeIntroPairArt =>
+      'Пара місць. Вона додає більше трафіку, коли обидва друзі в ній активні.';
+
+  @override
+  String get inviteTreeIntroFurtherTitle => 'Друзі далі теж додають трафік';
+
+  @override
+  String get inviteTreeIntroFirstPairOnly =>
+      'З місць вашого друга трафік для вас додає лише його перша пара.';
+
+  @override
+  String get inviteTreeIntroYourFriend => 'Ваш друг';
+
+  @override
+  String get inviteTreeIntroTheirPair => 'Його перша пара';
+
+  @override
+  String get inviteTreeIntroFurtherArt =>
+      'Перша пара вашого друга додає трафік йому і вам. Пари далі додають менше.';
+
+  @override
+  String get inviteTreeIntroTotalTitle => 'Ваш трафік від друзів';
+
+  @override
+  String get inviteTreeIntroTotalNow => 'Від друзів зараз';
+
+  @override
+  String get inviteTreeIntroTotalMost => 'Максимум від запрошень';
+
+  @override
+  String get inviteTreeIntroTotalKept => 'Збережено від попередніх запрошень';
+
+  @override
+  String inviteTreeIntroTotalReach(String max) {
+    return 'Безкоштовний трафік разом із трафіком від друзів може сягнути $max на день.';
+  }
+
+  @override
+  String inviteTreeIntroPerDay(String amount) {
+    return '$amount на день';
+  }
+
+  @override
+  String inviteTreeSheetNext(String amount) {
+    return 'Ваш наступний друг додасть $amount на день, коли почне користуватися Fortiva. До сьогоднішнього трафіку це не додасться.';
+  }
+
+  @override
+  String get inviteTreeHero => 'Друзі збільшують ваш денний трафік';
+
+  @override
+  String inviteTreePremiumEach(int days) {
+    String _temp0 = intl.Intl.pluralLogic(
+      days,
+      locale: localeName,
+      other:
+          'Кожен друг, який почне користуватися Fortiva, також додасть вам $days дня Преміуму.',
+      many:
+          'Кожен друг, який почне користуватися Fortiva, також додасть вам $days днів Преміуму.',
+      few:
+          'Кожен друг, який почне користуватися Fortiva, також додасть вам $days дні Преміуму.',
+      one:
+          'Кожен друг, який почне користуватися Fortiva, також додасть вам $days день Преміуму.',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String inviteTreePremiumCap(int max) {
+    String _temp0 = intl.Intl.pluralLogic(
+      max,
+      locale: localeName,
+      other: 'Запрошення можуть додати до $max дня Преміуму.',
+      many: 'Запрошення можуть додати до $max днів Преміуму.',
+      few: 'Запрошення можуть додати до $max днів Преміуму.',
+      one: 'Запрошення можуть додати до $max дня Преміуму.',
+    );
+    return '$_temp0';
+  }
+
+  @override
   String get premiumSourceInvite => 'За ваші запрошення';
 
   @override
@@ -1760,6 +1905,38 @@ class SUk extends S {
   @override
   String get premiumLimitInvite =>
       'Запросіть друзів, щоб отримати більше трафіку';
+
+  @override
+  String premiumLimitInviteNext(String amount, int days) {
+    String _temp0 = intl.Intl.pluralLogic(
+      days,
+      locale: localeName,
+      other: '$days дня',
+      many: '$days днів',
+      few: '$days дні',
+      one: '$days день',
+    );
+    return 'Ваш наступний друг додасть $amount на день, коли почне користуватися Fortiva і набере $_temp0 використання. До сьогоднішнього трафіку це не додасться.';
+  }
+
+  @override
+  String premiumLimitInviteNextNoDays(String amount) {
+    return 'Ваш наступний друг додасть $amount на день, коли якийсь час покористується Fortiva. До сьогоднішнього трафіку це не додасться.';
+  }
+
+  @override
+  String get premiumLimitInviteNoAmount =>
+      'Запрошені друзі збільшують ваш денний трафік, коли починають користуватися Fortiva. До сьогоднішнього трафіку це не додасться.';
+
+  @override
+  String get premiumLimitInvitesFull =>
+      'Ваші запрошення вже додають максимум трафіку.';
+
+  @override
+  String get premiumLimitSeeInvites => 'Переглянути запрошення';
+
+  @override
+  String get premiumLimitShareAgain => 'Поділитися з іншим другом';
 
   @override
   String get premiumNoDailyLimit => 'Преміум не має денного ліміту.';
