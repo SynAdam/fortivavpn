@@ -826,6 +826,119 @@ class SVi extends S {
   }
 
   @override
+  String get inviteTreeLive =>
+      'Phần thưởng của bạn kéo dài khi bạn bè còn dùng Fortiva. Nếu một người bạn ngừng dùng, phần thưởng sẽ giảm.';
+
+  @override
+  String inviteTreeNext(String amount) {
+    return 'Người bạn tiếp theo sẽ thêm $amount mỗi ngày khi bắt đầu dùng Fortiva.';
+  }
+
+  @override
+  String inviteTreeKept(String amount) {
+    return 'Nhờ những người bạn đã mời trước đây, phần thưởng của bạn không bao giờ thấp hơn $amount mỗi ngày.';
+  }
+
+  @override
+  String get inviteTreeSlotsTitle => 'Vị trí của bạn';
+
+  @override
+  String get inviteTreeSlotActive => 'Đang hoạt động';
+
+  @override
+  String get inviteTreeSlotNotActive => 'Hiện không hoạt động';
+
+  @override
+  String get inviteTreeSlotEmpty => 'Vị trí trống';
+
+  @override
+  String inviteTreePaysNow(String amount) {
+    return '+$amount mỗi ngày hiện tại';
+  }
+
+  @override
+  String inviteTreePairFull(String amount) {
+    return '+$amount mỗi ngày khi cả hai đều hoạt động';
+  }
+
+  @override
+  String get inviteTreeNothingYet => 'Chưa có gì';
+
+  @override
+  String get inviteTreeFriendsTitle => 'Qua các vị trí của bạn';
+
+  @override
+  String get inviteTreeRowFriends => 'Ở vị trí của bạn';
+
+  @override
+  String get inviteTreeRowFriendsSlots => 'Ở vị trí của họ';
+
+  @override
+  String inviteTreeRowSteps(int steps) {
+    String _temp0 = intl.Intl.pluralLogic(
+      steps,
+      locale: localeName,
+      other: 'Cách bạn $steps bước',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String inviteTreeRowPeople(int people, int active) {
+    String _temp0 = intl.Intl.pluralLogic(
+      people,
+      locale: localeName,
+      other: '$people người',
+    );
+    return '$_temp0, $active đang hoạt động';
+  }
+
+  @override
+  String inviteTreeHowSlots(int slots) {
+    String _temp0 = intl.Intl.pluralLogic(
+      slots,
+      locale: localeName,
+      other:
+          'Chia sẻ mã của bạn. $slots người bạn đầu tiên đủ điều kiện sẽ lấp đầy các vị trí của bạn theo từng cặp.',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get inviteTreeHowSlotsNoNumber =>
+      'Chia sẻ mã của bạn. Những người bạn đầu tiên đủ điều kiện sẽ lấp đầy các vị trí của bạn theo từng cặp.';
+
+  @override
+  String get inviteTreeHowPair =>
+      'Một cặp mang lại nhiều hơn khi cả hai đều hoạt động.';
+
+  @override
+  String get inviteTreeHowFriendsSlots =>
+      'Khi các vị trí của bạn đã đầy, những người bạn đủ điều kiện tiếp theo của bạn sẽ vào các vị trí trống tiếp theo, xa bạn hơn. Họ vẫn cộng thêm dữ liệu cho bạn, càng xa thì càng ít.';
+
+  @override
+  String get inviteTreeHowOthers =>
+      'Cặp đầu tiên của bạn cũng có thể có người mà bạn không mời. Họ cũng cộng thêm dữ liệu cho bạn theo cách tương tự.';
+
+  @override
+  String inviteTreeHowActive(int days, int window) {
+    return 'Một người bạn được tính là hoạt động khi đã dùng Fortiva ít nhất $days ngày trong $window ngày gần nhất.';
+  }
+
+  @override
+  String get inviteTreeHowActiveNoNumber =>
+      'Một người bạn được tính là hoạt động khi vẫn tiếp tục dùng Fortiva.';
+
+  @override
+  String inviteTreeHowCap(String max) {
+    return 'Lời mời có thể cộng thêm tối đa $max mỗi ngày.';
+  }
+
+  @override
+  String get inviteTreeHowCapNoAmount =>
+      'Phần thêm từ lời mời có giới hạn mỗi ngày.';
+
+  @override
   String get premiumSourceInvite => 'Từ lời mời của bạn';
 
   @override

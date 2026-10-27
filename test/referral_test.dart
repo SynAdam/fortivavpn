@@ -10,6 +10,8 @@ import 'package:http/testing.dart';
 import 'package:fortiva_vpn/data/models/app_config.dart';
 import 'package:fortiva_vpn/services/install_referrer.dart';
 
+import 'helpers/invite_tree.dart';
+
 /// Tests for the parts of the referral client that decide something.
 ///
 /// The network calls are the backend's to prove; what matters here is the
@@ -116,6 +118,246 @@ void main() {
         'bonus_per_referral_bytes': 1073741824.0,
       });
       expect(status.bonusPerReferralBytes, 1 << 30);
+    });
+  });
+
+  // Backend #548: the keys the backend adds when it pays invites by the
+  // invite tree. The numbers are the tests' own.
+  group('ReferralStatus under the tree rule', () {
+    test('an answer under today\'s rule has no tree', () {
+      final status = ReferralStatus.fromJson(oldAnswer());
+      expect(status.isTree, isFalse);
+      expect(status.rules, isNull);
+      expect(status.pairs, isEmpty);
+      expect(status.levels, isEmpty);
+      expect(status.nextInviteBytes, isNull);
+      expect(status.keptBytes, isNull);
+      expect(status.activeDays, isNull);
+      expect(status.activeWindowDays, isNull);
+      expect(status.maxTotalBytes, isNull);
+      expect(status.treeSlots, 0);
+      expect(status.bonusPerReferralBytes, 1 << 30);
+    });
+
+    test('reads every key of a tree answer', () {
+      final status = ReferralStatus.fromJson(treeAnswer());
+      expect(status.isTree, isTrue);
+      expect(status.rules, 'tree');
+      expect(status.bonusBytes, 5 << 29);
+      expect(status.bonusPerReferralBytes, isNull);
+      expect(status.maxBonusBytes, 7 << 30);
+      expect(status.maxTotalBytes, 10 << 30);
+      expect(status.nextInviteBytes, 300 << 20);
+      expect(status.keptBytes, 1 << 30);
+      expect(status.activeDays, 2);
+      expect(status.activeWindowDays, 30);
+
+      expect(status.pairs, hasLength(3));
+      expect(status.treeSlots, 6);
+      final first = status.pairs.first;
+      expect(first.slots, [TreeSlot.active, TreeSlot.joined]);
+      expect(first.fullBytes, 2 << 30);
+      expect(first.oneBytes, 1 << 30);
+      expect(first.nowBytes, 1 << 30);
+      expect(first.full, isFalse);
+      expect(status.pairs[1].full, isTrue);
+      final empty = status.pairs[2];
+      expect(empty.slots, [TreeSlot.empty, TreeSlot.empty]);
+      // Zero is an answer here: one alone gives nothing, and nothing now.
+      expect(empty.oneBytes, 0);
+      expect(empty.nowBytes, 0);
+
+      expect(status.levels, hasLength(3));
+      expect(status.levels.first.level, 1);
+      expect(status.levels.first.people, 3);
+      expect(status.levels.first.active, 3);
+      expect(status.levels.first.bytes, 5 << 29);
+      expect(status.levels.last.active, 0);
+      expect(status.levels.last.bytes, 0);
+    });
+
+    test('is a tree whenever the rule is "tree", with or without pairs', () {
+      // Under the tree rule no text may say the bonus stays, so a tree
+      // answer whose pairs cannot be read is still a tree. It just has no
+      // slots to show.
+      for (final pairs in <Object?>[
+        <Object?>[],
+        null,
+        ['x', 1],
+      ]) {
+        final status = ReferralStatus.fromJson(treeAnswer()..['pairs'] = pairs);
+        expect(status.isTree, isTrue, reason: '$pairs');
+        expect(status.pairs, isEmpty, reason: '$pairs');
+        expect(status.treeSlots, 0, reason: '$pairs');
+      }
+      expect(
+        ReferralStatus.fromJson(treeAnswer()..remove('pairs')).isTree,
+        isTrue,
+      );
+      for (final rules in <Object?>[null, 'per_friend', 'TREE', 1, true]) {
+        expect(
+          ReferralStatus.fromJson(treeAnswer()..['rules'] = rules).isTree,
+          isFalse,
+          reason: '$rules',
+        );
+      }
+    });
+
+    test('malformed values read as null or empty and never throw', () {
+      for (final bad in <Object?>[
+        null,
+        -1,
+        '1 GB',
+        1.5,
+        true,
+        double.nan,
+        const <Object?>[],
+        const <String, Object?>{},
+      ]) {
+        final status = ReferralStatus.fromJson({
+          'code': 'AB3D7K',
+          'rules': bad,
+          'pairs': bad,
+          'levels': bad,
+          'next_invite_bytes': bad,
+          'kept_bytes': bad,
+          'active_days': bad,
+          'active_window_days': bad,
+          'max_total_bytes': bad,
+        });
+        expect(status.code, 'AB3D7K', reason: '$bad');
+        expect(status.isTree, isFalse, reason: '$bad');
+        expect(status.pairs, isEmpty, reason: '$bad');
+        expect(status.levels, isEmpty, reason: '$bad');
+        expect(status.nextInviteBytes, isNull, reason: '$bad');
+        expect(status.keptBytes, isNull, reason: '$bad');
+        expect(status.activeDays, isNull, reason: '$bad');
+        expect(status.activeWindowDays, isNull, reason: '$bad');
+        expect(status.maxTotalBytes, isNull, reason: '$bad');
+      }
+    });
+
+    test('zero next and kept bytes read as nothing', () {
+      final status = ReferralStatus.fromJson(
+        treeAnswer(nextInviteBytes: 0, keptBytes: 0),
+      );
+      expect(status.nextInviteBytes, isNull);
+      expect(status.keptBytes, isNull);
+      expect(status.isTree, isTrue);
+    });
+
+    test('a malformed pair still has two slots, and unknown states are '
+        'open', () {
+      final status = ReferralStatus.fromJson({
+        'rules': 'tree',
+        'pairs': [
+          'not a pair',
+          null,
+          {'states': 'active'},
+          {
+            'states': ['active'],
+          },
+          {
+            'states': ['paused', 7, 'active', 'active'],
+          },
+          {
+            'states': ['joined', 'active'],
+            'full_bytes': -5,
+            'one_bytes': '1 GB',
+            'now_bytes': 1.5,
+          },
+        ],
+      });
+      expect(status.isTree, isTrue);
+      expect(
+        [for (final p in status.pairs) p.slots],
+        [
+          [TreeSlot.empty, TreeSlot.empty],
+          [TreeSlot.active, TreeSlot.empty],
+          [TreeSlot.empty, TreeSlot.empty],
+          [TreeSlot.joined, TreeSlot.active],
+        ],
+      );
+      expect(status.treeSlots, 8);
+      final last = status.pairs.last;
+      expect(last.fullBytes, isNull);
+      expect(last.oneBytes, isNull);
+      expect(last.nowBytes, isNull);
+    });
+
+    test('a level with a missing or broken count is left out', () {
+      final status = ReferralStatus.fromJson({
+        'rules': 'tree',
+        'pairs': [
+          {
+            'states': ['empty', 'empty'],
+          },
+        ],
+        'levels': [
+          'level',
+          {'level': 0, 'people': 1, 'active': 0},
+          {'level': 1, 'people': -1, 'active': 0},
+          {'level': 1, 'people': 2, 'active': '1'},
+          {'level': 1.0, 'people': 2, 'active': 1},
+          {'level': 2, 'people': 4, 'active': 1, 'bytes': 'lots'},
+          {'level': 3, 'people': 1, 'active': 0, 'bytes': 0.0},
+        ],
+      });
+      expect([for (final l in status.levels) l.level], [2, 3]);
+      expect(status.levels.first.people, 4);
+      expect(status.levels.first.bytes, isNull);
+      expect(status.levels.last.bytes, 0);
+    });
+
+    test('levels are sorted, one per level, and never claim more active '
+        'than people', () {
+      final status = ReferralStatus.fromJson({
+        'rules': 'tree',
+        'levels': [
+          {'level': 3, 'people': 2, 'active': 1, 'bytes': 0},
+          {'level': 1, 'people': 3, 'active': 9, 'bytes': 1},
+          {'level': 1, 'people': 5, 'active': 5, 'bytes': 2},
+          {'level': 2, 'people': 0, 'active': 0, 'bytes': 0},
+          {'level': 1, 'people': 4, 'active': 1, 'bytes': 3},
+          {'level': 2, 'people': 6, 'active': 2, 'bytes': 4},
+          {'level': 3, 'people': 7, 'active': 7, 'bytes': 5},
+        ],
+      });
+      expect(
+        [for (final l in status.levels) (l.level, l.people, l.active, l.bytes)],
+        [(1, 5, 5, 2), (2, 6, 2, 4), (3, 2, 1, 0)],
+      );
+    });
+
+    test('a level with nobody in it is left out', () {
+      final status = ReferralStatus.fromJson({
+        'rules': 'tree',
+        'levels': [
+          {'level': 1, 'people': 0, 'active': 0, 'bytes': 0},
+          {'level': 2, 'people': 1, 'active': 1, 'bytes': 0},
+        ],
+      });
+      expect([for (final l in status.levels) l.level], [2]);
+    });
+
+    test('the bonus is above the kept part only when it is larger', () {
+      bool above(Object? kept, int bonus) => ReferralStatus.fromJson(
+        treeAnswer(keptBytes: kept)..['bonus_bytes'] = bonus,
+      ).bonusAboveKept;
+      expect(above(1 << 30, 2 << 30), isTrue);
+      expect(above(2 << 30, 2 << 30), isFalse);
+      expect(above(3 << 30, 2 << 30), isFalse);
+      expect(above(null, 1), isTrue);
+      expect(above(null, 0), isFalse);
+      expect(above(0, 0), isFalse);
+    });
+
+    test('a whole number sent as a float still reads', () {
+      final status = ReferralStatus.fromJson(
+        treeAnswer(nextInviteBytes: 314572800.0, keptBytes: 1073741824.0),
+      );
+      expect(status.nextInviteBytes, 300 << 20);
+      expect(status.keptBytes, 1 << 30);
     });
   });
 

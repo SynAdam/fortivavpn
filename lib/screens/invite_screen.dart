@@ -164,6 +164,16 @@ class _InviteScreenState extends State<InviteScreen> {
             );
           }
 
+          // Under the tree rule the bonus is live, so the screen also shows
+          // the slots and the friends it comes from. Under today's rule it
+          // looks as it always has.
+          final tree = status.isTree;
+          final next = tree ? _amount(context, status.nextInviteBytes) : null;
+          final kept = tree ? _amount(context, status.keptBytes) : null;
+          // The bonus never drops below the part kept from the old rule.
+          // While it is at that floor, a friend who stops changes nothing,
+          // so the screen does not say it goes down.
+          final live = tree && status.bonusAboveKept;
           return RefreshIndicator(
             onRefresh: () => context.read<ReferralState>().refresh(),
             color: AppDesign.brandBright,
@@ -180,9 +190,24 @@ class _InviteScreenState extends State<InviteScreen> {
                   code: status.code,
                   onCopy: () => _copy(status.code),
                   onShare: () => _share(status),
+                  note: next == null ? null : l10n.inviteTreeNext(next),
                 ),
                 const SizedBox(height: AppDesign.space12),
                 _StatsRow(status: status),
+                if (live) ...[
+                  const SizedBox(height: AppDesign.space8),
+                  _Note(
+                    key: const Key('invite-tree-live'),
+                    text: l10n.inviteTreeLive,
+                  ),
+                ],
+                if (kept != null) ...[
+                  SizedBox(height: live ? AppDesign.space4 : AppDesign.space8),
+                  _Note(
+                    key: const Key('invite-tree-kept'),
+                    text: l10n.inviteTreeKept(kept),
+                  ),
+                ],
                 if (status.pendingCount > 0) ...[
                   const SizedBox(height: AppDesign.space8),
                   Padding(
@@ -196,16 +221,40 @@ class _InviteScreenState extends State<InviteScreen> {
                     ),
                   ),
                 ],
+                // A tree answer whose slots could not be read has no slots
+                // card. Its How it works then names no number of slots.
+                if (tree && status.pairs.isNotEmpty) ...[
+                  const SizedBox(height: AppDesign.space24),
+                  _PairsCard(pairs: status.pairs),
+                ],
+                if (tree && status.levels.isNotEmpty) ...[
+                  SizedBox(
+                    height: status.pairs.isNotEmpty
+                        ? AppDesign.space12
+                        : AppDesign.space24,
+                  ),
+                  _FriendsCard(levels: status.levels),
+                ],
                 // The code and what it has earned are one group, then How it
                 // works, then the way in for a code from a friend.
                 const SizedBox(height: AppDesign.space24),
-                _HowItWorksCard(
-                  bonus: _amount(context, status.bonusPerReferralBytes),
-                  cap: _amount(context, status.maxBonusBytes),
-                  days: status.confirmActiveDays,
-                  premiumDays: status.earns ? status.rewardPremiumDays : null,
-                  premiumMax: status.premiumDaysMax,
-                ),
+                if (tree)
+                  _TreeHowItWorksCard(
+                    slots: status.treeSlots > 0 ? status.treeSlots : null,
+                    days: status.activeDays,
+                    window: status.activeWindowDays,
+                    cap: _amount(context, status.maxBonusBytes),
+                    premiumDays: status.earns ? status.rewardPremiumDays : null,
+                    premiumMax: status.premiumDaysMax,
+                  )
+                else
+                  _HowItWorksCard(
+                    bonus: _amount(context, status.bonusPerReferralBytes),
+                    cap: _amount(context, status.maxBonusBytes),
+                    days: status.confirmActiveDays,
+                    premiumDays: status.earns ? status.rewardPremiumDays : null,
+                    premiumMax: status.premiumDaysMax,
+                  ),
                 const SizedBox(height: AppDesign.space24),
                 if (status.hasClaimed)
                   Padding(
@@ -308,10 +357,15 @@ class _CodeCard extends StatelessWidget {
   final VoidCallback onCopy;
   final VoidCallback onShare;
 
+  /// A line under the buttons, or null for none. Under the tree rule it
+  /// says what the next friend adds.
+  final String? note;
+
   const _CodeCard({
     required this.code,
     required this.onCopy,
     required this.onShare,
+    this.note,
   });
 
   @override
@@ -418,6 +472,17 @@ class _CodeCard extends StatelessWidget {
               );
             },
           ),
+          if (note case final note?) ...[
+            const SizedBox(height: AppDesign.space12),
+            Text(
+              note,
+              key: const Key('invite-tree-next'),
+              textAlign: TextAlign.center,
+              style: AppDesign.textTheme.bodySmall?.copyWith(
+                color: AppDesign.protected,
+              ),
+            ),
+          ],
         ],
       ),
     );
@@ -545,6 +610,339 @@ class _Stat extends StatelessWidget {
   }
 }
 
+/// A quiet line under the stats, set in from the edge like the pending
+/// note.
+class _Note extends StatelessWidget {
+  final String text;
+
+  const _Note({super.key, required this.text});
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsetsDirectional.only(start: 4),
+      child: Text(text, style: AppDesign.textTheme.bodySmall),
+    );
+  }
+}
+
+/// The shared card look of the tree cards: a tone above the canvas, no
+/// edge, with a title.
+class _TreeCard extends StatelessWidget {
+  final String title;
+  final List<Widget> children;
+
+  const _TreeCard({super.key, required this.title, required this.children});
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.all(AppDesign.space16),
+      decoration: BoxDecoration(
+        color: AppDesign.surfaceLow,
+        borderRadius: AppDesign.borderRadiusLarge,
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Semantics(
+            header: true,
+            child: Text(
+              title,
+              style: AppDesign.textTheme.titleSmall?.copyWith(
+                color: AppDesign.textPrimary,
+              ),
+            ),
+          ),
+          ...children,
+        ],
+      ),
+    );
+  }
+}
+
+/// What a pair or a level gives a day now: "+1 GB a day now", or "Nothing
+/// yet" at zero. Null when the backend did not say.
+String? _paysNow(BuildContext context, int? bytes) {
+  if (bytes == null) return null;
+  final l10n = S.of(context)!;
+  if (bytes == 0) return l10n.inviteTreeNothingYet;
+  return l10n.inviteTreePaysNow(_amountText(context, bytes));
+}
+
+/// This device's own slots under the tree rule, one row per pair: the two
+/// slots, what the pair gives now, and what it gives once both are active.
+class _PairsCard extends StatelessWidget {
+  final List<TreePair> pairs;
+
+  const _PairsCard({required this.pairs});
+
+  @override
+  Widget build(BuildContext context) {
+    final l10n = S.of(context)!;
+    return _TreeCard(
+      key: const Key('invite-tree-pairs'),
+      title: l10n.inviteTreeSlotsTitle,
+      children: [
+        const SizedBox(height: AppDesign.space8),
+        const _SlotLegend(),
+        for (final (i, pair) in pairs.indexed) ...[
+          if (i > 0)
+            const Divider(height: 1, thickness: 1, color: AppDesign.hairline),
+          _PairRow(key: Key('invite-tree-pair-$i'), pair: pair),
+        ],
+      ],
+    );
+  }
+}
+
+class _PairRow extends StatelessWidget {
+  final TreePair pair;
+
+  const _PairRow({super.key, required this.pair});
+
+  @override
+  Widget build(BuildContext context) {
+    final l10n = S.of(context)!;
+    final now = _paysNow(context, pair.nowBytes);
+    final fullBytes = pair.fullBytes;
+    // Once both are active the pair already gives the full amount, so the
+    // second line would say the same thing again.
+    final full = fullBytes == null || pair.full
+        ? null
+        : l10n.inviteTreePairFull(_amountText(context, fullBytes));
+    final paying = (pair.nowBytes ?? 0) > 0;
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: AppDesign.space12),
+      child: Row(
+        children: [
+          for (final (i, slot) in pair.slots.indexed) ...[
+            if (i > 0) const SizedBox(width: AppDesign.space4),
+            _SlotMark(slot: slot),
+          ],
+          const SizedBox(width: AppDesign.space12),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                if (now != null)
+                  Text(
+                    now,
+                    style: AppDesign.textTheme.bodyMedium?.copyWith(
+                      color: paying
+                          ? AppDesign.protected
+                          : AppDesign.textSecondary,
+                      fontWeight: paying ? FontWeight.w600 : null,
+                      fontFeatures: AppDesign.numberFeatures,
+                    ),
+                  ),
+                if (full != null)
+                  Text(
+                    full,
+                    style: AppDesign.textTheme.bodySmall?.copyWith(
+                      color: AppDesign.textTertiary,
+                      fontFeatures: AppDesign.numberFeatures,
+                    ),
+                  ),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+/// One slot drawn as a disc: filled for an active friend, outlined with a
+/// person for a friend who is not active now, and a faint ring with a plus
+/// when open. A screen reader reads its state.
+class _SlotMark extends StatelessWidget {
+  final TreeSlot slot;
+  final double size;
+
+  const _SlotMark({required this.slot, this.size = 32});
+
+  static String label(S l10n, TreeSlot slot) => switch (slot) {
+    TreeSlot.active => l10n.inviteTreeSlotActive,
+    TreeSlot.joined => l10n.inviteTreeSlotNotActive,
+    TreeSlot.empty => l10n.inviteTreeSlotEmpty,
+  };
+
+  @override
+  Widget build(BuildContext context) {
+    final (fill, edge, icon, color) = switch (slot) {
+      TreeSlot.active => (
+        AppDesign.protected,
+        AppDesign.protected,
+        Icons.person_rounded,
+        AppDesign.onProtected,
+      ),
+      TreeSlot.joined => (
+        AppDesign.surfaceHigh,
+        AppDesign.steelMid,
+        Icons.person_outline_rounded,
+        AppDesign.textSecondary,
+      ),
+      TreeSlot.empty => (
+        Colors.transparent,
+        AppDesign.outlineVariant,
+        Icons.add_rounded,
+        AppDesign.textTertiary,
+      ),
+    };
+    return Semantics(
+      label: label(S.of(context)!, slot),
+      child: ExcludeSemantics(
+        child: Container(
+          width: size,
+          height: size,
+          decoration: BoxDecoration(
+            color: fill,
+            shape: BoxShape.circle,
+            border: Border.all(color: edge, width: 1.5),
+          ),
+          child: Icon(icon, size: size * 0.55, color: color),
+        ),
+      ),
+    );
+  }
+}
+
+/// What the three kinds of slot look like, under the title of the slots.
+class _SlotLegend extends StatelessWidget {
+  const _SlotLegend();
+
+  @override
+  Widget build(BuildContext context) {
+    final l10n = S.of(context)!;
+    // A key, not content: a screen reader hears each slot's state on the
+    // slot itself.
+    return ExcludeSemantics(
+      child: Wrap(
+        spacing: AppDesign.space12,
+        runSpacing: AppDesign.space4,
+        children: [
+          for (final slot in TreeSlot.values.reversed)
+            Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                _SlotMark(slot: slot, size: 16),
+                const SizedBox(width: AppDesign.space4),
+                Text(
+                  _SlotMark.label(l10n, slot),
+                  style: AppDesign.textTheme.labelMedium?.copyWith(
+                    color: AppDesign.textTertiary,
+                  ),
+                ),
+              ],
+            ),
+        ],
+      ),
+    );
+  }
+}
+
+/// "Through your friends" under the tree rule: one row for this device's
+/// own friends, one for the people in their slots, and one for each step
+/// further out, with how many people and how many of them are active, and
+/// what each row gives now. The text talks about friends and data. It
+/// never says level, and never says people are under the user or earn for
+/// them.
+class _FriendsCard extends StatelessWidget {
+  final List<TreeLevel> levels;
+
+  const _FriendsCard({required this.levels});
+
+  @override
+  Widget build(BuildContext context) {
+    final l10n = S.of(context)!;
+    return _TreeCard(
+      key: const Key('invite-tree-friends'),
+      title: l10n.inviteTreeFriendsTitle,
+      children: [
+        // Keyed by position, so two rows can never share a key.
+        for (final (i, level) in levels.indexed)
+          Padding(
+            key: Key('invite-tree-friends-$i'),
+            padding: const EdgeInsets.only(top: AppDesign.space12),
+            child: _FriendsRow(level: level),
+          ),
+      ],
+    );
+  }
+}
+
+class _FriendsRow extends StatelessWidget {
+  final TreeLevel level;
+
+  const _FriendsRow({required this.level});
+
+  /// The row's name: the device's own friends, the people in their slots,
+  /// then how many steps away the people are.
+  static String label(BuildContext context, int level) {
+    final l10n = S.of(context)!;
+    return switch (level) {
+      1 => l10n.inviteTreeRowFriends,
+      2 => l10n.inviteTreeRowFriendsSlots,
+      _ => NumberLocalizer.localize(l10n.inviteTreeRowSteps(level), context),
+    };
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final l10n = S.of(context)!;
+    final now = _paysNow(context, level.bytes);
+    final paying = (level.bytes ?? 0) > 0;
+    // The name and its amount on one line, the counts under them, so a
+    // long language wraps the counts and never pushes the amount off.
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        // Each side as wide as it needs and at most half, with the space
+        // between them, so the amount sits at the end of the line.
+        Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Flexible(
+              child: Text(
+                label(context, level.level),
+                style: AppDesign.textTheme.bodyMedium?.copyWith(
+                  color: AppDesign.textPrimary,
+                  fontWeight: FontWeight.w500,
+                ),
+              ),
+            ),
+            if (now != null) ...[
+              const SizedBox(width: AppDesign.space8),
+              Flexible(
+                child: Text(
+                  now,
+                  textAlign: TextAlign.end,
+                  style: AppDesign.textTheme.bodyMedium?.copyWith(
+                    color: paying
+                        ? AppDesign.protected
+                        : AppDesign.textSecondary,
+                    fontWeight: paying ? FontWeight.w600 : null,
+                    fontFeatures: AppDesign.numberFeatures,
+                  ),
+                ),
+              ),
+            ],
+          ],
+        ),
+        Text(
+          NumberLocalizer.localize(
+            l10n.inviteTreeRowPeople(level.people, level.active),
+            context,
+          ),
+          style: AppDesign.textTheme.bodySmall,
+        ),
+      ],
+    );
+  }
+}
+
 class _HowItWorksCard extends StatelessWidget {
   /// The per-friend reward, already formatted, or null to name no amount.
   final String? bonus;
@@ -586,26 +984,119 @@ class _HowItWorksCard extends StatelessWidget {
     };
     // Each sentence on its own row with an icon for what it is about. The
     // sentences stay whole, as they were written.
-    final rows = <(IconData, String)>[
-      (Icons.group_add_outlined, NumberLocalizer.localize(body, context)),
-      if (max != null)
-        (Icons.add_circle_outline_rounded, l10n.inviteHowItWorksCap(max)),
-      // Reward B: Premium days per confirmed friend, as the backend says.
-      // Nothing while it is off.
-      if (premiumDays case final days?)
-        (
-          Icons.card_giftcard_outlined,
-          NumberLocalizer.localize(l10n.inviteHowItWorksPremium(days), context),
+    return _HowItWorksRows(
+      rows: [
+        (Icons.group_add_outlined, NumberLocalizer.localize(body, context)),
+        if (max != null)
+          (Icons.add_circle_outline_rounded, l10n.inviteHowItWorksCap(max)),
+        ..._premiumRows(context, premiumDays, premiumMax),
+      ],
+    );
+  }
+}
+
+/// Reward B: Premium days per confirmed friend and the most invites give,
+/// as the backend says. Nothing while it is off.
+List<(IconData, String)> _premiumRows(
+  BuildContext context,
+  int? premiumDays,
+  int? premiumMax,
+) {
+  final l10n = S.of(context)!;
+  return [
+    if (premiumDays case final days?)
+      (
+        Icons.card_giftcard_outlined,
+        NumberLocalizer.localize(l10n.inviteHowItWorksPremium(days), context),
+      ),
+    if (premiumMax case final most?)
+      (
+        Icons.event_available_outlined,
+        NumberLocalizer.localize(
+          l10n.inviteHowItWorksPremiumCap(most),
+          context,
         ),
-      if (premiumMax case final most?)
+      ),
+  ];
+}
+
+/// "How it works" under the tree rule. It never says the bonus stays,
+/// because under this rule it goes down when a friend stops.
+class _TreeHowItWorksCard extends StatelessWidget {
+  /// How many slots this device has, counted from the pairs the backend
+  /// sent, or null to name no number.
+  final int? slots;
+
+  /// A friend counts while they used the VPN on at least [days] days in
+  /// the last [window] days. Null when either is not known, and then the
+  /// line names no number.
+  final int? days;
+  final int? window;
+
+  /// The most invites can add per day, already formatted, or null.
+  final String? cap;
+
+  final int? premiumDays;
+  final int? premiumMax;
+
+  const _TreeHowItWorksCard({
+    required this.slots,
+    required this.days,
+    required this.window,
+    required this.cap,
+    this.premiumDays,
+    this.premiumMax,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final l10n = S.of(context)!;
+    final slots = this.slots;
+    final cap = this.cap;
+    final active = switch ((days, window)) {
+      (final int days, final int window) => NumberLocalizer.localize(
+        l10n.inviteTreeHowActive(days, window),
+        context,
+      ),
+      _ => l10n.inviteTreeHowActiveNoNumber,
+    };
+    return _HowItWorksRows(
+      rows: [
         (
-          Icons.event_available_outlined,
-          NumberLocalizer.localize(
-            l10n.inviteHowItWorksPremiumCap(most),
-            context,
-          ),
+          Icons.group_add_outlined,
+          slots == null
+              ? l10n.inviteTreeHowSlotsNoNumber
+              : NumberLocalizer.localize(
+                  l10n.inviteTreeHowSlots(slots),
+                  context,
+                ),
         ),
-    ];
+        (Icons.people_outline_rounded, l10n.inviteTreeHowPair),
+        (Icons.groups_outlined, l10n.inviteTreeHowFriendsSlots),
+        (Icons.person_add_alt_outlined, l10n.inviteTreeHowOthers),
+        (Icons.event_repeat_outlined, active),
+        (
+          Icons.add_circle_outline_rounded,
+          cap == null
+              ? l10n.inviteTreeHowCapNoAmount
+              : l10n.inviteTreeHowCap(cap),
+        ),
+        ..._premiumRows(context, premiumDays, premiumMax),
+      ],
+    );
+  }
+}
+
+/// The "How it works" card: its title, then each sentence on its own row
+/// with an icon for what it is about.
+class _HowItWorksRows extends StatelessWidget {
+  final List<(IconData, String)> rows;
+
+  const _HowItWorksRows({required this.rows});
+
+  @override
+  Widget build(BuildContext context) {
+    final l10n = S.of(context)!;
     // The shared card look: a tone above the canvas, no edge.
     return Container(
       padding: const EdgeInsets.all(AppDesign.space16),

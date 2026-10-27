@@ -857,6 +857,146 @@ class SUk extends S {
   }
 
   @override
+  String get inviteTreeLive =>
+      'Бонус діє, поки ваші друзі користуються Fortiva. Якщо друг перестане, бонус зменшиться.';
+
+  @override
+  String inviteTreeNext(String amount) {
+    return 'Ваш наступний друг додасть $amount на день, коли почне користуватися Fortiva.';
+  }
+
+  @override
+  String inviteTreeKept(String amount) {
+    return 'Завдяки друзям, запрошеним раніше, ваш бонус не опуститься нижче $amount на день.';
+  }
+
+  @override
+  String get inviteTreeSlotsTitle => 'Ваші місця';
+
+  @override
+  String get inviteTreeSlotActive => 'Активний';
+
+  @override
+  String get inviteTreeSlotNotActive => 'Зараз не активний';
+
+  @override
+  String get inviteTreeSlotEmpty => 'Вільне місце';
+
+  @override
+  String inviteTreePaysNow(String amount) {
+    return '+$amount на день зараз';
+  }
+
+  @override
+  String inviteTreePairFull(String amount) {
+    return '+$amount на день, коли обидва активні';
+  }
+
+  @override
+  String get inviteTreeNothingYet => 'Поки нічого';
+
+  @override
+  String get inviteTreeFriendsTitle => 'Через ваші місця';
+
+  @override
+  String get inviteTreeRowFriends => 'На ваших місцях';
+
+  @override
+  String get inviteTreeRowFriendsSlots => 'На їхніх місцях';
+
+  @override
+  String inviteTreeRowSteps(int steps) {
+    String _temp0 = intl.Intl.pluralLogic(
+      steps,
+      locale: localeName,
+      other: 'За $steps кроку від вас',
+      many: 'За $steps кроків від вас',
+      few: 'За $steps кроки від вас',
+      one: 'За $steps крок від вас',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String inviteTreeRowPeople(int people, int active) {
+    String _temp0 = intl.Intl.pluralLogic(
+      people,
+      locale: localeName,
+      other: '$people особи',
+      many: '$people осіб',
+      few: '$people особи',
+      one: '$people особа',
+    );
+    return '$_temp0, активних: $active';
+  }
+
+  @override
+  String inviteTreeHowSlots(int slots) {
+    String _temp0 = intl.Intl.pluralLogic(
+      slots,
+      locale: localeName,
+      other:
+          'Поділіться своїм кодом. Ваші місця парами займуть перші $slots друга, чиї запрошення буде зараховано.',
+      many:
+          'Поділіться своїм кодом. Ваші місця парами займуть перші $slots друзів, чиї запрошення буде зараховано.',
+      few:
+          'Поділіться своїм кодом. Ваші місця парами займуть перші $slots друзі, чиї запрошення буде зараховано.',
+      one:
+          'Поділіться своїм кодом. Ваше місце займе перший друг, чиє запрошення буде зараховано.',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get inviteTreeHowSlotsNoNumber =>
+      'Поділіться своїм кодом. Ваші місця парами займуть перші друзі, чиї запрошення буде зараховано.';
+
+  @override
+  String get inviteTreeHowPair =>
+      'Пара приносить більше, коли в ній обидва активні.';
+
+  @override
+  String get inviteTreeHowFriendsSlots =>
+      'Коли ваші місця заповнені, ваші наступні друзі, чиї запрошення буде зараховано, займуть наступні вільні місця, далі від вас. Вони теж додають вам трафік, тим менше, чим далі вони від вас.';
+
+  @override
+  String get inviteTreeHowOthers =>
+      'Вашу першу пару можуть зайняти й люди, яких ви не запрошували. Вони додають вам трафік так само.';
+
+  @override
+  String inviteTreeHowActive(int days, int window) {
+    String _temp0 = intl.Intl.pluralLogic(
+      window,
+      locale: localeName,
+      other: '$window дня',
+      many: '$window днів',
+      few: '$window дні',
+      one: '$window день',
+    );
+    String _temp1 = intl.Intl.pluralLogic(
+      days,
+      locale: localeName,
+      other: '$days дня',
+      many: '$days днів',
+      few: '$days дні',
+      one: '$days день',
+    );
+    return 'Друг вважається активним, якщо за останні $_temp0 він користувався Fortiva хоча б $_temp1.';
+  }
+
+  @override
+  String get inviteTreeHowActiveNoNumber =>
+      'Друг вважається активним, поки й далі користується Fortiva.';
+
+  @override
+  String inviteTreeHowCap(String max) {
+    return 'Запрошення можуть додати до $max на день.';
+  }
+
+  @override
+  String get inviteTreeHowCapNoAmount => 'Бонус за запрошення має денну межу.';
+
+  @override
   String get premiumSourceInvite => 'За ваші запрошення';
 
   @override

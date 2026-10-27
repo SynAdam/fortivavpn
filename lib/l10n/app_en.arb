@@ -453,6 +453,153 @@
       }
     }
   },
+  "inviteTreeLive": "Your bonus lasts while your friends keep using Fortiva. If a friend stops, it goes down.",
+  "@inviteTreeLive": {
+    "description": "Invite screen, invite tree rule: under the bonus, shown only while the bonus is above the kept minimum (inviteTreeKept). The bonus is live: it goes down when a friend stops. Never say it stays or is permanent."
+  },
+  "inviteTreeNext": "Your next friend adds {amount} a day once they start using Fortiva.",
+  "@inviteTreeNext": {
+    "description": "Invite screen, invite tree rule: under the share button, when the backend sends next_invite_bytes.",
+    "placeholders": {
+      "amount": {
+        "type": "String"
+      }
+    }
+  },
+  "inviteTreeKept": "Your bonus never goes below {amount} a day, because of friends you invited before.",
+  "@inviteTreeKept": {
+    "description": "Invite screen, invite tree rule: the bonus kept from invites made under the old rule (kept_bytes), shown when above zero. It is a minimum, not an amount added on top: the bonus is the larger of what friends give now and this amount.",
+    "placeholders": {
+      "amount": {
+        "type": "String"
+      }
+    }
+  },
+  "inviteTreeSlotsTitle": "Your slots",
+  "@inviteTreeSlotsTitle": {
+    "description": "Invite screen, invite tree rule: title over this device's own slots, drawn in pairs."
+  },
+  "inviteTreeSlotActive": "Active",
+  "@inviteTreeSlotActive": {
+    "description": "Invite screen, invite tree rule: a slot with a friend who is active now. Legend and screen reader label."
+  },
+  "inviteTreeSlotNotActive": "Not active now",
+  "@inviteTreeSlotNotActive": {
+    "description": "Invite screen, invite tree rule: a slot with a friend whose invite qualified but who is not active now. Legend and screen reader label. Do not say joined: entering a code does not fill a slot."
+  },
+  "inviteTreeSlotEmpty": "Open slot",
+  "@inviteTreeSlotEmpty": {
+    "description": "Invite screen, invite tree rule: a slot nobody is in yet. Legend and screen reader label."
+  },
+  "inviteTreePaysNow": "+{amount} a day now",
+  "@inviteTreePaysNow": {
+    "description": "Invite screen, invite tree rule: what a pair or a row gives a day now.",
+    "placeholders": {
+      "amount": {
+        "type": "String"
+      }
+    }
+  },
+  "inviteTreePairFull": "+{amount} a day when both are active",
+  "@inviteTreePairFull": {
+    "description": "Invite screen, invite tree rule: what a pair gives a day once both friends in it are active (full_bytes).",
+    "placeholders": {
+      "amount": {
+        "type": "String"
+      }
+    }
+  },
+  "inviteTreeNothingYet": "Nothing yet",
+  "@inviteTreeNothingYet": {
+    "description": "Invite screen, invite tree rule: a pair or a row that gives nothing now."
+  },
+  "inviteTreeFriendsTitle": "Through your slots",
+  "@inviteTreeFriendsTitle": {
+    "description": "Invite screen, invite tree rule: title over the rows that show what the people in the user's slots, and the people in their slots, give. Not all of them are the user's friends: the first pair can hold people the user did not invite, so do not call them friends. Never use the word for level, tier or rank, never say people are under or below the user, and never say they earn for the user."
+  },
+  "inviteTreeRowFriends": "In your slots",
+  "@inviteTreeRowFriends": {
+    "description": "Invite screen, invite tree rule: the first row under inviteTreeFriendsTitle, the people in the user's own slots. Do not call them friends, because the first pair can hold people the user did not invite. No level or rank wording."
+  },
+  "inviteTreeRowFriendsSlots": "In their slots",
+  "@inviteTreeRowFriendsSlots": {
+    "description": "Invite screen, invite tree rule: the second row under inviteTreeFriendsTitle, the people in the slots of the people in the user's own slots. Their means the people in the row above (inviteTreeRowFriends). Do not call them friends of friends. No level or rank wording, and never say under or below."
+  },
+  "inviteTreeRowSteps": "{steps, plural, one{{steps} step away} other{{steps} steps away}}",
+  "@inviteTreeRowSteps": {
+    "description": "Invite screen, invite tree rule: the rows after inviteTreeRowFriendsSlots, people further from the user. steps is how far they are, counted with the people in the user's own slots as one step. No level or rank wording, and never say under or below.",
+    "placeholders": {
+      "steps": {
+        "type": "int"
+      }
+    }
+  },
+  "inviteTreeRowPeople": "{people, plural, one{{people} person} other{{people} people}}, {active} active",
+  "@inviteTreeRowPeople": {
+    "description": "Invite screen, invite tree rule: under each row of inviteTreeFriendsTitle, how many people the row has and how many of them are active.",
+    "placeholders": {
+      "people": {
+        "type": "int"
+      },
+      "active": {
+        "type": "int"
+      }
+    }
+  },
+  "inviteTreeHowSlots": "{slots, plural, one{Share your code. The first friend who qualifies fills your slot.} other{Share your code. The first {slots} friends who qualify fill your slots, in pairs.}}",
+  "@inviteTreeHowSlots": {
+    "description": "How it works, invite tree rule: the number of this device's own slots, counted from the pairs the backend sends. A friend takes a slot once their invite qualifies, not when they enter the code: use the same word as inviteStatEarning and invitePendingNote.",
+    "placeholders": {
+      "slots": {
+        "type": "int"
+      }
+    }
+  },
+  "inviteTreeHowSlotsNoNumber": "Share your code. The first friends who qualify fill your slots, in pairs.",
+  "@inviteTreeHowSlotsNoNumber": {
+    "description": "How it works, invite tree rule, when the slots are not known. Names no number. Qualify is the same word as in inviteStatEarning and invitePendingNote."
+  },
+  "inviteTreeHowPair": "A pair adds more data when both people in it are active.",
+  "@inviteTreeHowPair": {
+    "description": "How it works, invite tree rule: a pair with both people active adds more data than one person alone. Say people, not friends, because the first pair can hold people the user did not invite. Say it adds data, never that it pays or earns."
+  },
+  "inviteTreeHowFriendsSlots": "When your slots are full, your next friends who qualify take the next open slots, further from you. They still add data for you, less the further they are.",
+  "@inviteTreeHowFriendsSlots": {
+    "description": "How it works, invite tree rule: once the user's own slots are full, friends who qualify later take the next open slots, further from the user, and still add data, less the further they are. Talk about friends and data. Never use the word for level, tier or rank, never say under or below, and never say earn, income or wages."
+  },
+  "inviteTreeHowOthers": "Your first pair can also take people you did not invite. They add data for you in the same way.",
+  "@inviteTreeHowOthers": {
+    "description": "How it works, invite tree rule: when the slots of the people the user is placed with are full, their later friends can fill the user's first pair. Those people add data for the user like the user's own friends. Do not say who invited them, and never say above, under or below."
+  },
+  "inviteTreeHowActive": "A friend is active while they have used Fortiva on at least {days, plural, one{{days} day} other{{days} days}} in the last {window, plural, one{{window} day} other{{window} days}}.",
+  "@inviteTreeHowActive": {
+    "description": "How it works, invite tree rule: a friend counts while they used the VPN on at least active_days days in the last active_window_days days.",
+    "placeholders": {
+      "days": {
+        "type": "int"
+      },
+      "window": {
+        "type": "int"
+      }
+    }
+  },
+  "inviteTreeHowActiveNoNumber": "A friend is active while they keep using Fortiva.",
+  "@inviteTreeHowActiveNoNumber": {
+    "description": "How it works, invite tree rule, when the backend sends no days. Names no number."
+  },
+  "inviteTreeHowCap": "Invites can add up to {max} a day.",
+  "@inviteTreeHowCap": {
+    "description": "How it works, invite tree rule: the most invites can add a day (max_bonus_bytes). The tree's own wording of inviteHowItWorksCap: say invites add data, never that the user earns, gets paid or makes it.",
+    "placeholders": {
+      "max": {
+        "type": "String"
+      }
+    }
+  },
+  "inviteTreeHowCapNoAmount": "There is a daily limit to what invites can add.",
+  "@inviteTreeHowCapNoAmount": {
+    "description": "How it works, invite tree rule, when the backend sends no max_bonus_bytes. Names no number."
+  },
   "premiumSourceInvite": "From your invites",
   "@premiumSourceInvite": {
     "description": "How Premium was paid: days earned by inviting friends (source referral)."

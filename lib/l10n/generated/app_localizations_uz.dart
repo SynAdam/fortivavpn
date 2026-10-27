@@ -840,6 +840,119 @@ class SUz extends S {
   }
 
   @override
+  String get inviteTreeLive =>
+      'Bonusingiz doʻstlaringiz Fortiva ilovasidan foydalanib turgan paytda amal qiladi. Biror doʻst toʻxtasa, bonus kamayadi.';
+
+  @override
+  String inviteTreeNext(String amount) {
+    return 'Keyingi doʻstingiz Fortiva ilovasidan foydalana boshlagach, kuniga $amount qoʻshadi.';
+  }
+
+  @override
+  String inviteTreeKept(String amount) {
+    return 'Avval taklif qilgan doʻstlaringiz tufayli bonusingiz hech qachon kuniga $amount dan kam boʻlmaydi.';
+  }
+
+  @override
+  String get inviteTreeSlotsTitle => 'Oʻrinlaringiz';
+
+  @override
+  String get inviteTreeSlotActive => 'Faol';
+
+  @override
+  String get inviteTreeSlotNotActive => 'Hozir faol emas';
+
+  @override
+  String get inviteTreeSlotEmpty => 'Boʻsh oʻrin';
+
+  @override
+  String inviteTreePaysNow(String amount) {
+    return 'Hozir kuniga +$amount';
+  }
+
+  @override
+  String inviteTreePairFull(String amount) {
+    return 'Ikkalasi ham faol boʻlsa, kuniga +$amount';
+  }
+
+  @override
+  String get inviteTreeNothingYet => 'Hozircha hech narsa';
+
+  @override
+  String get inviteTreeFriendsTitle => 'Oʻrinlaringiz orqali';
+
+  @override
+  String get inviteTreeRowFriends => 'Oʻrinlaringizda';
+
+  @override
+  String get inviteTreeRowFriendsSlots => 'Ularning oʻrinlarida';
+
+  @override
+  String inviteTreeRowSteps(int steps) {
+    String _temp0 = intl.Intl.pluralLogic(
+      steps,
+      locale: localeName,
+      other: '$steps qadam uzoqda',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String inviteTreeRowPeople(int people, int active) {
+    String _temp0 = intl.Intl.pluralLogic(
+      people,
+      locale: localeName,
+      other: '$people kishi',
+    );
+    return '$_temp0, $active faol';
+  }
+
+  @override
+  String inviteTreeHowSlots(int slots) {
+    String _temp0 = intl.Intl.pluralLogic(
+      slots,
+      locale: localeName,
+      other:
+          'Kodingizni ulashing. Taklifi tasdiqlangan dastlabki $slots doʻst oʻrinlaringizni juft-juft qilib toʻldiradi.',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get inviteTreeHowSlotsNoNumber =>
+      'Kodingizni ulashing. Taklifi tasdiqlangan dastlabki doʻstlar oʻrinlaringizni juft-juft qilib toʻldiradi.';
+
+  @override
+  String get inviteTreeHowPair =>
+      'Juftlikdagi ikkala odam ham faol boʻlsa, u koʻproq beradi.';
+
+  @override
+  String get inviteTreeHowFriendsSlots =>
+      'Oʻrinlaringiz toʻlgach, taklifi keyin tasdiqlangan doʻstlaringiz keyingi boʻsh oʻrinlarni egallaydi, ular sizdan uzoqroq. Ular ham sizga trafik qoʻshadi, qanchalik uzoq boʻlsa, shunchalik kamroq.';
+
+  @override
+  String get inviteTreeHowOthers =>
+      'Birinchi juftligingizga siz taklif qilmagan odamlar ham joylashishi mumkin. Ular ham sizga xuddi shunday trafik qoʻshadi.';
+
+  @override
+  String inviteTreeHowActive(int days, int window) {
+    return 'Doʻst oxirgi $window kun ichida kamida $days kun Fortiva ilovasidan foydalangan boʻlsa, faol hisoblanadi.';
+  }
+
+  @override
+  String get inviteTreeHowActiveNoNumber =>
+      'Doʻst Fortiva ilovasidan foydalanishda davom etsa, faol hisoblanadi.';
+
+  @override
+  String inviteTreeHowCap(String max) {
+    return 'Takliflar kuniga koʻpi bilan $max qoʻshishi mumkin.';
+  }
+
+  @override
+  String get inviteTreeHowCapNoAmount =>
+      'Takliflar qoʻshadigan trafikning kunlik chegarasi bor.';
+
+  @override
   String get premiumSourceInvite => 'Takliflaringiz uchun sovgʻa';
 
   @override

@@ -816,6 +816,118 @@ class SFa extends S {
   }
 
   @override
+  String get inviteTreeLive =>
+      'پاداش شما تا وقتی ادامه دارد که دوستانتان از فورتیوا استفاده کنند. اگر دوستی استفاده را کنار بگذارد، پاداش کم می‌شود.';
+
+  @override
+  String inviteTreeNext(String amount) {
+    return 'دوست بعدی که دعوت کنید، وقتی استفاده از فورتیوا را شروع کند، $amount در روز به دیتای شما اضافه می‌کند.';
+  }
+
+  @override
+  String inviteTreeKept(String amount) {
+    return 'پاداش شما به‌خاطر دوستانی که قبلاً دعوت کرده‌اید، هیچ‌وقت از $amount در روز کمتر نمی‌شود.';
+  }
+
+  @override
+  String get inviteTreeSlotsTitle => 'جایگاه‌های شما';
+
+  @override
+  String get inviteTreeSlotActive => 'فعال';
+
+  @override
+  String get inviteTreeSlotNotActive => 'فعلاً غیرفعال';
+
+  @override
+  String get inviteTreeSlotEmpty => 'جای خالی';
+
+  @override
+  String inviteTreePaysNow(String amount) {
+    return '+$amount در روز، اکنون';
+  }
+
+  @override
+  String inviteTreePairFull(String amount) {
+    return '+$amount در روز، وقتی هر دو فعال باشند';
+  }
+
+  @override
+  String get inviteTreeNothingYet => 'هنوز چیزی نیست';
+
+  @override
+  String get inviteTreeFriendsTitle => 'از طریق جایگاه‌هایتان';
+
+  @override
+  String get inviteTreeRowFriends => 'در جایگاه‌های شما';
+
+  @override
+  String get inviteTreeRowFriendsSlots => 'در جایگاه‌های آن‌ها';
+
+  @override
+  String inviteTreeRowSteps(int steps) {
+    String _temp0 = intl.Intl.pluralLogic(
+      steps,
+      locale: localeName,
+      other: 'با $steps قدم فاصله',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String inviteTreeRowPeople(int people, int active) {
+    String _temp0 = intl.Intl.pluralLogic(
+      people,
+      locale: localeName,
+      other: '$people نفر',
+    );
+    return '$_temp0، $active نفر فعال';
+  }
+
+  @override
+  String inviteTreeHowSlots(int slots) {
+    String _temp0 = intl.Intl.pluralLogic(
+      slots,
+      locale: localeName,
+      other:
+          'کدتان را به اشتراک بگذارید. $slots دوست اولی که واجد شرایط شوند، جایگاه‌های شما را جفت‌جفت پر می‌کنند.',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get inviteTreeHowSlotsNoNumber =>
+      'کدتان را به اشتراک بگذارید. اولین دوستانی که واجد شرایط شوند، جایگاه‌های شما را جفت‌جفت پر می‌کنند.';
+
+  @override
+  String get inviteTreeHowPair =>
+      'هر جفت وقتی هر دوی آن‌ها فعال باشند، پاداش بیشتری می‌دهد.';
+
+  @override
+  String get inviteTreeHowFriendsSlots =>
+      'وقتی جایگاه‌های شما پر شود، دوستان بعدی‌تان که واجد شرایط شوند جایگاه‌های خالی بعدی را می‌گیرند که از شما دورترند. آن‌ها هم به دیتای شما اضافه می‌کنند، ولی هرچه دورتر باشند، کمتر.';
+
+  @override
+  String get inviteTreeHowOthers =>
+      'جفت اول شما ممکن است با کسانی پر شود که دعوتشان نکرده‌اید. آن‌ها هم به همین شکل به دیتای شما اضافه می‌کنند.';
+
+  @override
+  String inviteTreeHowActive(int days, int window) {
+    return 'هر دوست تا وقتی فعال حساب می‌شود که در $window روز گذشته، دست‌کم در $days روز از فورتیوا استفاده کرده باشد.';
+  }
+
+  @override
+  String get inviteTreeHowActiveNoNumber =>
+      'هر دوست تا وقتی فعال حساب می‌شود که به استفاده از فورتیوا ادامه دهد.';
+
+  @override
+  String inviteTreeHowCap(String max) {
+    return 'دعوت‌ها می‌توانند تا $max در روز به دیتای شما اضافه کنند.';
+  }
+
+  @override
+  String get inviteTreeHowCapNoAmount => 'پاداش دعوت در روز سقف مشخصی دارد.';
+
+  @override
   String get premiumSourceInvite => 'هدیه دعوت از دوستان';
 
   @override

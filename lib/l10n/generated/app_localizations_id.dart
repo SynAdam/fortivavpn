@@ -828,6 +828,119 @@ class SId extends S {
   }
 
   @override
+  String get inviteTreeLive =>
+      'Bonus Anda berlaku selama teman Anda terus memakai Fortiva. Jika ada teman yang berhenti, bonus berkurang.';
+
+  @override
+  String inviteTreeNext(String amount) {
+    return 'Teman Anda berikutnya menambah $amount per hari setelah mulai memakai Fortiva.';
+  }
+
+  @override
+  String inviteTreeKept(String amount) {
+    return 'Bonus Anda tidak pernah turun di bawah $amount per hari, berkat teman yang Anda undang sebelumnya.';
+  }
+
+  @override
+  String get inviteTreeSlotsTitle => 'Slot Anda';
+
+  @override
+  String get inviteTreeSlotActive => 'Aktif';
+
+  @override
+  String get inviteTreeSlotNotActive => 'Sedang tidak aktif';
+
+  @override
+  String get inviteTreeSlotEmpty => 'Slot kosong';
+
+  @override
+  String inviteTreePaysNow(String amount) {
+    return '+$amount per hari sekarang';
+  }
+
+  @override
+  String inviteTreePairFull(String amount) {
+    return '+$amount per hari jika keduanya aktif';
+  }
+
+  @override
+  String get inviteTreeNothingYet => 'Belum ada';
+
+  @override
+  String get inviteTreeFriendsTitle => 'Lewat slot Anda';
+
+  @override
+  String get inviteTreeRowFriends => 'Di slot Anda';
+
+  @override
+  String get inviteTreeRowFriendsSlots => 'Di slot mereka';
+
+  @override
+  String inviteTreeRowSteps(int steps) {
+    String _temp0 = intl.Intl.pluralLogic(
+      steps,
+      locale: localeName,
+      other: '$steps langkah dari Anda',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String inviteTreeRowPeople(int people, int active) {
+    String _temp0 = intl.Intl.pluralLogic(
+      people,
+      locale: localeName,
+      other: '$people orang',
+    );
+    return '$_temp0, $active aktif';
+  }
+
+  @override
+  String inviteTreeHowSlots(int slots) {
+    String _temp0 = intl.Intl.pluralLogic(
+      slots,
+      locale: localeName,
+      other:
+          'Bagikan kode Anda. $slots teman pertama yang memenuhi syarat mengisi slot Anda secara berpasangan.',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get inviteTreeHowSlotsNoNumber =>
+      'Bagikan kode Anda. Teman-teman pertama yang memenuhi syarat mengisi slot Anda secara berpasangan.';
+
+  @override
+  String get inviteTreeHowPair =>
+      'Pasangan memberi lebih banyak jika keduanya aktif.';
+
+  @override
+  String get inviteTreeHowFriendsSlots =>
+      'Saat slot Anda sudah penuh, teman Anda berikutnya yang memenuhi syarat mengisi slot kosong berikutnya, lebih jauh dari Anda. Mereka tetap menambah data untuk Anda, makin jauh makin kecil jumlahnya.';
+
+  @override
+  String get inviteTreeHowOthers =>
+      'Pasangan pertama Anda juga bisa diisi orang yang tidak Anda undang. Mereka menambah data untuk Anda dengan cara yang sama.';
+
+  @override
+  String inviteTreeHowActive(int days, int window) {
+    return 'Seorang teman dihitung aktif selama ia memakai Fortiva setidaknya $days hari dalam $window hari terakhir.';
+  }
+
+  @override
+  String get inviteTreeHowActiveNoNumber =>
+      'Seorang teman dihitung aktif selama ia terus memakai Fortiva.';
+
+  @override
+  String inviteTreeHowCap(String max) {
+    return 'Undangan bisa menambah hingga $max per hari.';
+  }
+
+  @override
+  String get inviteTreeHowCapNoAmount =>
+      'Tambahan dari undangan punya batas harian.';
+
+  @override
   String get premiumSourceInvite => 'Dari undangan Anda';
 
   @override

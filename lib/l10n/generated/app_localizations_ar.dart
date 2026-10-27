@@ -850,6 +850,143 @@ class SAr extends S {
   }
 
   @override
+  String get inviteTreeLive =>
+      'تستمر مكافأتك ما دام أصدقاؤك يستخدمون فورتيفا. إذا توقف أحدهم، تنخفض المكافأة.';
+
+  @override
+  String inviteTreeNext(String amount) {
+    return 'صديقك التالي يضيف $amount يوميًا عندما يبدأ باستخدام فورتيفا.';
+  }
+
+  @override
+  String inviteTreeKept(String amount) {
+    return 'لن تقل مكافأتك عن $amount يوميًا أبدًا، بفضل الأصدقاء الذين دعوتهم سابقًا.';
+  }
+
+  @override
+  String get inviteTreeSlotsTitle => 'خاناتك';
+
+  @override
+  String get inviteTreeSlotActive => 'نشط';
+
+  @override
+  String get inviteTreeSlotNotActive => 'غير نشط الآن';
+
+  @override
+  String get inviteTreeSlotEmpty => 'خانة فارغة';
+
+  @override
+  String inviteTreePaysNow(String amount) {
+    return '+$amount يوميًا الآن';
+  }
+
+  @override
+  String inviteTreePairFull(String amount) {
+    return '+$amount يوميًا عندما يكون كلاهما نشطًا';
+  }
+
+  @override
+  String get inviteTreeNothingYet => 'لا شيء بعد';
+
+  @override
+  String get inviteTreeFriendsTitle => 'عبر خاناتك';
+
+  @override
+  String get inviteTreeRowFriends => 'في خاناتك';
+
+  @override
+  String get inviteTreeRowFriendsSlots => 'في خاناتهم';
+
+  @override
+  String inviteTreeRowSteps(int steps) {
+    String _temp0 = intl.Intl.pluralLogic(
+      steps,
+      locale: localeName,
+      other: 'على بعد $steps خطوة',
+      many: 'على بعد $steps خطوة',
+      few: 'على بعد $steps خطوات',
+      two: 'على بعد خطوتين',
+      one: 'على بعد خطوة واحدة',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String inviteTreeRowPeople(int people, int active) {
+    String _temp0 = intl.Intl.pluralLogic(
+      people,
+      locale: localeName,
+      other: '$people شخص',
+      many: '$people شخصًا',
+      few: '$people أشخاص',
+      two: 'شخصان',
+      one: 'شخص واحد',
+    );
+    return '$_temp0، $active نشط';
+  }
+
+  @override
+  String inviteTreeHowSlots(int slots) {
+    String _temp0 = intl.Intl.pluralLogic(
+      slots,
+      locale: localeName,
+      other:
+          'شارك رمزك. أول $slots من الأصدقاء الذين يتأهلون يملؤون خاناتك على شكل ثنائيات.',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get inviteTreeHowSlotsNoNumber =>
+      'شارك رمزك. أول الأصدقاء الذين يتأهلون يملؤون خاناتك على شكل ثنائيات.';
+
+  @override
+  String get inviteTreeHowPair => 'يمنحك الثنائي أكثر عندما يكون كلاهما نشطًا.';
+
+  @override
+  String get inviteTreeHowFriendsSlots =>
+      'عندما تمتلئ خاناتك، يشغل الأصدقاء الذين يتأهلون بعد ذلك الخانات الفارغة التالية، الأبعد عنك. وهم أيضًا يضيفون إلى بياناتك، بمقدار أقل كلما ابتعدوا.';
+
+  @override
+  String get inviteTreeHowOthers =>
+      'قد يشغل ثنائيك الأول أشخاص لم تدعُهم. وهم يضيفون إلى بياناتك بالطريقة نفسها.';
+
+  @override
+  String inviteTreeHowActive(int days, int window) {
+    String _temp0 = intl.Intl.pluralLogic(
+      days,
+      locale: localeName,
+      other: '$days يوم',
+      many: '$days يومًا',
+      few: '$days أيام',
+      two: 'يومين',
+      one: 'يوم واحد',
+    );
+    String _temp1 = intl.Intl.pluralLogic(
+      window,
+      locale: localeName,
+      other: '$window يوم',
+      many: '$window يومًا',
+      few: '$window أيام',
+      two: 'يومين',
+      one: 'يوم',
+    );
+    return 'يُحتسب الصديق نشطًا إذا استخدم فورتيفا في $_temp0 على الأقل خلال آخر $_temp1.';
+  }
+
+  @override
+  String get inviteTreeHowActiveNoNumber =>
+      'يُحتسب الصديق نشطًا ما دام يواصل استخدام فورتيفا.';
+
+  @override
+  String inviteTreeHowCap(String max) {
+    return 'يمكن أن تضيف الدعوات حتى $max يوميًا.';
+  }
+
+  @override
+  String get inviteTreeHowCapNoAmount => 'لما تضيفه الدعوات حد يومي.';
+
+  @override
   String get premiumSourceInvite => 'هدية من دعوة الأصدقاء';
 
   @override

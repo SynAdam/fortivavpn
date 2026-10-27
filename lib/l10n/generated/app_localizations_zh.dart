@@ -795,6 +795,112 @@ class SZh extends S {
   }
 
   @override
+  String get inviteTreeLive => '只要您的好友还在使用 Fortiva，奖励就有效。有好友停止使用时，奖励会减少。';
+
+  @override
+  String inviteTreeNext(String amount) {
+    return '您接下来邀请的好友开始使用 Fortiva 后，每天可为您增加 $amount。';
+  }
+
+  @override
+  String inviteTreeKept(String amount) {
+    return '因为您之前邀请的好友，您的奖励每天不会低于 $amount。';
+  }
+
+  @override
+  String get inviteTreeSlotsTitle => '您的位置';
+
+  @override
+  String get inviteTreeSlotActive => '活跃';
+
+  @override
+  String get inviteTreeSlotNotActive => '当前不活跃';
+
+  @override
+  String get inviteTreeSlotEmpty => '空位';
+
+  @override
+  String inviteTreePaysNow(String amount) {
+    return '当前每天 +$amount';
+  }
+
+  @override
+  String inviteTreePairFull(String amount) {
+    return '双方都活跃时每天 +$amount';
+  }
+
+  @override
+  String get inviteTreeNothingYet => '暂无';
+
+  @override
+  String get inviteTreeFriendsTitle => '通过您的位置';
+
+  @override
+  String get inviteTreeRowFriends => '在您的位置中';
+
+  @override
+  String get inviteTreeRowFriendsSlots => '在他们的位置中';
+
+  @override
+  String inviteTreeRowSteps(int steps) {
+    String _temp0 = intl.Intl.pluralLogic(
+      steps,
+      locale: localeName,
+      other: '相隔 $steps 步',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String inviteTreeRowPeople(int people, int active) {
+    String _temp0 = intl.Intl.pluralLogic(
+      people,
+      locale: localeName,
+      other: '$people 人',
+    );
+    return '$_temp0，$active 人活跃';
+  }
+
+  @override
+  String inviteTreeHowSlots(int slots) {
+    String _temp0 = intl.Intl.pluralLogic(
+      slots,
+      locale: localeName,
+      other: '分享您的邀请码。最先达标的 $slots 位好友会成对填满您的位置。',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get inviteTreeHowSlotsNoNumber => '分享您的邀请码。最先达标的好友会成对填满您的位置。';
+
+  @override
+  String get inviteTreeHowPair => '一对中双方都活跃时，奖励更多。';
+
+  @override
+  String get inviteTreeHowFriendsSlots =>
+      '您的位置满了以后，您之后达标的好友会进入下一个空位，离您更远。他们也会为您增加流量，离您越远，增加得越少。';
+
+  @override
+  String get inviteTreeHowOthers => '您的第一对位置也可能由您没有邀请的人填入。他们同样会为您增加流量。';
+
+  @override
+  String inviteTreeHowActive(int days, int window) {
+    return '好友在最近 $window 天内至少使用 Fortiva $days 天，就算作活跃。';
+  }
+
+  @override
+  String get inviteTreeHowActiveNoNumber => '好友只要继续使用 Fortiva，就算作活跃。';
+
+  @override
+  String inviteTreeHowCap(String max) {
+    return '邀请每天最多可增加 $max。';
+  }
+
+  @override
+  String get inviteTreeHowCapNoAmount => '邀请可增加的流量有每日上限。';
+
+  @override
   String get premiumSourceInvite => '来自您的邀请';
 
   @override

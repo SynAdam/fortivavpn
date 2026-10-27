@@ -70,6 +70,37 @@ class ReferralStatus {
   /// Until when this install may still enter a code, or null.
   final DateTime? claimOpenUntil;
 
+  /// Which rule the backend pays invites by: "tree" for the invite tree,
+  /// null when it did not say (today's rule, a bonus per friend).
+  final String? rules;
+
+  /// Under the tree rule, this device's own first slots, in pairs and in
+  /// order. Empty under today's rule.
+  final List<TreePair> pairs;
+
+  /// Under the tree rule, the levels below this device that have at least
+  /// one person, from level 1 (this device's own friends), sorted, one
+  /// entry per level. Empty under today's rule.
+  final List<TreeLevel> levels;
+
+  /// What the next friend this device invites adds a day once they are
+  /// active, in bytes. Null when it adds nothing or the backend did not say.
+  final int? nextInviteBytes;
+
+  /// The bonus kept from invites made under the old rule, in bytes. The
+  /// bonus never drops below it. Null when there is none.
+  final int? keptBytes;
+
+  /// A friend counts while they use the VPN on at least [activeDays] days
+  /// in every [activeWindowDays] days. Null when the backend did not say,
+  /// and then the app names no number.
+  final int? activeDays;
+  final int? activeWindowDays;
+
+  /// The most the daily allowance can reach with invites, in bytes, or
+  /// null.
+  final int? maxTotalBytes;
+
   const ReferralStatus({
     required this.code,
     required this.shareUrl,
@@ -89,6 +120,14 @@ class ReferralStatus {
     this.premiumDaysMax,
     this.earns = false,
     this.claimOpenUntil,
+    this.rules,
+    this.pairs = const [],
+    this.levels = const [],
+    this.nextInviteBytes,
+    this.keptBytes,
+    this.activeDays,
+    this.activeWindowDays,
+    this.maxTotalBytes,
   });
 
   factory ReferralStatus.fromJson(Map<String, dynamic> json) {
@@ -115,8 +154,30 @@ class ReferralStatus {
       premiumDaysMax: _positiveInt(json['premium_days_max']),
       earns: json['earns'] == true,
       claimOpenUntil: readTime(json['claim_open_until']),
+      rules: readText(json['rules']),
+      pairs: [for (final p in readList(json['pairs'])) ?TreePair.fromJson(p)],
+      levels: TreeLevel.listFromJson(json['levels']),
+      nextInviteBytes: _positiveBytes(json['next_invite_bytes']),
+      keptBytes: _positiveBytes(json['kept_bytes']),
+      activeDays: _positiveInt(json['active_days']),
+      activeWindowDays: _positiveInt(json['active_window_days']),
+      maxTotalBytes: _positiveBytes(json['max_total_bytes']),
     );
   }
+
+  /// Whether the backend pays invites by the invite tree. Under that rule
+  /// no text may say the bonus stays, so this is true whenever the backend
+  /// says so, even when it sent no slots that could be read. The screen
+  /// then leaves out the slots and names no number of slots.
+  bool get isTree => rules == 'tree';
+
+  /// Whether the bonus is above the part kept from the old rule. The bonus
+  /// never drops below [keptBytes], so only then would a friend who stops
+  /// lower it.
+  bool get bonusAboveKept => bonusBytes > (keptBytes ?? 0);
+
+  /// How many slots this device has of its own, counted from [pairs].
+  int get treeSlots => pairs.fold(0, (n, p) => n + p.slots.length);
 
   /// A byte count the backend may or may not send. Backends older than
   /// these fields send nothing, so anything that is not a positive whole
@@ -132,11 +193,22 @@ class ReferralStatus {
     return null;
   }
 
+  /// A byte count where zero is a real answer, such as what a pair pays
+  /// now. Anything that is not a whole number of zero or more reads as
+  /// null.
+  static int? _bytesOrZero(Object? value) =>
+      value == 0 ? 0 : _positiveBytes(value);
+
   /// A count the backend may or may not send, such as hours or days.
   /// Anything that is not a whole number above zero reads as null, so the
   /// screen falls back to text that names no number.
   static int? _positiveInt(Object? value) =>
       value is int && value > 0 ? value : null;
+
+  /// A count where zero is a real answer, such as how many people on a
+  /// level are active. Null for anything else.
+  static int? _countOrZero(Object? value) =>
+      value is int && value >= 0 ? value : null;
 
   /// Invites that have been accepted but have not earned anything yet,
   /// because the invited device has not used the VPN enough.
@@ -146,6 +218,124 @@ class ReferralStatus {
   }
 
   bool get hasClaimed => claimedCode != null;
+}
+
+/// One slot of a pair under the tree rule.
+enum TreeSlot {
+  /// Nobody is in it yet.
+  empty,
+
+  /// A friend whose invite qualified is in it but is not active now. The
+  /// backend's word for it is "joined"; the screen says "Not active now".
+  joined,
+
+  /// A friend is in it and is active.
+  active;
+
+  /// The slot for the backend's word. Anything else reads as empty, so a
+  /// word a newer backend adds never claims a friend is active.
+  static TreeSlot fromWire(Object? value) => switch (value) {
+    'active' => TreeSlot.active,
+    'joined' => TreeSlot.joined,
+    _ => TreeSlot.empty,
+  };
+}
+
+/// One pair of this device's own slots under the tree rule.
+class TreePair {
+  /// The two slots of the pair, in order. Always two: a slot the backend
+  /// left out reads as empty.
+  final List<TreeSlot> slots;
+
+  /// What the pair pays a day when both are active, or null.
+  final int? fullBytes;
+
+  /// What one active person alone pays a day. Zero means one alone pays
+  /// nothing. Null when the backend did not say.
+  final int? oneBytes;
+
+  /// What the pair pays a day now, zero included, or null.
+  final int? nowBytes;
+
+  const TreePair({
+    required this.slots,
+    this.fullBytes,
+    this.oneBytes,
+    this.nowBytes,
+  });
+
+  /// The pair in [value], or null when it is not an object.
+  static TreePair? fromJson(Object? value) {
+    if (value is! Map) return null;
+    final states = readList(value['states']);
+    return TreePair(
+      slots: [
+        for (var i = 0; i < _slotsPerPair; i++)
+          TreeSlot.fromWire(i < states.length ? states[i] : null),
+      ],
+      fullBytes: ReferralStatus._positiveBytes(value['full_bytes']),
+      oneBytes: ReferralStatus._bytesOrZero(value['one_bytes']),
+      nowBytes: ReferralStatus._bytesOrZero(value['now_bytes']),
+    );
+  }
+
+  /// A pair is two slots. This is what the word means, not a rule the
+  /// backend sets.
+  static const _slotsPerPair = 2;
+
+  /// Whether every slot holds an active friend.
+  bool get full => slots.every((s) => s == TreeSlot.active);
+}
+
+/// One level below this device under the tree rule. Level 1 is this
+/// device's own friends, level 2 the people in their slots, and so on.
+class TreeLevel {
+  final int level;
+
+  /// People on this level, and how many of them are active now.
+  final int people;
+  final int active;
+
+  /// What this level pays a day now, zero included, or null.
+  final int? bytes;
+
+  const TreeLevel({
+    required this.level,
+    required this.people,
+    required this.active,
+    this.bytes,
+  });
+
+  /// The levels in [value], sorted by level. The first entry for a level
+  /// number wins and later ones are dropped. An entry with nobody in it,
+  /// or with more active people than people, is left out, so the screen
+  /// never shows a count that cannot be true.
+  static List<TreeLevel> listFromJson(Object? value) {
+    final byLevel = <int, TreeLevel>{};
+    for (final item in readList(value)) {
+      final level = fromJson(item);
+      if (level == null) continue;
+      if (level.people == 0 || level.active > level.people) continue;
+      byLevel.putIfAbsent(level.level, () => level);
+    }
+    return byLevel.values.toList()..sort((a, b) => a.level - b.level);
+  }
+
+  /// The level in [value], or null when it is not an object or its level
+  /// or counts are not whole numbers.
+  static TreeLevel? fromJson(Object? value) {
+    if (value is! Map) return null;
+    final level = ReferralStatus._positiveInt(value['level']);
+    final people = ReferralStatus._countOrZero(value['people']);
+    final active = ReferralStatus._countOrZero(value['active']);
+    if (level == null || people == null || active == null) return null;
+    return TreeLevel(
+      level: level,
+      people: people,
+      active: active,
+      bytes: ReferralStatus._bytesOrZero(value['bytes']),
+    );
+  }
 }
 
 /// Why a claim was refused.
