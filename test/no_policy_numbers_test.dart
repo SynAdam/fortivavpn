@@ -1292,7 +1292,7 @@ final _codeRules = <String, RegExp>{
 /// Words that make a constant's name a service rule. A declaration whose
 /// name has one of these words (split on camelCase and _) and whose value
 /// is a number or a Duration is a hit: "confirmDays = 2",
-/// "anonymousDailyMb = 5120", "deviceLimit = 3".
+/// "freeDailyMb = 5120", "deviceLimit = 3".
 const policyNameWords = {
   'allowance', 'bonus', 'bytes', 'cap', 'claim', 'confirm', 'daily', 'day', //
   'days', 'device', 'devices', 'free', 'friend', 'friends', 'gb', 'gib',
@@ -1318,7 +1318,7 @@ final _numberFallback = RegExp(
   r'([A-Za-z_]\w*)\s*\?\?\s*([1-9][\d_]*)(?![\w.])',
 );
 
-/// The policy words in a Dart name: "anonymousDailyMb" has daily and mb.
+/// The policy words in a Dart name: "freeDailyMb" has free, daily and mb.
 Set<String> policyWordsIn(String name) {
   final parts = name
       .replaceAllMapped(RegExp(r'([a-z0-9])([A-Z])'), (m) => '${m[1]}_${m[2]}')
@@ -1779,7 +1779,7 @@ void main() {
     // A service rule kept in a named constant, with no byte math in it.
     const plantedNames = [
       'static const confirmDays = 2;',
-      'static const int anonymousDailyMb = 5120;',
+      'static const int freeDailyMb = 5120;',
       'const deviceLimit = 3;',
       'const freeTierHours = 24;',
       'static const claimWindow = Duration(hours: 72);',

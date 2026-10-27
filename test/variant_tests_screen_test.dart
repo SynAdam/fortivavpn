@@ -51,7 +51,6 @@ Map<String, dynamic> _answer({bool withTests = false}) => {
     'remaining_bytes': 90,
     'blocked': false,
   },
-  'google': {'linked': false},
   if (withTests) ...{
     'variant_tests': [
       {

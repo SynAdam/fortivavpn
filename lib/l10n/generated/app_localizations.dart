@@ -831,10 +831,10 @@ abstract class S {
   /// **'Delete your account?'**
   String get deleteAccountConfirmTitle;
 
-  /// No description provided for @deleteAccountConfirmBody.
+  /// Body of the Delete account dialog: what deleting removes. The app has no sign-in, so it lists no other account.
   ///
   /// In en, this message translates to:
-  /// **'This removes your device registration, any linked Google account, the personal servers created for you, and your support chat messages. Your connection history on this phone is erased too.\n\nThis cannot be undone. You can start again at any time by reopening the app.'**
+  /// **'This removes your device registration, the personal servers created for you, and your support chat messages. Your connection history on this phone is erased too.\n\nThis cannot be undone. You can start again at any time by reopening the app.'**
   String get deleteAccountConfirmBody;
 
   /// Shown when GET /api/v1/app/config sends deleted_data_retention_days.
@@ -2373,10 +2373,10 @@ abstract class S {
   /// **'Your purchase is restored on this phone.'**
   String get premiumRestoreDone;
 
-  /// No description provided for @premiumRestoreNone.
+  /// Shown after Restore purchases when Google Play has no purchase of Fortiva to restore. Name Google Play, not an account.
   ///
   /// In en, this message translates to:
-  /// **'This Google account has no purchase to restore.'**
+  /// **'Google Play has no purchase to restore.'**
   String get premiumRestoreNone;
 
   /// No description provided for @premiumRestoreFailed.

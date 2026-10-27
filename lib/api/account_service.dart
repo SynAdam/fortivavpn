@@ -8,9 +8,9 @@ import 'api_routes.dart';
 import 'device_identity.dart';
 import 'device_service.dart';
 
-/// Deletes this install's account: the backend device row, the Google
-/// link, the VLESS clients provisioned on every server, and the local
-/// state that describes them.
+/// Deletes this install's account: the backend device row, the VLESS
+/// clients provisioned on every server, and the local state that
+/// describes them.
 ///
 /// Exists because App Store Review Guideline 5.1.1(v) requires an account
 /// created in the app to be deletable from inside the app. Signing out is
@@ -324,8 +324,8 @@ class AccountService {
   /// Once the server side is done, the local clean-up runs to completion
   /// regardless of what any single step does. Each of those steps can
   /// fail for reasons that have nothing to do with the deletion (a broken
-  /// keystore), and none of them should turn a
-  /// completed deletion into an error the user is told to retry.
+  /// keystore), and none of them should turn a completed deletion into an
+  /// error the user is told to retry.
   ///
   /// Throws [ApiException] if the backend could not be reached or refused
   /// the request.

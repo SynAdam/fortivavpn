@@ -375,7 +375,7 @@ class SAr extends S {
 
   @override
   String get deleteAccountConfirmBody =>
-      'سيؤدي هذا إلى إزالة تسجيل جهازك، وأي حساب Google مرتبط، والخوادم الخاصة التي أُنشئت لك، ورسائلك في دردشة الدعم. كما سيُمحى سجل الاتصال على هذا الهاتف.\n\nلا يمكن التراجع عن هذا الإجراء. يمكنك البدء من جديد في أي وقت بإعادة فتح التطبيق.';
+      'سيؤدي هذا إلى إزالة تسجيل جهازك، والخوادم الخاصة التي أُنشئت لك، ورسائلك في دردشة الدعم. كما سيُمحى سجل الاتصال على هذا الهاتف.\n\nلا يمكن التراجع عن هذا الإجراء. يمكنك البدء من جديد في أي وقت بإعادة فتح التطبيق.';
 
   @override
   String deleteAccountConfirmRetention(int days) {
@@ -1432,8 +1432,7 @@ class SAr extends S {
   String get premiumRestoreDone => 'تمت استعادة مشترياتك على هذا الهاتف.';
 
   @override
-  String get premiumRestoreNone =>
-      'لا توجد مشتريات لاستعادتها في حساب Google هذا.';
+  String get premiumRestoreNone => 'لا توجد في Google Play مشتريات لاستعادتها.';
 
   @override
   String get premiumRestoreFailed =>

@@ -372,7 +372,7 @@ class SZh extends S {
 
   @override
   String get deleteAccountConfirmBody =>
-      '这将移除您的设备注册、已关联的 Google 账户、为您创建的个人服务器以及您的客服聊天消息。此手机上的连接历史也会被清除。\n\n此操作无法撤销。您随时可以重新打开应用，从头开始。';
+      '这将移除您的设备注册、为您创建的个人服务器以及您的客服聊天消息。此手机上的连接历史也会被清除。\n\n此操作无法撤销。您随时可以重新打开应用，从头开始。';
 
   @override
   String deleteAccountConfirmRetention(int days) {
@@ -1315,7 +1315,7 @@ class SZh extends S {
   String get premiumRestoreDone => '您的购买已在此手机上恢复。';
 
   @override
-  String get premiumRestoreNone => '此 Google 账户没有可恢复的购买。';
+  String get premiumRestoreNone => 'Google Play 中没有可恢复的购买。';
 
   @override
   String get premiumRestoreFailed => '无法恢复您的购买。请稍后再试。';

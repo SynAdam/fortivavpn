@@ -377,7 +377,7 @@ class STr extends S {
 
   @override
   String get deleteAccountConfirmBody =>
-      'Bu işlem cihaz kaydınızı, bağlı Google hesabınızı, sizin için oluşturulan kişisel sunucuları ve destek sohbetindeki mesajlarınızı kaldırır. Bu telefondaki bağlantı geçmişi de silinir.\n\nGeri alınamaz. Uygulamayı yeniden açarak istediğiniz zaman baştan başlayabilirsiniz.';
+      'Bu işlem cihaz kaydınızı, sizin için oluşturulan kişisel sunucuları ve destek sohbetindeki mesajlarınızı kaldırır. Bu telefondaki bağlantı geçmişi de silinir.\n\nGeri alınamaz. Uygulamayı yeniden açarak istediğiniz zaman baştan başlayabilirsiniz.';
 
   @override
   String deleteAccountConfirmRetention(int days) {
@@ -1369,7 +1369,7 @@ class STr extends S {
 
   @override
   String get premiumRestoreNone =>
-      'Bu Google hesabında geri yüklenecek bir satın alım yok.';
+      'Google Play\'de geri yüklenecek bir satın alım yok.';
 
   @override
   String get premiumRestoreFailed =>

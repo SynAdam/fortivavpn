@@ -1170,7 +1170,7 @@ void main() {
       await tester.pump();
       expect(billing.isRestoring, isFalse);
       expect(
-        find.text('This Google account has no purchase to restore.'),
+        find.text('Google Play has no purchase to restore.'),
         findsOneWidget,
       );
     });

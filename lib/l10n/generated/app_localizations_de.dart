@@ -378,7 +378,7 @@ class SDe extends S {
 
   @override
   String get deleteAccountConfirmBody =>
-      'Damit werden die Registrierung deines Geräts, ein verknüpftes Google-Konto, die für dich angelegten persönlichen Server und deine Nachrichten im Support-Chat entfernt. Auch der Verbindungsverlauf auf diesem Telefon wird gelöscht.\n\nDas lässt sich nicht rückgängig machen. Du kannst jederzeit neu beginnen, indem du die App wieder öffnest.';
+      'Damit werden die Registrierung deines Geräts, die für dich angelegten persönlichen Server und deine Nachrichten im Support-Chat entfernt. Auch der Verbindungsverlauf auf diesem Telefon wird gelöscht.\n\nDas lässt sich nicht rückgängig machen. Du kannst jederzeit neu beginnen, indem du die App wieder öffnest.';
 
   @override
   String deleteAccountConfirmRetention(int days) {
@@ -1423,7 +1423,7 @@ class SDe extends S {
 
   @override
   String get premiumRestoreNone =>
-      'Dieses Google-Konto hat keinen Kauf zum Wiederherstellen.';
+      'Google Play hat keinen Kauf zum Wiederherstellen.';
 
   @override
   String get premiumRestoreFailed =>

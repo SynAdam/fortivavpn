@@ -382,7 +382,7 @@ class SFr extends S {
 
   @override
   String get deleteAccountConfirmBody =>
-      'Cela supprime l\'enregistrement de votre appareil, tout compte Google associé, les serveurs personnels créés pour vous et vos échanges avec l\'assistance. L\'historique de connexion sur ce téléphone est également effacé.\n\nCette action est irréversible. Vous pouvez recommencer à tout moment en rouvrant l\'application.';
+      'Cela supprime l\'enregistrement de votre appareil, les serveurs personnels créés pour vous et vos échanges avec l\'assistance. L\'historique de connexion sur ce téléphone est également effacé.\n\nCette action est irréversible. Vous pouvez recommencer à tout moment en rouvrant l\'application.';
 
   @override
   String deleteAccountConfirmRetention(int days) {
@@ -1424,8 +1424,7 @@ class SFr extends S {
   String get premiumRestoreDone => 'Votre achat est restauré sur ce téléphone.';
 
   @override
-  String get premiumRestoreNone =>
-      'Ce compte Google n\'a aucun achat à restaurer.';
+  String get premiumRestoreNone => 'Google Play n\'a aucun achat à restaurer.';
 
   @override
   String get premiumRestoreFailed =>

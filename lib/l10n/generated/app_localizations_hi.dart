@@ -376,7 +376,7 @@ class SHi extends S {
 
   @override
   String get deleteAccountConfirmBody =>
-      'इससे आपके डिवाइस का पंजीकरण, जुड़ा हुआ कोई भी Google खाता, आपके लिए बनाए गए निजी सर्वर, और सहायता चैट में आपके संदेश हट जाएँगे। इस फ़ोन का कनेक्शन इतिहास भी मिट जाएगा।\n\nयह वापस नहीं किया जा सकता। आप कभी भी ऐप दोबारा खोलकर नए सिरे से शुरू कर सकते हैं।';
+      'इससे आपके डिवाइस का पंजीकरण, आपके लिए बनाए गए निजी सर्वर, और सहायता चैट में आपके संदेश हट जाएँगे। इस फ़ोन का कनेक्शन इतिहास भी मिट जाएगा।\n\nयह वापस नहीं किया जा सकता। आप कभी भी ऐप दोबारा खोलकर नए सिरे से शुरू कर सकते हैं।';
 
   @override
   String deleteAccountConfirmRetention(int days) {
@@ -1396,7 +1396,7 @@ class SHi extends S {
 
   @override
   String get premiumRestoreNone =>
-      'इस Google खाते में बहाल करने के लिए कोई खरीद नहीं है।';
+      'Google Play में बहाल करने के लिए कोई खरीद नहीं है।';
 
   @override
   String get premiumRestoreFailed =>

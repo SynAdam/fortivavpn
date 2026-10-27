@@ -379,7 +379,7 @@ class SId extends S {
 
   @override
   String get deleteAccountConfirmBody =>
-      'Ini akan menghapus pendaftaran perangkat Anda, akun Google yang tertaut, server pribadi yang dibuat untuk Anda, dan pesan Anda di chat dukungan. Riwayat koneksi di ponsel ini juga dihapus.\n\nTindakan ini tidak bisa dibatalkan. Anda bisa mulai lagi kapan saja dengan membuka kembali aplikasi.';
+      'Ini akan menghapus pendaftaran perangkat Anda, server pribadi yang dibuat untuk Anda, dan pesan Anda di chat dukungan. Riwayat koneksi di ponsel ini juga dihapus.\n\nTindakan ini tidak bisa dibatalkan. Anda bisa mulai lagi kapan saja dengan membuka kembali aplikasi.';
 
   @override
   String deleteAccountConfirmRetention(int days) {
@@ -1392,7 +1392,7 @@ class SId extends S {
 
   @override
   String get premiumRestoreNone =>
-      'Akun Google ini tidak punya pembelian untuk dipulihkan.';
+      'Google Play tidak punya pembelian untuk dipulihkan.';
 
   @override
   String get premiumRestoreFailed =>

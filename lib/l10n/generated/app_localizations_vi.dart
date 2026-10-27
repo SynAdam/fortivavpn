@@ -378,7 +378,7 @@ class SVi extends S {
 
   @override
   String get deleteAccountConfirmBody =>
-      'Thao tác này sẽ xóa đăng ký thiết bị của bạn, tài khoản Google đã liên kết (nếu có), các máy chủ riêng được tạo cho bạn và tin nhắn của bạn trong trò chuyện hỗ trợ. Lịch sử kết nối trên điện thoại này cũng bị xóa.\n\nKhông thể hoàn tác. Bạn có thể bắt đầu lại bất cứ lúc nào bằng cách mở lại ứng dụng.';
+      'Thao tác này sẽ xóa đăng ký thiết bị của bạn, các máy chủ riêng được tạo cho bạn và tin nhắn của bạn trong trò chuyện hỗ trợ. Lịch sử kết nối trên điện thoại này cũng bị xóa.\n\nKhông thể hoàn tác. Bạn có thể bắt đầu lại bất cứ lúc nào bằng cách mở lại ứng dụng.';
 
   @override
   String deleteAccountConfirmRetention(int days) {
@@ -1394,7 +1394,7 @@ class SVi extends S {
 
   @override
   String get premiumRestoreNone =>
-      'Tài khoản Google này không có giao dịch mua nào để khôi phục.';
+      'Google Play không có giao dịch mua nào để khôi phục.';
 
   @override
   String get premiumRestoreFailed =>

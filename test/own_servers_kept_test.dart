@@ -41,7 +41,6 @@ Map<String, dynamic> answer({
     'blocked': blocked,
     'resets_at': ?resetsAt,
   },
-  'google': {'linked': false},
 };
 
 void main() {

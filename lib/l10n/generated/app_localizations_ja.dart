@@ -373,7 +373,7 @@ class SJa extends S {
 
   @override
   String get deleteAccountConfirmBody =>
-      '端末の登録、リンクされた Google アカウント、お客様のために作成された専用サーバー、サポートチャットのメッセージが削除されます。この端末の接続履歴も消去されます。\n\nこの操作は取り消せません。アプリを開き直せば、いつでも最初から始められます。';
+      '端末の登録、お客様のために作成された専用サーバー、サポートチャットのメッセージが削除されます。この端末の接続履歴も消去されます。\n\nこの操作は取り消せません。アプリを開き直せば、いつでも最初から始められます。';
 
   @override
   String deleteAccountConfirmRetention(int days) {
@@ -1315,7 +1315,7 @@ class SJa extends S {
   String get premiumRestoreDone => 'このスマホで購入を復元しました。';
 
   @override
-  String get premiumRestoreNone => 'この Google アカウントには復元できる購入がありません。';
+  String get premiumRestoreNone => 'Google Play に復元できる購入がありません。';
 
   @override
   String get premiumRestoreFailed => '購入を復元できませんでした。後でもう一度お試しください。';

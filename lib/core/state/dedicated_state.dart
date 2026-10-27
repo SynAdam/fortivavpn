@@ -374,10 +374,13 @@ class DedicatedState extends ChangeNotifier {
     if (raw == null) return;
     // Variant tests are not kept: each is checked once, from the answer
     // that handed it out. The doors' own outbounds are kept with the doors.
+    // The google block is not kept either. The backend still sends it for
+    // old builds, and this build reads nothing from it.
     final body = {...raw}
       ..remove('psiphon')
       ..remove('variant_tests')
-      ..remove('variant_test_params');
+      ..remove('variant_test_params')
+      ..remove('google');
     if (psiphon != null) body['psiphon'] = psiphon;
     try {
       final prefs = await _prefs();

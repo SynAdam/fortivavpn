@@ -114,8 +114,8 @@ class DeliveryLog {
 
   /// [endpoint] as a template: under /api/v1 and without it, with the
   /// query dropped and every segment that is not a plain word replaced by
-  /// {id}. The segment after /devices/ is always {id} unless it is one of
-  /// the two device calls that name no device.
+  /// {id}. The segment after /devices/ is always {id} unless it is
+  /// register, the one device call that names no device.
   static String pathTemplate(String endpoint) {
     var path = endpoint;
     final cut = path.indexOf(RegExp('[?#]'));
@@ -134,8 +134,8 @@ class DeliveryLog {
     return segments.join('/');
   }
 
-  /// The calls under /devices/ that are not about one device.
-  static const _deviceCalls = {'register', 'link-google'};
+  /// The call under /devices/ that is not about one device.
+  static const _deviceCalls = {'register'};
 
   /// A path segment that names a call rather than a thing: a lowercase
   /// word, with - or _ inside.

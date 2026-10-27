@@ -151,7 +151,10 @@
   "deleteAccount": "Delete account",
   "deleteAccountSubtitle": "Permanently remove this device and your data",
   "deleteAccountConfirmTitle": "Delete your account?",
-  "deleteAccountConfirmBody": "This removes your device registration, any linked Google account, the personal servers created for you, and your support chat messages. Your connection history on this phone is erased too.\n\nThis cannot be undone. You can start again at any time by reopening the app.",
+  "deleteAccountConfirmBody": "This removes your device registration, the personal servers created for you, and your support chat messages. Your connection history on this phone is erased too.\n\nThis cannot be undone. You can start again at any time by reopening the app.",
+  "@deleteAccountConfirmBody": {
+    "description": "Body of the Delete account dialog: what deleting removes. The app has no sign-in, so it lists no other account."
+  },
   "deleteAccountConfirmRetention": "Your account record is removed immediately. Copies in backups and anonymous server logs are cleared within {days, plural, one{{days} day} other{{days} days}}.",
   "@deleteAccountConfirmRetention": {
     "description": "Shown when GET /api/v1/app/config sends deleted_data_retention_days.",
@@ -1020,7 +1023,10 @@
   "premiumNowOn": "Premium is on. Enjoy unlimited data.",
   "premiumRestore": "Restore purchases",
   "premiumRestoreDone": "Your purchase is restored on this phone.",
-  "premiumRestoreNone": "This Google account has no purchase to restore.",
+  "premiumRestoreNone": "Google Play has no purchase to restore.",
+  "@premiumRestoreNone": {
+    "description": "Shown after Restore purchases when Google Play has no purchase of Fortiva to restore. Name Google Play, not an account."
+  },
   "premiumRestoreFailed": "Could not restore your purchase. Try again later.",
   "premiumRenewsDays": "{count, plural, =1{Billed every day. Renews automatically until you cancel.} other{Billed every {count} days. Renews automatically until you cancel.}}",
   "@premiumRenewsDays": {

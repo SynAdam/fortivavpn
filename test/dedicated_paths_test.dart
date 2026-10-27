@@ -1,3 +1,5 @@
+import 'dart:convert';
+
 import 'package:flutter_test/flutter_test.dart';
 import 'package:fortiva_vpn/api/config_service.dart';
 import 'package:fortiva_vpn/core/state/dedicated_state.dart';
@@ -50,6 +52,45 @@ void main() {
     });
     expect(parsed.configs, [uri]);
     expect(parsed.paths, isEmpty);
+  });
+
+  // The backend still sends a google block for old builds. The phone does
+  // not keep it.
+  test('the kept answer leaves out the google block', () async {
+    SharedPreferences.setMockInitialValues({});
+    final state = DedicatedState(
+      fetch: ({bool? viaTunnel}) async => DedicatedConfigs.fromJson({
+        'configs': [uri],
+        'paths': [
+          {
+            'server_id': 7,
+            'inbound_id': 1,
+            'door': 'tcp-reality',
+            'label': 'Reality',
+            'uri': uri,
+            'preferred': true,
+          },
+        ],
+        'quota': {
+          'unlimited': false,
+          'limit_bytes': 100,
+          'used_bytes': 10,
+          'remaining_bytes': 90,
+          'blocked': false,
+        },
+        'google': {'linked': true, 'email': null},
+      }),
+    );
+    await state.refresh();
+    await pumpEventQueue();
+
+    final prefs = await SharedPreferences.getInstance();
+    final kept = jsonDecode(prefs.getString(DedicatedState.prefSaved)!);
+    final body = (kept as Map)['body'] as Map;
+    expect(body.containsKey('google'), isFalse);
+    expect(body['configs'], [uri]);
+    expect(body['paths'], isNotEmpty);
+    expect((body['quota'] as Map)['limit_bytes'], 100);
   });
 
   test('a path becomes a server that names its door', () {

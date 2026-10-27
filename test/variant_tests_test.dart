@@ -151,7 +151,6 @@ Map<String, dynamic> answer({
     'remaining_bytes': 90,
     'blocked': false,
   },
-  'google': {'linked': false},
   'variant_tests': ?tests,
   'variant_test_params': ?testParams,
 };

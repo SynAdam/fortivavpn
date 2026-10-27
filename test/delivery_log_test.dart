@@ -175,7 +175,6 @@ void main() {
       ('/api/v1/devices/c0ffee00deadbeef/events', '/devices/{id}/events'),
       ('/api/v1/devices/c0ffee00deadbeef/probes', '/devices/{id}/probes'),
       ('/api/v1/devices/register', '/devices/register'),
-      ('/api/v1/devices/link-google', '/devices/link-google'),
       (
         '/api/v1/devices/c0ffee00deadbeef/billing?store=play',
         '/devices/{id}/billing',

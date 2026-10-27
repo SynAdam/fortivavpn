@@ -379,7 +379,7 @@ class SUz extends S {
 
   @override
   String get deleteAccountConfirmBody =>
-      'Bu qurilmaning roʻyxatdan oʻtish yozuvini, bogʻlangan Google hisobini, siz uchun yaratilgan shaxsiy serverlarni va qoʻllab-quvvatlash chatidagi xabarlaringizni oʻchiradi. Bu telefondagi ulanish tarixi ham oʻchiriladi.\n\nBuni bekor qilib boʻlmaydi. Ilovani qayta ochib, istalgan vaqtda qaytadan boshlashingiz mumkin.';
+      'Bu qurilmaning roʻyxatdan oʻtish yozuvini, siz uchun yaratilgan shaxsiy serverlarni va qoʻllab-quvvatlash chatidagi xabarlaringizni oʻchiradi. Bu telefondagi ulanish tarixi ham oʻchiriladi.\n\nBuni bekor qilib boʻlmaydi. Ilovani qayta ochib, istalgan vaqtda qaytadan boshlashingiz mumkin.';
 
   @override
   String deleteAccountConfirmRetention(int days) {
@@ -1408,7 +1408,7 @@ class SUz extends S {
 
   @override
   String get premiumRestoreNone =>
-      'Bu Google hisobida tiklanadigan xarid yoʻq.';
+      'Google Play tizimida tiklanadigan xarid yoʻq.';
 
   @override
   String get premiumRestoreFailed =>

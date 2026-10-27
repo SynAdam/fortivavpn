@@ -378,7 +378,7 @@ class SFa extends S {
 
   @override
   String get deleteAccountConfirmBody =>
-      'با این کار ثبت دستگاه شما، حساب گوگل متصل‌شده، سرورهای اختصاصی‌ای که برایتان ساخته شده و پیام‌های گفتگوی شما با پشتیبانی حذف می‌شود. سابقه اتصال روی همین گوشی هم پاک می‌شود.\n\nاین کار برگشت‌پذیر نیست. هر وقت خواستید می‌توانید دوباره برنامه را باز کنید و از نو شروع کنید.';
+      'با این کار ثبت دستگاه شما، سرورهای اختصاصی‌ای که برایتان ساخته شده و پیام‌های گفتگوی شما با پشتیبانی حذف می‌شود. سابقه اتصال روی همین گوشی هم پاک می‌شود.\n\nاین کار برگشت‌پذیر نیست. هر وقت خواستید می‌توانید دوباره برنامه را باز کنید و از نو شروع کنید.';
 
   @override
   String deleteAccountConfirmRetention(int days) {
@@ -1359,7 +1359,7 @@ class SFa extends S {
   String get premiumRestoreDone => 'خرید شما روی این گوشی بازیابی شد.';
 
   @override
-  String get premiumRestoreNone => 'این حساب گوگل خریدی برای بازیابی ندارد.';
+  String get premiumRestoreNone => 'گوگل پلی خریدی برای بازیابی ندارد.';
 
   @override
   String get premiumRestoreFailed =>

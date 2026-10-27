@@ -373,7 +373,7 @@ class SKo extends S {
 
   @override
   String get deleteAccountConfirmBody =>
-      '기기 등록, 연결된 Google 계정, 회원님을 위해 만들어진 전용 서버, 지원팀과의 채팅 메시지가 삭제됩니다. 이 휴대폰의 연결 기록도 지워집니다.\n\n되돌릴 수 없습니다. 앱을 다시 열면 언제든 처음부터 시작할 수 있습니다.';
+      '기기 등록, 회원님을 위해 만들어진 전용 서버, 지원팀과의 채팅 메시지가 삭제됩니다. 이 휴대폰의 연결 기록도 지워집니다.\n\n되돌릴 수 없습니다. 앱을 다시 열면 언제든 처음부터 시작할 수 있습니다.';
 
   @override
   String deleteAccountConfirmRetention(int days) {
@@ -1315,7 +1315,7 @@ class SKo extends S {
   String get premiumRestoreDone => '이 휴대폰에서 구매를 복원했습니다.';
 
   @override
-  String get premiumRestoreNone => '이 Google 계정에는 복원할 구매가 없습니다.';
+  String get premiumRestoreNone => 'Google Play에 복원할 구매가 없습니다.';
 
   @override
   String get premiumRestoreFailed => '구매를 복원하지 못했습니다. 나중에 다시 시도하세요.';

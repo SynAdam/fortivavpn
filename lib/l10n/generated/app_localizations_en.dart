@@ -378,7 +378,7 @@ class SEn extends S {
 
   @override
   String get deleteAccountConfirmBody =>
-      'This removes your device registration, any linked Google account, the personal servers created for you, and your support chat messages. Your connection history on this phone is erased too.\n\nThis cannot be undone. You can start again at any time by reopening the app.';
+      'This removes your device registration, the personal servers created for you, and your support chat messages. Your connection history on this phone is erased too.\n\nThis cannot be undone. You can start again at any time by reopening the app.';
 
   @override
   String deleteAccountConfirmRetention(int days) {
@@ -1413,8 +1413,7 @@ class SEn extends S {
   String get premiumRestoreDone => 'Your purchase is restored on this phone.';
 
   @override
-  String get premiumRestoreNone =>
-      'This Google account has no purchase to restore.';
+  String get premiumRestoreNone => 'Google Play has no purchase to restore.';
 
   @override
   String get premiumRestoreFailed =>

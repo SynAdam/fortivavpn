@@ -380,7 +380,7 @@ class SEs extends S {
 
   @override
   String get deleteAccountConfirmBody =>
-      'Esto elimina el registro de tu dispositivo, cualquier cuenta de Google vinculada, los servidores personales creados para ti y tus mensajes del chat de soporte. Tu historial de conexiones en este teléfono también se borra.\n\nEsto no se puede deshacer. Puedes empezar de nuevo en cualquier momento volviendo a abrir la app.';
+      'Esto elimina el registro de tu dispositivo, los servidores personales creados para ti y tus mensajes del chat de soporte. Tu historial de conexiones en este teléfono también se borra.\n\nEsto no se puede deshacer. Puedes empezar de nuevo en cualquier momento volviendo a abrir la app.';
 
   @override
   String deleteAccountConfirmRetention(int days) {
@@ -1429,7 +1429,7 @@ class SEs extends S {
 
   @override
   String get premiumRestoreNone =>
-      'Esta cuenta de Google no tiene compras que restaurar.';
+      'Google Play no tiene compras que restaurar.';
 
   @override
   String get premiumRestoreFailed =>

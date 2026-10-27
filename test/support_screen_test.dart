@@ -1908,7 +1908,7 @@ void main() {
       ]) {
         expect(find.text(text), findsOneWidget);
       }
-      // Google sign-in is closed (backend #383), so it is not offered.
+      // Only these three questions are offered.
       expect(find.byKey(const ValueKey('support-suggestion-3')), findsNothing);
       await tester.tap(find.text('How much data do I have today?'));
       await tester.pump();

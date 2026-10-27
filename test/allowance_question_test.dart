@@ -38,7 +38,6 @@ Map<String, dynamic> _answer({required bool blocked}) => {
     'remaining_bytes': blocked ? 0 : 90,
     'blocked': blocked,
   },
-  'google': {'linked': false},
 };
 
 class _Vpn extends VpnService {
