@@ -1,13 +1,15 @@
 # Add project specific ProGuard rules here.
 # You can control the set of applied configuration files using the
 # proguardFiles setting in build.gradle.kts.
-
-# Keep Kotlin Metadata
--keepattributes *Annotation*
--keep class kotlin.Metadata { *; }
--keepclassmembers class kotlin.Metadata {
-    public <methods>;
-}
+#
+# Keep only what is reached by name: classes Gson fills by reflection,
+# classes native code calls, and the names Android stores. Libraries bring
+# their own rules for their own classes (Gson, Play Services, Play
+# Billing). Up to 2.2.0 this file also kept all of Gson, all of Play
+# Services and five of the app's packages whole, which left 46% of the
+# code unoptimized, and Google Play reported it ("R8 optimization"). R8
+# writes the figures into the bundle at
+# BUNDLE-METADATA/com.android.tools/r8.json.
 
 # Keep Serializable classes
 -keepclassmembers class * implements java.io.Serializable {
@@ -19,26 +21,19 @@
     java.lang.Object readResolve();
 }
 
-# Keep Gson serialization/deserialization
+# Gson reads and writes the V2Ray config and the profiles kept in MMKV by
+# field name, enum constants included, so the field names are the stored
+# format. Their methods are left to R8.
 -keepattributes Signature
 -keepattributes *Annotation*
 -dontwarn sun.misc.**
--keep class com.google.gson.** { *; }
--keep class * extends com.google.gson.TypeAdapter
--keep class * implements com.google.gson.TypeAdapterFactory
--keep class * implements com.google.gson.JsonSerializer
--keep class * implements com.google.gson.JsonDeserializer
+-keep class com.vpn.fortivavpn.dto.** {
+    <fields>;
+    <init>(...);
+}
 -keepclassmembers,allowobfuscation class * {
     @com.google.gson.annotations.SerializedName <fields>;
 }
-
-# Keep V2Ray DTO classes (used for JSON serialization)
--keep class com.vpn.fortivavpn.dto.** { *; }
--keepclassmembers class com.vpn.fortivavpn.dto.** { *; }
-
-# Keep ProfileItem and related configuration classes
--keep class com.vpn.fortivavpn.handler.** { *; }
--keepclassmembers class com.vpn.fortivavpn.handler.** { *; }
 
 # Keep libv2ray native interface
 -keep class libv2ray.** { *; }
@@ -48,15 +43,6 @@
 # calls the provider methods by name (service/PsiphonCore.kt). The app
 # does not ship PsiphonTunnel.java, so there is no ca.psiphon rule.
 -keep class psi.** { *; }
-
-# Keep Service classes
--keep class com.vpn.fortivavpn.service.** { *; }
-
-# Keep Receiver classes
--keep class com.vpn.fortivavpn.receiver.** { *; }
-
-# Keep Google Play Services (Play Billing and the in-app review)
--keep class com.google.android.gms.** { *; }
 
 # Keep MMKV
 -keep class com.tencent.mmkv.** { *; }
@@ -88,7 +74,3 @@
 -keepclassmembers class * {
     @android.webkit.JavascriptInterface <methods>;
 }
-
-# Keep any classes that might be accessed via reflection
--keep class com.vpn.fortivavpn.fmt.** { *; }
--keep class com.vpn.fortivavpn.util.** { *; }

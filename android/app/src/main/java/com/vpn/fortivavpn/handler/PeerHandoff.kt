@@ -15,7 +15,7 @@ import com.vpn.fortivavpn.util.PhotoCodeReader
 import io.flutter.plugin.common.MethodChannel
 import java.io.ByteArrayOutputStream
 import java.io.File
-import java.io.FileInputStream
+import java.io.FileOutputStream
 import java.util.concurrent.Executors
 import java.util.concurrent.atomic.AtomicInteger
 
@@ -47,6 +47,7 @@ class PeerHandoff(private val activity: Activity) {
     /** Open the camera app, and read the code in the photo it takes. */
     fun photograph(result: MethodChannel.Result) {
         settle()
+        forgetPicked(activity)
         val file = photoFile(activity)
         val uri = try {
             file.parentFile?.mkdirs()
@@ -73,6 +74,7 @@ class PeerHandoff(private val activity: Activity) {
     /** Open the system file picker, and read the file the user picks. */
     fun openFile(result: MethodChannel.Result) {
         settle()
+        forgetPicked(activity)
         pending = result
         // Any type: a file sent over Bluetooth or saved from a messenger
         // can arrive as text, HTML, an image or nothing in particular.
@@ -138,7 +140,7 @@ class PeerHandoff(private val activity: Activity) {
         }
         decoder.execute {
             val text = try {
-                PhotoCodeReader.read({ FileInputStream(file) }, { generations.get() == generation })
+                PhotoCodeReader.read(file) { generations.get() == generation }
             } catch (e: Throwable) {
                 Log.w(TAG, "Could not read the photo: ${e.message}")
                 null
@@ -162,13 +164,20 @@ class PeerHandoff(private val activity: Activity) {
     ) {
         decoder.execute {
             val reply = try {
-                val resolver = context.contentResolver
                 if (isImage(context, uri)) {
-                    val text = PhotoCodeReader.read(
-                        { resolver.openInputStream(uri) },
-                        { generations.get() == generation },
-                    )
-                    if (text == null) mapOf("status" to "no_code") else mapOf("status" to "ok", "text" to text)
+                    // Read from a copy in this app's cache: PhotoCodeReader
+                    // decodes files only.
+                    val copy = pickedFile(context)
+                    try {
+                        if (!copyAtMost(context, uri, copy, MAX_IMAGE_BYTES)) {
+                            mapOf("status" to "unreadable")
+                        } else {
+                            val text = PhotoCodeReader.read(copy) { generations.get() == generation }
+                            if (text == null) mapOf("status" to "no_code") else mapOf("status" to "ok", "text" to text)
+                        }
+                    } finally {
+                        copy.delete()
+                    }
                 } else {
                     val bytes = readAtMost(context, uri, MAX_FILE_BYTES)
                     if (bytes == null) {
@@ -220,6 +229,29 @@ class PeerHandoff(private val activity: Activity) {
         }
     }
 
+    /**
+     * Copies the file at [uri] to [to]. False, with nothing left at [to],
+     * when it is longer than [limit] or cannot be opened.
+     */
+    private fun copyAtMost(context: Context, uri: Uri, to: File, limit: Long): Boolean {
+        to.parentFile?.mkdirs()
+        val copied = context.contentResolver.openInputStream(uri)?.use { input ->
+            FileOutputStream(to).use { out ->
+                val buffer = ByteArray(64 * 1024)
+                var total = 0L
+                while (total <= limit) {
+                    val n = input.read(buffer)
+                    if (n < 0) break
+                    out.write(buffer, 0, n)
+                    total += n
+                }
+                total <= limit
+            }
+        } ?: false
+        if (!copied) to.delete()
+        return copied
+    }
+
     private fun start(intent: Intent, requestCode: Int): Boolean = try {
         activity.startActivityForResult(intent, requestCode)
         true
@@ -251,6 +283,12 @@ class PeerHandoff(private val activity: Activity) {
         /** Bootstrap.maxBytes on the Dart side: the file is a few KB. */
         private const val MAX_FILE_BYTES = 256 * 1024
 
+        /**
+         * The largest picked image read. A photo from a 200 megapixel
+         * camera is about 30 to 50 MB.
+         */
+        private const val MAX_IMAGE_BYTES = 64L * 1024 * 1024
+
         private val main = Handler(Looper.getMainLooper())
 
         /** One decode at a time: each can take seconds and most of the memory it is given. */
@@ -266,6 +304,18 @@ class PeerHandoff(private val activity: Activity) {
         private val leftoverWaiters = mutableListOf<MethodChannel.Result>()
 
         private fun photoFile(context: Context) = File(File(context.cacheDir, "peer"), "code.jpg")
+
+        private fun pickedFile(context: Context) = File(File(context.cacheDir, "peer"), "picked")
+
+        /**
+         * Deletes a copy of a picked image that an earlier read left
+         * behind, when the process ended before readFile's finally ran. On
+         * the decoder's thread, after any read still going.
+         */
+        private fun forgetPicked(context: Context) {
+            val copy = pickedFile(context.applicationContext)
+            decoder.execute { copy.delete() }
+        }
 
         private fun startLeftover() {
             leftover = null

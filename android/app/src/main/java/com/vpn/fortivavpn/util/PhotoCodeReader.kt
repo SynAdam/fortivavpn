@@ -10,7 +10,7 @@ import com.google.zxing.ReaderException
 import com.google.zxing.common.GlobalHistogramBinarizer
 import com.google.zxing.common.HybridBinarizer
 import com.google.zxing.qrcode.QRCodeReader
-import java.io.InputStream
+import java.io.File
 import java.util.EnumMap
 
 /**
@@ -34,6 +34,13 @@ import java.util.EnumMap
  * An image can be made to keep the decoder busy for minutes, so the sizes
  * are tried only while [BUDGET_MS] lasts and the caller still wants the
  * answer. Each ZXing call is not interrupted, so one call can overrun.
+ *
+ * The image is always a file in this app's own storage, decoded by path.
+ * Up to 2.2.0 this took a function that opened a stream. R8 merged that
+ * function with the throughput sample's, which opens a download, and
+ * Google Play's scan then reported a network image decoded at full size
+ * ("bitmap image optimization"). A picked image is copied to a file first
+ * (PeerHandoff).
  */
 object PhotoCodeReader {
     /** The longest side the photo is read at, larger photos are shrunk. */
@@ -57,13 +64,11 @@ object PhotoCodeReader {
     class Plane(val bytes: ByteArray, val width: Int, val height: Int)
 
     /**
-     * The code in the image [open] reads, or null. [open] is called twice,
-     * for the size and then the pixels, and each stream is closed here.
-     * [wanted] is asked before each try; false stops. Slow: call it off the
-     * main thread.
+     * The code in the image in [photo], or null. [wanted] is asked before
+     * each try; false stops. Slow: call it off the main thread.
      */
-    fun read(open: () -> InputStream?, wanted: () -> Boolean = { true }): String? {
-        val plane = brightness(open) ?: return null
+    fun read(photo: File, wanted: () -> Boolean = { true }): String? {
+        val plane = brightness(photo) ?: return null
         val until = System.nanoTime() + BUDGET_MS * 1_000_000
         return decode(plane) { wanted() && System.nanoTime() < until }
     }
@@ -128,14 +133,13 @@ object PhotoCodeReader {
         return Plane(out, nw, nh)
     }
 
-    /** The image [open] reads as brightness, at most [MAX_SIDE] pixels on its longer side. */
-    private fun brightness(open: () -> InputStream?): Plane? {
+    /** The image in [photo] as brightness, at most [MAX_SIDE] pixels on its longer side. */
+    private fun brightness(photo: File): Plane? {
         return try {
             val bounds = BitmapFactory.Options().apply { inJustDecodeBounds = true }
             // Returns null by design when it only reads the size, which
             // lands in bounds.
-            val sizing = open() ?: return null
-            sizing.use { BitmapFactory.decodeStream(it, null, bounds) }
+            BitmapFactory.decodeFile(photo.path, bounds)
             val side = maxOf(bounds.outWidth, bounds.outHeight)
             if (side <= 0) return null
             var sample = 1
@@ -144,7 +148,7 @@ object PhotoCodeReader {
                 inSampleSize = sample
                 inPreferredConfig = Bitmap.Config.RGB_565
             }
-            val bitmap = open()?.use { BitmapFactory.decodeStream(it, null, options) } ?: return null
+            val bitmap = BitmapFactory.decodeFile(photo.path, options) ?: return null
             try {
                 val w = bitmap.width
                 val h = bitmap.height
