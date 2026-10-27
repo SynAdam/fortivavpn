@@ -77,8 +77,12 @@ class AccountService {
     // describe this device's attempts, like the events above.
     'fortiva_vpn_probes_queue',
     // The attempt the keeper found dead while the app was away (Keeper), so
-    // it reports it once. A note about this device's session.
+    // it reports it once, the tunnel it was on, and how many runs it left
+    // one unreported while the phone looked offline. Notes about this
+    // device's sessions.
     'keeper_stalled_attempt',
+    'keeper_stalled_tunnel',
+    'keeper_offline_skips',
     // Which door worked on which network. Learned through the servers
     // that are being deleted, and a fresh account should diagnose afresh
     // rather than trust a memory of credentials that no longer exist.

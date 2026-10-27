@@ -140,6 +140,8 @@ object NoticeNotifier {
                 .setContentText(body)
                 .setStyle(NotificationCompat.BigTextStyle().bigText(body))
                 .setPriority(NotificationCompat.PRIORITY_DEFAULT)
+                // A second post while one is shown makes no sound.
+                .setOnlyAlertOnce(true)
                 .setAutoCancel(true)
                 .setContentIntent(tap)
                 .build()
@@ -151,6 +153,20 @@ object NoticeNotifier {
         } catch (e: Exception) {
             Log.e(TAG, "could not post the stalled notification", e)
             false
+        }
+    }
+
+    /**
+     * Take the [showStalled] notification away once it is no longer true:
+     * the tunnel carries data again, the app is on screen and shows the
+     * tunnel's state itself, or the tunnel stopped. Nothing happens when
+     * none is shown. Safe from the tunnel's process too.
+     */
+    fun clearStalled(context: Context) {
+        try {
+            NotificationManagerCompat.from(context).cancel(STALLED_TAG, STALLED_ID)
+        } catch (e: Exception) {
+            Log.w(TAG, "could not clear the stalled notification", e)
         }
     }
 

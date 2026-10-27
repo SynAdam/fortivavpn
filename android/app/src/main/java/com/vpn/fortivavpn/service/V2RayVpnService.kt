@@ -214,6 +214,9 @@ class V2RayVpnService : VpnService(), ServiceControl {
         PsiphonCore.stop()
         // No tunnel, so no checks for messages through it.
         NoticeJobs.stopTicking()
+        // Nor a dead one for the keeper's notification to be about: a
+        // service Android takes away never reaches stopCoreLoop.
+        NoticeNotifier.clearStalled(this)
         super.onDestroy()
         NotificationService.cancelNotification(this)
     }

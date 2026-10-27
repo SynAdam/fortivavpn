@@ -3,6 +3,7 @@ package com.vpn.fortivavpn.handler
 import android.content.Context
 import android.net.ConnectivityManager
 import android.net.NetworkCapabilities
+import android.os.Build
 import android.telephony.TelephonyManager
 import android.util.Log
 import com.vpn.fortivavpn.AppConfig
@@ -68,6 +69,29 @@ object TunnelProbe {
         } catch (e: Exception) {
             Log.e(TAG, "SOCKS test failed: ${e.message}")
             false
+        }
+
+    /**
+     * The VPN network up on this phone, as text, or null. Android makes a
+     * new network for each start of a tunnel, so this tells one start from
+     * the next, which the app's attempt cannot: a tunnel started again from
+     * the quick settings tile keeps it. The keeper marks a dead tunnel with
+     * it (lib/services/keeper.dart).
+     */
+    fun vpnId(context: Context): String? =
+        try {
+            val cm = context.getSystemService(Context.CONNECTIVITY_SERVICE) as ConnectivityManager
+            cm.allNetworks.firstOrNull { network ->
+                cm.getNetworkCapabilities(network)?.hasTransport(NetworkCapabilities.TRANSPORT_VPN) == true
+            }?.let { network ->
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+                    network.networkHandle.toString()
+                } else {
+                    network.toString()
+                }
+            }
+        } catch (_: Exception) {
+            null
         }
 
     /** Whether a VPN is up on this phone, seen from any process. */

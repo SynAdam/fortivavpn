@@ -222,6 +222,10 @@ class MainActivity : FlutterActivity() {
         // Notifications may have been turned on in the system settings, which
         // brings back the wake-up alarm. Cheap when nothing changed.
         NoticeJobs.ensureScheduled(this)
+        // The keeper's dead tunnel notification brought the user here or is
+        // no longer needed: the app shows the tunnel's state and checks it
+        // again itself (StallRecovery).
+        NoticeNotifier.clearStalled(this)
     }
 
     override fun onPause() {

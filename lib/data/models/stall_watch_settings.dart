@@ -19,6 +19,12 @@
 ///   session's own normal (the median of its last [throttleReadings] such
 ///   readings, once that is [throttleMinNormal] bytes or more). After such
 ///   a check passes, the throttle trigger rests for [throttleCooldown].
+/// - [keeperOfflineSkips]: how many runs in a row the keeper (the check
+///   while the app is away, lib/services/keeper.dart) may leave a tunnel
+///   that failed every check unreported because the phone reached nothing
+///   outside it either. The next such run reports it anyway, because some
+///   phones fail those checks while they are online. 0 reports at once,
+///   as the keeper did before 2026-10-27.
 ///
 /// [builtIn] holds the numbers the app was built with before this block
 /// existed, with the download check and the throttle trigger off, so a
@@ -40,6 +46,7 @@ class StallWatchSettings {
     this.throttleReadings = 10,
     this.throttleMinNormal = 65536,
     this.throttleCooldown = const Duration(minutes: 5),
+    this.keeperOfflineSkips = 6,
   });
 
   final Duration interval;
@@ -55,6 +62,7 @@ class StallWatchSettings {
   final int throttleReadings;
   final int throttleMinNormal;
   final Duration throttleCooldown;
+  final int keeperOfflineSkips;
 
   static const builtIn = StallWatchSettings();
 
@@ -82,6 +90,8 @@ class StallWatchSettings {
       throttleCooldown:
           _secondsOrZero(json['throttle_cooldown_seconds']) ??
           b.throttleCooldown,
+      keeperOfflineSkips:
+          _count(json['keeper_offline_skip_runs']) ?? b.keeperOfflineSkips,
     );
   }
 
@@ -123,5 +133,6 @@ class StallWatchSettings {
     'throttle_window': throttleReadings,
     'throttle_min_normal_bytes': throttleMinNormal,
     'throttle_cooldown_seconds': throttleCooldown.inSeconds,
+    'keeper_offline_skip_runs': keeperOfflineSkips,
   };
 }

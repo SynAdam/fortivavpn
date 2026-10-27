@@ -15,6 +15,7 @@ void main() {
     // The download check and the throttle trigger only when asked for.
     expect(s.probeBytes, 0);
     expect(s.throttle, isFalse);
+    expect(s.keeperOfflineSkips, 6);
   });
 
   test('a block is read in full', () {
@@ -32,6 +33,7 @@ void main() {
       'throttle_window': 6,
       'throttle_min_normal_bytes': 100000,
       'throttle_cooldown_seconds': 0,
+      'keeper_offline_skip_runs': 0,
     });
     expect(s.interval, const Duration(seconds: 30));
     expect(s.checks, 2);
@@ -46,6 +48,8 @@ void main() {
     expect(s.throttleReadings, 6);
     expect(s.throttleMinNormal, 100000);
     expect(s.throttleCooldown, Duration.zero);
+    // 0 is a value of its own: the keeper reports at once.
+    expect(s.keeperOfflineSkips, 0);
   });
 
   test('a bad value falls back to its built-in number', () {
@@ -56,6 +60,7 @@ void main() {
       'throttle_window': 1,
       'probe_timeout_ms': -1,
       'throttle': 'yes',
+      'keeper_offline_skip_runs': -1,
     });
     expect(s.interval, const Duration(minutes: 1));
     expect(s.checks, 3);
@@ -63,6 +68,7 @@ void main() {
     expect(s.throttleReadings, 10);
     expect(s.probeTimeout, const Duration(seconds: 5));
     expect(s.throttle, isFalse);
+    expect(s.keeperOfflineSkips, 6);
   });
 
   test('what is saved reads back the same', () {
@@ -71,6 +77,7 @@ void main() {
       probeBytes: 65536,
       throttle: true,
       throttleRatio: 0.25,
+      keeperOfflineSkips: 2,
     );
     final back = StallWatchSettings.fromJson(s.toJson());
     expect(back.toJson(), s.toJson());

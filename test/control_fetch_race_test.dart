@@ -21,6 +21,7 @@ void main() {
     late String slow;
     late String refused;
     late String hangs;
+    late String portal;
 
     setUp(() async {
       server = await HttpServer.bind(InternetAddress.loopbackIPv4, 0);
@@ -34,6 +35,12 @@ void main() {
             request.response.statusCode = 204;
           case '/refused':
             request.response.statusCode = 403;
+          case '/portal':
+            // A captive portal: the 204 page sends the phone to its login.
+            request.response.statusCode = 302;
+            request.response.headers.set('location', '/login');
+          case '/login':
+            request.response.statusCode = 200;
           default:
             request.response.statusCode = 204;
         }
@@ -46,6 +53,7 @@ void main() {
       slow = '$base/slow';
       refused = '$base/refused';
       hangs = '$base/hangs';
+      portal = '$base/portal';
     });
     tearDown(() => server.close(force: true));
 
@@ -64,6 +72,24 @@ void main() {
       );
       expect(out['control'], 'ok');
       expect(out['control_url'], slow);
+    });
+
+    test('a captive portal passes the default check but not only204, which '
+        'still takes a real 204', () async {
+      expect(
+        (await ConnectDiagnostics().controlCheck(urls: [portal]))['control'],
+        'ok',
+      );
+      expect(
+        await ConnectDiagnostics().controlCheck(urls: [portal], only204: true),
+        {'control': 'fail'},
+      );
+      final out = await ConnectDiagnostics().controlCheck(
+        urls: [portal, quick],
+        only204: true,
+      );
+      expect(out['control'], 'ok');
+      expect(out['control_url'], quick);
     });
 
     test('fails once every site failed or ran out of time', () async {

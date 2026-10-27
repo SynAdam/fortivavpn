@@ -120,6 +120,10 @@ class KeeperJobService : JobService() {
                     call.argument<String>("channelDescription").orEmpty(),
                 ),
             )
+            "clearStalled" -> {
+                NoticeNotifier.clearStalled(applicationContext)
+                result.success(null)
+            }
             "done" -> {
                 result.success(null)
                 main.post { finish() }
@@ -159,7 +163,10 @@ class KeeperJobService : JobService() {
         val result = pendingStats ?: return
         pendingStats = null
         val stats = StatsPayload.parse(payload)
-        result.success(stats?.plus(TunnelProbe.networkFacts(applicationContext)))
+        result.success(
+            stats?.plus(TunnelProbe.networkFacts(applicationContext))
+                ?.plus("tunnel" to TunnelProbe.vpnId(applicationContext)),
+        )
     }
 
     /** The core's SOCKS port when something listens on it, else null. */

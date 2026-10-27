@@ -245,7 +245,15 @@ class ConnectDiagnostics {
   ///
   /// Every site starts at once, so the check takes as long as the fastest
   /// answer, and [controlTimeout] at most. The rest are closed then.
-  Future<Map<String, dynamic>> controlCheck({List<String>? urls}) async {
+  ///
+  /// [only204] counts only a 204 and follows no redirect. A captive portal
+  /// answers the 204 page with its login page, or a redirect to it, and
+  /// the default check counts that as ok. The keeper asks this way
+  /// (Keeper.phoneReach), because there a portal must not read as online.
+  Future<Map<String, dynamic>> controlCheck({
+    List<String>? urls,
+    bool only204 = false,
+  }) async {
     final list = urls ?? currentControlUrls;
     if (list.isEmpty) return {'control': 'fail'};
     final sw = Stopwatch()..start();
@@ -259,7 +267,9 @@ class ConnectDiagnostics {
         try {
           final ok = await () async {
             final req = await client.getUrl(Uri.parse(url));
+            if (only204) req.followRedirects = false;
             final res = await req.close();
+            if (only204) return res.statusCode == 204;
             return res.statusCode == 204 || res.statusCode == 200;
           }().timeout(controlTimeout);
           if (ok && !first.isCompleted) first.complete(url);

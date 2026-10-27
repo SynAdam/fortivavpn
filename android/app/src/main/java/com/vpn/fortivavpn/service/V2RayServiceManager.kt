@@ -303,6 +303,8 @@ object V2RayServiceManager {
 
         MessageUtil.sendMsg2UI(service, AppConfig.MSG_STATE_STOP_SUCCESS, reason)
         NotificationService.cancelNotification(service)
+        // A dead tunnel the keeper told the user about is gone with it.
+        NoticeNotifier.clearStalled(service)
         NoticeJobs.stopTicking()
         Keeper.stop()
         // With the tunnel down, the alarm and the periodic job are what is
