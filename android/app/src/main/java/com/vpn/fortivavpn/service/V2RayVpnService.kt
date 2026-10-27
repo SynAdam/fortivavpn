@@ -231,7 +231,11 @@ class V2RayVpnService : VpnService(), ServiceControl {
         // If VPN permission is not granted, we cannot proceed from a Service context.
         if (takeSlot && prepare(this) != null) {
             Log.e(AppConfig.TAG, "[VpnService] ABORT: VPN permission not granted")
-            MessageUtil.sendMsg2UI(this, AppConfig.MSG_STATE_START_FAILURE, "")
+            MessageUtil.sendMsg2UI(
+                this,
+                AppConfig.MSG_STATE_START_FAILURE,
+                StartFailure.message(StartFailure.STEP_CONSENT, StartFailure.NOT_PREPARED),
+            )
             stopSelf()
             return START_NOT_STICKY
         }
@@ -264,7 +268,7 @@ class V2RayVpnService : VpnService(), ServiceControl {
             Log.e(AppConfig.TAG, "[VpnService] ABORT: the backup network profile has no session")
             PsiphonSession.forgetOrphan(orphan)
             if (stoppedOrReplaced(gen)) return
-            MessageUtil.sendMsg2UI(this@V2RayVpnService, AppConfig.MSG_STATE_START_FAILURE, "")
+            failed(StartFailure.STEP_SESSION, StartFailure.ORPHAN_PROFILE)
             stopSelf()
             return
         }
@@ -285,7 +289,7 @@ class V2RayVpnService : VpnService(), ServiceControl {
             if (prepared == null) {
                 if (stoppedOrReplaced(gen)) return
                 PsiphonSession.forget(active.guid)
-                MessageUtil.sendMsg2UI(this@V2RayVpnService, AppConfig.MSG_STATE_START_FAILURE, "")
+                failed(StartFailure.STEP_SESSION, StartFailure.SESSION_ERROR)
                 stopSelf()
                 return
             }
@@ -293,13 +297,13 @@ class V2RayVpnService : VpnService(), ServiceControl {
         }
 
         Log.d(AppConfig.TAG, "[VpnService] Step 1: Starting core loop...")
-        val coreStarted = V2RayServiceManager.startCoreLoop()
-        if (!coreStarted) {
-            Log.e(AppConfig.TAG, "[VpnService] FAILED at Step 1: startCoreLoop returned false")
+        val coreFailure = V2RayServiceManager.startCore()
+        if (coreFailure != null) {
+            Log.e(AppConfig.TAG, "[VpnService] FAILED at Step 1: the core did not start ($coreFailure)")
             // Nothing to take down: the core did not start.
             if (stoppedOrReplaced(gen)) return
             psiphon?.let { PsiphonSession.forget(it.guid) }
-            MessageUtil.sendMsg2UI(this@V2RayVpnService, AppConfig.MSG_STATE_START_FAILURE, "")
+            failed(StartFailure.STEP_CORE, coreFailure)
             stopSelf()
             return
         }
@@ -332,7 +336,7 @@ class V2RayVpnService : VpnService(), ServiceControl {
             Log.e(AppConfig.TAG, "[VpnService] FAILED at Step 2: setupVpnService returned false")
             if (abandoned(gen, startId)) return
             psiphon?.let { PsiphonSession.forget(it.guid) }
-            MessageUtil.sendMsg2UI(this@V2RayVpnService, AppConfig.MSG_STATE_START_FAILURE, "")
+            failed(StartFailure.STEP_INTERFACE, StartFailure.ESTABLISH_ERROR)
             stopV2Ray(true)
             return
         }
@@ -340,12 +344,12 @@ class V2RayVpnService : VpnService(), ServiceControl {
         if (abandoned(gen, startId)) return
 
         Log.d(AppConfig.TAG, "[VpnService] Step 3: Starting tun2socks...")
-        val tunOk = runTun2socks()
-        if (!tunOk) {
-            Log.e(AppConfig.TAG, "[VpnService] FAILED at Step 3: runTun2socks returned false")
+        val tunFailure = startTun2socks()
+        if (tunFailure != null) {
+            Log.e(AppConfig.TAG, "[VpnService] FAILED at Step 3: tun2socks did not start ($tunFailure)")
             if (abandoned(gen, startId)) return
             psiphon?.let { PsiphonSession.forget(it.guid) }
-            MessageUtil.sendMsg2UI(this@V2RayVpnService, AppConfig.MSG_STATE_START_FAILURE, "")
+            failed(StartFailure.STEP_TUN2SOCKS, tunFailure)
             stopV2Ray(true)
             return
         }
@@ -355,7 +359,7 @@ class V2RayVpnService : VpnService(), ServiceControl {
         // The backup network can end between its tunnel and this point.
         if (psiphon != null) {
             PsiphonCore.failure()?.let { failure ->
-                psiphonFailed(psiphon, failure.word)
+                psiphonFailed(psiphon, failure.word, StartFailure.STEP_FINISH)
                 return
             }
         }
@@ -408,12 +412,30 @@ class V2RayVpnService : VpnService(), ServiceControl {
      * A backup network start that failed, reported like any failed start.
      * The session ends with it, so the tile, the widget or always-on cannot
      * start it again later without the app's checks.
+     *
+     * [why] is the PsiphonFailure word, sent as the reason at [step].
      */
-    private fun psiphonFailed(session: PsiphonSession, why: String) {
+    private fun psiphonFailed(
+        session: PsiphonSession,
+        why: String,
+        step: String = StartFailure.STEP_PSIPHON,
+    ) {
         Log.e(AppConfig.TAG, "[VpnService] FAILED: the backup network did not connect ($why)")
         PsiphonSession.forget(session.guid)
-        MessageUtil.sendMsg2UI(this@V2RayVpnService, AppConfig.MSG_STATE_START_FAILURE, "")
+        failed(step, why)
         stopV2Ray(true)
+    }
+
+    /**
+     * Tells the app this start failed at [step] for [reason] (StartFailure).
+     * The caller takes down what the start brought up.
+     */
+    private fun failed(step: String, reason: String) {
+        MessageUtil.sendMsg2UI(
+            this@V2RayVpnService,
+            AppConfig.MSG_STATE_START_FAILURE,
+            StartFailure.message(step, reason),
+        )
     }
 
     /**
@@ -654,7 +676,15 @@ class V2RayVpnService : VpnService(), ServiceControl {
      * Runs the tun2socks process.
      * Starts the tun2socks process with the appropriate parameters.
      */
-    private fun runTun2socks(): Boolean {
+    private fun runTun2socks(): Boolean = startTun2socks() == null
+
+    /**
+     * [runTun2socks], with the reason when it fails: null once the
+     * interface is handed to tun2socks, else StartFailure.PROCESS_ERROR or
+     * StartFailure.FD_NOT_SENT. The output monitor's restart calls
+     * [runTun2socks] as before.
+     */
+    private fun startTun2socks(): String? {
         Log.i(AppConfig.TAG, "🚀 ========== STARTING TUN2SOCKS ==========")
         val socksPort = SettingsManager.getSocksPort()
         val vpnConfig = SettingsManager.getCurrentVpnInterfaceAddressConfig()
@@ -751,11 +781,11 @@ class V2RayVpnService : VpnService(), ServiceControl {
             } else {
                 Log.e(AppConfig.TAG, "❌ Failed to send TUN FD to tun2socks")
             }
-            return fdSent
+            return if (fdSent) null else StartFailure.FD_NOT_SENT
         } catch (e: Exception) {
             Log.e(AppConfig.TAG, "❌ Failed to start $TUN2SOCKS process", e)
         }
-        return false
+        return StartFailure.PROCESS_ERROR
     }
 
     /**

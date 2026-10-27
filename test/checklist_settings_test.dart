@@ -460,6 +460,49 @@ void main() {
       expect(back.toJson(), s.toJson());
       expect(back.lastPass!.doors, 16);
     });
+
+    test('skipping the fast path on no network is off unless the backend '
+        'sends true', () {
+      expect(FastPathSettings.standard.skipOffline, isFalse);
+      expect(
+        ChecklistSettings.fromJson({
+          'fast_path_beside_ms': 4000,
+        })!.fastPath!.skipOffline,
+        isFalse,
+      );
+      for (final notTrue in [false, 'true', 1, null]) {
+        final s = ChecklistSettings.fromJson({
+          'fast_path_forget_ms': 3000,
+          'fast_path_skip_offline': notTrue,
+        })!;
+        expect(s.fastPath!.skipOffline, isFalse, reason: '$notTrue');
+      }
+    });
+
+    test('skipping the fast path on no network is a part on its own, and '
+        'keeps the standard times', () {
+      final s = ChecklistSettings.fromJson({'fast_path_skip_offline': true})!;
+      expect(s.fastPath!.skipOffline, isTrue);
+      expect(s.fastPath!.besideAfter, FastPathSettings.standard.besideAfter);
+      expect(s.fastPath!.forgetAfter, FastPathSettings.standard.forgetAfter);
+    });
+
+    test('skipping the fast path on no network reads back, and is not '
+        'written while off', () {
+      final on = ChecklistSettings.fromJson({
+        ...full,
+        'fast_path_skip_offline': true,
+      })!;
+      final back = ChecklistSettings.fromJson(on.toJson())!;
+      expect(back.fastPath!.skipOffline, isTrue);
+      expect(back.toJson(), on.toJson());
+
+      final off = ChecklistSettings.fromJson({
+        ...full,
+        'fast_path_beside_ms': 4000,
+      })!;
+      expect(off.toJson(), isNot(contains('fast_path_skip_offline')));
+    });
   });
 
   group('in the app config', () {

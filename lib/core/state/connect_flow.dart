@@ -1205,6 +1205,12 @@ class ConnectFlow extends ChangeNotifier {
     }
   }
 
+  /// Whether this try leaves out the fast path because the phone is on no
+  /// network at all ([network] is `none`) and the backend turned
+  /// FastPathSettings.skipOffline on. Off without a word from it.
+  bool _skipFastPath(String network) =>
+      network == 'none' && (_checklist()?.fastPath?.skipOffline ?? false);
+
   /// The endings of a try that found no way abroad: the phone has no
   /// internet, or only its way abroad is cut ([_noWayAbroad]).
   static const _offlineEndings = {ConnectStage.noInternet, ConnectStage.cutOff};
@@ -2108,10 +2114,11 @@ class ConnectFlow extends ChangeNotifier {
     // 243 of 247 times, leaving out phones with no internet.
     final remembered = await _recall(network);
     if (_halted(run)) return;
-    // Not while the phone is known to have no way abroad ([_noWayAbroad]).
-    // The checklist below then checks the remembered door like any other,
-    // with no tunnel brought up for it.
-    final first = remembered == null || _noWayAbroad
+    // Not while the phone is known to have no way abroad ([_noWayAbroad]),
+    // and not on no network at all when the backend says so
+    // (FastPathSettings.skipOffline). The checklist below then checks the
+    // remembered door like any other, with no tunnel brought up for it.
+    final first = remembered == null || _noWayAbroad || _skipFastPath(network)
         ? null
         : ordered
               .where((p) => p.pathKey == remembered)

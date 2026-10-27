@@ -125,6 +125,13 @@ class MainActivity : FlutterActivity() {
     // from a dialog that closed itself before the user ever saw it.
     private var prepareRequestedAt = 0L
 
+    /**
+     * Whether the consent dialog now open is the second showing for its
+     * request, after the first closed itself (ConsentAgain). A second one
+     * that closes itself ends the request with PERMISSION_BLOCKED.
+     */
+    private var pendingShownAgain = false
+
     private val peerHandoff = PeerHandoff(this)
 
     companion object {
@@ -194,7 +201,8 @@ class MainActivity : FlutterActivity() {
                 AppConfig.MSG_STATE_STOP -> eventSink?.success("disconnected")
                 AppConfig.MSG_STATE_START_SUCCESS -> eventSink?.success("connected")
                 // "failed:slot_taken" when another VPN app holds the slot
-                // (VpnSlot.SLOT_TAKEN); every other failure is the bare word.
+                // (VpnSlot.SLOT_TAKEN); any other failure says where and why
+                // ("failed:core:port_in_use", see StartFailure).
                 AppConfig.MSG_STATE_START_FAILURE -> eventSink?.success(withReason("failed", intent))
                 AppConfig.MSG_STATE_STOP_SUCCESS -> eventSink?.success(withReason("disconnected", intent))
                 AppConfig.MSG_STATS_UPDATE -> deliverStats(intent?.getStringExtra("content"))
@@ -203,13 +211,14 @@ class MainActivity : FlutterActivity() {
     }
 
     /**
-     * "disconnected", or "disconnected:killed" when the service said why, and
-     * "failed:slot_taken" for a start another VPN app's slot stopped.
+     * "disconnected", or "disconnected:killed" when the service said why,
+     * "failed:slot_taken" for a start another VPN app's slot stopped, and
+     * "failed:<step>:<reason>" for any other failed start.
      *
      * The status stream has always been a bare word, and the app on the other
      * end still reads one when there is no reason to add. See the REASON_
-     * constants on V2RayVpnService and VpnSlot.SLOT_TAKEN for what the second
-     * half can be.
+     * constants on V2RayVpnService, VpnSlot.SLOT_TAKEN and StartFailure for
+     * what the second half can be.
      */
     private fun withReason(status: String, intent: Intent?): String {
         val reason = intent?.getStringExtra("content")?.takeIf { it.isNotBlank() }
@@ -750,8 +759,9 @@ class MainActivity : FlutterActivity() {
         outbounds: List<String>,
         takeSlot: Boolean,
         result: MethodChannel.Result?,
+        shownAgain: Boolean = false,
     ) {
-        withVpnConsent(result, takeSlot, { startConnection(link, alternates, exits, penalties, outbounds, takeSlot, result) }) {
+        withVpnConsent(result, takeSlot, shownAgain, { startConnection(link, alternates, exits, penalties, outbounds, takeSlot, result) }) {
             pendingConnectLink = link
             pendingConnectAlternates = alternates
             pendingConnectExits = exits
@@ -761,8 +771,13 @@ class MainActivity : FlutterActivity() {
     }
 
     /** [connectTunnel] for the backup network: the same consent steps and errors. */
-    private fun connectPsiphon(start: PsiphonStart, takeSlot: Boolean, result: MethodChannel.Result?) {
-        withVpnConsent(result, takeSlot, { startPsiphon(start, takeSlot, result) }) {
+    private fun connectPsiphon(
+        start: PsiphonStart,
+        takeSlot: Boolean,
+        result: MethodChannel.Result?,
+        shownAgain: Boolean = false,
+    ) {
+        withVpnConsent(result, takeSlot, shownAgain, { startPsiphon(start, takeSlot, result) }) {
             pendingPsiphon = start
         }
     }
@@ -774,6 +789,7 @@ class MainActivity : FlutterActivity() {
         pendingConnectPenalties = emptyList()
         pendingConnectOutbounds = emptyList()
         pendingPsiphon = null
+        pendingShownAgain = false
     }
 
     /**
@@ -785,10 +801,14 @@ class MainActivity : FlutterActivity() {
      * and tears down any other app's VPN, so a start nobody tapped for runs
      * [onGranted] straight away and lets the service's establish() find out
      * whether the slot is still this app's. It never opens the dialog.
+     *
+     * [shownAgain]: this request's first dialog closed itself, and this is
+     * its second and last (ConsentAgain).
      */
     private fun withVpnConsent(
         result: MethodChannel.Result?,
         takeSlot: Boolean,
+        shownAgain: Boolean,
         onGranted: () -> Unit,
         park: () -> Unit,
     ) {
@@ -828,6 +848,7 @@ class MainActivity : FlutterActivity() {
 
         clearPendingStart()
         park()
+        pendingShownAgain = shownAgain
         pendingResult = result
         prepareRequestedAt = SystemClock.elapsedRealtime()
         // The time the user spends reading the dialog is theirs. Without this
@@ -1467,6 +1488,7 @@ class MainActivity : FlutterActivity() {
         val penalties = pendingConnectPenalties
         val outbounds = pendingConnectOutbounds
         val psiphon = pendingPsiphon
+        val shownAgain = pendingShownAgain
         val result = pendingResult
         val elapsed = SystemClock.elapsedRealtime() - prepareRequestedAt
         clearPendingStart()
@@ -1485,11 +1507,31 @@ class MainActivity : FlutterActivity() {
             // closed it before the user could see it. Telling them to "tap OK"
             // sends them looking for a dialog that will never appear.
             if (elapsed in 0 until SILENT_CANCEL_MS) {
+                val owner = alwaysOnVpnOwner()
+                // Once more, the way the user's next tap would: through the
+                // same consent steps, which call prepare() for a tap only.
+                val again = ConsentAgain.shouldAsk(
+                    elapsed,
+                    SILENT_CANCEL_MS,
+                    shownAgain,
+                    owner,
+                    hasStart = link != null || psiphon != null,
+                )
+                if (again && psiphon != null) {
+                    Log.w(TAG, "VPN consent dialog closed itself after ${elapsed}ms; asking once more")
+                    connectPsiphon(psiphon, takeSlot = true, result, shownAgain = true)
+                    return
+                }
+                if (again && link != null) {
+                    Log.w(TAG, "VPN consent dialog closed itself after ${elapsed}ms; asking once more")
+                    connectTunnel(link, alternates, exits, penalties, outbounds, takeSlot = true, result, shownAgain = true)
+                    return
+                }
                 Log.w(TAG, "VPN consent dialog closed itself after ${elapsed}ms (resultCode=$resultCode)")
                 result?.error(
                     "PERMISSION_BLOCKED",
                     "The VPN permission dialog did not appear",
-                    alwaysOnVpnOwner(),
+                    owner,
                 )
                 return
             }

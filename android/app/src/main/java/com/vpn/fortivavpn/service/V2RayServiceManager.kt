@@ -171,27 +171,34 @@ object V2RayServiceManager {
      * `registerReceiver(Context, BroadcastReceiver, IntentFilter, int)`.
      * Starts the V2Ray core service.
      */
-    fun startCoreLoop(): Boolean {
+    fun startCoreLoop(): Boolean = startCore() == null
+
+    /**
+     * [startCoreLoop], with the reason when it fails: null once the core
+     * runs, else one of StartFailure's core reasons. V2RayVpnService sends
+     * the reason with its failed start, so the app can file it.
+     */
+    fun startCore(): String? {
 
         if (coreController.isRunning) {
             Log.w(AppConfig.TAG, "[core] already running")
-            return false
+            return StartFailure.ALREADY_RUNNING
         }
 
         val service = getService()
         if (service == null) {
             Log.e(AppConfig.TAG, "[core] no service bound")
-            return false
+            return StartFailure.NO_SERVICE
         }
         val guid = MmkvManager.getSelectServer()
         if (guid == null) {
             Log.e(AppConfig.TAG, "[core] no server selected")
-            return false
+            return StartFailure.NO_SERVER
         }
         val config = MmkvManager.decodeServerConfig(guid)
         if (config == null) {
             Log.e(AppConfig.TAG, "[core] stored config for $guid could not be decoded")
-            return false
+            return StartFailure.BAD_PROFILE
         }
 
         // Several doors at once when the app sent standby doors with this
@@ -206,7 +213,7 @@ object V2RayServiceManager {
         if (!grouped) result = V2rayConfigManager.getV2rayConfig(service, guid)
         if (!result.status) {
             Log.e(AppConfig.TAG, "[core] could not build a v2ray config from $guid")
-            return false
+            return StartFailure.BUILD_FAILED
         }
 
         try {
@@ -218,13 +225,14 @@ object V2RayServiceManager {
 
         } catch (e: Exception) {
             Log.e(AppConfig.TAG, "[core] could not register the service receiver", e)
-            return false
+            return StartFailure.RECEIVER
         }
 
         currentConfig = config
         sawTrafficStats = false
 
         autoSelectDoors = 0
+        lastCoreError = null
         // The group and the backend's door outbounds are new. A core that
         // will not start with them must not cost the user the connection
         // the one door's link would have given (CoreStart).
@@ -243,7 +251,9 @@ object V2RayServiceManager {
         }
         if (started == null) {
             NotificationService.cancelNotification(service)
-            return false
+            // The last try's error: each try ends with its own, and the
+            // last is the one-door config, the plainest.
+            return lastCoreError ?: StartFailure.START_ERROR
         }
         result = started.result
         if (started.grouped) autoSelectDoors = doors.size
@@ -254,7 +264,7 @@ object V2RayServiceManager {
 
         } catch (e: Exception) {
             Log.e(AppConfig.TAG, "[core] notification or plugin startup failed", e)
-            return false
+            return StartFailure.POST_START
         }
 
         // Messages from the Fortiva team arrive within minutes while the
@@ -265,7 +275,7 @@ object V2RayServiceManager {
         Keeper.start(service)
         startMeter()
 
-        return true
+        return null
     }
 
     /**
@@ -427,14 +437,24 @@ object V2RayServiceManager {
             coreController.startLoop(config, 0)
         } catch (e: Exception) {
             Log.e(AppConfig.TAG, "[core] startLoop threw", e)
+            lastCoreError = StartFailure.coreError(e.message)
             return false
         }
         if (coreController.isRunning == false) {
             Log.e(AppConfig.TAG, "[core] startLoop returned but the core is not running")
+            lastCoreError = StartFailure.NOT_RUNNING
             return false
         }
         return true
     }
+
+    /**
+     * Why the last [runCore] failed, as one StartFailure word, or null.
+     * The tunnel's starts run one at a time (V2RayVpnService's start
+     * lock), so one field is enough. Only [startCore] reads it.
+     */
+    @Volatile
+    private var lastCoreError: String? = null
 
     /**
      * The doors of the last connect when [selected] is the first of them,

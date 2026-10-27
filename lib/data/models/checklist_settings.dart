@@ -446,8 +446,15 @@ class DoorCheckSettings {
 /// the app did before. A value that is missing, not a whole number, below
 /// 0 or above [longestMs] counts as [standard]'s, and a block with no
 /// usable value for either is no part.
+///
+/// `fast_path_skip_offline` true turns on [skipOffline], and is a part on
+/// its own; anything else leaves it off.
 class FastPathSettings {
-  const FastPathSettings({this.besideAfter, this.forgetAfter});
+  const FastPathSettings({
+    this.besideAfter,
+    this.forgetAfter,
+    this.skipOffline = false,
+  });
 
   /// Five seconds for both. The fast path's dial of a door that works is
   /// verified in about two seconds.
@@ -470,10 +477,27 @@ class FastPathSettings {
   /// Not counted as a failure. Null: a stop forgets nothing.
   final Duration? forgetAfter;
 
+  /// Whether a tap skips the fast path while the platform says the phone
+  /// is on no network at all (the network key `none`). The checklist then
+  /// runs as it does with no remembered door, and checks that door like
+  /// any other.
+  ///
+  /// Off unless the backend turns it on. Such a dial that fails is filed
+  /// as a failed tap, where the same tap through the checklist ends at no
+  /// internet with nothing filed. But in the 7 days to 2026-10-27, of the
+  /// taps whose trace began with no network type and with the fast path's
+  /// dial, 59 of 179 connected on that dial (37 phones), in a median of
+  /// 5 seconds against about 2 for a normal one: the network came back
+  /// during the dial. The ones that began with the checklist connected in
+  /// about 97 of 2,850. So turning this on can cost connections; measure
+  /// those numbers on the build that has it before turning it on.
+  final bool skipOffline;
+
   static FastPathSettings? _fromJson(Map<dynamic, dynamic> json) {
     final beside = _within(json['fast_path_beside_ms'], 0, longestMs);
     final forget = _within(json['fast_path_forget_ms'], 0, longestMs);
-    if (beside == null && forget == null) return null;
+    final skipOffline = json['fast_path_skip_offline'] == true;
+    if (beside == null && forget == null && !skipOffline) return null;
     Duration? read(int? ms, Duration? otherwise) {
       if (ms == null) return otherwise;
       return ms == 0 ? null : Duration(milliseconds: ms);
@@ -482,12 +506,14 @@ class FastPathSettings {
     return FastPathSettings(
       besideAfter: read(beside, standard.besideAfter),
       forgetAfter: read(forget, standard.forgetAfter),
+      skipOffline: skipOffline,
     );
   }
 
   Map<String, dynamic> _toJson() => {
     'fast_path_beside_ms': besideAfter?.inMilliseconds ?? 0,
     'fast_path_forget_ms': forgetAfter?.inMilliseconds ?? 0,
+    if (skipOffline) 'fast_path_skip_offline': true,
   };
 }
 

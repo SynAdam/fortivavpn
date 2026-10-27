@@ -55,6 +55,31 @@ String newAttemptId() {
   );
 }
 
+/// What the platform said about a failed start, as the keys the
+/// connect_failed row's diag carries them under.
+///
+/// Android sends `failed:<step>:<reason>` (StartFailure on the native
+/// side), for example "failed:core:port_in_use" or "failed:psiphon:timeout".
+/// [reason] is the part after "failed:" ([splitNativeStatus]). Up to 2.3.0
+/// every failed start but one said nothing, so all of them were filed as
+/// "The tunnel did not start" with no cause.
+///
+/// Only short lower-case words pass, so nothing but the platform's own
+/// fixed words can reach the report. A bare "failed", or anything else,
+/// gives no keys.
+Map<String, String> nativeStartFailure(String? reason) {
+  if (reason == null) return const {};
+  final word = RegExp(r'^[a-z][a-z0-9_]{0,31}$');
+  final parts = reason.split(':');
+  if (parts.length == 2 && parts.every(word.hasMatch)) {
+    return {'native_step': parts[0], 'native_reason': parts[1]};
+  }
+  if (parts.length == 1 && word.hasMatch(parts[0])) {
+    return {'native_reason': parts[0]};
+  }
+  return const {};
+}
+
 /// What the app files when the tunnel died and nothing could say why. iOS
 /// has no equivalent of the Android callbacks, so every drop there is this.
 const dropReasonUnknown = 'unknown';
@@ -691,9 +716,22 @@ class VpnService extends ChangeNotifier {
       _gaveWay();
       return;
     }
+    if (line.status == 'failed') {
+      // Why the start failed, for its report. Not a reason for a drop.
+      _updateStatus(VpnStatus.error, native: nativeStartFailure(line.reason));
+      return;
+    }
     if (line.reason != null) _dropReason = line.reason;
     _updateStatus(_parseStatus(line.status));
   }
+
+  /// Whether a connect of this app waits for its start: from [connect]
+  /// until its tunnel is verified or it fails. Only then is a "failed" from
+  /// the platform that connect's failure. [connect] always sets an attempt
+  /// id, so a run of the app with none has made no connect at all.
+  bool get _connectRunning =>
+      _currentAttemptId != null &&
+      (_status == VpnStatus.connecting || _isVerifying || _isEnablingVpn);
 
   /// The start found another VPN app holding the slot ([lostSlot]). The
   /// attempt ends with nothing up, as a stop ends it: no error on screen,
@@ -833,8 +871,12 @@ class VpnService extends ChangeNotifier {
     }
   }
 
-  /// Update status and notify listeners
-  void _updateStatus(VpnStatus newStatus) {
+  /// Update status and notify listeners. [native] is what the platform
+  /// said about a failed start ([nativeStartFailure]).
+  void _updateStatus(
+    VpnStatus newStatus, {
+    Map<String, String> native = const {},
+  }) {
     // Must come first. The guards below deliberately drop the stale
     // "disconnected" that trails a teardown, and a failed start used to arrive
     // as exactly that — so the attempt died silently and the UI sat on
@@ -842,6 +884,7 @@ class VpnService extends ChangeNotifier {
     if (newStatus == VpnStatus.error) {
       _failConnect(
         _errorMessage ?? 'The tunnel did not start. Try another location.',
+        native: native,
       );
       return;
     }
@@ -2158,9 +2201,34 @@ class VpnService extends ChangeNotifier {
   }
 
   /// Give up on an attempt that never reported an outcome, or reported failure.
-  void _failConnect(String reason) {
-    _verdictReady = Completer<FailureVerdict?>();
-    unawaited(reportConnectFailure(_currentServerHost, _currentUri, reason));
+  /// [native] is what the platform said about the failed start.
+  ///
+  /// The failure is filed only while a connect waits for its start
+  /// ([_connectRunning]). A "failed" can also come from a start no connect
+  /// of this app is waiting for: the quick settings tile, the widget, the
+  /// notification's restart button, Android's always-on VPN or its restart
+  /// of the service, or a start the app's own watchdog already failed. No
+  /// tap failed there, so no connect_failed row is filed and no new
+  /// diagnosis runs; the screen shows the error as before. In the week to
+  /// 2026-10-27, 16 such failures arrived with no attempt id and the Live
+  /// page counted each as a failed tap.
+  void _failConnect(String reason, {Map<String, String> native = const {}}) {
+    if (_connectRunning) {
+      _verdictReady = Completer<FailureVerdict?>();
+      unawaited(
+        reportConnectFailure(
+          _currentServerHost,
+          _currentUri,
+          reason,
+          native: native,
+        ),
+      );
+    } else {
+      debugPrint(
+        'VpnService: a start no connect waits for failed '
+        '(${native['native_reason'] ?? 'no reason'}); not filed',
+      );
+    }
     _failedAfterUp = false;
     _cancelConnectWatchdog();
     _isVerifying = false;
@@ -2354,12 +2422,18 @@ class VpnService extends ChangeNotifier {
 
   /// Diagnose and report a connect failure. The tunnel never came up here,
   /// so unlike a verification failure there is nothing to tear down first.
+  ///
+  /// [native] is what the platform said about the failed start
+  /// ([nativeStartFailure]): native_step and native_reason, added to the
+  /// diag. The error stays the text the user saw, so counts by error do
+  /// not move.
   @visibleForTesting
   Future<void> reportConnectFailure(
     String? host,
     String? uri,
-    String reason,
-  ) async {
+    String reason, {
+    Map<String, String> native = const {},
+  }) async {
     _tellOutcome(VpnEventType.connectFailed);
     // Before the first await, for the reason given in reportVerifyFailure.
     final door = _currentDoor;
@@ -2376,7 +2450,7 @@ class VpnService extends ChangeNotifier {
       strategy: strategy,
       serverHost: host,
       error: reason,
-      diag: diag,
+      diag: native.isEmpty ? diag : {...?diag, ...native},
     );
   }
 
