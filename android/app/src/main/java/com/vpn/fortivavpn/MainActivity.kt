@@ -5,10 +5,8 @@ package com.vpn.fortivavpn
 
 import android.content.ActivityNotFoundException
 import android.content.ComponentName
-import android.content.BroadcastReceiver
 import android.content.Context
 import android.content.Intent
-import android.content.IntentFilter
 import android.content.pm.PackageManager
 import android.content.pm.Signature
 import android.content.res.Configuration
@@ -19,8 +17,6 @@ import android.net.NetworkCapabilities
 import android.net.VpnService
 import android.os.Build
 import android.os.Bundle
-import android.os.Handler
-import android.os.Looper
 import android.os.SystemClock
 import android.provider.Settings
 import android.util.Log
@@ -33,7 +29,6 @@ import com.google.android.play.core.review.ReviewManagerFactory
 import com.google.gson.JsonParser
 import io.flutter.embedding.android.FlutterActivity
 import io.flutter.embedding.engine.FlutterEngine
-import io.flutter.plugin.common.EventChannel
 import io.flutter.plugin.common.MethodCall
 import io.flutter.plugin.common.MethodChannel
 import com.vpn.fortivavpn.handler.AngConfigManager
@@ -57,7 +52,6 @@ import com.vpn.fortivavpn.service.NoticeJobs
 import com.vpn.fortivavpn.service.NoticeNotifier
 import com.vpn.fortivavpn.service.PsiphonSession
 import com.vpn.fortivavpn.service.SessionSettings
-import com.vpn.fortivavpn.service.StatsPayload
 import com.vpn.fortivavpn.service.V2RayServiceManager
 import com.vpn.fortivavpn.service.VpnSlot
 import com.vpn.fortivavpn.util.MessageUtil
@@ -80,21 +74,7 @@ import java.security.MessageDigest
 class MainActivity : FlutterActivity() {
     private val TAG = "FortivaVPN"
     private val CHANNEL = "com.vpn.fortivavpn/tunnel"
-    private val EVENT_CHANNEL = "com.vpn.fortivavpn/tunnel/status"
-    
-    private var eventSink: EventChannel.EventSink? = null
-    private var isReceiverRegistered = false
 
-    // A traffic query in flight. The counters live in the daemon process, so
-    // the answer arrives as a broadcast rather than as a return value, and
-    // the Flutter result waits here until it does or until it times out.
-    private var pendingStats: MethodChannel.Result? = null
-    private val statsHandler = Handler(Looper.getMainLooper())
-    private val statsTimedOut = Runnable {
-        pendingStats?.success(null)
-        pendingStats = null
-    }
-    
     // Pending connection state for permission flow
     private var pendingConnectLink: String? = null
 
@@ -120,7 +100,6 @@ class MainActivity : FlutterActivity() {
     /** What connectPsiphon asked for. See PsiphonSession. */
     private class PsiphonStart(val config: String, val timeoutMs: Long, val entriesFile: String)
 
-    private var pendingResult: MethodChannel.Result? = null
     // When the consent dialog was launched, to tell a real refusal apart
     // from a dialog that closed itself before the user ever saw it.
     private var prepareRequestedAt = 0L
@@ -152,10 +131,6 @@ class MainActivity : FlutterActivity() {
          */
         private const val SLOT_TAKE_WAIT_MS = 2_000L
         private const val SETTING_ALWAYS_ON_VPN = "always_on_vpn_app"
-        // A cross-process broadcast round trip takes milliseconds. Anything
-        // beyond this is the service being gone, and the caller skips a beat
-        // rather than waiting on it.
-        private const val STATS_TIMEOUT_MS = 3000L
         // How much longer than its own wait a timed door check is given to
         // answer. It ends itself at the wait, so this is only for the answer
         // to come back (DoorChecks).
@@ -175,85 +150,39 @@ class MainActivity : FlutterActivity() {
             private set
 
         /**
-         * Whether this activity's Flutter engine runs, on screen or not. The
+         * Whether an activity shows the app's Flutter engine (AppEngine). The
          * keeper (KeeperJobService) runs in this process and stays out of
-         * the way while it does: the app sends its own heartbeats then.
+         * the way while one does: the app sends its own heartbeats then.
+         * The engine outlives the activity, but without one it leaves the
+         * heartbeat and the dead tunnel check to the keeper (AppEngine.shown).
          */
-        @Volatile
-        var engineAlive = false
-            private set
+        val engineAlive: Boolean
+            get() = AppEngine.shown
+
+        /**
+         * The connect waiting on the consent dialog. Here and not on the
+         * activity, because the Dart side that asked is the engine's, and
+         * the engine outlives the activity (AppEngine): an activity Android
+         * rebuilt under the dialog answers it.
+         */
+        private var pendingResult: MethodChannel.Result? = null
+
+        /** The app's question about notifications, waiting for the user's answer. */
+        private var pendingNotificationAnswer: MethodChannel.Result? = null
     }
 
     /** The message a tapped notification asked to open, until the app reads it. */
     private var openedNotice: Int? = null
 
-    /** The app's question about notifications, waiting for the user's answer. */
-    private var pendingNotificationAnswer: MethodChannel.Result? = null
-
-    // Broadcast receiver for service status updates
-    private val mMsgReceive = object : BroadcastReceiver() {
-        override fun onReceive(context: Context?, intent: Intent?) {
-            val code = intent?.getIntExtra("key", 0)
-            when (code) {
-                AppConfig.MSG_STATE_RUNNING -> eventSink?.success("connected")
-                AppConfig.MSG_STATE_NOT_RUNNING -> eventSink?.success("disconnected")
-                AppConfig.MSG_STATE_START -> eventSink?.success("connecting")
-                AppConfig.MSG_STATE_STOP -> eventSink?.success("disconnected")
-                AppConfig.MSG_STATE_START_SUCCESS -> eventSink?.success("connected")
-                // "failed:slot_taken" when another VPN app holds the slot
-                // (VpnSlot.SLOT_TAKEN); any other failure says where and why
-                // ("failed:core:port_in_use", see StartFailure).
-                AppConfig.MSG_STATE_START_FAILURE -> eventSink?.success(withReason("failed", intent))
-                AppConfig.MSG_STATE_STOP_SUCCESS -> eventSink?.success(withReason("disconnected", intent))
-                AppConfig.MSG_STATS_UPDATE -> deliverStats(intent?.getStringExtra("content"))
-            }
-        }
-    }
-
-    /**
-     * "disconnected", or "disconnected:killed" when the service said why,
-     * "failed:slot_taken" for a start another VPN app's slot stopped, and
-     * "failed:<step>:<reason>" for any other failed start.
-     *
-     * The status stream has always been a bare word, and the app on the other
-     * end still reads one when there is no reason to add. See the REASON_
-     * constants on V2RayVpnService, VpnSlot.SLOT_TAKEN and StartFailure for
-     * what the second half can be.
-     */
-    private fun withReason(status: String, intent: Intent?): String {
-        val reason = intent?.getStringExtra("content")?.takeIf { it.isNotBlank() }
-        return if (reason == null) status else "$status:$reason"
-    }
-
-    /**
-     * Hands a traffic answer from the daemon process to the waiting caller,
-     * with the two facts only this process can read cheaply attached. See
-     * StatsPayload for what the answer holds.
-     *
-     * A malformed or missing payload resolves to null rather than to zero
-     * bytes: a beat that reports zero says the tunnel carried nothing, which
-     * is a finding, and it must never be manufactured out of a lost message.
-     */
-    private fun deliverStats(payload: String?) {
-        statsHandler.removeCallbacks(statsTimedOut)
-        val result = pendingStats ?: return
-        pendingStats = null
-        val stats = StatsPayload.parse(payload)
-        if (stats == null) {
-            result.success(null)
-            return
-        }
-        result.success(stats + networkFacts())
-    }
-
     /**
      * Back on the home screen sends the app to the background instead of
      * closing it, as Android itself does from Android 12 on for an app that
      * leaves Back to the system (and does for this app on Android 16).
-     * Flutter otherwise finishes the activity, which ends the Dart engine:
-     * the heartbeat, the dead tunnel watch and any report still on its way
-     * stopped, while the tunnel ran on in its own process. The user sees the
-     * same thing either way; the app is just still running.
+     * Flutter otherwise finishes the activity, which ended the Dart engine
+     * until AppEngine kept it: the heartbeat, the dead tunnel watch and any
+     * report still on its way stopped, while the tunnel ran on in its own
+     * process. The user sees the same thing either way; the app is just
+     * still running.
      */
     override fun popSystemNavigator(): Boolean {
         moveTaskToBack(true)
@@ -263,7 +192,11 @@ class MainActivity : FlutterActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         // Before Flutter can ask for a door check: see DoorChecks.
         DoorChecks.prepare(applicationContext)
+        // Read before super.onCreate, which can set it from a saved state
+        // that never holds it, and which can evict an older activity.
+        val handlesBack = AppEngine.frameworkHandlesBack
         super.onCreate(savedInstanceState)
+        if (handlesBack) setFrameworkHandlesBack(true)
         // The consent dialog can outlive this activity (low memory, OEM task
         // killers). Keep the link so a granted permission still connects.
         if (pendingConnectLink == null) {
@@ -313,27 +246,62 @@ class MainActivity : FlutterActivity() {
     }
 
     override fun onDestroy() {
-        statsHandler.removeCallbacks(statsTimedOut)
-        pendingStats?.success(null)
-        pendingStats = null
-        try {
-            if (isReceiverRegistered) {
-                unregisterReceiver(mMsgReceive)
-                isReceiverRegistered = false
-            }
-        } catch (e: Exception) {
-            Log.e(TAG, "❌ Error unregistering receiver in onDestroy: ${e.message}")
+        // The engine runs on (AppEngine), so a question this activity was
+        // asking the user for it would wait forever. A swipe out of recents
+        // ends the dialog with the activity: answer it as the user closing
+        // it. An activity Android rebuilds leaves it to the next one.
+        if (isFinishing) {
+            pendingResult?.error("PERMISSION_DENIED", "The app was closed during the VPN permission request", null)
+            pendingResult = null
+            pendingNotificationAnswer?.success(notificationPermission())
+            pendingNotificationAnswer = null
+            peerHandoff.release()
         }
         super.onDestroy()
     }
 
+    /**
+     * The app's one engine, which outlives this activity, so the next
+     * activity shows the Dart app as it is instead of starting it again.
+     * See AppEngine.
+     */
+    override fun provideFlutterEngine(context: Context): FlutterEngine = AppEngine.get(context)
+
+    /**
+     * The engine keeps the app's state itself. Flutter's restoration data
+     * from an older activity would only overwrite it.
+     */
+    override fun shouldRestoreAndSaveState(): Boolean = false
+
     override fun cleanUpFlutterEngine(@NonNull flutterEngine: FlutterEngine) {
-        engineAlive = false
+        AppEngine.shown = false
         super.cleanUpFlutterEngine(flutterEngine)
     }
 
+    /** Kept for the next activity: see AppEngine.frameworkHandlesBack. */
+    override fun setFrameworkHandlesBack(frameworkHandlesBack: Boolean) {
+        AppEngine.frameworkHandlesBack = frameworkHandlesBack
+        super.setFrameworkHandlesBack(frameworkHandlesBack)
+    }
+
+    /**
+     * A newer activity took the engine while this one was still in the
+     * task, for example one a notification opened over a settings page
+     * this one had opened. Flutter leaves this one without the engine, and
+     * shown again it would stay blank and answer nothing, so it goes.
+     */
+    override fun detachFromFlutterEngine() {
+        super.detachFromFlutterEngine()
+        finish()
+    }
+
+    /**
+     * Runs for every activity that takes the engine, so the handlers below
+     * always answer through the activity on screen. After the last activity
+     * goes, the engine keeps the handlers of that activity until the next.
+     */
     override fun configureFlutterEngine(@NonNull flutterEngine: FlutterEngine) {
-        engineAlive = true
+        AppEngine.shown = true
         super.configureFlutterEngine(flutterEngine)
 
         MethodChannel(flutterEngine.dartExecutor.binaryMessenger, CHANNEL).setMethodCallHandler { call, result ->
@@ -595,7 +563,7 @@ class MainActivity : FlutterActivity() {
                 "tunnelStats" -> {
                     // A heartbeat asks with beat: true, which also closes
                     // the session readings' interval in the daemon.
-                    tunnelStats(result, call.argument<Boolean>("beat") == true)
+                    AppEngine.tunnelStats(this, result, call.argument<Boolean>("beat") == true)
                 }
                 "place" -> {
                     // Where the phone is, for the backend to place it in a
@@ -686,39 +654,6 @@ class MainActivity : FlutterActivity() {
             }
         }
 
-        EventChannel(flutterEngine.dartExecutor.binaryMessenger, EVENT_CHANNEL).setStreamHandler(
-            object : EventChannel.StreamHandler {
-                override fun onListen(arguments: Any?, events: EventChannel.EventSink?) {
-                    eventSink = events
-                    // Use ConnectivityManager to detect VPN — survives app death
-                    val active = isVpnActive()
-                    val status = if (active) "connected" else "disconnected"
-                    events?.success(status)
-                    
-                    val mFilter = IntentFilter(AppConfig.BROADCAST_ACTION_ACTIVITY)
-                    if (!isReceiverRegistered) {
-                        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
-                            registerReceiver(mMsgReceive, mFilter, Context.RECEIVER_NOT_EXPORTED)
-                        } else {
-                            registerReceiver(mMsgReceive, mFilter)
-                        }
-                        isReceiverRegistered = true
-                    }
-                }
-
-                override fun onCancel(arguments: Any?) {
-                    eventSink = null
-                    try {
-                        if (isReceiverRegistered) {
-                            unregisterReceiver(mMsgReceive)
-                            isReceiverRegistered = false
-                        }
-                    } catch (e: Exception) {
-                        Log.e(TAG, "❌ Error unregistering receiver: ${e.message}")
-                    }
-                }
-            }
-        )
     }
 
     /**
@@ -855,7 +790,7 @@ class MainActivity : FlutterActivity() {
         // the app's 20 second watchdog failed the attempt while the dialog was
         // still open, and the tunnel then came up under an error message: 18
         // times on 13 phones in the 14 days to 2026-10-02.
-        eventSink?.success("awaiting_permission")
+        AppEngine.status("awaiting_permission")
         try {
             startActivityForResult(prepareIntent, REQUEST_CODE_VPN_PREPARE)
         } catch (e: ActivityNotFoundException) {
@@ -1558,35 +1493,6 @@ class MainActivity : FlutterActivity() {
     }
 
     /**
-     * Bytes the tunnel has carried since this was last asked.
-     *
-     * The core's counters are in the daemon process, so this broadcasts the
-     * question and parks the Flutter result until MSG_STATS_UPDATE comes back
-     * (see deliverStats). The counters reset on every read, which is exactly
-     * what a heartbeat wants and why nothing else may ask. [beat] says the
-     * heartbeat asks: while the session readings run, only its answer
-     * carries the session block.
-     *
-     * Answers null when there is no tunnel, when the service does not reply,
-     * or when the core is not counting. Null means "no reading", never "no
-     * bytes": the difference is the whole point of the call.
-     */
-    private fun tunnelStats(result: MethodChannel.Result, beat: Boolean) {
-        if (!isVpnActive()) {
-            result.success(null)
-            return
-        }
-        // An earlier question that was never answered. Complete it so its
-        // Dart future resolves instead of hanging on a reply meant for this
-        // one; its counters were never read, so nothing was lost with it.
-        pendingStats?.success(null)
-        pendingStats = result
-        statsHandler.removeCallbacks(statsTimedOut)
-        statsHandler.postDelayed(statsTimedOut, STATS_TIMEOUT_MS)
-        MessageUtil.sendMsg2Service(this, AppConfig.MSG_MEASURE_TRAFFIC, if (beat) AppConfig.TRAFFIC_BEAT else "")
-    }
-
-    /**
      * The carrier and transport, as the two system services report them.
      *
      * Split out of collectDiagnostics because a heartbeat wants exactly this
@@ -2249,14 +2155,5 @@ class MainActivity : FlutterActivity() {
         return out
     }
 
-    private fun isVpnActive(): Boolean {
-        // Check static flag (works when service is in same process)
-        if (V2RayServiceManager.isRunning()) return true
-
-        // This app's own VPN network (survives app death if service runs in
-        // separate process). Up to 2.2.0 any VPN counted, so the app opened
-        // while Psiphon was up showed Connected, and its check of that
-        // "tunnel" then searched for a door without a tap.
-        return VpnSlot.ownUp(this)
-    }
+    private fun isVpnActive(): Boolean = AppEngine.vpnActive(this)
 }

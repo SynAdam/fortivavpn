@@ -17,6 +17,7 @@ import 'network_history.dart';
 import 'network_keys.dart';
 import 'path_finder.dart';
 import 'report_queue.dart';
+import 'stored_from_background.dart';
 
 /// What happened to the tunnel, as the backend wants to hear it.
 ///
@@ -986,7 +987,8 @@ class VpnEventReporter {
 
   Future<List<Map<String, dynamic>>> _loadProbes() async {
     final prefs = await SharedPreferences.getInstance();
-    final raw = prefs.getString(probeStorageKey);
+    // As stored: the keeper's engine sends and removes rows too.
+    final raw = await StoredFromBackground.current(prefs, probeStorageKey);
     if (raw == null || raw.isEmpty) return [];
     try {
       final decoded = jsonDecode(raw);
@@ -1500,7 +1502,8 @@ class VpnEventReporter {
 
   Future<List<Map<String, dynamic>>> _load() async {
     final prefs = await SharedPreferences.getInstance();
-    final raw = prefs.getString(storageKey);
+    // As stored: the keeper's engine adds, sends and removes rows too.
+    final raw = await StoredFromBackground.current(prefs, storageKey);
     if (raw == null || raw.isEmpty) return [];
     try {
       final decoded = jsonDecode(raw);

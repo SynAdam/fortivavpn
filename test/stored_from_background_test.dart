@@ -1,9 +1,11 @@
 import 'dart:async';
+import 'dart:convert';
 
 import 'package:flutter_test/flutter_test.dart';
 import 'package:fortiva_vpn/services/stored_from_background.dart';
 import 'package:fortiva_vpn/services/vpn_event_reporter.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:shared_preferences_platform_interface/shared_preferences_platform_interface.dart';
 
 /// The values the background engine writes are read again key by key. A
 /// reload of every stored value replaced the app's whole copy, and what the
@@ -43,5 +45,66 @@ void main() {
     final prefs = await SharedPreferences.getInstance();
     await StoredFromBackground.refresh(prefs, const ['k']);
     expect(prefs.getString('k'), 'old');
+  });
+
+  // The keeper's engine runs while the app's engine waits for an activity,
+  // and both change the report queues. Each engine's copy holds only what
+  // that engine read or saved.
+  group('current', () {
+    test('is what the platform holds, not this engine\'s copy', () async {
+      StoredFromBackground.readOverride = (key) async =>
+          key == 'k' ? 'new' : null;
+      final prefs = await SharedPreferences.getInstance();
+      expect(await StoredFromBackground.current(prefs, 'k'), 'new');
+    });
+
+    test('a value another engine removed is gone', () async {
+      StoredFromBackground.readOverride = (key) async => null;
+      final prefs = await SharedPreferences.getInstance();
+      expect(await StoredFromBackground.current(prefs, 'k'), isNull);
+    });
+
+    test('a read that fails gives this engine\'s copy', () async {
+      StoredFromBackground.readOverride = (key) async => throw StateError('no');
+      final prefs = await SharedPreferences.getInstance();
+      expect(await StoredFromBackground.current(prefs, 'k'), 'old');
+    });
+  });
+
+  test('an event keeps the rows the keeper queued meanwhile', () async {
+    // The app's engine read the queue empty before the user swiped it away.
+    SharedPreferences.setMockInitialValues({});
+    final prefs = await SharedPreferences.getInstance();
+    expect(prefs.getString(VpnEventReporter.storageKey), isNull);
+    // Then the keeper's engine queued a heartbeat it could not send. It
+    // reaches the platform, not the app engine's copy.
+    final store = SharedPreferencesStorePlatform.instance;
+    await store.setValue(
+      'String',
+      'flutter.${VpnEventReporter.storageKey}',
+      jsonEncode([
+        {
+          'type': 'heartbeat',
+          'diag': {'keeper': true},
+        },
+      ]),
+    );
+    StoredFromBackground.readOverride = (key) async =>
+        (await store.getAll())['flutter.$key'] as String?;
+
+    final reporter = VpnEventReporter(
+      send: (_, _, _) async => throw Exception('offline'),
+      deviceId: () async => 'DEV-1',
+      appVersion: () async => '2.3.0',
+      platform: 'android',
+      osVersion: '14',
+      networkType: () async => 'mobile',
+    );
+    await reporter.record(VpnEventType.disconnected);
+
+    final types = [
+      for (final row in await reporter.queuedForTest()) row['type'],
+    ];
+    expect(types, ['heartbeat', 'disconnected']);
   });
 }

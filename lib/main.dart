@@ -55,28 +55,14 @@ import 'l10n/generated/app_localizations.dart';
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
-  // Portrait on a phone. A TV cannot turn, and a box that is asked for
-  // portrait shows the app sideways or in a strip down the middle.
   await FormFactor.read();
   if (FormFactor.isTv) {
     // The remote's focus is drawn from the first frame, not only after
     // the first key press as on a phone. See FocusRing.
     FocusManager.instance.highlightStrategy =
         FocusHighlightStrategy.alwaysTraditional;
-  } else {
-    await SystemChrome.setPreferredOrientations([
-      DeviceOrientation.portraitUp,
-      DeviceOrientation.portraitDown,
-    ]);
   }
-
-  // Edge to edge on every Android version, with both bars transparent, so
-  // the canvas runs to the bottom of the screen. Before this, phones below
-  // Android 15 laid the app out above the navigation bar, and the bar showed
-  // as a dark strip of its own color under every screen. Android 15 and
-  // later already draw apps edge to edge. Screens keep their content above
-  // the bar with SafeArea (MediaQuery.viewPadding).
-  unawaited(SystemChrome.setEnabledSystemUIMode(SystemUiMode.edgeToEdge));
+  await _setWindow();
   SystemChrome.setSystemUIOverlayStyle(AppDesign.systemBars);
 
   // Load persisted locale before app renders
@@ -100,6 +86,40 @@ void main() async {
   ApiRelays.networkKey = ConnectFlow.currentNetworkKey;
 
   runApp(FortivaVpnApp(localeState: localeState));
+}
+
+/// How the app's window is set up. Android keeps both per activity, and
+/// the engine outlives the activity (AppEngine), so the app sets them again
+/// when a new activity shows it (_AppBootstrapState).
+///
+/// Never throws. With no activity there is nothing to answer the call: the
+/// one that started the app can go before main() gets here. main() must
+/// still reach runApp, because the kept engine does not run it again.
+Future<void> _setWindow() async {
+  // Portrait on a phone. A TV cannot turn, and a box that is asked for
+  // portrait shows the app sideways or in a strip down the middle.
+  if (!FormFactor.isTv) {
+    try {
+      await SystemChrome.setPreferredOrientations([
+        DeviceOrientation.portraitUp,
+        DeviceOrientation.portraitDown,
+      ]).timeout(const Duration(seconds: 2));
+    } catch (e) {
+      debugPrint('No portrait lock for now ($e)');
+    }
+  }
+
+  // Edge to edge on every Android version, with both bars transparent, so
+  // the canvas runs to the bottom of the screen. Before this, phones below
+  // Android 15 laid the app out above the navigation bar, and the bar showed
+  // as a dark strip of its own color under every screen. Android 15 and
+  // later already draw apps edge to edge. Screens keep their content above
+  // the bar with SafeArea (MediaQuery.viewPadding).
+  unawaited(
+    SystemChrome.setEnabledSystemUIMode(
+      SystemUiMode.edgeToEdge,
+    ).catchError((Object e) => debugPrint('No edge to edge for now ($e)')),
+  );
 }
 
 class FortivaVpnApp extends StatelessWidget {
@@ -373,6 +393,11 @@ class _AppBootstrapState extends State<_AppBootstrap> {
   VariantTester? _variantTests;
   late final AppLifecycleListener _lifecycle;
 
+  /// Set when the activity that showed the app went (see _setWindow). True
+  /// at first: an activity can go, and the next one come, before this state
+  /// exists to hear it.
+  bool _windowLost = true;
+
   @override
   void initState() {
     super.initState();
@@ -386,7 +411,14 @@ class _AppBootstrapState extends State<_AppBootstrap> {
         _billing((b) => unawaited(b.sendUpsellEvents()));
         _inviteEvents((e) => unawaited(e.send()));
       },
+      // The activity went, and the engine with the app stayed (AppEngine).
+      onDetach: () => _windowLost = true,
       onResume: () {
+        // A new activity shows the app, with Android's own window settings.
+        if (_windowLost) {
+          _windowLost = false;
+          unawaited(_setWindow());
+        }
         _updateGate?.resumed();
         _reportSchedule?.foreground();
         _variantTests?.shown();
@@ -395,6 +427,13 @@ class _AppBootstrapState extends State<_AppBootstrap> {
         _billing((b) => b.resumed());
       },
     );
+    // Already on screen, so no resume comes for the activity showing it now.
+    final state = WidgetsBinding.instance.lifecycleState;
+    if (state == AppLifecycleState.resumed ||
+        state == AppLifecycleState.inactive) {
+      _windowLost = false;
+      unawaited(_setWindow());
+    }
     // What the 24 hour Later of older builds saved is no longer read.
     unawaited(UpdateDialog.forgetOldLater());
 

@@ -789,14 +789,17 @@ void main() {
     // The lines that carry the tap from the app to onStartCommand, and the
     // slot_taken reason back. 9b83fd8 dropped the reason in MainActivity's
     // receiver, so a start that found the slot taken read as a failed door,
-    // and the tap went on to the next ones.
+    // and the tap went on to the next ones. The receiver is in AppEngine
+    // now, which keeps it for as long as the app's engine runs.
     const wiring = {
       'MainActivity.kt': [
         'private fun takeSlot(call: MethodCall): Boolean = call.argument<Boolean>("take_slot") == true',
-        'AppConfig.MSG_STATE_START_FAILURE -> eventSink?.success(withReason("failed", intent))',
         '"otherVpn" -> {',
         '"otherVpnCount" -> {',
         '"takeSlot" -> {',
+      ],
+      'AppEngine.kt': [
+        'AppConfig.MSG_STATE_START_FAILURE -> eventSink?.success(withReason("failed", intent))',
       ],
       'V2RayServiceManager.kt': [
         'intent.putExtra(VpnSlot.EXTRA_TAKE_SLOT, takeSlot)',

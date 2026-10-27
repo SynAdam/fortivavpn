@@ -23,6 +23,7 @@ import 'failure_verdict.dart';
 import 'keeper.dart';
 import 'psiphon_entries.dart';
 import 'stall_watch.dart';
+import 'stored_from_background.dart';
 import 'tunnel_channels.dart';
 import 'vpn_event_reporter.dart';
 
@@ -1122,24 +1123,42 @@ class VpnService extends ChangeNotifier {
   /// Looked at once per attempt, and only once the attempt is known: an
   /// app reopened over its tunnel puts the attempt back a moment after the
   /// watch can start.
-  Future<void> _checkKeeperFinding() async {
+  ///
+  /// True when it found this attempt and looked at once.
+  Future<bool> _checkKeeperFinding() async {
     final attempt = _currentAttemptId;
-    if (attempt == null || attempt == _keeperFindingSeen) return;
+    if (attempt == null || attempt == _keeperFindingSeen) return false;
     _keeperFindingSeen = attempt;
     try {
       final prefs = await SharedPreferences.getInstance();
-      final found = prefs.getString(Keeper.stalledKey);
-      if (found == null) return;
+      // The keeper writes it from its own engine (StoredFromBackground).
+      final found = await StoredFromBackground.current(
+        prefs,
+        Keeper.stalledKey,
+      );
+      if (found == null) return false;
       await prefs.remove(Keeper.stalledKey);
-      if (found != attempt) return;
+      if (found != attempt) return false;
       await _stallWatch.resumed();
+      return true;
     } catch (e) {
       debugPrint('VpnService: could not read the keeper\'s finding ($e)');
+      return false;
     }
   }
 
   /// Look now, for an app that came to the front with the tunnel up.
-  Future<void> checkStall() => _stallWatch.resumed();
+  ///
+  /// The app's engine outlives the activity (AppEngine on Android), so the
+  /// keeper may have found this attempt dead while no activity showed it.
+  /// Its mark is read again here and removed, as a new engine used to do,
+  /// or later keeper runs would take the attempt as reported and stay
+  /// silent.
+  Future<void> checkStall() async {
+    _keeperFindingSeen = null;
+    if (await _checkKeeperFinding()) return;
+    await _stallWatch.resumed();
+  }
 
   /// The counters since the last read, for the watch. Carried into the next
   /// heartbeat, the way the throughput sample keeps them, so no byte goes
@@ -1808,6 +1827,9 @@ class VpnService extends ChangeNotifier {
   /// state between "connected" and the connected event.
   @visibleForTesting
   set debugVerifying(bool value) => _isVerifying = value;
+
+  @visibleForTesting
+  set debugAttemptId(String? id) => _currentAttemptId = id;
 
   /// When the session's traffic was verified, for tests, where the check
   /// itself would need a network.

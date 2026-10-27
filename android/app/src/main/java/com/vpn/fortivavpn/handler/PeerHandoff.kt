@@ -42,8 +42,6 @@ import java.util.concurrent.atomic.AtomicInteger
  * read, or is too big to be ours).
  */
 class PeerHandoff(private val activity: Activity) {
-    private var pending: MethodChannel.Result? = null
-
     /** Open the camera app, and read the code in the photo it takes. */
     fun photograph(result: MethodChannel.Result) {
         settle()
@@ -263,6 +261,16 @@ class PeerHandoff(private val activity: Activity) {
     }
 
     /**
+     * Answer a request still waiting for the camera app or the picker, for
+     * an activity that closes before the answer comes. A decode already
+     * running answers for itself.
+     */
+    fun release() {
+        pending?.success(mapOf("status" to "cancelled"))
+        pending = null
+    }
+
+    /**
      * Answer a request still waiting, so its Dart future does not hang, and
      * stop a decode still running for it.
      */
@@ -290,6 +298,14 @@ class PeerHandoff(private val activity: Activity) {
         private const val MAX_IMAGE_BYTES = 64L * 1024 * 1024
 
         private val main = Handler(Looper.getMainLooper())
+
+        /**
+         * The request waiting for the camera app or the picker. Here and not
+         * on the instance, because the Dart side that asked is the app
+         * engine's, which outlives the activity (AppEngine): an activity
+         * Android rebuilt while the camera app was open answers it.
+         */
+        private var pending: MethodChannel.Result? = null
 
         /** One decode at a time: each can take seconds and most of the memory it is given. */
         private val decoder = Executors.newSingleThreadExecutor()

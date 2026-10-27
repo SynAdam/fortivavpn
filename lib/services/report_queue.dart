@@ -6,6 +6,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 
 import '../api/api_client.dart';
 import '../api/device_service.dart';
+import 'stored_from_background.dart';
 import 'vpn_event_reporter.dart';
 
 /// Rows of one small report, kept on the phone until the backend has them,
@@ -223,7 +224,7 @@ class ReportQueue {
       if (prefs.get(VpnEventReporter.sharePrefKey) == false) return;
       final items = await build();
       if (items.isEmpty) return;
-      final queue = _decode(prefs.getString(storageKey));
+      final queue = _decode(await _stored(prefs));
       final at = _clock().toUtc().toIso8601String();
       for (final item in items) {
         queue.add({'id': _nextId(), 'at': at, 'item': item});
@@ -271,7 +272,7 @@ class ReportQueue {
         }
         final items = await build();
         if (items.isEmpty) return const <String>{};
-        final queue = _decode(prefs.getString(storageKey));
+        final queue = _decode(await _stored(prefs));
         final at = _clock().toUtc().toIso8601String();
         final added = <String>{};
         for (final item in items) {
@@ -365,7 +366,7 @@ class ReportQueue {
           return const <Map<String, dynamic>>[];
         }
         final mine = [
-          for (final entry in _decode(prefs.getString(storageKey)))
+          for (final entry in _decode(await _stored(prefs)))
             if (left.contains(entry['id']) && _youngerThan(entry['at'], now))
               entry,
         ];
@@ -387,7 +388,7 @@ class ReportQueue {
       if (!await _deliver([for (final e in piece) _item(e)])) return false;
       await _serialized(() async {
         final prefs = await SharedPreferences.getInstance();
-        final queue = _decode(prefs.getString(storageKey));
+        final queue = _decode(await _stored(prefs));
         await _store(prefs, [
           for (final entry in queue)
             if (!sent.contains(entry['id'])) entry,
@@ -443,7 +444,7 @@ class ReportQueue {
           await prefs.remove(storageKey);
           return null;
         }
-        final queue = _decode(prefs.getString(storageKey));
+        final queue = _decode(await _stored(prefs));
         final fresh = [
           for (final entry in queue)
             if (_youngerThan(entry['at'], now)) entry,
@@ -472,7 +473,7 @@ class ReportQueue {
       if (!await _deliver([for (final e in piece) _item(e)])) return;
       await _serialized(() async {
         final prefs = await SharedPreferences.getInstance();
-        final queue = _decode(prefs.getString(storageKey));
+        final queue = _decode(await _stored(prefs));
         await _store(prefs, [
           for (final entry in queue)
             if (!ids.contains(entry['id'])) entry,
@@ -552,6 +553,11 @@ class ReportQueue {
     return at != null && now.difference(at) < keptFor;
   }
 
+  /// The queue as stored, not as this engine last saw it: the keeper's
+  /// engine sends and removes rows too. See StoredFromBackground.current.
+  Future<String?> _stored(SharedPreferences prefs) =>
+      StoredFromBackground.current(prefs, storageKey);
+
   static List<Map<String, dynamic>> _decode(String? raw) {
     if (raw == null || raw.isEmpty) return [];
     try {
@@ -582,7 +588,7 @@ class ReportQueue {
   /// whose [addLater] was called before this. For tests and diagnostics.
   Future<List<Map<String, dynamic>>> pending() => _serialized(() async {
     final prefs = await SharedPreferences.getInstance();
-    return [for (final e in _decode(prefs.getString(storageKey))) _item(e)];
+    return [for (final e in _decode(await _stored(prefs))) _item(e)];
   });
 
   /// Drop every row of the queues stored under [keys]. In line with every

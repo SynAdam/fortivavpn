@@ -33,6 +33,28 @@ class StoredFromBackground {
     ),
   );
 
+  /// The string stored under [key] as the platform holds it now, for a
+  /// value another engine in this process changes while this one runs. The
+  /// keeper (KeeperJobService) runs its own engine while the app's engine
+  /// waits for an activity (AppEngine), and both read and write the report
+  /// queues: read from [prefs], each engine wrote its old copy over the
+  /// other's rows. Off Android, or when the platform cannot be read, the
+  /// value in [prefs]. Never throws.
+  static Future<String?> current(SharedPreferences prefs, String key) async {
+    final read =
+        readOverride ??
+        (Platform.isAndroid
+            ? (String k) => _android.getString('flutter.$k')
+            : null);
+    if (read == null) return prefs.getString(key);
+    try {
+      return await read(key);
+    } catch (e) {
+      debugPrint('StoredFromBackground: could not read $key ($e)');
+      return prefs.getString(key);
+    }
+  }
+
   /// Bring the string values of [keys] in [prefs] up to what the platform
   /// holds. Only Android has a background engine; elsewhere nothing
   /// changes. A key the platform does not hold is left as it is. Never
