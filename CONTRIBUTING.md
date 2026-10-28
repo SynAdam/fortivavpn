@@ -51,16 +51,16 @@ Write in English or Persian.
 
 ## Pull requests
 
-This repository gets its commits from our private repository at each
-release, so a pull request is not merged here. Your change goes into the
-next release instead:
+This repository gets its commits from our private repository, so a pull
+request is not merged here. Your change goes into that repository instead,
+and comes back here within minutes:
 
 1. Fork this repository, make your change on a branch, and open a pull
    request against `main`.
 2. We review it here, in the open, and may ask for changes.
-3. When it is ready, we bring it into the next release. The commit that
-   brings your change here lists your pull request and names you as a
-   co-author.
+3. When it is ready, we bring it into our repository. Within minutes the
+   commit that brings your change here lists your pull request and names
+   you as a co-author. It ships in the next release.
 4. When that release is published here, we close your pull request with a
    comment that names the release. It is closed rather than merged, because
    a commit of the release already holds your change.

@@ -107,9 +107,9 @@ anywhere else, [check that it is ours](#check-a-download).
 
 ## What this repository is
 
-The apps are developed in a private repository. At each release, this copy
-gets one commit for each change made there since the previous release, and
-the release is tagged `vX.Y.Z`. The history here starts at version 2.2.0.
+The apps are developed in a private repository, and each change made there
+comes here within minutes, as one commit. Each release is tagged `vX.Y.Z`
+on the commit it was built from. The history here starts at version 2.2.0.
 
 Three things in the builds we ship are not in this copy:
 
@@ -251,8 +251,9 @@ E1:F5:F9:1D:AA:A7:F9:AE:07:FF:3B:02:06:0F:6E:33:BA:21:21:5C:16:F2:EA:70:9B:E0:B1
 
 ## Contributing
 
-Pull requests are welcome. An accepted change ships in the next release,
-and the commit that brings it here names you as a co-author.
+Pull requests are welcome. An accepted change comes here within minutes of
+being merged, in a commit that names you as a co-author, and ships in the
+next release.
 [CONTRIBUTING.md](CONTRIBUTING.md) has the steps, the checks and the terms.
 
 - **Found a bug or have an idea?** [Open an issue](https://github.com/SynAdam/fortivavpn/issues/new/choose)

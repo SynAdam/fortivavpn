@@ -1,0 +1,62 @@
+# Brings each new commit of the source repository here, every 15 minutes,
+# and tags each release on the commit it was built from.
+#
+# The source repository is private, so the job reads it with a read-only
+# deploy key: the secret SOURCE_DEPLOY_KEY, for the repository the variable
+# SOURCE_REPOSITORY names. The only step that writes here is
+# tool/public_sync.py from that repository. It checks every commit before it
+# pushes, and stops at one that must not be public. A push made with the
+# workflow's token starts no other workflow, so this one runs the CI on what
+# it pushed.
+#
+# It does nothing until SOURCE_REPOSITORY is set. To stop it, set the
+# repository variable MIRROR_PAUSED to true.
+name: Mirror
+
+on:
+  schedule:
+    - cron: '*/15 * * * *'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: mirror
+  cancel-in-progress: false
+
+jobs:
+  mirror:
+    name: bring new commits here
+    if: >-
+      github.repository == 'SynAdam/fortivavpn' && vars.SOURCE_REPOSITORY != ''
+      && vars.MIRROR_PAUSED != 'true'
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    outputs:
+      pushed: ${{ steps.sync.outputs.pushed }}
+    steps:
+      - name: check out the source repository
+        uses: actions/checkout@v4
+        with:
+          repository: ${{ vars.SOURCE_REPOSITORY }}
+          ssh-key: ${{ secrets.SOURCE_DEPLOY_KEY }}
+          fetch-depth: 0
+          persist-credentials: false
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.14'
+
+      - name: publish its new commits and release tags
+        id: sync
+        env:
+          PUBLIC_PUSH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: python3 tool/public_sync.py --mirror --push --in-actions
+
+  ci:
+    needs: mirror
+    if: needs.mirror.outputs.pushed == 'true'
+    uses: ./.github/workflows/ci.yml
+    with:
+      ref: main
