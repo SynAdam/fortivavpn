@@ -63,10 +63,26 @@ jobs:
         uses: actions/checkout@v4
         with:
           repository: ${{ env.SOURCE_REPOSITORY }}
-          ref: ${{ inputs.ref || inputs.tag }}
+          ref: ${{ inputs.ref && format('refs/heads/{0}', inputs.ref) || format('refs/tags/{0}', inputs.tag) }}
           ssh-key: ${{ secrets.SOURCE_DEPLOY_KEY }}
-          fetch-depth: 0
           persist-credentials: false
+
+      # The checkout fetches one ref alone, because a fetch prints each branch
+      # it fetches, and the names of our branches stay ours. This fetches the
+      # rest quietly: every branch, whose names the tool keeps out of the
+      # public messages, every tag, and the whole history.
+      - name: fetch the rest of the source repository quietly
+        env:
+          SOURCE_DEPLOY_KEY: ${{ secrets.SOURCE_DEPLOY_KEY }}
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          umask 077
+          key="$RUNNER_TEMP/source-key" hosts="$RUNNER_TEMP/github-hosts"
+          trap 'rm -f "$key"' EXIT
+          printf '%s\n' "$SOURCE_DEPLOY_KEY" > "$key"
+          gh api meta --jq '.ssh_keys[] | "github.com " + .' > "$hosts"
+          GIT_SSH_COMMAND="ssh -i $key -o IdentitiesOnly=yes -o UserKnownHostsFile=$hosts -o StrictHostKeyChecking=yes" \
+            git fetch --quiet --unshallow --prune origin '+refs/heads/*:refs/remotes/origin/*' '+refs/tags/*:refs/tags/*'
 
       - uses: actions/setup-java@v4
         with:
@@ -83,17 +99,18 @@ jobs:
         with:
           python-version: '3.14'
 
+      # The key's alias is the app's name. It is no secret, and as one GitHub
+      # would mask that word everywhere in this public log.
       - name: put the upload key in place
         env:
           KEYSTORE: ${{ secrets.RELEASE_KEYSTORE }}
           STORE_PASSWORD: ${{ secrets.RELEASE_STORE_PASSWORD }}
-          KEY_ALIAS: ${{ secrets.RELEASE_KEY_ALIAS }}
           KEY_PASSWORD: ${{ secrets.RELEASE_KEY_PASSWORD }}
         run: |
           umask 077
           printf '%s' "$KEYSTORE" | base64 -d > android/app/fortiva_release.keystore
-          printf 'storePassword=%s\nkeyPassword=%s\nkeyAlias=%s\nstoreFile=fortiva_release.keystore\n' \
-            "$STORE_PASSWORD" "$KEY_PASSWORD" "$KEY_ALIAS" > android/keystore.properties
+          printf 'storePassword=%s\nkeyPassword=%s\nkeyAlias=fortiva\nstoreFile=fortiva_release.keystore\n' \
+            "$STORE_PASSWORD" "$KEY_PASSWORD" > android/keystore.properties
 
       - name: build and check the two APKs
         run: ./tool/release.sh --build

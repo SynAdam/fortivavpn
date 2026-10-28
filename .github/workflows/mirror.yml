@@ -41,14 +41,32 @@ jobs:
     outputs:
       pushed: ${{ steps.sync.outputs.pushed }}
     steps:
-      - name: check out the source repository
+      - name: check out the source repository's main
         if: env.SOURCE_REPOSITORY != ''
         uses: actions/checkout@v4
         with:
           repository: ${{ env.SOURCE_REPOSITORY }}
+          ref: refs/heads/main
           ssh-key: ${{ secrets.SOURCE_DEPLOY_KEY }}
-          fetch-depth: 0
           persist-credentials: false
+
+      # The checkout fetches one ref alone, because a fetch prints each branch
+      # it fetches, and the names of our branches stay ours. This fetches the
+      # rest quietly: every branch, whose names the tool keeps out of the
+      # public messages, every tag, and the whole history.
+      - name: fetch the rest of the source repository quietly
+        if: env.SOURCE_REPOSITORY != ''
+        env:
+          SOURCE_DEPLOY_KEY: ${{ secrets.SOURCE_DEPLOY_KEY }}
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          umask 077
+          key="$RUNNER_TEMP/source-key" hosts="$RUNNER_TEMP/github-hosts"
+          trap 'rm -f "$key"' EXIT
+          printf '%s\n' "$SOURCE_DEPLOY_KEY" > "$key"
+          gh api meta --jq '.ssh_keys[] | "github.com " + .' > "$hosts"
+          GIT_SSH_COMMAND="ssh -i $key -o IdentitiesOnly=yes -o UserKnownHostsFile=$hosts -o StrictHostKeyChecking=yes" \
+            git fetch --quiet --unshallow --prune origin '+refs/heads/*:refs/remotes/origin/*' '+refs/tags/*:refs/tags/*'
 
       - if: env.SOURCE_REPOSITORY != ''
         uses: actions/setup-python@v5
