@@ -1,0 +1,150 @@
+# Builds the Play bundle of a release tag, signs it with the upload key,
+# checks it, and uploads it to Google Play's production track.
+#
+# Only by hand, and only once someone has looked at Play Console >
+# Publishing overview just before: nothing in review, and nothing under
+# "Changes not yet sent for review", which Play sends with any upload and no
+# API can read. console_checked says so, and the run stops without it. Play
+# itself is asked the rest before anything is uploaded.
+#
+# The job runs in the environment "release", like the release workflow. Only
+# that environment holds the upload key and the Play service account, and a
+# reviewer must approve each run. Approve it right away: the Console check is
+# only as fresh as the approval. The source is the repository the mirror
+# reads, at the tag, built with tool/release.sh --bundle there, and uploaded
+# with that repository's tool/play_publish.py as its main has it. With upload
+# off it builds, checks and reads Play, and uploads nothing: a rehearsal,
+# which may build a branch (ref) instead of the tag, when that branch has the
+# tag's version.
+#
+# The bot reads Play with the same service account every 15 minutes, and a
+# new edit deletes an open one. A run whose edit it deletes uploads nothing
+# and fails; start it again.
+name: Play
+
+on:
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: The release tag, such as v2.4.0
+        required: true
+      console_checked:
+        description: I have just seen nothing in review and nothing under "Changes not yet sent for review" in Play Console
+        type: boolean
+        default: false
+      upload:
+        description: Upload to production (off builds and checks only)
+        type: boolean
+        default: true
+      ref:
+        description: With upload off, build this branch of the source repository instead of the tag
+        required: false
+        default: ''
+
+permissions:
+  contents: read
+
+concurrency:
+  group: play
+  cancel-in-progress: false
+
+jobs:
+  play:
+    name: build, check and upload to Google Play
+    if: github.repository == 'SynAdam/fortivavpn'
+    environment: release
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    env:
+      TAG: ${{ inputs.tag }}
+      REF: ${{ inputs.ref }}
+      UPLOAD: ${{ inputs.upload }}
+      CONSOLE_CHECKED: ${{ inputs.console_checked }}
+      SOURCE_REPOSITORY: ${{ secrets.SOURCE_REPOSITORY }}
+    steps:
+      - name: check the tag and the Console check
+        run: |
+          [[ "$TAG" =~ ^v[0-9]+\.[0-9]+\.[0-9]+$ ]] || { echo "Not a release tag: $TAG"; exit 1; }
+          [ "$CONSOLE_CHECKED" = true ] || {
+            echo "Not started: look at Play Console > Publishing overview first, then start it again with console_checked."
+            exit 1
+          }
+          [ -n "$SOURCE_REPOSITORY" ] || { echo "The secret SOURCE_REPOSITORY is not set."; exit 1; }
+          if [ -n "$REF" ] && [ "$UPLOAD" != false ]; then
+            echo "Only a rehearsal, with upload off, builds another ref than the tag."; exit 1
+          fi
+
+      - name: check out the source repository at the tag
+        uses: actions/checkout@v4
+        with:
+          repository: ${{ env.SOURCE_REPOSITORY }}
+          ref: ${{ inputs.ref && format('refs/heads/{0}', inputs.ref) || format('refs/tags/{0}', inputs.tag) }}
+          ssh-key: ${{ secrets.SOURCE_DEPLOY_KEY }}
+          persist-credentials: false
+
+      # The checkout fetches one ref alone, because a fetch prints each branch
+      # it fetches, and the names of our branches stay ours. This fetches the
+      # rest quietly: every branch, every tag, and the whole history.
+      - name: fetch the rest of the source repository quietly
+        env:
+          SOURCE_DEPLOY_KEY: ${{ secrets.SOURCE_DEPLOY_KEY }}
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          umask 077
+          key="$RUNNER_TEMP/source-key" hosts="$RUNNER_TEMP/github-hosts"
+          trap 'rm -f "$key"' EXIT
+          printf '%s\n' "$SOURCE_DEPLOY_KEY" > "$key"
+          gh api meta --jq '.ssh_keys[] | "github.com " + .' > "$hosts"
+          GIT_SSH_COMMAND="ssh -i $key -o IdentitiesOnly=yes -o UserKnownHostsFile=$hosts -o StrictHostKeyChecking=yes" \
+            git fetch --quiet --unshallow --prune origin '+refs/heads/*:refs/remotes/origin/*' '+refs/tags/*:refs/tags/*'
+
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+
+      - uses: subosito/flutter-action@v2
+        with:
+          flutter-version: 3.38.7
+          channel: stable
+          cache: true
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.14'
+
+      # The key's alias is the app's name. It is no secret, and as one GitHub
+      # would mask that word everywhere in this public log.
+      - name: put the upload key in place
+        env:
+          KEYSTORE: ${{ secrets.RELEASE_KEYSTORE }}
+          STORE_PASSWORD: ${{ secrets.RELEASE_STORE_PASSWORD }}
+          KEY_PASSWORD: ${{ secrets.RELEASE_KEY_PASSWORD }}
+        run: |
+          umask 077
+          printf '%s' "$KEYSTORE" | base64 -d > android/app/fortiva_release.keystore
+          printf 'storePassword=%s\nkeyPassword=%s\nkeyAlias=fortiva\nstoreFile=fortiva_release.keystore\n' \
+            "$STORE_PASSWORD" "$KEY_PASSWORD" > android/keystore.properties
+
+      - name: build and check the Play bundle
+        run: ./tool/release.sh --bundle
+
+      - name: remove the upload key
+        if: always()
+        run: rm -f android/app/fortiva_release.keystore android/keystore.properties
+
+      # tool/play_publish.py refuses to run unless the Play tools are main's,
+      # so they are, whatever the tag has. The release's version and What's
+      # new stay the tag's.
+      - name: upload the bundle to Google Play, or with upload off check it
+        env:
+          PLAY_SERVICE_ACCOUNT: ${{ secrets.PLAY_SERVICE_ACCOUNT }}
+          CHECK: ${{ !inputs.upload && '--check' || '' }}
+        run: |
+          umask 077
+          key="$RUNNER_TEMP/play-key.json"
+          trap 'rm -f "$key"' EXIT
+          printf '%s' "$PLAY_SERVICE_ACCOUNT" | base64 -d > "$key"
+          python3 -m pip install --quiet --disable-pip-version-check google-api-python-client google-auth
+          git checkout --quiet origin/main -- tool/
+          FORTIVA_PLAY_KEY="$key" python3 tool/play_publish.py --track production --console-checked $CHECK
