@@ -8,7 +8,9 @@
 # tool/public_sync.py from that repository. It checks every commit before it
 # pushes, and stops at one that must not be public. A push made with the
 # workflow's token starts no other workflow, so this one runs the CI on what
-# it pushed.
+# it pushed, and the tool starts the release workflow (release.yml) for each
+# release tag it pushed. That token cannot push a change to a workflow, so
+# the tool stops at one, and it goes here by hand.
 #
 # It does nothing until SOURCE_REPOSITORY is set. To stop it, set the
 # repository variable MIRROR_PAUSED to true.
@@ -21,6 +23,7 @@ on:
 
 permissions:
   contents: write
+  actions: write
 
 concurrency:
   group: mirror
