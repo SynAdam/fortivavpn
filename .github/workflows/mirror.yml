@@ -2,8 +2,9 @@
 # and tags each release on the commit it was built from.
 #
 # The source repository is private, so the job reads it with a read-only
-# deploy key: the secret SOURCE_DEPLOY_KEY, for the repository the variable
-# SOURCE_REPOSITORY names. The only step that writes here is
+# deploy key: the secret SOURCE_DEPLOY_KEY, for the repository the secret
+# SOURCE_REPOSITORY names. Its name is a secret too, so that the public log
+# of a run shows it masked. The only step that writes here is
 # tool/public_sync.py from that repository. It checks every commit before it
 # pushes, and stops at one that must not be public. A push made with the
 # workflow's token starts no other workflow, so this one runs the CI on what
@@ -28,28 +29,32 @@ concurrency:
 jobs:
   mirror:
     name: bring new commits here
-    if: >-
-      github.repository == 'SynAdam/fortivavpn' && vars.SOURCE_REPOSITORY != ''
-      && vars.MIRROR_PAUSED != 'true'
+    if: github.repository == 'SynAdam/fortivavpn' && vars.MIRROR_PAUSED != 'true'
     runs-on: ubuntu-latest
     timeout-minutes: 30
+    # A job's condition cannot read a secret, so each step waits for it.
+    env:
+      SOURCE_REPOSITORY: ${{ secrets.SOURCE_REPOSITORY }}
     outputs:
       pushed: ${{ steps.sync.outputs.pushed }}
     steps:
       - name: check out the source repository
+        if: env.SOURCE_REPOSITORY != ''
         uses: actions/checkout@v4
         with:
-          repository: ${{ vars.SOURCE_REPOSITORY }}
+          repository: ${{ env.SOURCE_REPOSITORY }}
           ssh-key: ${{ secrets.SOURCE_DEPLOY_KEY }}
           fetch-depth: 0
           persist-credentials: false
 
-      - uses: actions/setup-python@v5
+      - if: env.SOURCE_REPOSITORY != ''
+        uses: actions/setup-python@v5
         with:
           python-version: '3.14'
 
       - name: publish its new commits and release tags
         id: sync
+        if: env.SOURCE_REPOSITORY != ''
         env:
           PUBLIC_PUSH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: python3 tool/public_sync.py --mirror --push --in-actions
