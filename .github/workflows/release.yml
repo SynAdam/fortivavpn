@@ -3,7 +3,9 @@
 #
 # The mirror workflow starts it for each release tag it brings here. It can
 # also be started by hand for a tag that is here already, such as after a run
-# that failed; with publish off it only builds and checks.
+# that failed. With publish off it builds and runs every check, and publishes
+# nothing: a rehearsal, which may build a branch of the source repository
+# (ref) instead of the tag, when that branch has the tag's version.
 #
 # The job runs in the environment "release". Only that environment holds the
 # upload key, and a reviewer must approve each run before it starts. The
@@ -24,6 +26,10 @@ on:
         description: Publish the GitHub Release (off builds and checks only)
         type: boolean
         default: true
+      ref:
+        description: With publish off, build this branch of the source repository instead of the tag
+        required: false
+        default: ''
 
 permissions:
   contents: write
@@ -41,18 +47,23 @@ jobs:
     timeout-minutes: 60
     env:
       TAG: ${{ inputs.tag }}
+      REF: ${{ inputs.ref }}
+      PUBLISH: ${{ inputs.publish }}
       SOURCE_REPOSITORY: ${{ secrets.SOURCE_REPOSITORY }}
     steps:
       - name: check the tag
         run: |
           [[ "$TAG" =~ ^v[0-9]+\.[0-9]+\.[0-9]+$ ]] || { echo "Not a release tag: $TAG"; exit 1; }
           [ -n "$SOURCE_REPOSITORY" ] || { echo "The secret SOURCE_REPOSITORY is not set."; exit 1; }
+          if [ -n "$REF" ] && [ "$PUBLISH" != false ]; then
+            echo "Only a rehearsal, with publish off, builds another ref than the tag."; exit 1
+          fi
 
       - name: check out the source repository at the tag
         uses: actions/checkout@v4
         with:
           repository: ${{ env.SOURCE_REPOSITORY }}
-          ref: ${{ inputs.tag }}
+          ref: ${{ inputs.ref || inputs.tag }}
           ssh-key: ${{ secrets.SOURCE_DEPLOY_KEY }}
           fetch-depth: 0
           persist-credentials: false
@@ -91,8 +102,8 @@ jobs:
         if: always()
         run: rm -f android/app/fortiva_release.keystore android/keystore.properties
 
-      - name: publish the GitHub Release
-        if: inputs.publish
+      - name: check, and with publish on publish, the GitHub Release
         env:
           PUBLIC_PUSH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: python3 tool/public_sync.py "$TAG" --push --in-actions --assets "build/release-${TAG#v}"
+          PUSH: ${{ inputs.publish && '--push' || '' }}
+        run: python3 tool/public_sync.py "$TAG" $PUSH --in-actions --assets "build/release-${TAG#v}"
