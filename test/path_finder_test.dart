@@ -1327,25 +1327,17 @@ void main() {
         parallel: 3,
         stagger: const Duration(milliseconds: 100),
       );
-      // Each step is timed from the first check's start. The search's timer
-      // for the check a step expects is due first, and the step lets the
-      // search act on it before counting. A stall can make the search start
-      // two checks at once, so a step counts the checks started at least,
-      // and each row's start time shows that none started early.
-      final first = finder.checks.first.startedAt!;
-      Future<void> at(int ms) async {
-        await Future<void>.delayed(
-          first.add(Duration(milliseconds: ms)).difference(DateTime.now()),
-        );
-        await pumpEventQueue();
-      }
-
       Duration started(int i) => finder.checks[i].startedAt!.difference(before);
 
-      await at(150);
-      expect(probed.length, greaterThanOrEqualTo(2));
-      await at(250);
-      expect(probed, hasLength(3));
+      // The test waits for the checks to start, and then reads when each
+      // one did, on the clock the search reads too. A stall can only make
+      // a check start late, never early, and the test does not time
+      // anything against its own timers.
+      final end = DateTime.now().add(const Duration(seconds: 5));
+      while (probed.length < 3) {
+        if (DateTime.now().isAfter(end)) fail('only ${probed.length} started');
+        await Future<void>.delayed(const Duration(milliseconds: 2));
+      }
       expect(
         started(1),
         greaterThanOrEqualTo(const Duration(milliseconds: 100)),
@@ -1354,7 +1346,10 @@ void main() {
         started(2),
         greaterThanOrEqualTo(const Duration(milliseconds: 200)),
       );
-      await at(450);
+      // Not much later either: a ramp ten times too slow fails here.
+      expect(started(2), lessThan(const Duration(seconds: 2)));
+      // No fourth check while three run, however long they take.
+      await Future<void>.delayed(const Duration(milliseconds: 250));
       expect(probed, hasLength(3));
 
       gates[more[0].pathKey]!.complete(-1);
