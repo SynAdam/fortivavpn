@@ -71,9 +71,6 @@ func newHandler(eng *engine.Engine, logs *engine.LogSink, binder engine.Binder) 
 			}
 			return eng.RealPingDetail(ctx, p.Link), nil
 
-		case "drainSiteStats":
-			return logs.DrainSites(), nil
-
 		case "place":
 			return place(), nil
 

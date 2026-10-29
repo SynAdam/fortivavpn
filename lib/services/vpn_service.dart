@@ -979,11 +979,6 @@ class VpnService extends ChangeNotifier {
         final host = _currentServerHost;
         final uri = _currentUri;
         final duration = _currentConnection?.duration;
-        // The last chance to collect this session's sites. A session shorter
-        // than heartbeatInterval never reached a periodic beat, so without
-        // this its sites would be dropped with the tunnel. On Android the app
-        // is outside its own tunnel, so this leaves over the plain network.
-        unawaited(_reportSites());
         if (_userDisconnecting) {
           // An attempt the user stopped before it was verified has no
           // connected row to close, like one replaced in [connect].
@@ -1424,10 +1419,6 @@ class VpnService extends ChangeNotifier {
       bytesDown: down,
       diag: {'throughput_kbps': kbps, ..._beatFacts(facts)},
     );
-    // This beat lands about half a minute in, long before the first periodic
-    // one, so draining here gets a short session's sites out while the tunnel
-    // is known to be up.
-    await _reportSites();
   }
 
   /// Kilobits per second through the tunnel, or null when the platform
@@ -1499,89 +1490,6 @@ class VpnService extends ChangeNotifier {
       // stall that names no carrier says nothing about who is throttling.
       diag: _beatFacts(stats),
     );
-    await _reportSites();
-  }
-
-  /// The sites drained from the core's log but not yet accepted by the
-  /// backend. A drain advances the native cursor, so whatever it returns is
-  /// gone from the log; holding it here is what stops a failed send from
-  /// losing it. Counts only, same as everything that leaves this class.
-  final Map<String, int> _pendingSites = {};
-
-  /// The most distinct sites to hold while the backend cannot be reached.
-  /// Matches the backend's own per-report ceiling, so a held batch is never
-  /// larger than one it would accept anyway.
-  static const maxPendingSites = 2000;
-
-  /// The drain currently running, so a second one queues behind it rather
-  /// than overlapping it. Two overlapping drains would each send a snapshot
-  /// of [_pendingSites], and the backend adds what it is sent, so the sites
-  /// in both snapshots would be counted twice on the very dashboard this
-  /// feeds. Serialising is what keeps the counts true.
-  Future<void> _sitesReport = Future<void>.value();
-
-  /// Drain the sniffed-domain counts the core logged since the last drain and
-  /// send them, for the aggregate Sites view.
-  ///
-  /// Called from every point where a session can produce counts: the periodic
-  /// beat, the one throughput beat, and the end of the session. The last one
-  /// matters most, because a session shorter than [heartbeatInterval] never
-  /// reaches a periodic beat, and before it was added those sessions reported
-  /// nothing at all.
-  ///
-  /// Queued behind any drain already in flight. The returned future completes
-  /// when this one has had its turn, so a caller that awaits it knows its own
-  /// counts were offered.
-  Future<void> _reportSites() {
-    // _drainSites never throws, so the chain cannot break and leave every
-    // later drain inheriting a dead future.
-    final queued = _sitesReport.then((_) => _drainSites());
-    _sitesReport = queued;
-    return queued;
-  }
-
-  /// One drain and one send. Only ever runs from [_reportSites], one at a
-  /// time.
-  ///
-  /// Anything the backend did not accept stays in [_pendingSites] and goes out
-  /// with the next attempt, because the drain already advanced the native
-  /// cursor and the log cannot be read twice. Never throws, so a failure here
-  /// cannot break the caller or the queue.
-  Future<void> _drainSites() async {
-    try {
-      final raw = await _methodChannel.invokeMethod<Map<Object?, Object?>>(
-        'drainSiteStats',
-      );
-      raw?.forEach((k, v) {
-        final host = k?.toString();
-        final n = (v as num?)?.toInt() ?? 0;
-        if (host == null || host.isEmpty || n <= 0) return;
-        // A site already held keeps counting up, so a retry sends the whole
-        // session rather than only what arrived since the failure.
-        if (_pendingSites.containsKey(host) ||
-            _pendingSites.length < maxPendingSites) {
-          _pendingSites[host] = (_pendingSites[host] ?? 0) + n;
-        }
-      });
-      if (_pendingSites.isEmpty) return;
-      // Sent as one map, so the backend folds a retry and a fresh drain in
-      // the same upsert it would have done for either alone.
-      final sent = Map.of(_pendingSites);
-      if (!await _events.reportDomains(sent)) return;
-      // Take off exactly what went, never the whole map. Clearing it would
-      // throw away anything that arrived while the send was in flight, which
-      // the backend has not seen and the log cannot give back.
-      sent.forEach((host, n) {
-        final left = (_pendingSites[host] ?? 0) - n;
-        if (left > 0) {
-          _pendingSites[host] = left;
-        } else {
-          _pendingSites.remove(host);
-        }
-      });
-    } catch (e) {
-      debugPrint('VpnService: site stats report failed: $e');
-    }
   }
 
   /// The link as the platform wants it: the API sends ampersands

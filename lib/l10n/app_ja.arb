@@ -101,7 +101,7 @@
   "tools": "ツール",
   "settingsGeneral": "一般",
   "shareDiagnosticsTitle": "接続の診断情報を共有",
-  "shareDiagnosticsBody": "接続レポート、通信事業者と国、スマートフォンの機種と Android のバージョン、VPN 経由でアクセスしたサイトの名前と日ごとの回数、そしてメッセージ、プレミアムのご案内、招待カードを見たか、タップしたかを送信します。開いたページや送信した内容を私たちが見ることはありません。",
+  "shareDiagnosticsBody": "接続レポート、通信事業者と国、スマートフォンの機種と Android のバージョン、そしてメッセージ、プレミアムのご案内、招待カードを見たか、タップしたかを送信します。開いたページや送信した内容を私たちが見ることはありません。",
   "security": "セキュリティ",
   "privacyDashboard": "プライバシーダッシュボード",
   "privacyDashboardSubtitle": "IP情報 & リーク保護",

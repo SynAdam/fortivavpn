@@ -328,7 +328,7 @@ class SEs extends S {
 
   @override
   String get shareDiagnosticsBody =>
-      'Envía informes de conexión, tu operador y tu país, el modelo del teléfono y la versión de Android, los nombres de los sitios que visitas a través de la VPN, con un recuento diario, y si viste o tocaste nuestros mensajes, nuestras ofertas de Premium y nuestra tarjeta de invitación. Nunca vemos las páginas que abres ni lo que envías.';
+      'Envía informes de conexión, tu operador y tu país, el modelo del teléfono, la versión de Android y si viste o tocaste nuestros mensajes, nuestras ofertas de Premium y nuestra tarjeta de invitación. Nunca vemos las páginas que abres ni lo que envías.';
 
   @override
   String get security => 'Cumplimiento';

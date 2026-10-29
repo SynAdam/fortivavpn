@@ -326,7 +326,7 @@ class STr extends S {
 
   @override
   String get shareDiagnosticsBody =>
-      'Bağlantı raporları, operatörünüz ve ülkeniz, telefon modeli ve Android sürümü, VPN üzerinden girdiğiniz sitelerin adları ve günlük sayıları, ayrıca mesajlarımızı, Premium tekliflerimizi ve davet kartımızı görüp görmediğiniz ya da onlara dokunup dokunmadığınız gönderilir. Açtığınız sayfaları veya gönderdiklerinizi asla görmeyiz.';
+      'Bağlantı raporları, operatörünüz ve ülkeniz, telefon modeli ve Android sürümü, ayrıca mesajlarımızı, Premium tekliflerimizi ve davet kartımızı görüp görmediğiniz ya da onlara dokunup dokunmadığınız gönderilir. Açtığınız sayfaları veya gönderdiklerinizi asla görmeyiz.';
 
   @override
   String get security => 'Güvenlik';

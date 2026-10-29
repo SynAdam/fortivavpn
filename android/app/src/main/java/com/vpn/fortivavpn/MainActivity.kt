@@ -496,11 +496,6 @@ class MainActivity : FlutterActivity() {
                     val capMs = call.argument<Int>("capMs") ?: 10_000
                     throughputSample(bytes, capMs, result)
                 }
-                "drainSiteStats" -> {
-                    // The sniffed-domain counts since the last drain, read from
-                    // this app's own logcat. See SiteStats and the Dart heartbeat.
-                    result.success(com.vpn.fortivavpn.handler.SiteStats.drain())
-                }
                 "realPing" -> {
                     val link = call.argument<String>("link")
                     // How long the core waits for data, when the app says.

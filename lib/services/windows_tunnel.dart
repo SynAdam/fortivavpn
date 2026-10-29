@@ -67,7 +67,6 @@ class WindowsTunnel {
         case 'getStatus':
           return statusLine(await _client.call('status'));
         case 'tunnelStats':
-        case 'drainSiteStats':
         case 'diagnostics':
         case 'place':
           return await _client.call(method);

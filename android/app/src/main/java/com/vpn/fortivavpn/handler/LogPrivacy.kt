@@ -16,11 +16,12 @@ import com.vpn.fortivavpn.AppConfig
  * N IP(s) for domain <host>", "got answer: <host>"). The tun2socks lines this
  * app copies into its own log carry addresses too.
  *
- * The core keeps writing these lines, because SiteStats reads the sniffed
- * names on the phone for the daily site counts. So the lines are taken out
- * here, at the one place the log is read for upload. The Dart side runs the
- * same rules again before it sends (lib/services/log_privacy.dart), and both
- * read the sample lines in test/fixtures/log_privacy_lines.txt.
+ * The core writes these lines at info, the level the app runs it at so the
+ * tail shows why a connection failed (V2rayConfigManager.useInfoLogLevel).
+ * So the lines are taken out here, at the one place the log is read for
+ * upload. The Dart side runs the same rules again before it sends
+ * (lib/services/log_privacy.dart), and both read the sample lines in
+ * test/fixtures/log_privacy_lines.txt.
  *
  * A line is left out when its message has a phrase from [DESTINATION_PHRASES]
  * or holds a host name, an IPv4 address or an IPv6 address. Loopback

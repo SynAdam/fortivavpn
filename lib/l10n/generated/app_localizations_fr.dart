@@ -329,7 +329,7 @@ class SFr extends S {
 
   @override
   String get shareDiagnosticsBody =>
-      'Envoie les rapports de connexion, votre opérateur et votre pays, le modèle du téléphone et la version d\'Android, les noms des sites auxquels vous accédez via le VPN avec leur nombre par jour, et si vous avez vu ou touché nos messages, nos offres Premium et notre carte d\'invitation. Nous ne voyons jamais les pages que vous ouvrez ni ce que vous envoyez.';
+      'Envoie les rapports de connexion, votre opérateur et votre pays, le modèle du téléphone, la version d\'Android et si vous avez vu ou touché nos messages, nos offres Premium et notre carte d\'invitation. Nous ne voyons jamais les pages que vous ouvrez ni ce que vous envoyez.';
 
   @override
   String get security => 'Sécurité';

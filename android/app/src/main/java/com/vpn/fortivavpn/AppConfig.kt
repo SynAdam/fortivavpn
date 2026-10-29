@@ -15,15 +15,6 @@ object AppConfig {
     const val ANG_CONFIG = "ang_config"
 
     /** Preferences mapped to MMKV storage. */
-    // Kept for possible future use; site stats logging is now unconditional.
-    const val PREF_SITE_STATS_ENABLED = "pref_site_stats_enabled"
-
-    // The logcat timestamp SiteStats last read up to. Persisted because this
-    // process is killed while the tunnel keeps running in its own, and a
-    // cursor that came back empty would re-read, and re-count, log lines the
-    // backend already has.
-    const val PREF_SITE_STATS_CURSOR = "pref_site_stats_cursor"
-
     const val PREF_SNIFFING_ENABLED = "pref_sniffing_enabled"
     const val PREF_ROUTE_ONLY_ENABLED = "pref_route_only_enabled"
     const val PREF_PER_APP_PROXY = "pref_per_app_proxy"

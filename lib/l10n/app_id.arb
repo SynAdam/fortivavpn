@@ -101,7 +101,7 @@
   "tools": "Diagnostik",
   "settingsGeneral": "Umum",
   "shareDiagnosticsTitle": "Bagikan diagnostik koneksi",
-  "shareDiagnosticsBody": "Mengirim laporan koneksi, operator dan negara Anda, model ponsel dan versi Android, nama situs yang Anda buka lewat VPN beserta jumlah hariannya, serta apakah Anda melihat atau mengetuk pesan, penawaran Premium, dan kartu undangan kami. Kami tidak pernah melihat halaman yang Anda buka atau apa yang Anda kirim.",
+  "shareDiagnosticsBody": "Mengirim laporan koneksi, operator dan negara Anda, model ponsel dan versi Android, serta apakah Anda melihat atau mengetuk pesan, penawaran Premium, dan kartu undangan kami. Kami tidak pernah melihat halaman yang Anda buka atau apa yang Anda kirim.",
   "security": "Kepatuhan",
   "privacyDashboard": "Analisis Endpoint",
   "privacyDashboardSubtitle": "Transparansi IP & pemantauan kebocoran",

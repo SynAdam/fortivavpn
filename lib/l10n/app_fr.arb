@@ -101,7 +101,7 @@
   "tools": "Outils",
   "settingsGeneral": "Général",
   "shareDiagnosticsTitle": "Partager les diagnostics de connexion",
-  "shareDiagnosticsBody": "Envoie les rapports de connexion, votre opérateur et votre pays, le modèle du téléphone et la version d'Android, les noms des sites auxquels vous accédez via le VPN avec leur nombre par jour, et si vous avez vu ou touché nos messages, nos offres Premium et notre carte d'invitation. Nous ne voyons jamais les pages que vous ouvrez ni ce que vous envoyez.",
+  "shareDiagnosticsBody": "Envoie les rapports de connexion, votre opérateur et votre pays, le modèle du téléphone, la version d'Android et si vous avez vu ou touché nos messages, nos offres Premium et notre carte d'invitation. Nous ne voyons jamais les pages que vous ouvrez ni ce que vous envoyez.",
   "security": "Sécurité",
   "privacyDashboard": "Tableau de bord de confidentialité",
   "privacyDashboardSubtitle": "Info IP et protection contre les fuites",

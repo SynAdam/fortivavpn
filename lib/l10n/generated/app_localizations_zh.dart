@@ -322,7 +322,7 @@ class SZh extends S {
 
   @override
   String get shareDiagnosticsBody =>
-      '发送连接报告、您的运营商和国家/地区、手机型号和 Android 版本、您通过 VPN 访问的网站名称及每日次数，以及您是否看过或点击过我们的消息、高级版优惠和邀请卡片。我们绝不会看到您打开的页面或您发送的内容。';
+      '发送连接报告、您的运营商和国家/地区、手机型号和 Android 版本，以及您是否看过或点击过我们的消息、高级版优惠和邀请卡片。我们绝不会看到您打开的页面或您发送的内容。';
 
   @override
   String get security => '合规';

@@ -323,7 +323,7 @@ class SKo extends S {
 
   @override
   String get shareDiagnosticsBody =>
-      '연결 보고서, 통신사와 국가, 휴대폰 모델과 Android 버전, VPN으로 접속한 사이트 이름과 일별 횟수, 그리고 메시지, 프리미엄 안내, 초대 카드를 보거나 탭했는지 여부를 보냅니다. 회원님이 여는 페이지나 보내는 내용은 절대 보지 않습니다.';
+      '연결 보고서, 통신사와 국가, 휴대폰 모델과 Android 버전, 그리고 메시지, 프리미엄 안내, 초대 카드를 보거나 탭했는지 여부를 보냅니다. 회원님이 여는 페이지나 보내는 내용은 절대 보지 않습니다.';
 
   @override
   String get security => '보안';

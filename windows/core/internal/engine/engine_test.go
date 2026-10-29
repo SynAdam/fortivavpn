@@ -282,35 +282,6 @@ func TestConnectReplacesTheRunningTunnel(t *testing.T) {
 	e.Disconnect()
 }
 
-func TestSiteTally(t *testing.T) {
-	sink := NewLogSink(nil, false)
-	for _, line := range []string{
-		"[Info] [111] app/dispatcher: sniffed domain: www.YouTube.com.",
-		"[Info] [111] app/dispatcher: taking detour [proxy] for [tcp:www.youtube.com:443]",
-		"[Info] [222] app/dispatcher: sniffed domain: divar.ir",
-		"[Info] [222] app/dispatcher: taking detour [direct] for [tcp:divar.ir:443]",
-		"[Info] [333] app/dispatcher: sniffed domain: example.org",
-		"[Info] [333] app/dispatcher: default route for tcp:example.org:443",
-		"[Info] [444] app/dispatcher: sniffed domain: later.example.net",
-		"[Info] [555] app/dispatcher: taking detour [proxy@1] for [tcp:1.2.3.4:443]",
-		"[Info] [666] app/dispatcher: sniffed domain: ads.example.com",
-		"[Info] [666] app/dispatcher: taking detour [block] for [tcp:ads.example.com:443]",
-	} {
-		sink.sites.observe(line)
-	}
-	if got, want := sink.DrainSites(), map[string]int{"www.youtube.com": 1, "example.org": 1}; !reflect.DeepEqual(got, want) {
-		t.Errorf("first drain %v, want %v", got, want)
-	}
-	if got := sink.DrainSites(); len(got) != 0 {
-		t.Errorf("a drain must not count again: %v", got)
-	}
-	// The route of a connection sniffed before the drain arrives after it.
-	sink.sites.observe("[Info] [444] app/dispatcher: taking detour [proxy@0] for [tcp:later.example.net:443]")
-	if got, want := sink.DrainSites(), map[string]int{"later.example.net": 1}; !reflect.DeepEqual(got, want) {
-		t.Errorf("late route %v, want %v", got, want)
-	}
-}
-
 func TestLogTail(t *testing.T) {
 	sink := NewLogSink(nil, false)
 	for i := range ringLines + 5 {
@@ -330,8 +301,7 @@ func endsWith(s, suffix string) bool {
 }
 
 // A door check starts and closes an instance of its own. Had it installed
-// its log module, the process's log would end with it, and with the log the
-// tunnel's site counts.
+// its log module, the process's log would end with it.
 func TestDoorCheckKeepsTheLog(t *testing.T) {
 	sink := NewLogSink(nil, false)
 	xlog.RegisterHandler(sink)

@@ -328,7 +328,7 @@ class SUz extends S {
 
   @override
   String get shareDiagnosticsBody =>
-      'Ulanish hisobotlari, operatoringiz va mamlakatingiz, telefon modeli va Android versiyasi, VPN orqali kiradigan saytlaringiz nomlari kunlik soni bilan, shuningdek, xabarlarimiz, Premium takliflarimiz va doʻstlarni taklif qilish kartasini koʻrgan yoki bosganingiz yuboriladi. Siz ochgan sahifalarni yoki yuborgan narsalaringizni biz hech qachon koʻrmaymiz.';
+      'Ulanish hisobotlari, operatoringiz va mamlakatingiz, telefon modeli va Android versiyasi, shuningdek, xabarlarimiz, Premium takliflarimiz va doʻstlarni taklif qilish kartasini koʻrgan yoki bosganingiz yuboriladi. Siz ochgan sahifalarni yoki yuborgan narsalaringizni biz hech qachon koʻrmaymiz.';
 
   @override
   String get security => 'Muvofiqlik';

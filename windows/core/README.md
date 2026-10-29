@@ -66,10 +66,9 @@ lookups sent through the tunnel. The differences:
   hold TCP `fragment` masks, which is all Fortiva sends. Anything else could
   make a SYSTEM process open files (TLS key logs, certificate files) or raw
   sockets.
-- **Site counts come from the log as it is written.** Android reads them back
-  out of logcat. Instances are started without Xray's log module, because each
-  one would otherwise install itself as the process's only log handler and a
-  door check would take the tunnel's log down with it.
+- **One log sink for the whole process.** Instances are started without Xray's
+  log module, because each one would otherwise install itself as the process's
+  only log handler and a door check would take the tunnel's log down with it.
 
 ## The pipe
 
@@ -89,7 +88,6 @@ Where a call has a twin on the app's mobile channel
 | `tunnelStats` | | Android's shape: `bytes_up`, `bytes_down` (since the last call), `door_index`, `door_status`, `network`; `null` without a tunnel |
 | `realPing` | `{link}` | milliseconds, or -1 |
 | `realPingDetail` | `{link}` | `{ms, elapsedMs, error?, tcp?, tcpMs?}` |
-| `drainSiteStats` | | `{host: connections}` through the tunnel since the last call |
 | `place` | | `{time_zone?}`, an IANA name |
 | `diagnostics` | | `{core, xray, state, failure?, failure_error?, network?, core_log}` |
 | `logs` | `{lines}` | the last lines of the log |

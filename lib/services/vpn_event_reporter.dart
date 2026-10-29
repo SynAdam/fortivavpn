@@ -192,7 +192,6 @@ class VpnEventReporter {
            ),
        _sendProbes =
            sendProbes ?? _postProbes(post ?? _apiPost, clock ?? DateTime.now),
-       _post = post ?? _apiPost,
        _deviceId = deviceId ?? (() => DeviceService().getDeviceId()),
        _appVersion = appVersion ?? (() => DeviceService().getAppVersion()),
        _platform = platform ?? DeviceService().platform,
@@ -353,7 +352,6 @@ class VpnEventReporter {
 
   final EventSender _send;
   final ProbeSender _sendProbes;
-  final BackendPost _post;
   final Future<String> Function() _deviceId;
   final Future<String> Function() _appVersion;
   final String _platform;
@@ -1025,29 +1023,6 @@ class VpnEventReporter {
 
   /// How many door-check batches are waiting. For tests and diagnostics.
   Future<int> pendingProbeBatches() async => (await _loadProbes()).length;
-
-  /// Report the sites this device reached since the last report, as a count
-  /// per host. Opt-in and privacy sensitive, so it honours the same share
-  /// switch as everything else, and sends nothing when the switch is off or
-  /// there is nothing to send. Counts only, no times, no order. Never throws.
-  ///
-  /// Returns whether the caller may drop these counts. False means only one
-  /// thing: the send failed and the same counts should be offered again.
-  /// Sharing being off returns true, because those counts are meant to be
-  /// dropped, not kept and sent once the switch comes back on.
-  Future<bool> reportDomains(Map<String, int> counts) async {
-    if (counts.isEmpty) return true;
-    try {
-      final prefs = await SharedPreferences.getInstance();
-      if (prefs.getBool(sharePrefKey) == false) return true;
-      final deviceId = await _deviceId();
-      await _post('/api/v1/devices/$deviceId/domains', {'domains': counts});
-      return true;
-    } catch (e) {
-      debugPrint('VpnEventReporter: could not report sites: $e');
-      return false;
-    }
-  }
 
   /// The events that are sent without the core log: the failures.
   static const _sentWithoutCoreLog = {

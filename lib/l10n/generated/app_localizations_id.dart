@@ -327,7 +327,7 @@ class SId extends S {
 
   @override
   String get shareDiagnosticsBody =>
-      'Mengirim laporan koneksi, operator dan negara Anda, model ponsel dan versi Android, nama situs yang Anda buka lewat VPN beserta jumlah hariannya, serta apakah Anda melihat atau mengetuk pesan, penawaran Premium, dan kartu undangan kami. Kami tidak pernah melihat halaman yang Anda buka atau apa yang Anda kirim.';
+      'Mengirim laporan koneksi, operator dan negara Anda, model ponsel dan versi Android, serta apakah Anda melihat atau mengetuk pesan, penawaran Premium, dan kartu undangan kami. Kami tidak pernah melihat halaman yang Anda buka atau apa yang Anda kirim.';
 
   @override
   String get security => 'Kepatuhan';

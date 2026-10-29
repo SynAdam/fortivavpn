@@ -327,7 +327,7 @@ class SVi extends S {
 
   @override
   String get shareDiagnosticsBody =>
-      'Gửi báo cáo kết nối, nhà mạng và quốc gia của bạn, mẫu điện thoại và phiên bản Android, tên các trang web bạn truy cập qua VPN kèm số lần mỗi ngày, và việc bạn đã xem hay nhấn vào tin nhắn, ưu đãi Premium và thẻ mời của chúng tôi. Chúng tôi không bao giờ thấy các trang bạn mở hay nội dung bạn gửi.';
+      'Gửi báo cáo kết nối, nhà mạng và quốc gia của bạn, mẫu điện thoại và phiên bản Android, và việc bạn đã xem hay nhấn vào tin nhắn, ưu đãi Premium và thẻ mời của chúng tôi. Chúng tôi không bao giờ thấy các trang bạn mở hay nội dung bạn gửi.';
 
   @override
   String get security => 'Tuân thủ';

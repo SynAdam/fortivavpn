@@ -190,7 +190,6 @@ void main() {
           'realPing' => 120,
           'realPingDetail' => {'ms': -1, 'elapsedMs': 3001, 'tcp': 'timeout'},
           'tunnelStats' => {'bytes_up': 10, 'bytes_down': 20},
-          'drainSiteStats' => {'example.org': 2},
           'place' => {'time_zone': 'Asia/Tehran'},
           _ => null,
         },
@@ -207,10 +206,6 @@ void main() {
         'bytes_up': 10,
         'bytes_down': 20,
       });
-      expect(
-        await channel.invokeMethod<Map<Object?, Object?>>('drainSiteStats'),
-        {'example.org': 2},
-      );
       expect(await channel.invokeMethod<Map<Object?, Object?>>('place'), {
         'time_zone': 'Asia/Tehran',
       });

@@ -214,8 +214,11 @@ func Build(ctx context.Context, req Request, resolve Resolver) (*Built, error) {
 	)
 
 	built.Config = &xray.Config{
-		// Info is what puts "sniffed domain" in the log, which is where the
-		// sites the heartbeat reports come from (SiteStats on Android).
+		// Info, because the log tail in "diagnostics" is read for why a
+		// connection failed, and the core logs dial failures and the
+		// filtering sinkhole's address at info. The app takes every line
+		// that names a site or an address out of that tail before a report
+		// carries it (lib/services/log_privacy.dart).
 		Log:   &xray.Log{LogLevel: "info", Access: "none"},
 		Stats: &xray.Empty{},
 		Policy: &xray.Policy{System: xray.PolicySystem{

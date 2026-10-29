@@ -101,7 +101,7 @@
   "tools": "Diagnóstico",
   "settingsGeneral": "Generales",
   "shareDiagnosticsTitle": "Compartir diagnósticos de conexión",
-  "shareDiagnosticsBody": "Envía informes de conexión, tu operador y tu país, el modelo del teléfono y la versión de Android, los nombres de los sitios que visitas a través de la VPN, con un recuento diario, y si viste o tocaste nuestros mensajes, nuestras ofertas de Premium y nuestra tarjeta de invitación. Nunca vemos las páginas que abres ni lo que envías.",
+  "shareDiagnosticsBody": "Envía informes de conexión, tu operador y tu país, el modelo del teléfono, la versión de Android y si viste o tocaste nuestros mensajes, nuestras ofertas de Premium y nuestra tarjeta de invitación. Nunca vemos las páginas que abres ni lo que envías.",
   "security": "Cumplimiento",
   "privacyDashboard": "Análisis del punto de conexión",
   "privacyDashboardSubtitle": "Transparencia de IP y monitoreo de fugas",

@@ -145,7 +145,7 @@ object V2rayConfigManager {
         val v2rayConfig = initV2rayConfig(context) ?: return result
         v2rayConfig.log.loglevel = MmkvManager.decodeSettingsString(AppConfig.PREF_LOGLEVEL) ?: "debug"
         v2rayConfig.remarks = config.remarks
-        enableSiteStatsLog(v2rayConfig)
+        useInfoLogLevel(v2rayConfig)
 
         getInbounds(v2rayConfig)
 
@@ -435,7 +435,7 @@ object V2rayConfigManager {
 
         val v2rayConfig = initV2rayConfig(context) ?: return null
         v2rayConfig.log.loglevel = MmkvManager.decodeSettingsString(AppConfig.PREF_LOGLEVEL) ?: "warning"
-        enableSiteStatsLog(v2rayConfig)
+        useInfoLogLevel(v2rayConfig)
 
         val subIds = configList.map { it.subscriptionId }.toHashSet()
         val remarks = if (subIds.size == 1 && subIds.first().isNotEmpty()) {
@@ -631,14 +631,14 @@ object V2rayConfigManager {
     }
 
     /**
-     * Always enable info-level logging so the core emits "sniffed domain:"
-     * lines to logcat. libv2ray sends those to logcat (tag GoLog), and
-     * SiteStats reads them for the aggregate Sites view. Sniffing is already
-     * on for routing; this only raises the log level. The lines stay on the
-     * phone: LogPrivacy leaves them out of the log sent with connection
-     * reports.
+     * Info-level core logging, for the log tail sent with connection
+     * reports (MainActivity.coreLogTail). The core logs its dials and
+     * "failed to process outbound traffic" at info, and LogPrivacy's count
+     * of lines about the filtering sinkhole and port 853 comes from those
+     * lines. Every line that names a site or an address is taken out of the
+     * tail before it leaves the phone (LogPrivacy).
      */
-    private fun enableSiteStatsLog(v2rayConfig: V2rayConfig) {
+    private fun useInfoLogLevel(v2rayConfig: V2rayConfig) {
         v2rayConfig.log.loglevel = "info"
     }
 

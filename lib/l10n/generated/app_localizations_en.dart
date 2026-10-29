@@ -327,7 +327,7 @@ class SEn extends S {
 
   @override
   String get shareDiagnosticsBody =>
-      'Sends connection reports, your carrier and country, phone model and Android version, the names of sites you reach through the VPN with a daily count, and whether you saw or tapped our messages, Premium offers and invite card. We never see the pages you open or what you send.';
+      'Sends connection reports, your carrier and country, phone model and Android version, and whether you saw or tapped our messages, Premium offers and invite card. We never see the pages you open or what you send.';
 
   @override
   String get security => 'Compliance';

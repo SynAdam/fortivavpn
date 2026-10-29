@@ -78,7 +78,6 @@ void main() {
       expect(detail['tcp'], 'refused');
 
       expect(await channel.invokeMethod('tunnelStats'), isNull);
-      expect(await channel.invokeMethod('drainSiteStats'), isA<Map>());
       await channel.invokeMethod('disconnect');
       expect(await channel.invokeMethod<String>('getStatus'), 'disconnected');
     },
