@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:convert';
 
 import 'package:flutter/services.dart';
@@ -120,8 +121,31 @@ void main() {
   Map<String, Object?> stats(int up, int down, [Map<String, Object?>? more]) =>
       {'bytes_up': up, 'bytes_down': down, 'network': 'mobile', ...?more};
 
-  VpnService newService() =>
-      VpnService(events: reporter, diagnostics: _FakeDiagnostics());
+  /// Timers started by the code that makes the service, stopped by
+  /// [disposeService]. One of them is a status poll two seconds on, which
+  /// VpnService.dispose does not stop. Fired after its test, while a later
+  /// test runs, the poll throws on the disposed service and fails the test
+  /// that made it, or takes a reply queued for the later test.
+  final timers = <Timer>[];
+
+  VpnService newService() => runZoned(
+    () => VpnService(events: reporter, diagnostics: _FakeDiagnostics()),
+    zoneSpecification: ZoneSpecification(
+      createTimer: (self, parent, zone, duration, callback) {
+        final timer = parent.createTimer(zone, duration, callback);
+        timers.add(timer);
+        return timer;
+      },
+    ),
+  );
+
+  void disposeService() {
+    service.dispose();
+    for (final timer in timers) {
+      timer.cancel();
+    }
+    timers.clear();
+  }
 
   setUp(() {
     SharedPreferences.setMockInitialValues({});
@@ -148,7 +172,7 @@ void main() {
   });
 
   tearDown(() {
-    service.dispose();
+    disposeService();
     ConnectionData.current = ConnectionData.off;
     TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
         .setMockMethodCallHandler(channel, null);
@@ -350,7 +374,7 @@ void main() {
 
     /// The app opened again: a new service finds the tunnel up.
     Future<VpnService> reopen() async {
-      service.dispose();
+      disposeService();
       service = newService();
       service.applyNativeStatus('connected');
       await pumpEventQueue();

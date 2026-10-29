@@ -129,6 +129,17 @@ DoorOutcome homeWifiReading(String host) {
   );
 }
 
+/// The finder's budget on a tap whose checklist runs out of time. It is
+/// real time, so it is long enough for the first server's eight doors to
+/// all start even after a stall of the test process. It stays under the 1
+/// second stagger of DoorCheckSettings.standard, so no check starts beside
+/// that server's last door before it runs out.
+const cutBudget = Duration(milliseconds: 600);
+
+/// How long the first server's last door says nothing the first time it is
+/// checked: longer than [cutBudget].
+const slowDoor = Duration(milliseconds: 650);
+
 /// A tunnel that comes up, verified, through the doors in [works], and
 /// fails through everything else.
 class _FakeVpn extends VpnService {
@@ -215,6 +226,17 @@ void main() {
   late Object? Function()? fail;
   late List<List<Map<String, dynamic>>> probes;
   late ReportQueue queue;
+  late bool slowDoorChecked;
+
+  /// The wait at the start of a check of [door]. The first server's last
+  /// door says nothing for [slowDoor] the first time it is checked, the way
+  /// a door that answers TCP and then nothing waits out its time. Checked
+  /// again, it answers at once, so a tap waits for it only once.
+  Future<void> slowFirstTime(Server door) async {
+    if (door != doorOf(row1, 'httpupgrade-tls') || slowDoorChecked) return;
+    slowDoorChecked = true;
+    await Future.delayed(slowDoor);
+  }
 
   ChecklistSettings settings({
     int doors = 16,
@@ -242,8 +264,8 @@ void main() {
 
   /// The checklist that ran out of time on the first server: every check
   /// answers at once except that server's last door, which waits longer
-  /// than the whole budget, the way a door that answers TCP and then
-  /// nothing waits out its time. [hold] runs at the start of each check.
+  /// than the whole budget the first time ([slowFirstTime]). [hold] runs at
+  /// the start of each check.
   /// [network], when given, reads the network key instead of "wifi".
   ConnectFlow flow(
     _FakeVpn vpn, {
@@ -252,7 +274,7 @@ void main() {
     bool internet = true,
     bool? home,
     Future<String> Function()? network,
-    Duration budget = const Duration(milliseconds: 150),
+    Duration budget = cutBudget,
     Duration attemptTimeout = const Duration(seconds: 2),
     Future<void> Function(Server door)? hold,
   }) => ConnectFlow(
@@ -261,9 +283,7 @@ void main() {
     finder: PathFinder(
       read: (p) async {
         await hold?.call(p);
-        if (p == doorOf(row1, 'httpupgrade-tls')) {
-          await Future.delayed(const Duration(milliseconds: 200));
-        }
+        await slowFirstTime(p);
         return homeWifiReading(Uri.parse(p.connectionUri).host);
       },
       internet: () async => internet,
@@ -337,6 +357,7 @@ void main() {
     tried = [];
     fail = null;
     probes = [];
+    slowDoorChecked = false;
     queue = ReportQueue.connectTraces(
       post: (path, body) async {
         final copy = (jsonDecode(jsonEncode(body)) as Map)
@@ -542,16 +563,14 @@ void main() {
       memory: memory(),
       finder: PathFinder(
         read: (p) async {
-          if (p == doorOf(row1, 'httpupgrade-tls')) {
-            await Future.delayed(const Duration(milliseconds: 200));
-          }
+          await slowFirstTime(p);
           final host = Uri.parse(p.connectionUri).host;
           return host == '198.51.100.200'
               ? const DoorOutcome(ms: -1, error: 'tcp refused', phase: 'tcp')
               : homeWifiReading(host);
         },
         internet: () async => true,
-        budget: const Duration(milliseconds: 150),
+        budget: cutBudget,
       ),
       reporter: VpnEventReporter(
         send: (_, _, _) async {},

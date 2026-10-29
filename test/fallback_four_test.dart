@@ -534,10 +534,24 @@ void main() {
     Future<void> settle() =>
         Future<void>.delayed(const Duration(milliseconds: 400));
 
+    // Waits until [ok] holds, failing the test after [within]. The tries
+    // run on real timers, so a slow machine only makes this wait longer.
+    Future<void> until(
+      bool Function() ok, {
+      Duration within = const Duration(seconds: 5),
+    }) async {
+      final end = DateTime.now().add(within);
+      while (!ok()) {
+        if (DateTime.now().isAfter(end)) fail('still waiting after $within');
+        await Future<void>.delayed(const Duration(milliseconds: 2));
+      }
+    }
+
     test('waits, then tries again with a new list, as many times as the '
         'backend says', () async {
       var refreshes = 0;
       final f = flow(_FakeVpn({}), settings(retry: [20, 20]));
+      int ownChecks() => probed.where((k) => k == doors.first.pathKey).length;
 
       await f.connect(
         [doors.first],
@@ -547,6 +561,13 @@ void main() {
       expect(f.stage, ConnectStage.waiting);
       expect(f.isBusy, isTrue);
 
+      await until(
+        () =>
+            refreshes == 2 &&
+            ownChecks() == 3 &&
+            f.stage == ConnectStage.nothingOpen,
+      );
+      // Longer than a wait, so a third try would have started by now.
       await settle();
 
       expect(refreshes, 2);
@@ -563,6 +584,8 @@ void main() {
         shared: () async => community.take(2).toList(),
         beforeRetry: () async => openHere = {community[0].pathKey},
       );
+      await until(() => f.stage == ConnectStage.done);
+      // Longer than a wait, so another try would have started by now.
       await settle();
 
       expect(f.stage, ConnectStage.done);

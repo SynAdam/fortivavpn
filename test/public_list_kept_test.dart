@@ -253,11 +253,12 @@ class _FakeVpn extends VpnService {
   }
 }
 
-/// [onProbe] is told of every check before it runs, and each check of an
-/// own door takes [probeTime].
+/// [onProbe] is told of every check before it runs and [onProbeDone] after
+/// it, and each check of an own door takes [probeTime].
 ConnectFlow _flowFor(
   _FakeVpn vpn, {
   void Function(Server path)? onProbe,
+  void Function(Server path)? onProbeDone,
   Duration probeTime = Duration.zero,
 }) {
   final reporter = VpnEventReporter(
@@ -278,6 +279,7 @@ ConnectFlow _flowFor(
         if (p.isDedicated && probeTime > Duration.zero) {
           await Future<void>.delayed(probeTime);
         }
+        onProbeDone?.call(p);
         return vpn.works.contains(p.connectionUri) ? 150 : -1;
       },
       internet: () async => true,
@@ -767,17 +769,39 @@ void main() {
         connectionUri: 'vless://o@ours.example:443?type=tcp#Ours',
         flagEmoji: '',
       );
+      const wait = Duration(seconds: 1);
       final source = _Source(official: [ours])..hold = Completer();
       final state = ServerState(
         repository: ServerRepository.withConfigSource(source),
-        fallbackWait: const Duration(seconds: 1),
+        fallbackWait: wait,
       );
       await state.loadServers();
       expect(state.officialServers.single.connectionUri, ours.connectionUri);
 
+      // Times from the tap: the first own door's check starts, the last
+      // one's ends, and our shared link's check starts.
+      final watch = Stopwatch();
+      Duration? firstDoorAt;
+      Duration? lastDoorDoneAt;
+      Duration? oursAt;
       final vpn = _FakeVpn({ours.connectionUri});
-      final flow = _flowFor(vpn, probeTime: const Duration(milliseconds: 600));
-      final watch = Stopwatch()..start();
+      final flow = _flowFor(
+        vpn,
+        probeTime: const Duration(milliseconds: 600),
+        onProbe: (p) {
+          if (p.isDedicated) {
+            firstDoorAt ??= watch.elapsed;
+          } else {
+            oursAt ??= watch.elapsed;
+          }
+        },
+        onProbeDone: (p) {
+          if (p.isDedicated && oursAt == null) {
+            lastDoorDoneAt = watch.elapsed;
+          }
+        },
+      );
+      watch.start();
       await dialServer(
         _ownServer,
         vpn: vpn,
@@ -785,13 +809,18 @@ void main() {
         dedicated: _FakeDedicated(),
         servers: state,
       );
-      watch.stop();
 
       expect(flow.stage, ConnectStage.done);
       expect(vpn.connects.last.connectionUri, ours.connectionUri);
-      // The two own doors take 1.2 s and the wait 1 s. One after the other
-      // they would take 2.2 s.
-      expect(watch.elapsed, lessThan(const Duration(milliseconds: 1700)));
+      // The two own doors take 1.2 s, so the wait is over before the last
+      // one fails.
+      expect(lastDoorDoneAt, greaterThan(wait));
+      // Had the wait come first, the first door would be checked 1 s after
+      // the tap. Had it come after the doors, our link would be checked 1 s
+      // after the last door failed. Only these two steps are timed, so a
+      // slow door check cannot fail the test.
+      expect(firstDoorAt, lessThan(wait ~/ 2));
+      expect(oursAt! - lastDoorDoneAt!, lessThan(wait ~/ 2));
       await vpn.disconnect();
     });
 

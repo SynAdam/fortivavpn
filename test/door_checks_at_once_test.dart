@@ -263,15 +263,20 @@ void main() {
 
   group('every own door closed', () {
     final twelve = [for (var i = 0; i < 12; i++) door('d$i', 'tcp-reality')];
+    // Each check takes 150 ms of real time. Four at a time the last four
+    // start at about 300 ms, which leaves a slow runner room inside the
+    // budget. One at a time the eighth door could start only at 1050 ms,
+    // after the budget on any runner.
+    const budget = Duration(milliseconds: 900);
 
     test('every one is checked within the budget and reported', () async {
-      answers = {for (final d in twelve) d.pathKey: closed(30)};
+      answers = {for (final d in twelve) d.pathKey: closed(150)};
       final f = flow(
         _FakeVpn({}),
         const ChecklistSettings(
           doors: DoorCheckSettings(parallel: 4, stagger: Duration.zero),
         ),
-        budget: const Duration(milliseconds: 150),
+        budget: budget,
       );
 
       await f.connect(twelve, preferred: twelve.first);
@@ -286,11 +291,11 @@ void main() {
     });
 
     test('one at a time the same budget reaches only some of them', () async {
-      answers = {for (final d in twelve) d.pathKey: closed(30)};
+      answers = {for (final d in twelve) d.pathKey: closed(150)};
       final f = flow(
         _FakeVpn({}),
         const ChecklistSettings(doors: DoorCheckSettings.oneAtATime),
-        budget: const Duration(milliseconds: 150),
+        budget: budget,
       );
 
       await f.connect(twelve, preferred: twelve.first);

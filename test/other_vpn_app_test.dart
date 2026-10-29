@@ -346,6 +346,9 @@ void main() {
 
     test('a tunnel Android took is filed as replaced once another app\'s VPN '
         'comes up', () async {
+      // The first look finds nothing up. A wide window keeps a stall of the
+      // test process from ending the wait before the next look.
+      VpnService.slotTakerWait = const Duration(seconds: 10);
       service.applyNativeStatus('connected');
       service.applyNativeStatus('disconnected:$dropReasonRevoked');
       // The other app's VPN comes up a moment after it took the slot.

@@ -588,20 +588,39 @@ void main() {
       () async {
         line = (_) => Completer<void>().future;
         final atConfig = <List<String>>[];
-        await tapAndWait(atConfig);
-        final waiting = Stopwatch()..start();
+        final f = await tapAndWait(atConfig);
+
+        // Two timers start as the wait ends. The one due a little before
+        // 4 s finds the try still held, and the one due a little after
+        // finds it has asked for its config. Timers fire in the order they
+        // are due, so a stall of the test cannot change what each one sees.
+        bool? heldBefore;
+        List<List<String>>? atConfigAfter;
+        var started = false;
+        f.addListener(() {
+          if (started || !f.nextTryStarting) return;
+          started = true;
+          // This one starts before the flow starts its 4 s timer.
+          Timer(
+            const Duration(milliseconds: 3900),
+            () => heldBefore = atConfig.isEmpty,
+          );
+          // This one starts after it, in a microtask.
+          scheduleMicrotask(() {
+            Timer(
+              const Duration(milliseconds: 4100),
+              () => atConfigAfter = [...atConfig],
+            );
+          });
+        });
 
         await until(
-          () => atConfig.isNotEmpty,
-          within: const Duration(seconds: 8),
+          () => atConfigAfter != null,
+          within: const Duration(seconds: 15),
         );
 
-        expect(
-          waiting.elapsed,
-          greaterThanOrEqualTo(const Duration(seconds: 4)),
-        );
-        expect(waiting.elapsed, lessThan(const Duration(seconds: 6)));
-        expect(atConfig.single, isEmpty);
+        expect(heldBefore, isTrue);
+        expect(atConfigAfter, [isEmpty]);
       },
     );
   });

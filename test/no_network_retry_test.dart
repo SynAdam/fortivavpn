@@ -189,15 +189,17 @@ void main() {
 
   test('with no network, the tap on the button tries, and the timed tries '
       'wait for the longest wait to pass since it', () async {
-    final f = flow();
+    // Long enough that it does not pass before the checks below, even when
+    // the test stalls for a few hundred ms.
+    final f = flow(longestMs: 800);
 
     await f.connect(paths);
     expect(tries.at, hasLength(1));
     expect(f.stage, ConnectStage.waiting);
     expect(f.waitingAfter, ConnectStage.noInternet);
 
-    // The backend's waits would have made seven tries by now.
-    await Future<void>.delayed(const Duration(milliseconds: 250));
+    // The backend's waits would have made six tries by now.
+    await Future<void>.delayed(const Duration(milliseconds: 100));
     expect(tries.at, hasLength(1));
     // Still waiting, and the screen still says why.
     expect(f.stage, ConnectStage.waiting);
@@ -205,8 +207,10 @@ void main() {
 
     await until(() => tries.at.length == 2);
     final gap = tries.at[1].difference(tries.at[0]);
-    expect(gap, greaterThanOrEqualTo(const Duration(milliseconds: 390)));
-    expect(gap, lessThan(const Duration(milliseconds: 600)));
+    expect(gap, greaterThanOrEqualTo(const Duration(milliseconds: 790)));
+    // A skipped try waits no longer than the rest of the longest wait. One
+    // that waited its whole next wait would try at 1,290 ms or later.
+    expect(gap, lessThan(const Duration(milliseconds: 1200)));
   });
 
   test('then one try for each longest wait, for as long as there is no '
@@ -300,11 +304,27 @@ void main() {
     final f = flow(longestMs: 150);
 
     await f.connect(paths);
-    await Future<void>.delayed(const Duration(milliseconds: 40));
-    f.cancel();
+    // A skipped try moves the countdown on screen. The stop comes in the
+    // first one.
+    var at = f.retryAt;
+    int? seen;
+    void stopInSkip() {
+      final next = f.retryAt;
+      final skipped = at != null && next != null && next != at;
+      at = next;
+      if (!skipped || seen != null) return;
+      seen = tries.at.length;
+      f.cancel();
+    }
+
+    f.addListener(stopInSkip);
+    await until(() => seen != null);
+    f.removeListener(stopInSkip);
+    // Past the longest wait, when the skipped try would have started.
     await Future<void>.delayed(const Duration(milliseconds: 300));
 
-    expect(tries.at, hasLength(1));
+    // No try after the stop.
+    expect(tries.at, hasLength(seen!));
     expect(f.stage, ConnectStage.cancelled);
   });
 }

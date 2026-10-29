@@ -31,12 +31,17 @@ class _Diagnostics extends ConnectDiagnostics {
   /// When set, a diagnosis waits for it.
   Completer<void>? hold;
 
+  /// When set, the time on it as each diagnosis started.
+  Stopwatch? clock;
+  final startedAt = <Duration>[];
+
   @override
   Future<Map<String, dynamic>> collect({
     String? host,
     int port = 443,
     String? sni,
   }) async {
+    if (clock case final clock?) startedAt.add(clock.elapsed);
     seenBefore.add(List.of(calls));
     final answer = answers.isEmpty ? <String, dynamic>{} : answers.removeAt(0);
     await hold?.future;
@@ -61,6 +66,7 @@ void main() {
 
   late List<String> calls;
   // What getStatus answers, call by call; "disconnected" once empty.
+  // "silent" gives no answer: the call fails, as one that timed out.
   late List<String> statuses;
 
   VpnService service(_Diagnostics diagnostics) => VpnService(
@@ -79,6 +85,7 @@ void main() {
                 ? 'disconnected'
                 : statuses.removeAt(0);
             calls.add('getStatus:$status');
+            if (status == 'silent') throw PlatformException(code: 'timeout');
             return status;
           }
           calls.add(call.method);
@@ -113,16 +120,30 @@ void main() {
 
   test('a tunnel that will not say it is down holds the diagnosis for '
       'about two seconds, no more', () async {
-    statuses = List.filled(100, 'connected');
+    // The first asks get no answer, the rest say it is still up. The wait
+    // goes on through both.
+    statuses = ['silent', 'silent', 'silent', ...List.filled(97, 'connected')];
     final diagnostics = _Diagnostics([offline], calls);
     final vpn = service(diagnostics);
-    final clock = Stopwatch()..start();
+    diagnostics.clock = Stopwatch()..start();
 
     await vpn.reportVerifyFailure('edge', null, 'nope');
 
     expect(diagnostics.seenBefore, hasLength(1));
-    expect(clock.elapsed, lessThan(const Duration(seconds: 4)));
-    expect(clock.elapsed, greaterThan(const Duration(seconds: 2)));
+    // The wait asks at most once every 100 ms, and each service asks once
+    // more when it starts. More than 25 asks means it waited well past two
+    // seconds. A slow or stalled machine only makes fewer.
+    final asks = diagnostics.seenBefore.single.where(
+      (c) => c == 'getStatus:connected' || c == 'getStatus:silent',
+    );
+    expect(asks.length, lessThanOrEqualTo(25));
+    expect(
+      diagnostics.startedAt.single,
+      greaterThan(const Duration(seconds: 2)),
+    );
+    // A net for a longer pause after the wait. The count above holds the
+    // limit, and a stall cannot push it up.
+    expect(diagnostics.startedAt.single, lessThan(const Duration(seconds: 4)));
   });
 
   test('after a failed check through the tunnel the service says so, and '

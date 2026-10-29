@@ -1321,21 +1321,40 @@ void main() {
         probeTimeout: const Duration(seconds: 5),
       );
 
+      final before = DateTime.now();
       final search = finder.find(
         more,
         parallel: 3,
         stagger: const Duration(milliseconds: 100),
       );
-      Future<void> at(int ms) =>
-          Future<void>.delayed(Duration(milliseconds: ms));
+      // Each step is timed from the first check's start. The search's timer
+      // for the check a step expects is due first, and the step lets the
+      // search act on it before counting. A stall can make the search start
+      // two checks at once, so a step counts the checks started at least,
+      // and each row's start time shows that none started early.
+      final first = finder.checks.first.startedAt!;
+      Future<void> at(int ms) async {
+        await Future<void>.delayed(
+          first.add(Duration(milliseconds: ms)).difference(DateTime.now()),
+        );
+        await pumpEventQueue();
+      }
 
-      await at(50);
-      expect(probed, hasLength(1));
-      await at(100); // 150 ms
-      expect(probed, hasLength(2));
-      await at(100); // 250 ms
+      Duration started(int i) => finder.checks[i].startedAt!.difference(before);
+
+      await at(150);
+      expect(probed.length, greaterThanOrEqualTo(2));
+      await at(250);
       expect(probed, hasLength(3));
-      await at(200); // 450 ms
+      expect(
+        started(1),
+        greaterThanOrEqualTo(const Duration(milliseconds: 100)),
+      );
+      expect(
+        started(2),
+        greaterThanOrEqualTo(const Duration(milliseconds: 200)),
+      );
+      await at(450);
       expect(probed, hasLength(3));
 
       gates[more[0].pathKey]!.complete(-1);
@@ -1384,9 +1403,14 @@ void main() {
 
     test('no check starts past the budget, and the ones in flight run to '
         'their end', () async {
+      // The first two checks end at once. The two that start after them are
+      // still running when the budget runs out, and end 100 ms apart.
       final finder = PathFinder(
         probe: (p) async {
-          await Future<void>.delayed(const Duration(milliseconds: 40));
+          if (p == more[0] || p == more[1]) return -1;
+          await Future<void>.delayed(
+            Duration(milliseconds: p == more[2] ? 400 : 500),
+          );
           return -1;
         },
         internet: () async => true,
@@ -1394,7 +1418,7 @@ void main() {
 
       final finding = await finder.find(
         more.take(6).toList(),
-        budget: const Duration(milliseconds: 60),
+        budget: const Duration(milliseconds: 300),
         parallel: 2,
       );
 
@@ -1453,10 +1477,15 @@ void main() {
     test('with a failed control fetch no check starts past the offline '
         'budget', () async {
       var probes = 0;
+      // The first two checks take a moment, so the control fetch has failed
+      // before the next two start. Those two run past the offline budget.
+      // The budget is long, so a stalled machine cannot use it up before
+      // they start.
       final finder = PathFinder(
         probe: (p) async {
           probes++;
-          await Future<void>.delayed(const Duration(milliseconds: 40));
+          final first = p == more[0] || p == more[1];
+          await Future<void>.delayed(Duration(milliseconds: first ? 40 : 1300));
           return -1;
         },
         internet: () async => false,
@@ -1464,7 +1493,7 @@ void main() {
 
       final finding = await finder.find(
         more.take(6).toList(),
-        offlineBudget: const Duration(milliseconds: 60),
+        offlineBudget: const Duration(milliseconds: 1200),
         parallel: 2,
       );
 

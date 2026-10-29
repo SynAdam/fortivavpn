@@ -1026,8 +1026,15 @@ void main() {
 
     test('before the shared links that follow the first own doors, the '
         'doors left get their step and the ones checked go out', () async {
-      // Two own doors fit in the time before the shared links. The
-      // allowance question after them runs past the deadline.
+      // Two own doors fit in the 400 ms before the shared links: the first
+      // answers at once, the second at 480 ms. The deadline at 900 ms comes
+      // while the allowance question after them runs, to about 1080 ms.
+      // The second door starts and ends about 400 ms before the time it
+      // must beat, so a stall of the test does not change the order.
+      const ownFor = Duration(milliseconds: 400);
+      settings = backup(after: const Duration(milliseconds: 900));
+      probeTimes[doors[0].pathKey] = Duration.zero;
+      probeTimes[doors[1].pathKey] = ownFor + probeTime;
       final vpn = _FakeVpn({backupKey});
       final f = flow(
         vpn,
@@ -1036,11 +1043,13 @@ void main() {
           fallback: FallbackSettings(
             links: links.length,
             parallel: 1,
-            after: probeTime + probeTime ~/ 4,
+            after: ownFor,
           ),
         ),
       );
       var asked = 0;
+      // Asked again before the backup network, it answers at once.
+      Future<bool>? allowance;
 
       await f.connect(
         doors,
@@ -1048,10 +1057,10 @@ void main() {
           asked++;
           return links;
         },
-        allowanceSpent: () async {
-          await Future<void>.delayed(startAfter);
-          return false;
-        },
+        allowanceSpent: () => allowance ??= Future.delayed(
+          const Duration(milliseconds: 600),
+          () => false,
+        ),
       );
       await until(() => reported.isNotEmpty);
 

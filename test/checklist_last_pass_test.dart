@@ -195,6 +195,11 @@ void main() {
   /// server's last door, which takes longer than the whole budget, the way
   /// a door that answers TCP and then nothing waits out its time.
   ///
+  /// [budget] is real time. The default leaves room for a stall of the test
+  /// process before the first server's eight checks have started. It ends
+  /// before DoorCheckSettings.standard's 1 second stagger would let a
+  /// second check start beside the slow one.
+  ///
   /// [hold] runs at the start of each check and the check waits for it.
   ConnectFlow flow(
     _FakeVpn vpn, {
@@ -202,7 +207,7 @@ void main() {
     bool ipv6 = false,
     bool internet = true,
     DoorSweep? sweep,
-    Duration budget = const Duration(milliseconds: 150),
+    Duration budget = const Duration(milliseconds: 500),
     Future<void> Function(Server door)? hold,
   }) => ConnectFlow(
     vpn: vpn,
@@ -212,7 +217,9 @@ void main() {
         probed.add(p.pathKey);
         await hold?.call(p);
         if (p == doorOf(row1, 'httpupgrade-tls')) {
-          await Future.delayed(const Duration(milliseconds: 200));
+          // Longer than the default budget. The check starts after the
+          // search does, so the budget is spent when it answers.
+          await Future.delayed(const Duration(milliseconds: 550));
         }
         final host = Uri.parse(p.connectionUri).host;
         return openHere.contains(host) ? 168 : -1;

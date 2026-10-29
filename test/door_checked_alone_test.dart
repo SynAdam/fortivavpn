@@ -501,14 +501,19 @@ void main() {
     };
     final vpn = _FakeVpn({});
     late ConnectFlow f;
-    var afterShared = 0;
+    // The door whose check alone the stop came in.
+    String? stoppedAt;
     onProbe = () {
-      if (!probed.contains(community.pathKey)) return;
-      if (probed.last == community.pathKey) return;
-      afterShared++;
-      // The rest of the search checks d8 to d11. The fifth check after the
-      // shared links is the first check alone.
-      if (afterShared == 5) f.cancel();
+      if (stoppedAt != null || !probed.contains(community.pathKey)) return;
+      // The rest of the search checks each door left once, so the first
+      // door checked again after the shared links is the first check alone.
+      // This holds however many doors are checked in the 50 ms before the
+      // links: eight here, or only four on a slow machine.
+      final key = probed.last;
+      if (probed.indexOf(key) < probed.length - 1) {
+        stoppedAt = key;
+        f.cancel();
+      }
     };
     f = flow(vpn, checklist);
 
@@ -519,7 +524,7 @@ void main() {
     );
     await pumpEventQueue();
 
-    expect(afterShared, greaterThanOrEqualTo(5));
+    expect(stoppedAt, isNotNull);
     expect(vpn.dialled, isEmpty);
     expect(sent, hasLength(12));
     expect(sent.every((r) => r['ok'] == false), isTrue);
