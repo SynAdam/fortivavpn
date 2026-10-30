@@ -99,7 +99,7 @@ A speed test in the app compares your speed with and without the VPN.
 | **Android** phones and tablets | [Google Play](https://play.google.com/store/apps/details?id=com.vpn.fortivavpn&referrer=utm_source%3Dgithub), or the APK from [fortivavpn.com/apk](https://fortivavpn.com/apk) or from this repository's [Releases](https://github.com/SynAdam/fortivavpn/releases/latest). The [Lite APK](https://fortivavpn.com/apk/lite) is a smaller download for 32-bit phones that also runs on most 64-bit ones. | [`android/`](android/) |
 | **Android TV** | The same app and APK as on phones | [`android/`](android/) |
 | **iOS** | Build it from source | [`ios/`](ios/) |
-| **Windows** | Build it from source | [`windows/`](windows/) |
+| **Windows** 10 and 11 | The installer from [fortivavpn.com/windows](https://fortivavpn.com/windows) or from this repository's [Releases](https://github.com/SynAdam/fortivavpn/releases). It is not signed, so Windows may warn before it runs: choose More info, then Run anyway. | [`windows/`](windows/) |
 
 New versions are announced on Telegram, in [English](https://t.me/fortivavpn)
 and in [Persian](https://t.me/fortiva_vpn). Before you install an APK from
@@ -241,6 +241,12 @@ Each release page also carries `SHA256SUMS`, with the SHA-256 of both
 APKs, and GitHub shows each file's SHA-256 under Assets. To check a
 download against it, save `SHA256SUMS` in the folder with the APK and run
 `sha256sum -c --ignore-missing SHA256SUMS` there.
+
+A release with a Windows installer also carries
+`FortivaVPN-X.Y.Z-windows-setup.exe.sha256` next to it. On Windows, run
+`Get-FileHash FortivaVPN-X.Y.Z-windows-setup.exe` in PowerShell. It prints
+the hash in capital letters; apart from that it must be the same as the one
+in that file.
 
 The app from Google Play is signed by Google Play's app signing key, not by
 our upload key. Its certificate has this SHA-256 fingerprint:

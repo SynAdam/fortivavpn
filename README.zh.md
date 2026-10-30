@@ -28,6 +28,7 @@ Fortiva 专为普通 VPN 连不上的网络而设计。服务器已内置在应�
 ## 下载
 
 - **APK 安装包（手机和 Android TV 通用）：** [直接下载](https://fortivavpn.com/apk)，或在本仓库的 [Releases](https://github.com/SynAdam/fortivavpn/releases/latest) 页面下载。[Lite 版 APK](https://fortivavpn.com/apk/lite) 体积更小，适用于 32 位手机，也能在大多数 64 位手机上运行。
+- **Windows 10 和 11：** [直接下载](https://fortivavpn.com/windows)安装程序，或在本仓库的 [Releases](https://github.com/SynAdam/fortivavpn/releases) 页面下载。安装程序没有数字签名，Windows 可能会在运行前发出警告，此时请点击 More info，再点击 Run anyway。
 - **Google Play：** [Fortiva VPN](https://play.google.com/store/apps/details?id=com.vpn.fortivavpn&hl=zh-CN&referrer=utm_source%3Dgithub)
 - **Telegram：** 新闻和新版本会发布在我们的英文频道 [t.me/fortivavpn](https://t.me/fortivavpn)。
 

@@ -1,6 +1,8 @@
 ; The Fortiva VPN installer for Windows. Needs Inno Setup 6.3 or later.
 ;
-; .github/workflows/windows-release.yml builds it and passes what to pack:
+; The public copy's Windows workflow (tool/public/overlay/.github/workflows/
+; windows.yml) builds it for a release, and .github/workflows/windows-release.yml
+; for a test, and each passes what to pack:
 ;
 ;   iscc /DAppVersion=1.6.14 /DAppDir=<build\windows\x64\runner\Release>
 ;        /DCoreDir=<windows\core\dist> /DCrtDir=<the VC++ runtime DLLs>

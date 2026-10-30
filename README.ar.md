@@ -31,6 +31,7 @@ Fortiva VPN تطبيق VPN مجاني لهواتف أندرويد وأجهزة A
 
 - **Google Play:** [Fortiva VPN على Google Play](https://play.google.com/store/apps/details?id=com.vpn.fortivavpn&hl=ar&referrer=utm_source%3Dgithub)
 - **ملف APK للهاتف و Android TV:** من [رابط التنزيل المباشر](https://fortivavpn.com/apk)، أو من قسم [Releases](https://github.com/SynAdam/fortivavpn/releases/latest) في هذا المستودع. ملف [APK Lite](https://fortivavpn.com/apk/lite) أصغر حجمًا، وهو للهواتف ذات 32 بت ويعمل أيضًا على معظم هواتف 64 بت.
+- **Windows 10 و 11:** ملف التثبيت من [رابط التنزيل المباشر](https://fortivavpn.com/windows)، أو من قسم [Releases](https://github.com/SynAdam/fortivavpn/releases) في هذا المستودع. الملف غير موقّع رقميًا، لذلك قد يعرض Windows تحذيرًا قبل تشغيله. عندها اختر More info ثم Run anyway.
 - **تيليجرام:** ننشر الأخبار والإصدارات الجديدة في قناتنا باللغة الإنجليزية، [t.me/fortivavpn](https://t.me/fortivavpn).
 
 قبل أن تثبّت ملف APK حصلت عليه من أي مكان آخر، تحقّق من أننا نحن من نشره.

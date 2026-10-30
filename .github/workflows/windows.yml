@@ -1,0 +1,218 @@
+# Builds the Windows installer of a release tag and attaches it to the tag's
+# GitHub Release here, next to the APKs.
+#
+# Only by hand, for a tag whose release is published already. Windows gets
+# an update now and then, not one with every Android release (decided on
+# 2026-10-08), so nothing starts this on its own. The bot puts the newest
+# installer on the website, fortivavpn.com/windows, once Google Play gives
+# that version to everyone, and the Windows app offers it as its update.
+#
+# The source is the repository the mirror reads, at the tag, because the
+# copy here leaves out the addresses the app is built with
+# (lib/api/built_in.dart). The tunnel service cross-compiles on Linux; only
+# the app and the installer need Windows. The installer goes up with
+# tool/public_sync.py --windows, as the source repository's main has it,
+# which checks the file and the release, uploads it with its .sha256, and
+# reads both back. With publish off it builds and checks everything,
+# uploads nothing, and keeps the installer as the run's artifact for three
+# days, to try on a PC first. Like the release's APKs, it holds the
+# addresses the app is built with.
+name: Windows
+
+on:
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: The release tag, such as v2.4.0
+        required: true
+      publish:
+        description: Attach the installer to the tag's GitHub Release (off builds and checks it, and keeps it as the run's artifact)
+        type: boolean
+        default: true
+
+permissions:
+  contents: read
+
+concurrency:
+  group: windows-${{ inputs.tag }}
+  cancel-in-progress: false
+
+jobs:
+  core:
+    name: tunnel service (cross-compiled)
+    if: github.repository == 'SynAdam/fortivavpn'
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    env:
+      TAG: ${{ inputs.tag }}
+      SOURCE_REPOSITORY: ${{ secrets.SOURCE_REPOSITORY }}
+    steps:
+      - name: check the tag
+        run: |
+          [[ "$TAG" =~ ^v[0-9]+\.[0-9]+\.[0-9]+$ ]] || { echo "Not a release tag: $TAG"; exit 1; }
+          [ -n "$SOURCE_REPOSITORY" ] || { echo "The secret SOURCE_REPOSITORY is not set."; exit 1; }
+
+      # One ref alone, because a fetch prints each branch it fetches, and the
+      # names of our branches stay ours.
+      - name: check out the source repository at the tag
+        uses: actions/checkout@v4
+        with:
+          repository: ${{ env.SOURCE_REPOSITORY }}
+          ref: refs/tags/${{ inputs.tag }}
+          ssh-key: ${{ secrets.SOURCE_DEPLOY_KEY }}
+          persist-credentials: false
+          # The iOS core is in Git LFS; nothing here needs it.
+          lfs: false
+
+      # Here rather than after the Windows build, so a wrong tag costs a
+      # minute of Linux, not a Windows run.
+      - name: check the tag's version and installer script
+        run: |
+          version=$(awk '$1=="version:"{print $2; exit}' pubspec.yaml | cut -d+ -f1)
+          if [ "$TAG" != "v$version" ]; then
+            echo "::error::pubspec.yaml at $TAG says $version, so $TAG is not a release tag"
+            exit 1
+          fi
+          if [ ! -f windows/installer/fortiva.iss ]; then
+            echo "::error::$TAG is older than the Windows installer; release a newer version first."
+            exit 1
+          fi
+
+      - uses: actions/setup-go@v5
+        with:
+          go-version-file: windows/core/go.mod
+          cache: false
+
+      # build.sh stages the patched Xray-core, the routing data and Wintun,
+      # each checked against its pin, and verifies what it built.
+      - name: build amd64 and arm64
+        run: |
+          windows/core/build.sh amd64
+          windows/core/build.sh arm64
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: core
+          path: windows/core/dist/
+          retention-days: 1
+          if-no-files-found: error
+
+  app:
+    name: app and installer
+    needs: core
+    # Not windows-latest: that moved to Visual Studio 2026 in June 2026, and
+    # Flutter 3.38 builds with Visual Studio 2022. This image also has Inno
+    # Setup.
+    runs-on: windows-2022
+    timeout-minutes: 30
+    env:
+      SOURCE_REPOSITORY: ${{ secrets.SOURCE_REPOSITORY }}
+    steps:
+      - name: check out the source repository at the tag
+        uses: actions/checkout@v4
+        with:
+          repository: ${{ env.SOURCE_REPOSITORY }}
+          ref: refs/tags/${{ inputs.tag }}
+          ssh-key: ${{ secrets.SOURCE_DEPLOY_KEY }}
+          persist-credentials: false
+          lfs: false
+
+      - uses: subosito/flutter-action@v2
+        with:
+          flutter-version: 3.38.7
+          channel: stable
+
+      - name: flutter build windows
+        run: |
+          flutter pub get
+          flutter build windows --release
+
+      - uses: actions/download-artifact@v4
+        with:
+          name: core
+          path: windows/core/dist
+
+      # Flutter's Windows release guide: the app needs these three DLLs
+      # next to it, or a PC without the Visual C++ redistributable cannot
+      # start it.
+      - name: Visual C++ runtime
+        shell: pwsh
+        run: |
+          $vs = & "${env:ProgramFiles(x86)}\Microsoft Visual Studio\Installer\vswhere.exe" -latest -products * -property installationPath
+          $redist = Get-ChildItem "$vs\VC\Redist\MSVC" -Directory |
+            Where-Object Name -Match '^\d+(\.\d+)+$' |
+            Sort-Object { [version]$_.Name } |
+            Select-Object -Last 1
+          $crt = Get-ChildItem "$($redist.FullName)\x64" -Directory -Filter 'Microsoft.VC*.CRT' | Select-Object -First 1
+          New-Item -ItemType Directory -Force build\crt | Out-Null
+          foreach ($dll in 'msvcp140.dll', 'vcruntime140.dll', 'vcruntime140_1.dll') {
+            Copy-Item "$($crt.FullName)\$dll" build\crt\
+          }
+          Get-ChildItem build\crt | Format-Table Name, Length
+
+      - name: installer
+        shell: pwsh
+        run: |
+          $version = (Select-String -Path pubspec.yaml -Pattern '^version:\s*([0-9.]+)').Matches[0].Groups[1].Value
+          $iscc = @("${env:ProgramFiles(x86)}\Inno Setup 6\ISCC.exe", "$env:ProgramFiles\Inno Setup 6\ISCC.exe") |
+            Where-Object { Test-Path $_ } |
+            Select-Object -First 1
+          if (-not $iscc) { throw 'Inno Setup is not installed on this runner image' }
+          & $iscc /Q "/DAppVersion=$version" `
+            "/DAppDir=$PWD\build\windows\x64\runner\Release" `
+            "/DCoreDir=$PWD\windows\core\dist" `
+            "/DCrtDir=$PWD\build\crt" `
+            "/DOutDir=$PWD\build\installer" `
+            windows\installer\fortiva.iss
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+          $exe = Get-ChildItem build\installer\*.exe | Select-Object -First 1
+          $sum = (Get-FileHash $exe -Algorithm SHA256).Hash.ToLower()
+          "$($exe.Name): $($exe.Length) bytes, sha256 $sum" | Tee-Object -FilePath $env:GITHUB_STEP_SUMMARY -Append
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: windows-installer
+          path: build/installer/*.exe
+          retention-days: ${{ inputs.publish && 1 || 3 }}
+          if-no-files-found: error
+          # An installer is already compressed.
+          compression-level: 0
+
+  attach:
+    name: check, and with publish on attach to the release
+    needs: app
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    # The only job that can write to the repository, and it runs no build
+    # code.
+    permissions:
+      contents: write
+    env:
+      TAG: ${{ inputs.tag }}
+      SOURCE_REPOSITORY: ${{ secrets.SOURCE_REPOSITORY }}
+    steps:
+      # The tools as main has them, whatever the tag has: a tag from before
+      # --windows has no way to attach its installer.
+      - name: check out the source repository's main
+        uses: actions/checkout@v4
+        with:
+          repository: ${{ env.SOURCE_REPOSITORY }}
+          ref: refs/heads/main
+          ssh-key: ${{ secrets.SOURCE_DEPLOY_KEY }}
+          persist-credentials: false
+          lfs: false
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.14'
+
+      - uses: actions/download-artifact@v4
+        with:
+          name: windows-installer
+          path: installer
+
+      - name: check, and with publish on attach, the installer
+        env:
+          PUBLIC_PUSH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          PUSH: ${{ inputs.publish && '--push' || '' }}
+        run: python3 tool/public_sync.py "$TAG" $PUSH --in-actions --windows installer

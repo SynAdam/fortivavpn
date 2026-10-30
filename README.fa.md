@@ -30,6 +30,7 @@
 
 - **گوگل پلی:** [فورتیوا VPN در گوگل پلی](https://play.google.com/store/apps/details?id=com.vpn.fortivavpn&referrer=utm_source%3Dgithub)
 - **فایل APK، برای گوشی و اندروید TV:** از [سایت فورتیوا](https://fortivavpn.com/fa/)، با [لینک مستقیم دانلود](https://fortivavpn.com/apk)، یا از بخش [Releases](https://github.com/SynAdam/fortivavpn/releases/latest) همین مخزن.
+- **ویندوز ۱۰ و ۱۱:** فایل نصب با [لینک مستقیم دانلود](https://fortivavpn.com/windows)، یا از بخش [Releases](https://github.com/SynAdam/fortivavpn/releases) همین مخزن. فایل نصب امضای دیجیتال ندارد، پس ویندوز شاید پیش از اجرا هشدار بدهد. در این حالت More info و بعد Run anyway را بزنید.
 - **تلگرام:** خبرها و نسخه‌های تازه در کانال فارسی ما، [t.me/fortiva_vpn](https://t.me/fortiva_vpn)، منتشر می‌شوند.
 
 پیش از نصب فایل APK از هر جای دیگری، بررسی کنید که آن را ما منتشر کرده‌ایم.
