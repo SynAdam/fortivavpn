@@ -43,7 +43,7 @@ jobs:
     name: build, check and publish
     if: github.repository == 'SynAdam/fortivavpn'
     environment: release
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-26.04
     timeout-minutes: 60
     env:
       TAG: ${{ inputs.tag }}
@@ -60,7 +60,7 @@ jobs:
           fi
 
       - name: check out the source repository at the tag
-        uses: actions/checkout@v4
+        uses: actions/checkout@v7
         with:
           repository: ${{ env.SOURCE_REPOSITORY }}
           ref: ${{ inputs.ref && format('refs/heads/{0}', inputs.ref) || format('refs/tags/{0}', inputs.tag) }}
@@ -84,7 +84,7 @@ jobs:
           GIT_SSH_COMMAND="ssh -i $key -o IdentitiesOnly=yes -o UserKnownHostsFile=$hosts -o StrictHostKeyChecking=yes" \
             git fetch --quiet --unshallow --prune origin '+refs/heads/*:refs/remotes/origin/*' '+refs/tags/*:refs/tags/*'
 
-      - uses: actions/setup-java@v4
+      - uses: actions/setup-java@v6
         with:
           distribution: temurin
           java-version: '17'
@@ -95,7 +95,7 @@ jobs:
           channel: stable
           cache: true
 
-      - uses: actions/setup-python@v5
+      - uses: actions/setup-python@v7
         with:
           python-version: '3.14'
 

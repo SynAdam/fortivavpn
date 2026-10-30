@@ -33,7 +33,7 @@ jobs:
   mirror:
     name: bring new commits here
     if: github.repository == 'SynAdam/fortivavpn' && vars.MIRROR_PAUSED != 'true'
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-26.04
     timeout-minutes: 30
     # A job's condition cannot read a secret, so each step waits for it.
     env:
@@ -43,7 +43,7 @@ jobs:
     steps:
       - name: check out the source repository's main
         if: env.SOURCE_REPOSITORY != ''
-        uses: actions/checkout@v4
+        uses: actions/checkout@v7
         with:
           repository: ${{ env.SOURCE_REPOSITORY }}
           ref: refs/heads/main
@@ -69,7 +69,7 @@ jobs:
             git fetch --quiet --unshallow --prune origin '+refs/heads/*:refs/remotes/origin/*' '+refs/tags/*:refs/tags/*'
 
       - if: env.SOURCE_REPOSITORY != ''
-        uses: actions/setup-python@v5
+        uses: actions/setup-python@v7
         with:
           python-version: '3.14'
 
