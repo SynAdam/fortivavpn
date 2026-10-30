@@ -15,7 +15,7 @@
   <a href="https://github.com/SynAdam/fortivavpn/actions/workflows/ci.yml"><img src="https://github.com/SynAdam/fortivavpn/actions/workflows/ci.yml/badge.svg" alt="CI"></a>
 </p>
 
-<p align="center"><a href="README.md">English</a> · <b>فارسی</b></p>
+<p align="center"><a href="README.md">English</a> · <b>فارسی</b> · <a href="README.ar.md">العربية</a> · <a href="README.zh.md">简体中文</a></p>
 
 <div dir="rtl">
 

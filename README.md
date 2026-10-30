@@ -10,7 +10,7 @@
   <img alt="18 languages" src="https://img.shields.io/badge/languages-18-30363C?style=flat-square&labelColor=1B2127">
 </p>
 
-<p align="center"><b>English</b> · <a href="README.fa.md">فارسی</a></p>
+<p align="center"><b>English</b> · <a href="README.fa.md">فارسی</a> · <a href="README.ar.md">العربية</a> · <a href="README.zh.md">简体中文</a></p>
 
 <p align="center">
   <a href="https://play.google.com/store/apps/details?id=com.vpn.fortivavpn&amp;referrer=utm_source%3Dgithub"><img alt="Get it on Google Play" src="https://img.shields.io/badge/Get_it_on_Google_Play-C8452B?style=for-the-badge&logo=googleplay&logoColor=white"></a>
