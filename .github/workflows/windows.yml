@@ -41,7 +41,7 @@ jobs:
   core:
     name: tunnel service (cross-compiled)
     if: github.repository == 'SynAdam/fortivavpn'
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-26.04
     timeout-minutes: 20
     env:
       TAG: ${{ inputs.tag }}
@@ -55,7 +55,7 @@ jobs:
       # One ref alone, because a fetch prints each branch it fetches, and the
       # names of our branches stay ours.
       - name: check out the source repository at the tag
-        uses: actions/checkout@v4
+        uses: actions/checkout@v7
         with:
           repository: ${{ env.SOURCE_REPOSITORY }}
           ref: refs/tags/${{ inputs.tag }}
@@ -109,7 +109,7 @@ jobs:
       SOURCE_REPOSITORY: ${{ secrets.SOURCE_REPOSITORY }}
     steps:
       - name: check out the source repository at the tag
-        uses: actions/checkout@v4
+        uses: actions/checkout@v7
         with:
           repository: ${{ env.SOURCE_REPOSITORY }}
           ref: refs/tags/${{ inputs.tag }}
@@ -181,7 +181,7 @@ jobs:
   attach:
     name: check, and with publish on attach to the release
     needs: app
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-26.04
     timeout-minutes: 20
     # The only job that can write to the repository, and it runs no build
     # code.
@@ -194,7 +194,7 @@ jobs:
       # The tools as main has them, whatever the tag has: a tag from before
       # --windows has no way to attach its installer.
       - name: check out the source repository's main
-        uses: actions/checkout@v4
+        uses: actions/checkout@v7
         with:
           repository: ${{ env.SOURCE_REPOSITORY }}
           ref: refs/heads/main
@@ -202,7 +202,7 @@ jobs:
           persist-credentials: false
           lfs: false
 
-      - uses: actions/setup-python@v5
+      - uses: actions/setup-python@v7
         with:
           python-version: '3.14'
 
