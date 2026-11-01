@@ -8,7 +8,7 @@ Fortiva adalah VPN gratis, cepat, dan aman untuk Android. Terhubung gratis setia
 ✓ Kami tidak pernah mencatat halaman yang Anda buka
 
 VPN gratis setiap hari
-Pasang Fortiva dan langsung terhubung. Anda mendapat data gratis setiap hari tanpa perlu akun. Kuota Anda terisi ulang otomatis setiap hari.
+Pasang Fortiva dan langsung terhubung. Anda mendapat data gratis setiap hari tanpa perlu akun. Kuota Anda direset otomatis setiap hari.
 
 Dibuat untuk jaringan yang dibatasi
 Fortiva dibuat untuk jaringan tempat VPN biasa gagal terhubung. Server sudah ada di dalam aplikasi dan diperbarui otomatis, jadi Anda tidak perlu mencari config atau menempelkan kunci. Buka Reddit, Vimeo, Telegram, dan situs lain yang diblokir, lewat data seluler maupun Wi-Fi.

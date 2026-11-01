@@ -3,7 +3,7 @@ Fortiva, Android için ücretsiz, hızlı ve güvenli bir VPN'dir. Her gün ücr
 ✓ Her gün ücretsiz, günlük veri kotasıyla
 ✓ Kayıt yok: e-posta, telefon numarası veya şifre istenmez
 ✓ Tek dokunuşla bağlantı, ayar ve yapılandırma yok
-✓ Reklam yok, takip yok
+✓ Reklam yok, takip aracı yok
 ✓ Dahili hız testi: hızınızı VPN ile ve VPN olmadan karşılaştırın
 ✓ Açtığınız sayfaları asla kaydetmeyiz
 

@@ -3,7 +3,7 @@ Fortiva là VPN miễn phí, nhanh và bảo mật cho Android. Kết nối mi�
 ✓ Miễn phí mỗi ngày, kèm hạn mức dữ liệu hằng ngày
 ✓ Không cần đăng ký: không email, không số điện thoại, không mật khẩu
 ✓ Kết nối một chạm, không cần cấu hình, không phải thiết lập gì
-✓ Không quảng cáo, không theo dõi
+✓ Không quảng cáo, không có trình theo dõi
 ✓ Kiểm tra tốc độ tích hợp: so sánh tốc độ khi bật và tắt VPN
 ✓ Chúng tôi không bao giờ ghi lại các trang bạn mở
 

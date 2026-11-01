@@ -8,7 +8,7 @@ Fortiva est un VPN gratuit, rapide et sécurisé pour Android. Connectez-vous gr
 ✓ Nous n'enregistrons jamais les pages que vous ouvrez
 
 VPN gratuit, chaque jour
-Installez Fortiva et connectez-vous tout de suite. Vous recevez des données gratuites chaque jour, sans aucun compte. Votre quota se recharge automatiquement chaque jour.
+Installez Fortiva et connectez-vous tout de suite. Vous recevez des données gratuites chaque jour, sans aucun compte. Votre quota se réinitialise automatiquement chaque jour.
 
 Conçu pour les réseaux filtrés
 Fortiva est conçu pour les réseaux où les VPN ordinaires n'arrivent pas à se connecter. Les serveurs sont intégrés à l'application et se mettent à jour tout seuls : aucune configuration à chercher, aucune clé à coller.
