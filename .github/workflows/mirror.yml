@@ -54,6 +54,14 @@ jobs:
       # it fetches, and the names of our branches stay ours. This fetches the
       # rest quietly: every branch, whose names the tool keeps out of the
       # public messages, every tag, and the whole history.
+      #
+      # It leaves out each file of 1 MB or more that the checkout does not
+      # have. Those are old builds of the Android core
+      # (android/app/libs/libv2ray.aar, 78 MB each): nearly all of the
+      # source repository, about 1 GB that each run fetched before, and a
+      # run needs none of them. Should a commit the tool publishes hold one,
+      # git downloads that file when the tool reads it, so the next step has
+      # the key too.
       - name: fetch the rest of the source repository quietly
         if: env.SOURCE_REPOSITORY != ''
         env:
@@ -66,19 +74,26 @@ jobs:
           printf '%s\n' "$SOURCE_DEPLOY_KEY" > "$key"
           gh api meta --jq '.ssh_keys[] | "github.com " + .' > "$hosts"
           GIT_SSH_COMMAND="ssh -i $key -o IdentitiesOnly=yes -o UserKnownHostsFile=$hosts -o StrictHostKeyChecking=yes" \
-            git fetch --quiet --unshallow --prune origin '+refs/heads/*:refs/remotes/origin/*' '+refs/tags/*:refs/tags/*'
+            git fetch --quiet --filter=blob:limit=1m --unshallow --prune origin '+refs/heads/*:refs/remotes/origin/*' '+refs/tags/*:refs/tags/*'
 
       - if: env.SOURCE_REPOSITORY != ''
         uses: actions/setup-python@v7
         with:
           python-version: '3.14'
 
+      # The key is back for this step alone, for a file git may download.
       - name: publish its new commits and release tags
         id: sync
         if: env.SOURCE_REPOSITORY != ''
         env:
+          SOURCE_DEPLOY_KEY: ${{ secrets.SOURCE_DEPLOY_KEY }}
           PUBLIC_PUSH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: python3 tool/public_sync.py --mirror --push --in-actions
+        run: |
+          key="$RUNNER_TEMP/source-key" hosts="$RUNNER_TEMP/github-hosts"
+          trap 'rm -f "$key"' EXIT
+          (umask 077 && printf '%s\n' "$SOURCE_DEPLOY_KEY" > "$key")
+          GIT_SSH_COMMAND="ssh -i $key -o IdentitiesOnly=yes -o UserKnownHostsFile=$hosts -o StrictHostKeyChecking=yes" \
+            python3 tool/public_sync.py --mirror --push --in-actions
 
   ci:
     needs: mirror
