@@ -34,15 +34,23 @@ class DedicatedState extends ChangeNotifier {
     DateTime Function()? now,
     @visibleForTesting
     Future<DedicatedConfigs> Function({bool? viaTunnel})? fetch,
+    @visibleForTesting
+    Future<DedicatedConfigs> Function(String deviceId, {bool? viaTunnel})?
+    provision,
+    @visibleForTesting DeviceService? deviceService,
   }) : _prefs = prefs ?? SharedPreferences.getInstance,
        _now = now ?? DateTime.now,
-       _fetch = fetch;
+       _fetch = fetch,
+       _provision = provision,
+       _deviceService = deviceService ?? DeviceService();
 
-  final DeviceService _deviceService = DeviceService();
+  final DeviceService _deviceService;
   final PingService _pingService = PingService();
   final Future<SharedPreferences> Function() _prefs;
   final DateTime Function() _now;
   final Future<DedicatedConfigs> Function({bool? viaTunnel})? _fetch;
+  final Future<DedicatedConfigs> Function(String deviceId, {bool? viaTunnel})?
+  _provision;
 
   /// The backend's last answer, and when it came, kept for a launch that
   /// cannot reach the backend.
@@ -408,22 +416,19 @@ class DedicatedState extends ChangeNotifier {
     bool? viaTunnel,
   }) async {
     final generation = _generation;
+    final provision = _provision ?? ConfigService().getDedicatedConfigs;
     try {
-      return await ConfigService().getDedicatedConfigs(
-        deviceId,
-        viaTunnel: viaTunnel,
-      );
+      return await provision(deviceId, viaTunnel: viaTunnel);
     } on ApiException catch (e) {
       if (!e.isNotFound) rethrow;
       // The 404 may be the account deletion that started meanwhile: never
       // register a device that is being deleted, or servers would be
       // provisioned for an id nobody can name or delete again.
       if (_forgetting || generation != _generation) rethrow;
-      await _deviceService.registerDevice();
-      return ConfigService().getDedicatedConfigs(
-        deviceId,
-        viaTunnel: viaTunnel,
-      );
+      // The connect button can be waiting on this, so it does not wait for
+      // the install source too.
+      await _deviceService.registerDevice(waitForSource: false);
+      return provision(deviceId, viaTunnel: viaTunnel);
     }
   }
 

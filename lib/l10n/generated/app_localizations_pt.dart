@@ -327,7 +327,7 @@ class SPt extends S {
 
   @override
   String get shareDiagnosticsBody =>
-      'Envia relatórios de conexão, sua operadora e seu país, o modelo do celular, a versão do Android e se você viu ou tocou nas nossas mensagens, nas ofertas do Premium e no cartão de convite. Nunca vemos as páginas que você abre nem o que você envia.';
+      'Envia relatórios de conexão, sua operadora e seu país, o modelo do celular, a versão do Android, onde você encontrou o app segundo o Google Play e se você viu ou tocou nas nossas mensagens, nas ofertas do Premium e no cartão de convite. Nunca vemos as páginas que você abre nem o que você envia.';
 
   @override
   String get security => 'Segurança';

@@ -327,7 +327,7 @@ class SDe extends S {
 
   @override
   String get shareDiagnosticsBody =>
-      'Sendet Verbindungsberichte, deinen Netzbetreiber und dein Land, das Handymodell, die Android-Version und ob du unsere Nachrichten, Premium-Angebote und die Einladungskarte gesehen oder angetippt hast. Wir sehen nie die Seiten, die du öffnest, oder was du sendest.';
+      'Sendet Verbindungsberichte, deinen Netzbetreiber und dein Land, das Handymodell, die Android-Version, wo du die App laut Google Play gefunden hast, und ob du unsere Nachrichten, Premium-Angebote und die Einladungskarte gesehen oder angetippt hast. Wir sehen nie die Seiten, die du öffnest, oder was du sendest.';
 
   @override
   String get security => 'Sicherheit';

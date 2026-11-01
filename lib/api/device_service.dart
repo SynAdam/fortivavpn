@@ -7,6 +7,7 @@ import 'device_facts.dart';
 import 'device_identity.dart';
 import '../data/models/device.dart';
 import '../services/device_place.dart';
+import '../services/install_referrer.dart';
 import '../services/test_lab.dart';
 import '../services/vpn_event_reporter.dart';
 
@@ -18,24 +19,39 @@ class DeviceService {
     : _client = ApiClient(),
       _place = DevicePlace(),
       _testLab = TestLab(),
-      _facts = DeviceFacts();
+      _facts = DeviceFacts(),
+      _installSource = InstallReferrer.pendingSource,
+      _sourceSent = InstallReferrer.sourceSent;
 
   /// A service whose network and platform reads are given, for tests.
+  /// Without [installSource] it has no install source, so Play is never
+  /// asked.
   @visibleForTesting
   DeviceService.forTest({
     required ApiClient client,
     DevicePlace? place,
     TestLab? testLab,
     DeviceFacts? facts,
+    Future<Map<String, String>?> Function()? installSource,
+    Future<void> Function()? sourceSent,
   }) : _client = client,
        _place = place ?? DevicePlace(),
        _testLab = testLab ?? TestLab(),
-       _facts = facts ?? DeviceFacts();
+       _facts = facts ?? DeviceFacts(),
+       _installSource = installSource ?? (() async => null),
+       _sourceSent = sourceSent ?? (() async {});
 
   final ApiClient _client;
   final DevicePlace _place;
   final TestLab _testLab;
   final DeviceFacts _facts;
+  final Future<Map<String, String>?> Function() _installSource;
+  final Future<void> Function() _sourceSent;
+
+  /// How long register waits for the install source. Only the first read
+  /// binds the Play service; after that it is a preference read. A register
+  /// that stops waiting sends without the source, and a later one sends it.
+  static const sourceWait = Duration(seconds: 2);
 
   /// Resolve the persistent device ID.
   ///
@@ -85,11 +101,17 @@ class DeviceService {
   /// about to forget, and nobody could name or delete that row afterwards.
   static void deletionRuns(bool runs) => _deleting = runs;
 
+  /// Register this device.
+  ///
+  /// With [waitForSource] false it goes without the install source and does
+  /// not ask for it, for a caller that a connect may be waiting on. The source
+  /// goes with the register at launch.
   Future<Device> registerDevice({
     String? deviceModel,
     String? osVersion,
     String? pushToken,
     String? language,
+    bool waitForSource = true,
   }) async {
     if (_deleting) {
       // Status 0, as for no answer: every caller keeps what it was sending
@@ -99,16 +121,19 @@ class DeviceService {
         message: 'the account is being deleted',
       );
     }
-    // Started first so they run alongside the reads below. Neither throws.
+    // Started first so they run alongside the reads below. None throws.
     final testLab = _testLab.read();
     final facts = _facts.read();
+    final installSource = waitForSource ? _readSource() : null;
     final deviceId = await getDeviceId();
+    final sharing = await _sharing();
     // The model and Android version go only while the user shares
     // diagnostics, like the place below. Register replaces both columns, so
     // turning sharing off also clears them on the backend.
-    final phone = await _sharing()
-        ? await facts
-        : (model: null, osVersion: null);
+    final phone = sharing ? await facts : (model: null, osVersion: null);
+    // Where Play says the install came from, under the same choice. It is
+    // sent until a register that carried it succeeds, then never again.
+    final source = sharing ? await installSource : null;
 
     final body = {
       'device_id': deviceId,
@@ -124,10 +149,43 @@ class DeviceService {
       // Only Google's pre-launch test devices send this, so the backend can
       // leave them out of operator views and alerts. See TestLab.
       if (await testLab) 'test_lab': true,
+      // utm_source, utm_medium and utm_campaign, each only when Play had
+      // it. See InstallReferrer.pendingSource.
+      ...?source,
     };
 
     final response = await _client.post('/api/v1/devices/register', body: body);
-    return Device.fromJson(response as Map<String, dynamic>);
+    final device = Device.fromJson(response as Map<String, dynamic>);
+    // Only once the backend answered with a device: a register that failed
+    // keeps the source for the next one.
+    if (source != null) {
+      try {
+        await _sourceSent();
+      } catch (e) {
+        // The register worked. At worst the next one sends the source again.
+        debugPrint('DeviceService: install source not cleared ($e)');
+      }
+    }
+    return device;
+  }
+
+  /// The install source, or null when there is none or it did not come
+  /// within [sourceWait]. Only the keys InstallReferrer keeps, so the
+  /// source can never replace another field of the body. Never throws.
+  Future<Map<String, String>?> _readSource() async {
+    try {
+      final source = await _installSource().timeout(sourceWait);
+      final fields = {
+        for (final name in InstallReferrer.sourceParams)
+          if (source?[name] case final String value) name: value,
+      };
+      return fields.isEmpty ? null : fields;
+    } catch (e) {
+      // A timeout leaves the read running, and what it finds is kept for
+      // the next register.
+      debugPrint('DeviceService: no install source ($e)');
+      return null;
+    }
   }
 
   /// Whether the user shares diagnostics. Unset means yes, as everywhere.

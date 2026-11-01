@@ -63,6 +63,12 @@ class AccountService {
     // meant for the device row the deletion removes; a fresh install reads
     // Play again (see above).
     'fortiva_install_referrer_pending',
+    // Whether the install source (utm_source and the rest) has been read
+    // from Play, and the source waiting to go with a registration. Cleared
+    // for the same reason as the two above: the backend removed the device
+    // row the source was sent with, and the new row should get it too.
+    'fortiva_install_source_read',
+    'fortiva_install_source',
     // Which released version the user had waved away, and when. Written
     // by builds up to 1.6.10 only, and removed at launch by later ones
     // (UpdateDialog.forgetOldLater), so this only matters for a deletion
