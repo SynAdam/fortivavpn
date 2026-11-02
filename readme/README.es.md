@@ -1,5 +1,5 @@
 <p align="center">
-  <img src="assets/icon/fortiva_icon.png" width="104" alt="Fortiva VPN">
+  <img src="../assets/icon/fortiva_icon.png" width="104" alt="Fortiva VPN">
 </p>
 
 <h1 align="center">Fortiva VPN</h1>
@@ -11,11 +11,11 @@
   <a href="https://fortivavpn.com/apk"><img src="https://img.shields.io/badge/APK-download-C8452B?style=flat-square&amp;labelColor=0E1318" alt="Descargar el APK"></a>
   <a href="https://t.me/fortivavpn_es"><img src="https://img.shields.io/badge/Telegram-fortivavpn__es-C8452B?style=flat-square&amp;labelColor=0E1318" alt="Canal de Telegram"></a>
   <a href="https://github.com/SynAdam/fortivavpn/tags"><img src="https://img.shields.io/github/v/tag/SynAdam/fortivavpn?sort=semver&amp;label=release&amp;color=C8452B&amp;style=flat-square&amp;labelColor=0E1318" alt="Última versión"></a>
-  <a href="LICENSE"><img src="https://img.shields.io/badge/licence-GPL--3.0-C8452B?style=flat-square&amp;labelColor=0E1318" alt="Licencia: GPL-3.0"></a>
+  <a href="../LICENSE"><img src="https://img.shields.io/badge/licence-GPL--3.0-C8452B?style=flat-square&amp;labelColor=0E1318" alt="Licencia: GPL-3.0"></a>
   <a href="https://github.com/SynAdam/fortivavpn/actions/workflows/ci.yml"><img src="https://github.com/SynAdam/fortivavpn/actions/workflows/ci.yml/badge.svg" alt="CI"></a>
 </p>
 
-<p align="center"><a href="README.md">English</a> · <a href="README.ar.md">العربية</a> · <a href="README.zh.md">简体中文</a> · <a href="README.fr.md">Français</a> · <a href="README.de.md">Deutsch</a> · <a href="README.hi.md">हिन्दी</a> · <a href="README.id.md">Bahasa Indonesia</a> · <a href="README.ja.md">日本語</a> · <a href="README.ko.md">한국어</a> · <a href="README.fa.md">فارسی</a> · <a href="README.pt.md">Português</a> · <a href="README.ru.md">Русский</a> · <b>Español</b> · <a href="README.tr.md">Türkçe</a> · <a href="README.uk.md">Українська</a> · <a href="README.ur.md">اردو</a> · <a href="README.uz.md">Oʻzbekcha</a> · <a href="README.vi.md">Tiếng Việt</a></p>
+<p align="center"><a href="../README.md">English</a> · <a href="README.ar.md">العربية</a> · <a href="README.zh.md">简体中文</a> · <a href="README.fr.md">Français</a> · <a href="README.de.md">Deutsch</a> · <a href="README.hi.md">हिन्दी</a> · <a href="README.id.md">Bahasa Indonesia</a> · <a href="README.ja.md">日本語</a> · <a href="README.ko.md">한국어</a> · <a href="README.fa.md">فارسی</a> · <a href="README.pt.md">Português</a> · <a href="README.ru.md">Русский</a> · <b>Español</b> · <a href="README.tr.md">Türkçe</a> · <a href="README.uk.md">Українська</a> · <a href="README.ur.md">اردو</a> · <a href="README.uz.md">Oʻzbekcha</a> · <a href="README.vi.md">Tiếng Việt</a></p>
 
 ## Acerca de Fortiva VPN
 
@@ -34,7 +34,7 @@ La app está disponible en 18 idiomas, incluido el español.
 - **Telegram:** las noticias y las nuevas versiones se publican en nuestro canal en español, [t.me/fortivavpn_es](https://t.me/fortivavpn_es).
 
 Antes de instalar un APK que venga de otro lugar, verifica que sea nuestro.
-El README en inglés explica cómo hacerlo, en la sección [Check a download](README.md#check-a-download).
+El README en inglés explica cómo hacerlo, en la sección [Check a download](../README.md#check-a-download).
 
 ## Este repositorio
 
@@ -51,7 +51,7 @@ Tampoco están aquí las herramientas de publicación y de las tiendas de apps, 
 El servicio de backend no es de código abierto.
 Una compilación que hagas a partir de este código fuente se comunica con el mismo servicio que la app de Google Play, en las mismas condiciones.
 
-Para compilar la app desde el código fuente, consulta [Build from source](README.md#build-from-source) en el README en inglés.
+Para compilar la app desde el código fuente, consulta [Build from source](../README.md#build-from-source) en el README en inglés.
 
 ## Reportar un problema
 
@@ -67,24 +67,24 @@ Por eso, no pongas nada de esto en un issue ni en una captura de pantalla:
 
 Si necesitas ayuda con una cuenta o un pago, abre Configuración en la app y toca Contáctanos.
 Esos mensajes no son públicos.
-[SUPPORT.md](SUPPORT.md) indica a dónde acudir para cada tipo de pregunta.
+[SUPPORT.md](../SUPPORT.md) indica a dónde acudir para cada tipo de pregunta.
 
 ## Contribuir
 
-[CONTRIBUTING.md](CONTRIBUTING.md) tiene los pasos para enviar un pull request, las verificaciones que deben pasar y las condiciones.
+[CONTRIBUTING.md](../CONTRIBUTING.md) tiene los pasos para enviar un pull request, las verificaciones que deben pasar y las condiciones.
 Ese archivo está en inglés.
 
 - **Por dónde empezar:** los issues con la etiqueta [good first issue](https://github.com/SynAdam/fortivavpn/labels/good%20first%20issue) o [help wanted](https://github.com/SynAdam/fortivavpn/labels/help%20wanted).
-- **Traducciones:** el texto de la app está en 18 idiomas, con un archivo para cada uno en [`lib/l10n/`](lib/l10n/). El español está en `app_es.arb`, y el original en inglés está en `app_en.arb`. Deja tal como está lo que va entre llaves, como `{query}`. Corregir una frase traducida es un buen primer pull request.
+- **Traducciones:** el texto de la app está en 18 idiomas, con un archivo para cada uno en [`lib/l10n/`](../lib/l10n/). El español está en `app_es.arb`, y el original en inglés está en `app_en.arb`. Deja tal como está lo que va entre llaves, como `{query}`. Corregir una frase traducida es un buen primer pull request.
 - **Cambios más grandes:** abre un issue antes de empezar, para que podamos ponernos de acuerdo sobre cómo hacerlo.
 
-Esperamos que todas las personas que participan en este proyecto sigan el [código de conducta](CODE_OF_CONDUCT.md).
+Esperamos que todas las personas que participan en este proyecto sigan el [código de conducta](../CODE_OF_CONDUCT.md).
 
 ## Seguridad
 
 Si encuentras un problema de seguridad, no lo escribas en un issue, porque los issues son públicos.
 [Repórtalo en privado a través de GitHub](https://github.com/SynAdam/fortivavpn/security/advisories/new), o escribe a admin@fortivavpn.com con la palabra Security en el asunto.
-[SECURITY.md](SECURITY.md) tiene los detalles.
+[SECURITY.md](../SECURITY.md) tiene los detalles.
 
 ## Créditos
 
@@ -105,15 +105,15 @@ Gracias a todas las personas que los escribieron y los mantienen.
 - [Tun2SocksKit](https://github.com/EbrahimTahernejad/Tun2SocksKit) de EbrahimTahernejad, un paquete de Swift con hev-socks5-tunnel.
 - [hev-socks5-tunnel](https://github.com/heiher/hev-socks5-tunnel) de heiher, un túnel tun2socks pequeño y rápido.
 - [Wintun](https://www.wintun.net) de WireGuard LLC, un controlador de adaptador de red para Windows.
-- [Flutter](https://flutter.dev) y los paquetes de Dart que aparecen en [`pubspec.yaml`](pubspec.yaml).
+- [Flutter](https://flutter.dev) y los paquetes de Dart que aparecen en [`pubspec.yaml`](../pubspec.yaml).
 
-[THIRD-PARTY-NOTICES.md](THIRD-PARTY-NOTICES.md) indica la licencia de cada proyecto.
+[THIRD-PARTY-NOTICES.md](../THIRD-PARTY-NOTICES.md) indica la licencia de cada proyecto.
 
 ## Licencia
 
 Las compilaciones de la app para Android y Windows están bajo la GPL-3.0.
-[LICENSE](LICENSE) es el texto de la licencia, y [LICENSING.md](LICENSING.md) indica bajo qué licencia está cada compilación y cada carpeta de este repositorio.
+[LICENSE](../LICENSE) es el texto de la licencia, y [LICENSING.md](../LICENSING.md) indica bajo qué licencia está cada compilación y cada carpeta de este repositorio.
 
 La licencia no da ningún derecho sobre el nombre y el logotipo de Fortiva VPN como marcas comerciales.
 Si publicas una versión modificada, ponle su propio nombre, ícono e ID de aplicación, y no la presentes como nuestra.
-Estos son términos adicionales conforme a la sección 7 de la GPL, como explica [LICENSING.md](LICENSING.md).
+Estos son términos adicionales conforme a la sección 7 de la GPL, como explica [LICENSING.md](../LICENSING.md).

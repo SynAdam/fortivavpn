@@ -1,5 +1,5 @@
 <p align="center">
-  <img src="assets/icon/fortiva_icon.png" width="104" alt="Fortiva VPN">
+  <img src="../assets/icon/fortiva_icon.png" width="104" alt="Fortiva VPN">
 </p>
 
 <h1 align="center">Fortiva VPN</h1>
@@ -11,11 +11,11 @@
   <a href="https://fortivavpn.com/apk"><img src="https://img.shields.io/badge/APK-download-C8452B?style=flat-square&amp;labelColor=0E1318" alt="APK ڈاؤن لوڈ کریں"></a>
   <a href="https://t.me/fortivavpn_ur"><img src="https://img.shields.io/badge/Telegram-fortivavpn__ur-C8452B?style=flat-square&amp;labelColor=0E1318" alt="Telegram چینل"></a>
   <a href="https://github.com/SynAdam/fortivavpn/tags"><img src="https://img.shields.io/github/v/tag/SynAdam/fortivavpn?sort=semver&amp;label=release&amp;color=C8452B&amp;style=flat-square&amp;labelColor=0E1318" alt="تازہ ترین ریلیز"></a>
-  <a href="LICENSE"><img src="https://img.shields.io/badge/licence-GPL--3.0-C8452B?style=flat-square&amp;labelColor=0E1318" alt="لائسنس: GPL-3.0"></a>
+  <a href="../LICENSE"><img src="https://img.shields.io/badge/licence-GPL--3.0-C8452B?style=flat-square&amp;labelColor=0E1318" alt="لائسنس: GPL-3.0"></a>
   <a href="https://github.com/SynAdam/fortivavpn/actions/workflows/ci.yml"><img src="https://github.com/SynAdam/fortivavpn/actions/workflows/ci.yml/badge.svg" alt="CI"></a>
 </p>
 
-<p align="center"><a href="README.md">English</a> · <a href="README.ar.md">العربية</a> · <a href="README.zh.md">简体中文</a> · <a href="README.fr.md">Français</a> · <a href="README.de.md">Deutsch</a> · <a href="README.hi.md">हिन्दी</a> · <a href="README.id.md">Bahasa Indonesia</a> · <a href="README.ja.md">日本語</a> · <a href="README.ko.md">한국어</a> · <a href="README.fa.md">فارسی</a> · <a href="README.pt.md">Português</a> · <a href="README.ru.md">Русский</a> · <a href="README.es.md">Español</a> · <a href="README.tr.md">Türkçe</a> · <a href="README.uk.md">Українська</a> · <b>اردو</b> · <a href="README.uz.md">Oʻzbekcha</a> · <a href="README.vi.md">Tiếng Việt</a></p>
+<p align="center"><a href="../README.md">English</a> · <a href="README.ar.md">العربية</a> · <a href="README.zh.md">简体中文</a> · <a href="README.fr.md">Français</a> · <a href="README.de.md">Deutsch</a> · <a href="README.hi.md">हिन्दी</a> · <a href="README.id.md">Bahasa Indonesia</a> · <a href="README.ja.md">日本語</a> · <a href="README.ko.md">한국어</a> · <a href="README.fa.md">فارسی</a> · <a href="README.pt.md">Português</a> · <a href="README.ru.md">Русский</a> · <a href="README.es.md">Español</a> · <a href="README.tr.md">Türkçe</a> · <a href="README.uk.md">Українська</a> · <b>اردو</b> · <a href="README.uz.md">Oʻzbekcha</a> · <a href="README.vi.md">Tiếng Việt</a></p>
 
 <div dir="rtl">
 
@@ -36,7 +36,7 @@ Fortiva ان نیٹ ورکس کے لیے بنایا گیا ہے جہاں عام 
 - **Telegram:** خبریں اور نئے ورژن ہمارے اردو چینل پر شائع ہوتے ہیں، [t.me/fortivavpn_ur](https://t.me/fortivavpn_ur)۔
 
 کسی اور جگہ سے APK انسٹال کرنے سے پہلے تصدیق کر لیں کہ وہ ہمارا ہی ہے۔
-اس کا طریقہ انگریزی README میں [Check a download](README.md#check-a-download) کے تحت لکھا ہے۔
+اس کا طریقہ انگریزی README میں [Check a download](../README.md#check-a-download) کے تحت لکھا ہے۔
 
 ## یہ ریپوزٹری
 
@@ -53,7 +53,7 @@ Issues اور pull requests کا خیر مقدم ہے۔
 بیک اینڈ سروس اوپن سورس نہیں ہے۔
 اس سورس سے بنایا گیا آپ کا بلڈ اسی سروس سے رابطہ کرتا ہے جس سے Google Play والی ایپ کرتی ہے، اور انہی شرائط پر۔
 
-سورس سے ایپ بنانے کے لیے انگریزی README میں [Build from source](README.md#build-from-source) دیکھیں۔
+سورس سے ایپ بنانے کے لیے انگریزی README میں [Build from source](../README.md#build-from-source) دیکھیں۔
 
 ## مسئلے کی اطلاع دیں
 
@@ -69,24 +69,24 @@ Issues عوامی ہوتے ہیں اور انہیں کوئی بھی پڑھ سک�
 
 اکاؤنٹ یا ادائیگی میں مدد کے لیے ایپ میں "ترتیبات" کھولیں اور "ہم سے رابطہ کریں" پر ٹیپ کریں۔
 یہ پیغامات عوامی نہیں ہوتے۔
-[SUPPORT.md](SUPPORT.md) میں لکھا ہے کہ ہر قسم کے سوال کے لیے کہاں جانا ہے۔
+[SUPPORT.md](../SUPPORT.md) میں لکھا ہے کہ ہر قسم کے سوال کے لیے کہاں جانا ہے۔
 
 ## تعاون
 
-[CONTRIBUTING.md](CONTRIBUTING.md) میں pull request بھیجنے کے مراحل، وہ جانچیں جن کا پاس ہونا ضروری ہے، اور شرائط درج ہیں۔
+[CONTRIBUTING.md](../CONTRIBUTING.md) میں pull request بھیجنے کے مراحل، وہ جانچیں جن کا پاس ہونا ضروری ہے، اور شرائط درج ہیں۔
 وہ فائل انگریزی میں ہے۔
 
 - **کہاں سے شروع کریں:** وہ issues جن پر [good first issue](https://github.com/SynAdam/fortivavpn/labels/good%20first%20issue) یا [help wanted](https://github.com/SynAdam/fortivavpn/labels/help%20wanted) کا لیبل لگا ہو۔
-- **ترجمے:** ایپ کا متن 18 زبانوں میں ہے، ہر زبان کی ایک فائل [`lib/l10n/`](lib/l10n/) میں ہے۔ اردو `app_ur.arb` میں ہے، اور انگریزی کا اصل متن `app_en.arb` میں ہے۔ کرلی بریکٹس میں جو کچھ ہے، جیسے `{query}`، اسے ویسے ہی رہنے دیں۔ پہلی pull request کے لیے کسی ایک ترجمہ شدہ جملے کو درست کرنا اچھا انتخاب ہے۔
+- **ترجمے:** ایپ کا متن 18 زبانوں میں ہے، ہر زبان کی ایک فائل [`lib/l10n/`](../lib/l10n/) میں ہے۔ اردو `app_ur.arb` میں ہے، اور انگریزی کا اصل متن `app_en.arb` میں ہے۔ کرلی بریکٹس میں جو کچھ ہے، جیسے `{query}`، اسے ویسے ہی رہنے دیں۔ پہلی pull request کے لیے کسی ایک ترجمہ شدہ جملے کو درست کرنا اچھا انتخاب ہے۔
 - **بڑی تبدیلیاں:** شروع کرنے سے پہلے issue کھولیں، تاکہ ہم طریقے پر متفق ہو سکیں۔
 
-اس پروجیکٹ میں حصہ لینے والے ہر شخص سے [ضابطہ اخلاق](CODE_OF_CONDUCT.md) کی پابندی کی توقع کی جاتی ہے۔
+اس پروجیکٹ میں حصہ لینے والے ہر شخص سے [ضابطہ اخلاق](../CODE_OF_CONDUCT.md) کی پابندی کی توقع کی جاتی ہے۔
 
 ## سیکیورٹی
 
 اگر آپ کو سیکیورٹی کا کوئی مسئلہ ملے تو اسے issue میں نہ لکھیں، کیونکہ issues عوامی ہوتے ہیں۔
 [GitHub کے ذریعے نجی طور پر اطلاع دیں](https://github.com/SynAdam/fortivavpn/security/advisories/new)، یا admin@fortivavpn.com پر ای میل کریں اور عنوان میں Security لکھیں۔
-تفصیلات [SECURITY.md](SECURITY.md) میں ہیں۔
+تفصیلات [SECURITY.md](../SECURITY.md) میں ہیں۔
 
 ## اظہار تشکر
 
@@ -107,17 +107,17 @@ Fortiva VPN ان اوپن سورس پروجیکٹس کے کام کی بنیاد 
 - [Tun2SocksKit](https://github.com/EbrahimTahernejad/Tun2SocksKit) از EbrahimTahernejad، hev-socks5-tunnel کا ایک Swift پیکیج۔
 - [hev-socks5-tunnel](https://github.com/heiher/hev-socks5-tunnel) از heiher، ایک چھوٹی اور تیز tun2socks ٹنل۔
 - [Wintun](https://www.wintun.net) از WireGuard LLC، Windows کے لیے ایک نیٹ ورک اڈاپٹر ڈرائیور۔
-- [Flutter](https://flutter.dev) اور وہ Dart پیکیجز جو [`pubspec.yaml`](pubspec.yaml) میں درج ہیں۔
+- [Flutter](https://flutter.dev) اور وہ Dart پیکیجز جو [`pubspec.yaml`](../pubspec.yaml) میں درج ہیں۔
 
-[THIRD-PARTY-NOTICES.md](THIRD-PARTY-NOTICES.md) میں ہر پروجیکٹ کا لائسنس درج ہے۔
+[THIRD-PARTY-NOTICES.md](../THIRD-PARTY-NOTICES.md) میں ہر پروجیکٹ کا لائسنس درج ہے۔
 
 ## لائسنس
 
 ایپ کے Android اور Windows بلڈز GPL-3.0 کے تحت ہیں۔
-[LICENSE](LICENSE) لائسنس کا متن ہے، اور [LICENSING.md](LICENSING.md) میں لکھا ہے کہ ہر بلڈ اور اس ریپوزٹری کا ہر فولڈر کس لائسنس کے تحت ہے۔
+[LICENSE](../LICENSE) لائسنس کا متن ہے، اور [LICENSING.md](../LICENSING.md) میں لکھا ہے کہ ہر بلڈ اور اس ریپوزٹری کا ہر فولڈر کس لائسنس کے تحت ہے۔
 
 یہ لائسنس Fortiva VPN کے نام اور لوگو پر بطور ٹریڈ مارک کوئی حق نہیں دیتا۔
 اگر آپ کوئی ترمیم شدہ ورژن شائع کریں تو اس کا اپنا نام، آئیکن اور application ID رکھیں، اور اسے ہمارے ورژن کے طور پر پیش نہ کریں۔
-یہ GPL کی دفعہ 7 کے تحت اضافی شرائط ہیں، جیسا کہ [LICENSING.md](LICENSING.md) میں بیان کیا گیا ہے۔
+یہ GPL کی دفعہ 7 کے تحت اضافی شرائط ہیں، جیسا کہ [LICENSING.md](../LICENSING.md) میں بیان کیا گیا ہے۔
 
 </div>

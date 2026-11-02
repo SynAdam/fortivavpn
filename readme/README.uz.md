@@ -1,5 +1,5 @@
 <p align="center">
-  <img src="assets/icon/fortiva_icon.png" width="104" alt="Fortiva VPN">
+  <img src="../assets/icon/fortiva_icon.png" width="104" alt="Fortiva VPN">
 </p>
 
 <h1 align="center">Fortiva VPN</h1>
@@ -11,11 +11,11 @@
   <a href="https://fortivavpn.com/apk"><img src="https://img.shields.io/badge/APK-download-C8452B?style=flat-square&amp;labelColor=0E1318" alt="APK faylini yuklab olish"></a>
   <a href="https://t.me/fortivavpn_uz"><img src="https://img.shields.io/badge/Telegram-fortivavpn__uz-C8452B?style=flat-square&amp;labelColor=0E1318" alt="Telegram kanali"></a>
   <a href="https://github.com/SynAdam/fortivavpn/tags"><img src="https://img.shields.io/github/v/tag/SynAdam/fortivavpn?sort=semver&amp;label=release&amp;color=C8452B&amp;style=flat-square&amp;labelColor=0E1318" alt="Eng soʻnggi reliz"></a>
-  <a href="LICENSE"><img src="https://img.shields.io/badge/licence-GPL--3.0-C8452B?style=flat-square&amp;labelColor=0E1318" alt="Litsenziya: GPL-3.0"></a>
+  <a href="../LICENSE"><img src="https://img.shields.io/badge/licence-GPL--3.0-C8452B?style=flat-square&amp;labelColor=0E1318" alt="Litsenziya: GPL-3.0"></a>
   <a href="https://github.com/SynAdam/fortivavpn/actions/workflows/ci.yml"><img src="https://github.com/SynAdam/fortivavpn/actions/workflows/ci.yml/badge.svg" alt="CI"></a>
 </p>
 
-<p align="center"><a href="README.md">English</a> · <a href="README.ar.md">العربية</a> · <a href="README.zh.md">简体中文</a> · <a href="README.fr.md">Français</a> · <a href="README.de.md">Deutsch</a> · <a href="README.hi.md">हिन्दी</a> · <a href="README.id.md">Bahasa Indonesia</a> · <a href="README.ja.md">日本語</a> · <a href="README.ko.md">한국어</a> · <a href="README.fa.md">فارسی</a> · <a href="README.pt.md">Português</a> · <a href="README.ru.md">Русский</a> · <a href="README.es.md">Español</a> · <a href="README.tr.md">Türkçe</a> · <a href="README.uk.md">Українська</a> · <a href="README.ur.md">اردو</a> · <b>Oʻzbekcha</b> · <a href="README.vi.md">Tiếng Việt</a></p>
+<p align="center"><a href="../README.md">English</a> · <a href="README.ar.md">العربية</a> · <a href="README.zh.md">简体中文</a> · <a href="README.fr.md">Français</a> · <a href="README.de.md">Deutsch</a> · <a href="README.hi.md">हिन्दी</a> · <a href="README.id.md">Bahasa Indonesia</a> · <a href="README.ja.md">日本語</a> · <a href="README.ko.md">한국어</a> · <a href="README.fa.md">فارسی</a> · <a href="README.pt.md">Português</a> · <a href="README.ru.md">Русский</a> · <a href="README.es.md">Español</a> · <a href="README.tr.md">Türkçe</a> · <a href="README.uk.md">Українська</a> · <a href="README.ur.md">اردو</a> · <b>Oʻzbekcha</b> · <a href="README.vi.md">Tiếng Việt</a></p>
 
 ## Fortiva VPN haqida
 
@@ -34,7 +34,7 @@ Ilova 18 tilda mavjud, jumladan oʻzbek tilida.
 - **Telegram:** yangiliklar va yangi versiyalar oʻzbek tilidagi kanalimizda eʼlon qilinadi: [t.me/fortivavpn_uz](https://t.me/fortivavpn_uz).
 
 Boshqa joydan APK oʻrnatishdan oldin u bizniki ekanini tekshiring.
-Buni qanday qilish kerakligi inglizcha README faylining [Check a download](README.md#check-a-download) boʻlimida yozilgan.
+Buni qanday qilish kerakligi inglizcha README faylining [Check a download](../README.md#check-a-download) boʻlimida yozilgan.
 
 ## Bu repozitoriy
 
@@ -51,7 +51,7 @@ Imzolash kalitlarimiz va doʻkon hisoblarimizni talab qiladigan reliz va doʻkon
 Backend xizmati ochiq manbali emas.
 Bu manba koddan yigʻgan ilovangiz Google Play orqali oʻrnatilgan ilova bilan bir xil xizmatga, bir xil shartlar asosida ulanadi.
 
-Ilovani manba koddan yigʻish uchun inglizcha README faylining [Build from source](README.md#build-from-source) boʻlimiga qarang.
+Ilovani manba koddan yigʻish uchun inglizcha README faylining [Build from source](../README.md#build-from-source) boʻlimiga qarang.
 
 ## Muammo haqida xabar berish
 
@@ -67,24 +67,24 @@ Shuning uchun quyidagilarni issue matnida ham, skrinshotda ham koʻrsatmang:
 
 Hisob yoki toʻlov boʻyicha yordam kerak boʻlsa, ilovada «Sozlamalar»ni oching va «Biz bilan bogʻlanish»ni bosing.
 Bu xabarlar ommaga ochiq emas.
-Har bir turdagi savol bilan qayerga murojaat qilish kerakligi [SUPPORT.md](SUPPORT.md) faylida yozilgan.
+Har bir turdagi savol bilan qayerga murojaat qilish kerakligi [SUPPORT.md](../SUPPORT.md) faylida yozilgan.
 
 ## Hissa qoʻshish
 
-Pull request yuborish bosqichlari, oʻtishi shart boʻlgan tekshiruvlar va shartlar [CONTRIBUTING.md](CONTRIBUTING.md) faylida berilgan.
+Pull request yuborish bosqichlari, oʻtishi shart boʻlgan tekshiruvlar va shartlar [CONTRIBUTING.md](../CONTRIBUTING.md) faylida berilgan.
 Bu fayl ingliz tilida.
 
 - **Nimadan boshlash kerak:** [good first issue](https://github.com/SynAdam/fortivavpn/labels/good%20first%20issue) yoki [help wanted](https://github.com/SynAdam/fortivavpn/labels/help%20wanted) yorligʻi qoʻyilgan issuelar.
-- **Tarjimalar:** ilova matni 18 tilda, [`lib/l10n/`](lib/l10n/) papkasida har bir til uchun bittadan fayl bor. Oʻzbekcha matn `app_uz.arb` faylida, inglizcha asl matn esa `app_en.arb` faylida. `{query}` kabi jingalak qavs ichidagi narsalarni oʻzgartirmang. Tarjimadagi bitta gapni tuzatish birinchi pull request uchun yaxshi tanlov.
+- **Tarjimalar:** ilova matni 18 tilda, [`lib/l10n/`](../lib/l10n/) papkasida har bir til uchun bittadan fayl bor. Oʻzbekcha matn `app_uz.arb` faylida, inglizcha asl matn esa `app_en.arb` faylida. `{query}` kabi jingalak qavs ichidagi narsalarni oʻzgartirmang. Tarjimadagi bitta gapni tuzatish birinchi pull request uchun yaxshi tanlov.
 - **Kattaroq oʻzgarishlar:** yondashuvni kelishib olishimiz uchun ishni boshlashdan oldin issue oching.
 
-Loyihada ishtirok etuvchi har bir kishi [xulq-atvor qoidalariga](CODE_OF_CONDUCT.md) rioya qilishi kerak.
+Loyihada ishtirok etuvchi har bir kishi [xulq-atvor qoidalariga](../CODE_OF_CONDUCT.md) rioya qilishi kerak.
 
 ## Xavfsizlik
 
 Agar xavfsizlik muammosini topsangiz, bu haqda issue yozmang, chunki issuelar ommaga ochiq.
 [GitHub orqali maxfiy xabar bering](https://github.com/SynAdam/fortivavpn/security/advisories/new) yoki admin@fortivavpn.com manziliga mavzu qatorida Security deb yozib xat yuboring.
-Batafsil maʼlumot [SECURITY.md](SECURITY.md) faylida.
+Batafsil maʼlumot [SECURITY.md](../SECURITY.md) faylida.
 
 ## Minnatdorchilik
 
@@ -105,15 +105,15 @@ Ularni yozgan va qoʻllab-quvvatlayotgan barchaga rahmat.
 - [Tun2SocksKit](https://github.com/EbrahimTahernejad/Tun2SocksKit), muallifi EbrahimTahernejad: hev-socks5-tunnel uchun Swift paketi.
 - [hev-socks5-tunnel](https://github.com/heiher/hev-socks5-tunnel), muallifi heiher: kichik va tez tun2socks tunneli.
 - [Wintun](https://www.wintun.net), muallifi WireGuard LLC: Windows uchun tarmoq adapteri drayveri.
-- [Flutter](https://flutter.dev) va [`pubspec.yaml`](pubspec.yaml) faylida koʻrsatilgan Dart paketlari.
+- [Flutter](https://flutter.dev) va [`pubspec.yaml`](../pubspec.yaml) faylida koʻrsatilgan Dart paketlari.
 
-Har bir loyihaning litsenziyasi [THIRD-PARTY-NOTICES.md](THIRD-PARTY-NOTICES.md) faylida keltirilgan.
+Har bir loyihaning litsenziyasi [THIRD-PARTY-NOTICES.md](../THIRD-PARTY-NOTICES.md) faylida keltirilgan.
 
 ## Litsenziya
 
 Ilovaning Android va Windows yigʻmalari GPL-3.0 litsenziyasi ostida.
-Litsenziya matni [LICENSE](LICENSE) faylida, har bir yigʻma va bu repozitoriyning har bir papkasi qaysi litsenziya ostida ekani esa [LICENSING.md](LICENSING.md) faylida yozilgan.
+Litsenziya matni [LICENSE](../LICENSE) faylida, har bir yigʻma va bu repozitoriyning har bir papkasi qaysi litsenziya ostida ekani esa [LICENSING.md](../LICENSING.md) faylida yozilgan.
 
 Litsenziya Fortiva VPN nomi va logotipiga savdo belgisi sifatida hech qanday huquq bermaydi.
 Agar oʻzgartirilgan versiyani eʼlon qilsangiz, unga alohida nom, ikonka va ilova identifikatori bering va uni bizniki deb koʻrsatmang.
-[LICENSING.md](LICENSING.md) faylida tushuntirilganidek, bular GPL 7-boʻlimiga muvofiq qoʻshimcha shartlardir.
+[LICENSING.md](../LICENSING.md) faylida tushuntirilganidek, bular GPL 7-boʻlimiga muvofiq qoʻshimcha shartlardir.

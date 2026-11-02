@@ -1,5 +1,5 @@
 <p align="center">
-  <img src="assets/icon/fortiva_icon.png" width="104" alt="Fortiva VPN">
+  <img src="../assets/icon/fortiva_icon.png" width="104" alt="Fortiva VPN">
 </p>
 
 <h1 align="center">Fortiva VPN</h1>
@@ -11,11 +11,11 @@
   <a href="https://fortivavpn.com/apk"><img src="https://img.shields.io/badge/APK-download-C8452B?style=flat-square&amp;labelColor=0E1318" alt="APK 다운로드"></a>
   <a href="https://t.me/fortivavpn"><img src="https://img.shields.io/badge/Telegram-fortivavpn-C8452B?style=flat-square&amp;labelColor=0E1318" alt="Telegram 채널"></a>
   <a href="https://github.com/SynAdam/fortivavpn/tags"><img src="https://img.shields.io/github/v/tag/SynAdam/fortivavpn?sort=semver&amp;label=release&amp;color=C8452B&amp;style=flat-square&amp;labelColor=0E1318" alt="최신 릴리스"></a>
-  <a href="LICENSE"><img src="https://img.shields.io/badge/licence-GPL--3.0-C8452B?style=flat-square&amp;labelColor=0E1318" alt="라이선스: GPL-3.0"></a>
+  <a href="../LICENSE"><img src="https://img.shields.io/badge/licence-GPL--3.0-C8452B?style=flat-square&amp;labelColor=0E1318" alt="라이선스: GPL-3.0"></a>
   <a href="https://github.com/SynAdam/fortivavpn/actions/workflows/ci.yml"><img src="https://github.com/SynAdam/fortivavpn/actions/workflows/ci.yml/badge.svg" alt="CI"></a>
 </p>
 
-<p align="center"><a href="README.md">English</a> · <a href="README.ar.md">العربية</a> · <a href="README.zh.md">简体中文</a> · <a href="README.fr.md">Français</a> · <a href="README.de.md">Deutsch</a> · <a href="README.hi.md">हिन्दी</a> · <a href="README.id.md">Bahasa Indonesia</a> · <a href="README.ja.md">日本語</a> · <b>한국어</b> · <a href="README.fa.md">فارسی</a> · <a href="README.pt.md">Português</a> · <a href="README.ru.md">Русский</a> · <a href="README.es.md">Español</a> · <a href="README.tr.md">Türkçe</a> · <a href="README.uk.md">Українська</a> · <a href="README.ur.md">اردو</a> · <a href="README.uz.md">Oʻzbekcha</a> · <a href="README.vi.md">Tiếng Việt</a></p>
+<p align="center"><a href="../README.md">English</a> · <a href="README.ar.md">العربية</a> · <a href="README.zh.md">简体中文</a> · <a href="README.fr.md">Français</a> · <a href="README.de.md">Deutsch</a> · <a href="README.hi.md">हिन्दी</a> · <a href="README.id.md">Bahasa Indonesia</a> · <a href="README.ja.md">日本語</a> · <b>한국어</b> · <a href="README.fa.md">فارسی</a> · <a href="README.pt.md">Português</a> · <a href="README.ru.md">Русский</a> · <a href="README.es.md">Español</a> · <a href="README.tr.md">Türkçe</a> · <a href="README.uk.md">Українська</a> · <a href="README.ur.md">اردو</a> · <a href="README.uz.md">Oʻzbekcha</a> · <a href="README.vi.md">Tiếng Việt</a></p>
 
 ## Fortiva VPN 소개
 
@@ -34,7 +34,7 @@ Fortiva는 일반 VPN이 연결되지 않는 네트워크를 위해 만들어졌
 - **Telegram:** 소식과 새 버전은 저희 영어 채널 [t.me/fortivavpn](https://t.me/fortivavpn)에 게시됩니다.
 
 다른 곳에서 받은 APK를 설치하기 전에 저희가 만든 파일이 맞는지 확인하세요.
-확인 방법은 영어 README의 [Check a download](README.md#check-a-download)에 나와 있습니다.
+확인 방법은 영어 README의 [Check a download](../README.md#check-a-download)에 나와 있습니다.
 
 ## 이 저장소
 
@@ -51,7 +51,7 @@ Fortiva는 일반 VPN이 연결되지 않는 네트워크를 위해 만들어졌
 백엔드 서비스는 오픈 소스가 아닙니다.
 이 소스로 직접 빌드한 앱도 Google Play의 앱과 같은 서비스에 같은 약관으로 접속합니다.
 
-소스에서 앱을 빌드하려면 영어 README의 [Build from source](README.md#build-from-source)를 참고하세요.
+소스에서 앱을 빌드하려면 영어 README의 [Build from source](../README.md#build-from-source)를 참고하세요.
 
 ## 문제 신고
 
@@ -67,24 +67,24 @@ Fortiva는 일반 VPN이 연결되지 않는 네트워크를 위해 만들어졌
 
 계정이나 결제에 관한 도움이 필요하면 앱에서 "설정"을 열고 "문의하기"를 누르세요.
 여기서 보내는 메시지는 공개되지 않습니다.
-[SUPPORT.md](SUPPORT.md)에서 질문 종류별로 어디에 문의하면 되는지 확인할 수 있습니다.
+[SUPPORT.md](../SUPPORT.md)에서 질문 종류별로 어디에 문의하면 되는지 확인할 수 있습니다.
 
 ## 기여하기
 
-[CONTRIBUTING.md](CONTRIBUTING.md)에는 풀 리퀘스트를 보내는 절차, 통과해야 하는 검사, 약관이 나와 있습니다.
+[CONTRIBUTING.md](../CONTRIBUTING.md)에는 풀 리퀘스트를 보내는 절차, 통과해야 하는 검사, 약관이 나와 있습니다.
 이 파일은 영어로 되어 있습니다.
 
 - **시작하기 좋은 곳:** [good first issue](https://github.com/SynAdam/fortivavpn/labels/good%20first%20issue) 또는 [help wanted](https://github.com/SynAdam/fortivavpn/labels/help%20wanted) 라벨이 붙은 이슈.
-- **번역:** 앱의 텍스트는 18개 언어로 되어 있으며, [`lib/l10n/`](lib/l10n/)에 언어별로 파일이 하나씩 있습니다. 한국어는 `app_ko.arb`에, 영어 원문은 `app_en.arb`에 있습니다. `{query}`처럼 중괄호 안에 있는 내용은 그대로 두세요. 번역된 문장 하나를 고치는 것도 첫 풀 리퀘스트로 좋습니다.
+- **번역:** 앱의 텍스트는 18개 언어로 되어 있으며, [`lib/l10n/`](../lib/l10n/)에 언어별로 파일이 하나씩 있습니다. 한국어는 `app_ko.arb`에, 영어 원문은 `app_en.arb`에 있습니다. `{query}`처럼 중괄호 안에 있는 내용은 그대로 두세요. 번역된 문장 하나를 고치는 것도 첫 풀 리퀘스트로 좋습니다.
 - **큰 변경:** 접근 방식을 미리 합의할 수 있도록 작업을 시작하기 전에 이슈를 열어 주세요.
 
-이 프로젝트에 참여하는 모든 분은 [행동 강령](CODE_OF_CONDUCT.md)을 따라 주셔야 합니다.
+이 프로젝트에 참여하는 모든 분은 [행동 강령](../CODE_OF_CONDUCT.md)을 따라 주셔야 합니다.
 
 ## 보안
 
 보안 문제를 발견하면 이슈에 쓰지 마세요. 이슈는 공개되기 때문입니다.
 [GitHub을 통해 비공개로 신고](https://github.com/SynAdam/fortivavpn/security/advisories/new)하거나, 제목에 "Security"를 넣어 admin@fortivavpn.com으로 이메일을 보내 주세요.
-자세한 내용은 [SECURITY.md](SECURITY.md)에 있습니다.
+자세한 내용은 [SECURITY.md](../SECURITY.md)에 있습니다.
 
 ## 감사의 말
 
@@ -105,15 +105,15 @@ Fortiva VPN은 다음 오픈 소스 프로젝트들을 바탕으로 만들어졌
 - [Tun2SocksKit](https://github.com/EbrahimTahernejad/Tun2SocksKit): EbrahimTahernejad가 만든 hev-socks5-tunnel의 Swift 패키지입니다.
 - [hev-socks5-tunnel](https://github.com/heiher/hev-socks5-tunnel): heiher가 만든 작고 빠른 tun2socks 터널입니다.
 - [Wintun](https://www.wintun.net): WireGuard LLC에서 만든 Windows용 네트워크 어댑터 드라이버입니다.
-- [Flutter](https://flutter.dev)와 [`pubspec.yaml`](pubspec.yaml)에 나열된 Dart 패키지.
+- [Flutter](https://flutter.dev)와 [`pubspec.yaml`](../pubspec.yaml)에 나열된 Dart 패키지.
 
-각 프로젝트의 라이선스는 [THIRD-PARTY-NOTICES.md](THIRD-PARTY-NOTICES.md)에 나와 있습니다.
+각 프로젝트의 라이선스는 [THIRD-PARTY-NOTICES.md](../THIRD-PARTY-NOTICES.md)에 나와 있습니다.
 
 ## 라이선스
 
 앱의 Android 빌드와 Windows 빌드는 GPL-3.0을 따릅니다.
-라이선스 전문은 [LICENSE](LICENSE)에 있고, 각 빌드와 이 저장소의 각 폴더에 어떤 라이선스가 적용되는지는 [LICENSING.md](LICENSING.md)에 나와 있습니다.
+라이선스 전문은 [LICENSE](../LICENSE)에 있고, 각 빌드와 이 저장소의 각 폴더에 어떤 라이선스가 적용되는지는 [LICENSING.md](../LICENSING.md)에 나와 있습니다.
 
 이 라이선스는 Fortiva VPN 이름과 로고에 대한 상표권을 부여하지 않습니다.
 수정한 버전을 배포한다면 고유한 이름, 아이콘, 애플리케이션 ID를 사용하고, 저희 앱인 것처럼 내세우지 마세요.
-[LICENSING.md](LICENSING.md)에 설명된 대로, 이는 GPL 제7조에 따른 추가 조건입니다.
+[LICENSING.md](../LICENSING.md)에 설명된 대로, 이는 GPL 제7조에 따른 추가 조건입니다.

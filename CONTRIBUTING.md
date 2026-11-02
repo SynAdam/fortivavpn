@@ -71,8 +71,8 @@ What a pull request can change:
 
 - The code and tests of the app, such as `lib/`, `test/`, `android/` and
   `windows/`.
-- Not the files that this copy has its own versions of: `README.md` and
-  every `README.<language>.md`, `CONTRIBUTING.md`,
+- Not the files that this copy has its own versions of: `README.md`,
+  anything under `readme/`, `CONTRIBUTING.md`,
   `CODE_OF_CONDUCT.md`, `SECURITY.md`, `SUPPORT.md`, `CHANGELOG.md` and
   `.gitignore` at the top level, anything under `.github/`,
   `lib/api/built_in.dart` and `assets/fallback/index.txt`.
