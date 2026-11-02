@@ -388,11 +388,12 @@ void main() {
     // Play cannot update the channel APK. A user who went there uninstalled
     // and came back as a new device, counted twice. Every copy runs the same
     // code, so the channel APK is told apart by its signature alone.
-    testWidgets('the channel APK lists the channel first and opens '
-        'channel_url', (tester) async {
+    testWidgets('the channel APK lists the channel first and opens the '
+        'channel of its language', (tester) async {
       final platform = fromBackend({
         'channel_url': 'https://t.me/fortiva_vpn/123',
         'play_channel_url': 'https://t.me/fortiva_news',
+        'channel_urls': {'en': 'https://t.me/made_up_en/123'},
       });
       await pump(tester, rulesWith(platform), googleSigned: false);
 
@@ -402,7 +403,7 @@ void main() {
 
       await tester.tap(find.text('Telegram channel'));
       await tester.pumpAndSettle();
-      expect(opened, [Uri.parse('https://t.me/fortiva_vpn/123')]);
+      expect(opened, [Uri.parse('https://t.me/made_up_en/123')]);
     });
 
     testWidgets('the channel APK still offers Google Play', (tester) async {
@@ -420,10 +421,11 @@ void main() {
     // A check that fails reads as "not Google's". The channel APK is then
     // right whether its check works or not.
     testWidgets('a copy that cannot read its signature lists the channel '
-        'first and opens channel_url', (tester) async {
+        'first and opens the channel of its language', (tester) async {
       final platform = fromBackend({
         'channel_url': 'https://t.me/fortiva_vpn/123',
         'play_channel_url': 'https://t.me/fortiva_news',
+        'channel_urls': {'en': 'https://t.me/made_up_en/123'},
       });
       await pump(tester, rulesWith(platform), googleSigned: null);
 
@@ -433,7 +435,7 @@ void main() {
 
       await tester.tap(find.text('Telegram channel'));
       await tester.pumpAndSettle();
-      expect(opened, [Uri.parse('https://t.me/fortiva_vpn/123')]);
+      expect(opened, [Uri.parse('https://t.me/made_up_en/123')]);
     });
 
     testWidgets('iOS keeps the one App Store button', (tester) async {
@@ -491,18 +493,77 @@ void main() {
       expect(find.byType(AlertDialog), findsNothing);
     });
 
-    testWidgets('the channel button opens the channel_url the backend sent', (
-      tester,
-    ) async {
-      final platform = fromBackend({
-        'channel_url': 'https://t.me/fortiva_vpn/123',
-      });
-      await pump(tester, rulesWith(platform));
+    group('the channel button opens the channel of the app\'s language', () {
+      const channels = {
+        'en': 'https://t.me/made_up_en',
+        'ru': 'https://t.me/made_up_ru',
+        'fa': 'https://t.me/made_up_fa',
+      };
 
-      await tester.tap(find.text('Telegram channel'));
-      await tester.pumpAndSettle();
-      expect(opened, [Uri.parse('https://t.me/fortiva_vpn/123')]);
-      expect(find.byType(AlertDialog), findsNothing);
+      Future<void> tapIn(
+        WidgetTester tester,
+        Locale locale,
+        Map<String, dynamic> backend, {
+        bool googleSigned = true,
+      }) async {
+        await pump(
+          tester,
+          rulesWith(fromBackend(backend)),
+          locale: locale,
+          googleSigned: googleSigned,
+        );
+        await tester.tap(find.text(lookupS(locale).updateFromTelegram));
+        await tester.pumpAndSettle();
+      }
+
+      for (final signed in [true, false]) {
+        final copy = signed ? 'a copy Google signed' : 'the channel APK';
+
+        testWidgets('$copy in Russian opens the Russian channel', (
+          tester,
+        ) async {
+          await tapIn(tester, const Locale('ru'), {
+            'channel_urls': channels,
+          }, googleSigned: signed);
+          expect(opened, [Uri.parse('https://t.me/made_up_ru')]);
+          expect(find.byType(AlertDialog), findsNothing);
+        });
+
+        testWidgets('$copy in Persian opens the Persian channel', (
+          tester,
+        ) async {
+          await tapIn(tester, const Locale('fa'), {
+            'channel_url': 'https://t.me/fortiva_vpn',
+            'channel_urls': channels,
+          }, googleSigned: signed);
+          expect(opened, [Uri.parse('https://t.me/made_up_fa')]);
+        });
+
+        testWidgets('$copy in a language with no channel opens the English '
+            'one', (tester) async {
+          await tapIn(tester, const Locale('de'), {
+            'channel_url': 'https://t.me/fortiva_vpn',
+            'channel_urls': channels,
+          }, googleSigned: signed);
+          expect(opened, [Uri.parse('https://t.me/made_up_en')]);
+        });
+
+        testWidgets('$copy in English never opens the Persian channel of an '
+            'older backend', (tester) async {
+          await tapIn(tester, const Locale('en'), {
+            'channel_url': 'https://t.me/fortiva_vpn',
+          }, googleSigned: signed);
+          expect(opened, [Uri.parse('https://t.me/fortivavpn')]);
+        });
+
+        testWidgets('$copy in Persian stays on the channel of an older '
+            'backend', (tester) async {
+          await tapIn(tester, const Locale('fa'), {
+            'channel_url': 'https://t.me/fortiva_vpn',
+          }, googleSigned: signed);
+          expect(opened, [Uri.parse('https://t.me/fortiva_vpn')]);
+        });
+      }
     });
 
     testWidgets('the copy Google signed opens play_channel_url when the '
@@ -515,26 +576,27 @@ void main() {
 
       await tester.tap(find.text('Telegram channel'));
       await tester.pumpAndSettle();
-      // The channel APK keeps channel_url, its update link (see the
-      // channel APK tests above).
+      // The channel APK keeps the channel of its language, its update link
+      // (see the channel APK tests above).
       expect(opened, [Uri.parse('https://t.me/fortiva_news')]);
     });
 
-    testWidgets('with no channel_url the channel button opens @fortiva_vpn', (
-      tester,
-    ) async {
+    testWidgets('with no channel from the backend the channel button opens '
+        'the English channel', (tester) async {
       // Every backend from before channel_url.
       await pump(tester, rulesWith(fromBackend({})));
 
       await tester.tap(find.text('Telegram channel'));
       await tester.pumpAndSettle();
-      expect(opened, [Uri.parse('https://t.me/fortiva_vpn')]);
+      expect(opened, [Uri.parse('https://t.me/fortivavpn')]);
     });
 
     test('an empty or malformed channel_url falls back the same way', () {
       for (final bad in <Object?>['', '   ', null, 42]) {
+        final platform = fromBackend({'channel_url': bad});
+        expect(platform.channelUrl, isNull, reason: 'channel_url: $bad');
         expect(
-          fromBackend({'channel_url': bad}).channelUrl,
+          platform.channelFor('en'),
           PlatformVersion.defaultChannelUrl,
           reason: 'channel_url: $bad',
         );
@@ -574,7 +636,7 @@ void main() {
 
       await tester.tap(find.text('Telegram channel'));
       await tester.pumpAndSettle();
-      expect(opened, [Uri.parse('https://t.me/fortiva_vpn')]);
+      expect(opened, [Uri.parse('https://t.me/fortivavpn')]);
       expect(find.byType(AlertDialog), findsOneWidget);
     });
 

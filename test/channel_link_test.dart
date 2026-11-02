@@ -16,28 +16,34 @@ import 'package:fortiva_vpn/utils/standby_doors.dart';
 import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
-/// Every link to the Telegram channel opens the one the backend names in
-/// GET /api/v1/app/config: Contact us in Settings while the chat is off,
-/// the support chat's fallback and the update prompt.
+/// The links to the Telegram channel, which the backend names in
+/// GET /api/v1/app/config.
 ///
-/// force_update.android.channel_url is the channel APK's update link, old
-/// builds included, so it always points at a page with the current APK.
+/// The update prompt opens the channel of the app's language, from
+/// force_update.android.channel_urls. A language with no channel of its own
+/// gets the English channel, and only Persian ever gets the Persian one.
+///
+/// The two ways to message us, Contact us in Settings while the chat is off and
+/// the support chat's fallback, keep force_update.android.channel_url in every
+/// language, because only that channel's direct messages reach the support
+/// bot. channel_url is also the update link of older builds.
+///
 /// Google Play does not let a Play app link to a page that could lead to
-/// another way to pay, so the Play build opens play_channel_url instead
-/// when the backend sends one, and the channel APK never does. Until the
-/// backend says otherwise, nothing changes: every link still opens
-/// https://t.me/fortiva_vpn, and a value that is not an https link to a
-/// page on t.me is never opened.
+/// another way to pay, so every link opens play_channel_url when the backend
+/// sends one, except the update button of a copy Google did not sign. A value
+/// that is not an https link to a page on t.me is never opened.
 ///
 /// The value is read while the whole app config is parsed, and one throw
 /// there loses the config: feature flags, the TLS spec, relays and the
 /// update rules. So no value of it may throw.
 
-const _official = 'https://t.me/fortiva_vpn';
+const _english = 'https://t.me/fortivavpn';
+const _support = 'https://t.me/fortiva_vpn';
 
 Map<String, dynamic> _configJson({
   Object? channelUrl,
   Object? playChannelUrl,
+  Object? channelUrls,
   Map<String, dynamic>? flags,
 }) => {
   'privacy_policy_url': 'https://example.com/privacy',
@@ -53,15 +59,34 @@ Map<String, dynamic> _configJson({
         if (os == 'android' && channelUrl != null) 'channel_url': channelUrl,
         if (os == 'android' && playChannelUrl != null)
           'play_channel_url': playChannelUrl,
+        if (os == 'android' && channelUrls != null) 'channel_urls': channelUrls,
       },
   },
   'feature_flags': ?flags,
 };
 
-AppConfig _config({Object? channelUrl, Object? playChannelUrl}) =>
-    AppConfig.fromJson(
-      _configJson(channelUrl: channelUrl, playChannelUrl: playChannelUrl),
-    );
+AppConfig _config({
+  Object? channelUrl,
+  Object? playChannelUrl,
+  Object? channelUrls,
+}) => AppConfig.fromJson(
+  _configJson(
+    channelUrl: channelUrl,
+    playChannelUrl: playChannelUrl,
+    channelUrls: channelUrls,
+  ),
+);
+
+/// One platform's rules as the backend sends them.
+PlatformVersion _android({Object? channel, Object? play, Object? channels}) =>
+    PlatformVersion.fromJson({
+      'latest_version': '1.0.0',
+      'minimum_version': '1.0.0',
+      'update_url': 'https://example.com/update',
+      'channel_url': ?channel,
+      'play_channel_url': ?play,
+      'channel_urls': ?channels,
+    });
 
 /// Links whose path has a percent escape that is not UTF-8. Uri.tryParse
 /// takes them, and Uri.pathSegments throws on them.
@@ -74,10 +99,14 @@ Future<AppConfig> _unreachable() async => throw Exception('no route');
 Future<AppConfigState> _loaded(
   Object? channelUrl, {
   Object? playChannelUrl,
+  Object? channelUrls,
 }) async {
   final state = AppConfigState(
-    fetch: () async =>
-        _config(channelUrl: channelUrl, playChannelUrl: playChannelUrl),
+    fetch: () async => _config(
+      channelUrl: channelUrl,
+      playChannelUrl: playChannelUrl,
+      channelUrls: channelUrls,
+    ),
     retryGaps: const [],
   );
   await state.load();
@@ -94,7 +123,8 @@ void main() {
 
   group('which links count as the channel', () {
     for (final url in [
-      _official,
+      _english,
+      _support,
       'https://t.me/fortiva_news',
       'https://t.me/fortiva_vpn/123',
       'https://t.me/+AbCdEf123',
@@ -118,35 +148,190 @@ void main() {
     ]) {
       test('never opens "$url"', () {
         expect(PlatformVersion.isChannelUrl(url), isFalse);
-        expect(PlatformVersion.channelUrlFrom(url), _official);
+        expect(_android(channel: url).channelUrl, isNull);
       });
     }
 
-    test('a value that is not text is the official channel', () {
+    test('a value that is not text is no channel', () {
       for (final value in <Object?>[
-        null,
         42,
         true,
         const ['x'],
         const {},
       ]) {
-        expect(PlatformVersion.channelUrlFrom(value), _official);
+        expect(_android(channel: value).channelUrl, isNull);
       }
     });
 
-    test('the update prompt reads channel_url the same way', () {
-      PlatformVersion android(Object? channel) => PlatformVersion.fromJson({
-        'latest_version': '1.0.0',
-        'minimum_version': '1.0.0',
-        'update_url': 'https://example.com/update',
-        'channel_url': channel,
-      });
+    test('channel_url is read when it is a channel link', () {
       expect(
-        android('https://t.me/fortiva_news').channelUrl,
+        _android(channel: 'https://t.me/fortiva_news').channelUrl,
         'https://t.me/fortiva_news',
       );
-      expect(android('https://example.com/pay').channelUrl, _official);
-      expect(android('http://t.me/fortiva_news').channelUrl, _official);
+      expect(_android(channel: 'https://example.com/pay').channelUrl, isNull);
+      expect(_android(channel: 'http://t.me/fortiva_news').channelUrl, isNull);
+    });
+  });
+
+  group('the channels compiled into the app', () {
+    test('the default is the English channel', () {
+      expect(PlatformVersion.defaultChannelUrl, _english);
+    });
+
+    test('with no channel from the backend, every language gets it', () {
+      for (final code in LocaleState.supportedLanguages.keys) {
+        expect(_android().channelFor(code), _english, reason: code);
+      }
+    });
+
+    test('a language the app does not have gets it', () {
+      expect(_android().channelFor('sv'), _english);
+    });
+  });
+
+  group('channel_urls', () {
+    const russian = 'https://t.me/made_up_ru';
+    const persian = 'https://t.me/made_up_fa';
+    const english = 'https://t.me/made_up_en';
+
+    test('a language opens its own channel', () {
+      final v = _android(
+        channel: _support,
+        channels: {'ru': russian, 'fa': persian, 'en': english},
+      );
+      expect(v.channelFor('ru'), russian);
+      expect(v.channelFor('fa'), persian);
+      expect(v.channelFor('en'), english);
+    });
+
+    test('a language that is absent opens the English channel', () {
+      final v = _android(channels: {'ru': russian, 'en': english});
+      expect(v.channelFor('de'), english);
+      expect(v.channelFor('sv'), english);
+    });
+
+    test('with no English entry, that is the compiled-in one', () {
+      expect(_android(channels: {'ru': russian}).channelFor('de'), _english);
+    });
+
+    test('Persian that is absent opens the English channel too', () {
+      final v = _android(channel: _support, channels: {'ru': russian});
+      expect(v.channelFor('fa'), _english);
+    });
+
+    test('a value that fails the check is dropped', () {
+      final v = _android(
+        channels: {
+          'ru': 'https://example.com/pay',
+          'de': 'http://t.me/made_up_de',
+          'ko': '',
+          'ja': 42,
+          'es': null,
+          'tr': const ['x'],
+          for (final (i, url) in _undecodable.indexed) 'x$i': url,
+          'pt': 'https://t.me/made_up_pt',
+        },
+      );
+      expect(v.channelUrls, {'pt': 'https://t.me/made_up_pt'});
+      expect(v.channelFor('ru'), _english);
+    });
+
+    test('a value is trimmed', () {
+      expect(
+        _android(channels: {'ru': ' $russian '}).channelFor('ru'),
+        russian,
+      );
+    });
+
+    test('a value of the wrong type never throws', () {
+      for (final bad in <Object?>[
+        42,
+        'x',
+        true,
+        const ['x'],
+      ]) {
+        final v = _android(channels: bad);
+        expect(v.channelUrls, isEmpty, reason: '$bad');
+        expect(v.channelFor('ru'), _english, reason: '$bad');
+      }
+    });
+
+    test('a bad value leaves the rest of the config standing', () async {
+      final state = await _loaded(
+        _support,
+        channelUrls: {'ru': _undecodable.first},
+      );
+      expect(state.config, isNotNull);
+      expect(state.versionRules!.android.channelUrls, isEmpty);
+    });
+
+    test('is kept between launches, and left out when absent', () {
+      final v = _android(channels: {'ru': russian});
+      expect(PlatformVersion.fromJson(v.toJson()).channelUrls, {'ru': russian});
+      expect(_android().toJson(), isNot(contains('channel_urls')));
+    });
+
+    test('AppConfigState keeps it for a launch that cannot reach the '
+        'backend', () async {
+      await _loaded(_support, channelUrls: {'ru': russian});
+      final next = AppConfigState(fetch: _unreachable, retryGaps: const []);
+      await next.load();
+      expect(next.versionRules!.android.channelFor('ru'), russian);
+    });
+
+    group('a backend that sends only channel_url', () {
+      final v = _android(channel: _support);
+
+      test('never gives another language the Persian channel', () {
+        for (final code in LocaleState.supportedLanguages.keys) {
+          if (code == 'fa') continue;
+          expect(v.channelFor(code), _english, reason: code);
+          expect(
+            v.updateChannelFor(googleSigned: false, language: code),
+            _english,
+            reason: code,
+          );
+        }
+      });
+
+      // These people follow that channel today, and rules saved by an older
+      // build look the same until the backend answers again.
+      test('leaves Persian on that channel', () {
+        expect(v.channelFor('fa'), _support);
+      });
+
+      test('with no channel_url either, Persian gets the default', () {
+        expect(_android().channelFor('fa'), _english);
+      });
+    });
+
+    test('play_channel_url beats every language', () {
+      const page = 'https://t.me/fortiva_news';
+      final v = _android(play: page, channels: {'ru': russian, 'fa': persian});
+      for (final code in ['ru', 'fa', 'en', 'de']) {
+        expect(v.channelFor(code), page, reason: code);
+      }
+    });
+
+    group('the update prompt', () {
+      const page = 'https://t.me/fortiva_news';
+      final v = _android(play: page, channels: {'ru': russian});
+
+      test('in a copy Google signed follows play_channel_url', () {
+        expect(v.updateChannelFor(googleSigned: true, language: 'ru'), page);
+      });
+
+      // Only a release posted on the channel updates this copy in place.
+      test('in any other copy opens the channel of the language', () {
+        expect(
+          v.updateChannelFor(googleSigned: false, language: 'ru'),
+          russian,
+        );
+        expect(
+          v.updateChannelFor(googleSigned: false, language: 'de'),
+          _english,
+        );
+      });
     });
   });
 
@@ -156,7 +341,7 @@ void main() {
     for (final url in _undecodable) {
       test('"$url" is never opened, and never throws', () {
         expect(PlatformVersion.isChannelUrl(url), isFalse);
-        expect(PlatformVersion.channelUrlFrom(url), _official);
+        expect(_android(channel: url).channelUrl, isNull);
       });
 
       test('"$url" leaves the rest of the config standing', () async {
@@ -167,7 +352,7 @@ void main() {
           flags: {'standby_doors': true},
         );
         final config = AppConfig.fromJson(json);
-        expect(config.forceUpdate.android.channelUrl, _official);
+        expect(config.forceUpdate.android.channelUrl, isNull);
         expect(config.forceUpdate.android.playChannelUrl, isNull);
 
         final state = AppConfigState(
@@ -178,10 +363,10 @@ void main() {
         expect(state.config, isNotNull);
         expect(state.flags.standbyDoors, isTrue);
         expect(StandbyDoors.enabled, isTrue);
-        expect(state.channelUrl, Uri.parse(_official));
+        expect(state.contactChannel, Uri.parse(_support));
       });
 
-      test('"$url" saved by an older build is the official channel', () async {
+      test('"$url" saved by an older build is not opened', () async {
         final rules = _config().forceUpdate.toJson();
         (rules['android'] as Map)['channel_url'] = url;
         SharedPreferences.setMockInitialValues({
@@ -190,7 +375,7 @@ void main() {
         final next = AppConfigState(fetch: _unreachable, retryGaps: const []);
         await next.load();
         expect(next.versionRules, isNotNull);
-        expect(next.channelUrl, Uri.parse(_official));
+        expect(next.contactChannel, Uri.parse(_support));
       });
 
       test('"$url" names no channel', () {
@@ -210,50 +395,57 @@ void main() {
       });
       expect(android.updateRequired, isFalse);
       expect(android.releaseNotes, isNull);
-      expect(android.channelUrl, _official);
+      expect(android.channelUrl, isNull);
       expect(android.playChannelUrl, isNull);
     });
   });
 
   // Every copy runs the same code as the one on Google Play, so every copy
   // opens play_channel_url when the backend sends one: it may point at a
-  // page that sells nothing. channel_url stays the update link of every
-  // channel APK.
+  // page that sells nothing. channel_url stays the update link of older builds.
   group('play_channel_url', () {
     const apkChannel = 'https://t.me/fortiva_vpn';
     const playChannel = 'https://t.me/fortiva_news';
 
     PlatformVersion android({Object? channel, Object? play}) =>
-        PlatformVersion.fromJson({
-          'latest_version': '1.0.0',
-          'minimum_version': '1.0.0',
-          'update_url': 'https://example.com/update',
-          'channel_url': ?channel,
-          'play_channel_url': ?play,
-        });
+        _android(channel: channel, play: play);
 
     test('every copy opens it when the backend sends one', () {
       final v = android(channel: apkChannel, play: playChannel);
-      expect(v.channelLink, playChannel);
-      // channel_url is still read and kept, for the channel APK's update.
+      expect(v.channelFor('en'), playChannel);
+      expect(v.channelFor('fa'), playChannel);
+      expect(v.contactChannel, playChannel);
+      // channel_url is still read and kept.
       expect(v.channelUrl, apkChannel);
     });
 
-    // Only the APK posted on channel_url updates a copy Google did not sign.
-    test('the update of a copy Google did not sign opens channel_url', () {
+    // Only a release posted on the channel updates a copy Google did not sign.
+    test('the update of a copy Google did not sign ignores it', () {
       final v = android(channel: apkChannel, play: playChannel);
-      expect(v.updateChannelFor(googleSigned: false), apkChannel);
-      expect(v.updateChannelFor(googleSigned: true), playChannel);
+      expect(
+        v.updateChannelFor(googleSigned: false, language: 'fa'),
+        apkChannel,
+      );
+      expect(
+        v.updateChannelFor(googleSigned: true, language: 'fa'),
+        playChannel,
+      );
 
       final without = android(channel: apkChannel);
-      expect(without.updateChannelFor(googleSigned: false), apkChannel);
-      expect(without.updateChannelFor(googleSigned: true), apkChannel);
+      expect(
+        without.updateChannelFor(googleSigned: false, language: 'fa'),
+        apkChannel,
+      );
+      expect(
+        without.updateChannelFor(googleSigned: true, language: 'fa'),
+        apkChannel,
+      );
     });
 
-    test('without it, every copy opens channel_url', () {
+    test('without it, Contact us opens channel_url', () {
       final v = android(channel: apkChannel);
       expect(v.playChannelUrl, isNull);
-      expect(v.channelLink, apkChannel);
+      expect(v.contactChannel, apkChannel);
     });
 
     test('a value that is not a channel link is ignored', () {
@@ -266,7 +458,7 @@ void main() {
       ]) {
         final v = android(channel: apkChannel, play: bad);
         expect(v.playChannelUrl, isNull, reason: '$bad');
-        expect(v.channelLink, apkChannel, reason: '$bad');
+        expect(v.contactChannel, apkChannel, reason: '$bad');
       }
     });
 
@@ -281,18 +473,19 @@ void main() {
 
     test('AppConfigState opens it', () async {
       final state = await _loaded(apkChannel, playChannelUrl: playChannel);
-      expect(state.channelUrl, Uri.parse(playChannel));
+      expect(state.contactChannel, Uri.parse(playChannel));
 
       // And on a launch that cannot reach the backend.
       final next = AppConfigState(fetch: _unreachable, retryGaps: const []);
       await next.load();
-      expect(next.channelUrl, Uri.parse(playChannel));
+      expect(next.contactChannel, Uri.parse(playChannel));
     });
   });
 
   group('the name shown next to Telegram', () {
     for (final (url, handle) in [
-      (_official, '@fortiva_vpn'),
+      (_support, '@fortiva_vpn'),
+      (_english, '@fortivavpn'),
       ('https://t.me/fortiva_news', '@fortiva_news'),
       ('https://t.me/fortiva_vpn/123', '@fortiva_vpn'),
       ('https://t.me/+AbCdEf123', null),
@@ -306,25 +499,35 @@ void main() {
     }
   });
 
-  group('AppConfigState.channelUrl', () {
-    test('is the official channel before the backend has answered', () {
+  // The one link that keeps a single channel in every language, because only
+  // that channel's direct messages reach the support bot.
+  group('AppConfigState.contactChannel', () {
+    test('is the support channel before the backend has answered', () {
       final state = AppConfigState(fetch: _unreachable, retryGaps: const []);
-      expect(state.channelUrl, Uri.parse(_official));
+      expect(state.contactChannel, Uri.parse(_support));
     });
 
-    test('is the official channel when the backend sends none', () async {
-      expect((await _loaded(null)).channelUrl, Uri.parse(_official));
+    test('is the support channel when the backend sends none', () async {
+      expect((await _loaded(null)).contactChannel, Uri.parse(_support));
     });
 
     test('is the channel the backend sends', () async {
       final state = await _loaded('https://t.me/fortiva_news');
-      expect(state.channelUrl, Uri.parse('https://t.me/fortiva_news'));
+      expect(state.contactChannel, Uri.parse('https://t.me/fortiva_news'));
+    });
+
+    test('does not read channel_urls', () async {
+      final state = await _loaded(
+        'https://t.me/fortiva_news',
+        channelUrls: {'en': 'https://t.me/made_up_en'},
+      );
+      expect(state.contactChannel, Uri.parse('https://t.me/fortiva_news'));
     });
 
     test('ignores a value that is not a channel link', () async {
       for (final bad in ['https://example.com/pay', '', 7]) {
         final state = await _loaded(bad);
-        expect(state.channelUrl, Uri.parse(_official), reason: '$bad');
+        expect(state.contactChannel, Uri.parse(_support), reason: '$bad');
       }
     });
 
@@ -333,7 +536,7 @@ void main() {
       await _loaded('https://t.me/fortiva_news');
       final next = AppConfigState(fetch: _unreachable, retryGaps: const []);
       await next.load();
-      expect(next.channelUrl, Uri.parse('https://t.me/fortiva_news'));
+      expect(next.contactChannel, Uri.parse('https://t.me/fortiva_news'));
     });
 
     test('a value saved by an older build that is not a channel link is '
@@ -346,7 +549,29 @@ void main() {
       final next = AppConfigState(fetch: _unreachable, retryGaps: const []);
       await next.load();
       expect(next.versionRules, isNotNull);
-      expect(next.channelUrl, Uri.parse(_official));
+      expect(next.contactChannel, Uri.parse(_support));
+    });
+
+    // An older build saved the link it opened, so these people still reach
+    // the same channel after they update.
+    test('reads what an older build saved as the backend\'s link', () async {
+      final rules = _config().forceUpdate.toJson();
+      (rules['android'] as Map)['channel_url'] = 'https://t.me/fortiva_news';
+      SharedPreferences.setMockInitialValues({
+        AppConfigState.versionRulesKey: jsonEncode(rules),
+      });
+      final next = AppConfigState(fetch: _unreachable, retryGaps: const []);
+      await next.load();
+      expect(next.contactChannel, Uri.parse('https://t.me/fortiva_news'));
+    });
+
+    test('with no channel from the backend, saving does not move it to the '
+        'English channel', () async {
+      await _loaded(null);
+      final next = AppConfigState(fetch: _unreachable, retryGaps: const []);
+      await next.load();
+      expect(next.versionRules, isNotNull);
+      expect(next.contactChannel, Uri.parse(_support));
     });
   });
 
@@ -410,7 +635,7 @@ void main() {
       await tester.pump();
     }
 
-    testWidgets('opens the official channel, as before, until the backend '
+    testWidgets('opens the support channel, as before, until the backend '
         'names another', (tester) async {
       final config = AppConfigState(fetch: _unreachable, retryGaps: const []);
       await pumpSettings(tester, config);
@@ -418,7 +643,7 @@ void main() {
 
       await tapContact(tester);
       expect(find.text('Telegram · @fortiva_vpn'), findsOneWidget);
-      expect(launched, [_official]);
+      expect(launched, [_support]);
     });
 
     testWidgets('opens the channel the backend names', (tester) async {
@@ -431,6 +656,20 @@ void main() {
       await tapContact(tester);
       expect(find.text('Telegram · @fortiva_news'), findsOneWidget);
       expect(find.textContaining('fortiva_vpn'), findsNothing);
+      expect(launched, ['https://t.me/fortiva_news']);
+    });
+
+    testWidgets('does not follow channel_urls', (tester) async {
+      final config = (await tester.runAsync(
+        () => _loaded(
+          'https://t.me/fortiva_news',
+          channelUrls: {'en': 'https://t.me/made_up_en'},
+        ),
+      ))!;
+      await pumpSettings(tester, config);
+      await tester.pumpAndSettle();
+
+      await tapContact(tester);
       expect(launched, ['https://t.me/fortiva_news']);
     });
 
@@ -483,16 +722,28 @@ void main() {
       ]);
     });
 
-    testWidgets('opens the official channel when the backend names none', (
+    testWidgets('does not follow channel_urls', (tester) async {
+      final config = (await tester.runAsync(
+        () => _loaded(
+          'https://t.me/fortiva_news',
+          channelUrls: {'en': 'https://t.me/made_up_en'},
+        ),
+      ))!;
+      expect(await tapTelegram(tester, config: config), [
+        Uri.parse('https://t.me/fortiva_news'),
+      ]);
+    });
+
+    testWidgets('opens the support channel when the backend names none', (
       tester,
     ) async {
       final config = (await tester.runAsync(() => _loaded(null)))!;
-      expect(await tapTelegram(tester, config: config), [Uri.parse(_official)]);
+      expect(await tapTelegram(tester, config: config), [Uri.parse(_support)]);
     });
 
-    testWidgets('opens the official channel where the config is not '
+    testWidgets('opens the support channel where the config is not '
         'provided', (tester) async {
-      expect(await tapTelegram(tester), [Uri.parse(_official)]);
+      expect(await tapTelegram(tester), [Uri.parse(_support)]);
     });
   });
 }

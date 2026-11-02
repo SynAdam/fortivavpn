@@ -145,27 +145,30 @@ class AppConfigState extends ChangeNotifier {
   int? get inviteNudgePercent =>
       referralsEnabled ? flags.inviteNudgePercent : null;
 
-  /// The Telegram channel the app's links open: Contact us in Settings
-  /// while the chat is off, and the chat's own fallback. Kept between
-  /// launches with the version rules. The update prompt picks its own
-  /// (PlatformVersion.updateChannelFor).
+  /// The Telegram channel a person messages to reach us: Contact us in
+  /// Settings while the chat is off, and the chat's own fallback. Kept between
+  /// launches with the version rules.
+  ///
+  /// It does not follow the app's language, because only this channel's direct
+  /// messages reach the support bot. A link that is not a way to message us
+  /// opens the channel of the language (PlatformVersion.channelFor), as the
+  /// update prompt does (PlatformVersion.updateChannelFor).
   ///
   /// Every copy of the app opens `force_update.android.play_channel_url`
   /// when the backend sends one, and `channel_url` otherwise
-  /// (PlatformVersion.channelLink). Google Play does not let a Play app
+  /// (PlatformVersion.contactChannel). Google Play does not let a Play app
   /// link to a page that could lead to another way to pay, and every copy
   /// runs the same code as the one on Google Play, so the backend can move
   /// the app's links to a page that sells nothing, without a release. A
   /// link compiled into the app could only change with a release.
-  /// `channel_url` stays the update link of every channel APK.
   ///
   /// Either one is used only when it is an https link to a page on t.me,
-  /// and the official channel is opened otherwise.
-  Uri get channelUrl {
-    final url = PlatformVersion.channelUrlFrom(
-      versionRules?.android.channelLink,
-    );
-    return Uri.tryParse(url) ?? Uri.parse(PlatformVersion.defaultChannelUrl);
+  /// and PlatformVersion.supportChannelUrl is opened otherwise.
+  Uri get contactChannel {
+    final url =
+        versionRules?.android.contactChannel ??
+        PlatformVersion.supportChannelUrl;
+    return Uri.tryParse(url) ?? Uri.parse(PlatformVersion.supportChannelUrl);
   }
 
   /// How many days copies of a deleted account stay in backups and

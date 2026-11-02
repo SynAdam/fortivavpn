@@ -10,7 +10,9 @@ import android.content.Context
 import android.content.Intent
 import android.graphics.Color
 import android.os.Build
+import android.util.Log
 import androidx.annotation.RequiresApi
+import androidx.annotation.StringRes
 import androidx.core.app.NotificationCompat
 import com.vpn.fortivavpn.AppConfig
 import com.vpn.fortivavpn.AppConfig.ANG_PACKAGE
@@ -23,6 +25,12 @@ object NotificationService {
     private const val NOTIFICATION_PENDING_INTENT_CONTENT = 0
     private const val NOTIFICATION_PENDING_INTENT_STOP_V2RAY = 1
     private const val NOTIFICATION_PENDING_INTENT_RESTART_V2RAY = 2
+
+    /** The file of the two texts Flutter saves in the app's language, and
+     * their keys (NotificationTexts in Dart). */
+    private const val TEXTS_FILE = "notification_texts"
+    private const val CONNECTING_KEY = "connecting"
+    private const val STOP_KEY = "stop"
 
     private var mBuilder: NotificationCompat.Builder? = null
     private var mNotificationManager: NotificationManager? = null
@@ -54,7 +62,7 @@ object NotificationService {
         mBuilder = NotificationCompat.Builder(service, channelId)
             .setSmallIcon(R.drawable.fortiva)
             .setContentTitle(service.getString(R.string.app_name))
-            .setContentText(service.getString(R.string.status_connecting))
+            .setContentText(textInAppLanguage(service, CONNECTING_KEY, R.string.status_connecting))
             .setPriority(NotificationCompat.PRIORITY_LOW)
             .setOngoing(true)
             .setShowWhen(false)
@@ -109,13 +117,44 @@ object NotificationService {
             .setContentIntent(contentPendingIntent)
             .addAction(
                 R.drawable.fortiva,
-                service.getString(R.string.notification_action_stop_v2ray),
+                textInAppLanguage(service, STOP_KEY, R.string.notification_action_stop_v2ray),
                 stopV2RayPendingIntent
             )
 
         //mBuilder?.setDefaults(NotificationCompat.FLAG_ONLY_ALERT_ONCE)
 
         startForegroundCompat(service, mBuilder?.build())
+    }
+
+    /**
+     * A text in the language the person chose in the app, as Flutter saved it
+     * in [key], or the English one in res/values when nothing is saved.
+     *
+     * Android's resources cannot give this. The services run with the phone's
+     * language, and a Play install holds only the phone's language splits.
+     *
+     * The services run in the tunnel's process and Flutter saves in the main
+     * process. A plain read would keep what this process read first, so a
+     * language changed later would never show. MODE_MULTI_PROCESS reads the
+     * file again when it has changed.
+     *
+     * The texts have a small file of their own, and this process must never
+     * open FlutterSharedPreferences. Opening a preferences file puts its backup
+     * back over the file when a backup exists, and one exists while the main
+     * process is saving, so that open would undo the save. Here the worst case
+     * is these two texts in the language before, until the app's next start.
+     *
+     * Never throws: the foreground service has to start, whatever the file holds.
+     */
+    @Suppress("DEPRECATION")
+    private fun textInAppLanguage(service: Service, key: String, @StringRes fallback: Int): String {
+        val saved = try {
+            service.getSharedPreferences(TEXTS_FILE, Context.MODE_MULTI_PROCESS).getString(key, null)
+        } catch (t: Throwable) {
+            Log.w(AppConfig.TAG, "[notification] the saved text could not be read", t)
+            null
+        }
+        return if (saved.isNullOrBlank()) service.getString(fallback) else saved
     }
 
     /**

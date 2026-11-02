@@ -108,11 +108,13 @@ class SupportScreen extends StatefulWidget {
   final Future<void> Function(Uri url)? open;
 
   /// The Telegram channel offered while the chat is off: the one the
-  /// backend names (AppConfigState.channelUrl), or the official channel
-  /// where the app's config is not provided.
+  /// backend names (AppConfigState.contactChannel), or
+  /// PlatformVersion.supportChannelUrl where the app's config is not provided.
+  /// Its button says to message us, and only this channel's direct messages
+  /// reach the support bot, so it does not follow the app's language.
   static Uri telegram(BuildContext context) =>
-      context.read<AppConfigState?>()?.channelUrl ??
-      Uri.parse(PlatformVersion.defaultChannelUrl);
+      context.read<AppConfigState?>()?.contactChannel ??
+      Uri.parse(PlatformVersion.supportChannelUrl);
 
   /// The line for one of the backend's codes, or null for a code this
   /// build does not know.

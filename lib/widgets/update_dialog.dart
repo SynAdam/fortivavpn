@@ -630,8 +630,12 @@ class _UpdateDialogBodyState extends State<_UpdateDialogBody> {
     // The way that updates this copy in place comes first and filled; the
     // other copy second (see [UpdateDialog]).
     void fromPlay() => openFrom(platform.updateUrl);
-    void fromChannel() =>
-        openFrom(platform.updateChannelFor(googleSigned: widget.googleSigned));
+    void fromChannel() => openFrom(
+      platform.updateChannelFor(
+        googleSigned: widget.googleSigned,
+        language: Localizations.localeOf(context).languageCode,
+      ),
+    );
     const playIcon = Icon(Icons.shop_outlined);
     const channelIcon = Icon(Icons.send_rounded);
     final updates = widget.googleSigned

@@ -627,8 +627,10 @@ class _SettingsScreenState extends State<SettingsScreen> {
   /// email: the channel's direct messages reach the support bot and a
   /// human, and it is where users already are.
   ///
-  /// The channel is the one the backend names (AppConfigState.channelUrl),
-  /// so it can be changed without a release.
+  /// The channel is the one the backend names (AppConfigState.contactChannel),
+  /// so it can be changed without a release. It does not follow the app's
+  /// language, because only this channel's direct messages reach the support
+  /// bot.
   Widget _buildContactTile(BuildContext context, S l10n) {
     var chat = false;
     try {
@@ -636,7 +638,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
     } catch (e) {
       debugPrint('SettingsScreen: support chat not read ($e)');
     }
-    final channel = context.watch<AppConfigState>().channelUrl;
+    final channel = context.watch<AppConfigState>().contactChannel;
     final handle = PlatformVersion.channelHandle(channel);
     return _buildTile(
       context,

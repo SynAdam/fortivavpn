@@ -1,8 +1,11 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import '../../services/device_place.dart';
 import '../../services/ip_info_service.dart';
+import '../../services/notification_texts.dart';
 import '../locale_suggestion.dart';
 
 /// Provider that manages the app's locale (language) selection.
@@ -107,6 +110,11 @@ class LocaleState extends ChangeNotifier {
       if (code != null && supportedLanguages.containsKey(code)) {
         _locale = Locale(code);
         _hasChosen = true;
+        // At every start too, so a person who chose before this was saved
+        // gets it, and a text changed in a new build reaches the notification.
+        // Not awaited, because main() waits for this method before the first
+        // frame.
+        unawaited(NotificationTexts.save(Locale(code)));
       }
     } catch (_) {
       // A broken preference store must not stop the app launching. The
@@ -170,6 +178,7 @@ class LocaleState extends ChangeNotifier {
     _locale = newLocale;
     _hasChosen = true;
     notifyListeners();
+    unawaited(NotificationTexts.save(newLocale));
     try {
       final prefs = await SharedPreferences.getInstance();
       await prefs.setString(_prefLocale, newLocale.languageCode);
@@ -184,6 +193,7 @@ class LocaleState extends ChangeNotifier {
     _locale = null;
     _hasChosen = false;
     notifyListeners();
+    unawaited(NotificationTexts.clear());
     try {
       final prefs = await SharedPreferences.getInstance();
       await prefs.remove(_prefLocale);

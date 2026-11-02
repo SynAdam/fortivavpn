@@ -109,9 +109,9 @@ abstract class S {
 
   /// A list of this localizations delegate's supported locales.
   static const List<Locale> supportedLocales = <Locale>[
+    Locale('en'),
     Locale('ar'),
     Locale('de'),
-    Locale('en'),
     Locale('es'),
     Locale('fa'),
     Locale('fr'),
