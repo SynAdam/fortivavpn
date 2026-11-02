@@ -1,4 +1,5 @@
 # Changelog
 
-What changed for the people who use Fortiva VPN, in each released version.
-The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
+What changed in each released version is on the
+[Releases](https://github.com/SynAdam/fortivavpn/releases) page, in English and in every
+other language of the app.

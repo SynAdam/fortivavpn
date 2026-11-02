@@ -41,14 +41,7 @@ Open an issue for a bug, a connection problem or an idea. It helps to say:
 Never post a link the app gave you (from Copy link), an account code, or a
 screenshot that shows one. Anyone who has it can use your account.
 
-Write in English or Persian.
-
-<div dir="rtl">
-
-برای گزارش مشکل یا پیشنهاد، یک issue باز کنید و فارسی یا انگلیسی بنویسید. همه می‌توانند issueها را ببینند، پس لینکی که اپ به شما داده یا کد حساب‌تان را در آن ننویسید. برای تغییر کد، یک pull request بفرستید. مراحل و شرایط آن در همین فایل آمده است.
-
-</div>
-
+English is best if you can, and any other language is fine too. [The README](README.md) is in every language of the app.
 ## Pull requests
 
 This repository gets its commits from our private repository, so a pull
@@ -78,8 +71,8 @@ What a pull request can change:
 
 - The code and tests of the app, such as `lib/`, `test/`, `android/` and
   `windows/`.
-- Not the files that this copy has its own versions of: `README.md`,
-  `README.fa.md`, `README.ar.md`, `README.zh.md`, `CONTRIBUTING.md`,
+- Not the files that this copy has its own versions of: `README.md` and
+  every `README.<language>.md`, `CONTRIBUTING.md`,
   `CODE_OF_CONDUCT.md`, `SECURITY.md`, `SUPPORT.md`, `CHANGELOG.md` and
   `.gitignore` at the top level, anything under `.github/`,
   `lib/api/built_in.dart` and `assets/fallback/index.txt`.

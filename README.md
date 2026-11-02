@@ -10,7 +10,7 @@
   <img alt="18 languages" src="https://img.shields.io/badge/languages-18-30363C?style=flat-square&labelColor=1B2127">
 </p>
 
-<p align="center"><b>English</b> · <a href="README.fa.md">فارسی</a> · <a href="README.ar.md">العربية</a> · <a href="README.zh.md">简体中文</a></p>
+<p align="center"><b>English</b> · <a href="README.ar.md">العربية</a> · <a href="README.zh.md">简体中文</a> · <a href="README.fr.md">Français</a> · <a href="README.de.md">Deutsch</a> · <a href="README.hi.md">हिन्दी</a> · <a href="README.id.md">Bahasa Indonesia</a> · <a href="README.ja.md">日本語</a> · <a href="README.ko.md">한국어</a> · <a href="README.fa.md">فارسی</a> · <a href="README.pt.md">Português</a> · <a href="README.ru.md">Русский</a> · <a href="README.es.md">Español</a> · <a href="README.tr.md">Türkçe</a> · <a href="README.uk.md">Українська</a> · <a href="README.ur.md">اردو</a> · <a href="README.uz.md">Oʻzbekcha</a> · <a href="README.vi.md">Tiếng Việt</a></p>
 
 <p align="center">
   <a href="https://play.google.com/store/apps/details?id=com.vpn.fortivavpn&amp;referrer=utm_source%3Dgithub"><img alt="Get it on Google Play" src="https://img.shields.io/badge/Get_it_on_Google_Play-C8452B?style=for-the-badge&logo=googleplay&logoColor=white"></a>
@@ -19,7 +19,7 @@
 </p>
 
 <p align="center">
-  <img src=".github/readme/showcase.png" alt="Four screens of the app: tap to connect, connected, the list of languages, and the home screen in Persian" width="100%">
+  <img src=".github/readme/showcase.png" alt="Three screens of the app: tap to connect, connected, and the list of languages" width="100%">
 </p>
 
 <p align="center">
@@ -74,7 +74,7 @@ No ad or tracking SDKs, and we never record the pages you open.
 <td width="33%" valign="top">
 
 **Your language**<br>
-18 languages, with right-to-left screens for Persian, Arabic and Urdu.
+18 languages, with right-to-left screens for Arabic, Persian and Urdu.
 
 </td>
 </tr>
@@ -84,8 +84,8 @@ A speed test in the app compares your speed with and without the VPN.
 
 The app is in 18 languages: Arabic, Chinese, English, French, German, Hindi,
 Indonesian, Japanese, Korean, Persian, Portuguese, Russian, Spanish, Turkish,
-Ukrainian, Urdu, Uzbek and Vietnamese. This page is also in
-[Persian](README.fa.md), [Arabic](README.ar.md) and [Chinese](README.zh.md).
+Ukrainian, Urdu, Uzbek and Vietnamese. This page is in all of them too: use the
+links at the top.
 
 ## Download
 
@@ -96,9 +96,8 @@ Ukrainian, Urdu, Uzbek and Vietnamese. This page is also in
 | **iOS** | Build it from source | [`ios/`](ios/) |
 | **Windows** 10 and 11 | The installer from [fortivavpn.com/windows](https://fortivavpn.com/windows) or from this repository's [Releases](https://github.com/SynAdam/fortivavpn/releases). It is not signed, so Windows may warn before it runs: choose More info, then Run anyway. | [`windows/`](windows/) |
 
-New versions are announced on Telegram, in [English](https://t.me/fortivavpn)
-and in [Persian](https://t.me/fortiva_vpn). Before you install an APK from
-anywhere else, [check that it is ours](#check-a-download).
+New versions are announced on Telegram, in [English](https://t.me/fortivavpn), [Arabic](https://t.me/fortivavpn_ar), [Chinese](https://t.me/fortivavpn_zh), [Hindi](https://t.me/fortivavpn_hi), [Indonesian](https://t.me/fortivavpn_id), [Persian](https://t.me/fortiva_vpn), [Portuguese](https://t.me/fortivavpn_pt), [Russian](https://t.me/fortivavpn_ru), [Spanish](https://t.me/fortivavpn_es), [Turkish](https://t.me/fortivavpn_tr), [Ukrainian](https://t.me/fortivavpn_ua), [Urdu](https://t.me/fortivavpn_ur), [Uzbek](https://t.me/fortivavpn_uz) and [Vietnamese](https://t.me/fortivavpn_vi). Before you install an APK
+from anywhere else, [check that it is ours](#check-a-download).
 
 ## What this repository is
 
@@ -258,7 +257,8 @@ next release.
 [CONTRIBUTING.md](CONTRIBUTING.md) has the steps, the checks and the terms.
 
 - **Found a bug or have an idea?** [Open an issue](https://github.com/SynAdam/fortivavpn/issues/new/choose)
-  with one of the forms, in English or Persian.
+  with one of the forms. English is best if you can, and any other language
+  is fine too.
 - **Want to change the code?** Open a pull request. See
   [CONTRIBUTING.md](CONTRIBUTING.md).
 - **Looking for something to do?** Start with the issues labelled

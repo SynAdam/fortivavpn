@@ -16,8 +16,4 @@ to ship a fix before you publish anything.
 Out of scope: that a network or a government blocks the service, and
 reports from automated scanners with nothing shown to be exploitable.
 
-<div dir="rtl">
-
-اگر مشکلی امنیتی در برنامه پیدا کرده‌اید، آن را در issue ننویسید، چون issueها عمومی هستند. در همین مخزن به زبانه‌ی Security بروید و Report a vulnerability را بزنید، یا به admin@fortivavpn.com ایمیل بزنید و در عنوان ایمیل Security بنویسید. فقط ما گزارش را می‌خوانیم و ظرف یک هفته جواب می‌دهیم. می‌توانید فارسی بنویسید.
-
-</div>
+[The README](README.md) is in every language of the app.

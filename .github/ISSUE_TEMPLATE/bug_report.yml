@@ -14,11 +14,7 @@ body:
 
         For your account or a payment, open Settings in the app and tap Contact Us.
 
-        <div dir="rtl">
-
-        این صفحه عمومی است و همه می‌توانند نوشته‌ی شما را ببینند. نام، شماره تلفن، آدرس سرور، آی‌پی خودتان، لاگ یا عکس صفحه‌ی «بررسی آی‌پی من» را این‌جا نگذارید. لینکی که با «کپی لینک» گرفته‌اید، کلید پریمیوم و کدهای «کمک به اتصال دوست» را هم نگذارید، چون هر کس آن‌ها را داشته باشد می‌تواند از آن‌ها استفاده کند. برای حساب یا پرداخت، در برنامه به «تنظیمات» بروید و «تماس با ما» را بزنید. می‌توانید فارسی بنویسید.
-
-        </div>
+        This form is in English. The [README](https://github.com/SynAdam/fortivavpn#readme) has this warning in every language of the app.
   - type: input
     id: version
     attributes:

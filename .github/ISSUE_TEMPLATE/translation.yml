@@ -9,11 +9,7 @@ body:
 
         You can also fix the text yourself: a pull request that changes `lib/l10n/app_<code>.arb` is welcome. [CONTRIBUTING.md](https://github.com/SynAdam/fortivavpn/blob/main/CONTRIBUTING.md#where-to-start) says how.
 
-        <div dir="rtl">
-
-        این صفحه عمومی است و همه می‌توانند نوشته‌ی شما را ببینند. لینکی که با «کپی لینک» گرفته‌اید، کلید پریمیوم و کدهای «کمک به اتصال دوست» را این‌جا نگذارید و اگر عکس صفحه می‌گذارید، مطمئن شوید که هیچ‌کدام از آن‌ها در عکس دیده نمی‌شود. اگر می‌خواهید متن فارسی را خودتان درست کنید، یک pull request برای فایل `lib/l10n/app_fa.arb` بفرستید.
-
-        </div>
+        This form is in English. The [README](https://github.com/SynAdam/fortivavpn#readme) has this warning in every language of the app.
   - type: dropdown
     id: language
     attributes:
