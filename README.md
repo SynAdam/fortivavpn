@@ -33,16 +33,6 @@
   <a href="#licence">Licence</a>
 </p>
 
-<div dir="rtl">
-
-### فورتیوا به فارسی
-
-فورتیوا یک فیلترشکن رایگان و قوی است: بدون ثبت‌نام، بدون تبلیغات و با اتصال با یک لمس. اپ را از [گوگل‌پلی](https://play.google.com/store/apps/details?id=com.vpn.fortivavpn&referrer=utm_source%3Dgithub) یا [سایت فورتیوا](https://fortivavpn.com/apk) بگیرید و خبرها را در [کانال تلگرام](https://t.me/fortiva_vpn) دنبال کنید.
-
-این مخزن کد منبع اپ‌های فورتیوا برای اندروید، اندروید TV، iOS و ویندوز است. کد هر نسخه‌ی منتشرشده با تگ `vX.Y.Z` مشخص شده است. برای گزارش مشکل یا پیشنهاد، یک issue باز کنید. برای تغییر کد، یک pull request بفرستید. روش کار در [CONTRIBUTING.md](CONTRIBUTING.md) آمده است. راهنمای فارسی کامل‌تر در [README.fa.md](README.fa.md) است.
-
-</div>
-
 ## Features
 
 <table>
@@ -91,6 +81,11 @@ No ad or tracking SDKs, and we never record the pages you open.
 </table>
 
 A speed test in the app compares your speed with and without the VPN.
+
+The app is in 18 languages: Arabic, Chinese, English, French, German, Hindi,
+Indonesian, Japanese, Korean, Persian, Portuguese, Russian, Spanish, Turkish,
+Ukrainian, Urdu, Uzbek and Vietnamese. This page is also in
+[Persian](README.fa.md), [Arabic](README.ar.md) and [Chinese](README.zh.md).
 
 ## Download
 
