@@ -1,5 +1,10 @@
-# Brings each new commit of the source repository here, every 15 minutes,
-# and tags each release on the commit it was built from.
+# Brings each new commit of the source repository here, and tags each
+# release on the commit it was built from. A push to the source
+# repository's main, or of a release tag, starts it at once through a
+# dispatch: that repository's webhook goes to our server, which calls
+# GitHub's API. The schedule, every 6 hours, only catches what a dispatch
+# that failed left behind. It runs at 23 minutes past, because GitHub runs
+# late or drops scheduled runs at the start of an hour when it is busy.
 #
 # The source repository is private, so the job reads it with a read-only
 # deploy key: the secret SOURCE_DEPLOY_KEY, for the repository the secret
@@ -18,7 +23,7 @@ name: Mirror
 
 on:
   schedule:
-    - cron: '*/15 * * * *'
+    - cron: '23 */6 * * *'
   workflow_dispatch:
 
 permissions:
