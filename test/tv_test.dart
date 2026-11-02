@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -23,8 +25,8 @@ import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 /// The app on a TV: everything reachable and pressable with a remote,
-/// a layout that fits a TV's 540 pixels of height, and links the TV cannot
-/// open shown as a QR code for a phone.
+/// a layout that fits a TV's 540 pixels of height, and links opened on the
+/// TV when anything there can open them, else shown as a QR code.
 
 const _tunnel = MethodChannel('com.vpn.fortivavpn/tunnel');
 const _statusChannel = EventChannel('com.vpn.fortivavpn/tunnel/status');
@@ -187,12 +189,18 @@ Map<String, Object> _qrReply() => {
 
 void main() {
   late List<String> launched;
+  late List<String> inPage;
   late List<String> encoded;
+  late String? opener;
+  late bool launches;
 
   setUp(() {
     SharedPreferences.setMockInitialValues({});
     launched = [];
+    inPage = [];
     encoded = [];
+    opener = null;
+    launches = true;
     final messenger =
         TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger;
     messenger.setMockMethodCallHandler(_tunnel, (call) async {
@@ -202,6 +210,8 @@ void main() {
         case 'qrModules':
           encoded.add((call.arguments as Map)['text'] as String);
           return _qrReply();
+        case 'linkOpener':
+          return opener;
       }
       return null;
     });
@@ -211,7 +221,10 @@ void main() {
     );
     messenger.setMockMethodCallHandler(_launcher, (call) async {
       if (call.method == 'launch') {
-        launched.add((call.arguments as Map)['url'] as String);
+        final args = call.arguments as Map;
+        if (!launches) return false;
+        final url = args['url'] as String;
+        (args['useWebView'] == true ? inPage : launched).add(url);
         return true;
       }
       return call.method == 'canLaunch';
@@ -385,10 +398,55 @@ void main() {
   });
 
   group('openOutside', () {
-    testWidgets('on a TV, shows a Telegram link as a code for a phone', (
+    testWidgets('on a TV with a browser, opens the site in it', (tester) async {
+      FormFactor.isTvForTest = true;
+      opener = 'app';
+      await tester.pumpWidget(_app(const Scaffold()));
+
+      const blog = 'https://fortivavpn.com/fa/blog';
+      expect(await openOutside(Uri.parse(blog)), isTrue);
+      await tester.pumpAndSettle();
+
+      expect(launched, [blog]);
+      expect(inPage, isEmpty);
+      expect(find.byType(QrCode), findsNothing);
+    });
+
+    testWidgets('on a TV with no browser, opens the site inside the app', (
       tester,
     ) async {
       FormFactor.isTvForTest = true;
+      opener = 'page';
+      await tester.pumpWidget(_app(const Scaffold()));
+
+      const blog = 'https://fortivavpn.com/fa/blog';
+      expect(await openOutside(Uri.parse(blog)), isTrue);
+      await tester.pumpAndSettle();
+
+      expect(inPage, [blog]);
+      expect(launched, isEmpty);
+      expect(encoded, isEmpty);
+      expect(find.byType(QrCode), findsNothing);
+    });
+
+    testWidgets('on a TV with Telegram, opens a Telegram link in it', (
+      tester,
+    ) async {
+      FormFactor.isTvForTest = true;
+      opener = 'app';
+      await tester.pumpWidget(_app(const Scaffold()));
+
+      expect(await openOutside(Uri.parse('https://t.me/fortiva_vpn')), isTrue);
+      await tester.pumpAndSettle();
+
+      expect(launched, ['https://t.me/fortiva_vpn']);
+      expect(find.byType(QrCode), findsNothing);
+    });
+
+    testWidgets('on a TV without Telegram or a browser, shows a Telegram '
+        'link as a code for a phone', (tester) async {
+      FormFactor.isTvForTest = true;
+      opener = 'page';
       await tester.pumpWidget(_app(const Scaffold()));
 
       final shown = openOutside(Uri.parse('https://t.me/fortiva_vpn'));
@@ -396,6 +454,7 @@ void main() {
 
       expect(encoded, ['https://t.me/fortiva_vpn']);
       expect(launched, isEmpty);
+      expect(inPage, isEmpty);
       expect(find.text('Open on your phone'), findsOneWidget);
       expect(find.text('t.me/fortiva_vpn'), findsOneWidget);
       expect(find.byType(QrCode), findsOneWidget);
@@ -406,10 +465,11 @@ void main() {
       expect(find.byType(QrCode), findsNothing);
     });
 
-    testWidgets('on a TV, still opens the Play Store, which is there', (
+    testWidgets('on a TV, opens the Play Store, which is there', (
       tester,
     ) async {
       FormFactor.isTvForTest = true;
+      opener = 'app';
       await tester.pumpWidget(_app(const Scaffold()));
 
       const play = 'https://play.google.com/store/account/subscriptions';
@@ -418,6 +478,27 @@ void main() {
 
       expect(launched, [play]);
       expect(find.byType(QrCode), findsNothing);
+    });
+
+    testWidgets('on a TV, a code when nothing there opens the link', (
+      tester,
+    ) async {
+      FormFactor.isTvForTest = true;
+      opener = 'app';
+      launches = false;
+      await tester.pumpWidget(_app(const Scaffold()));
+
+      unawaited(openOutside(Uri.parse('https://fortivavpn.com/')));
+      await tester.pumpAndSettle();
+      expect(find.byType(QrCode), findsOneWidget);
+
+      await tester.tap(find.text('Close'));
+      await tester.pumpAndSettle();
+      opener = null;
+      unawaited(openOutside(Uri.parse('https://fortivavpn.com/')));
+      await tester.pumpAndSettle();
+      expect(encoded, ['https://fortivavpn.com/', 'https://fortivavpn.com/']);
+      expect(find.byType(QrCode), findsOneWidget);
     });
 
     testWidgets('on a phone, opens the link as before', (tester) async {

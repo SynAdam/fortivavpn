@@ -596,6 +596,12 @@ class MainActivity : FlutterActivity() {
                     // Read once at launch. A system read, so inline.
                     result.success(isTelevision())
                 }
+                "linkOpener" -> {
+                    // How a TV can open a link, before openOutside tries.
+                    // A package manager read, so inline.
+                    val url = call.argument<String>("url")
+                    result.success(url?.let { linkOpener(it) })
+                }
                 "isTestLab" -> {
                     // Read once, with the first register. A system read,
                     // so inline. See TestLab on the Dart side.
@@ -1951,6 +1957,37 @@ class MainActivity : FlutterActivity() {
         } catch (_: Exception) {
             false
         }
+    }
+
+    /**
+     * How this device can open [url]: "app" when an app takes it, "page"
+     * when only a web page inside this app can show it, null when nothing
+     * can. Android TV answers every web link with a stub of its own that
+     * only says the action is not supported, so a link nothing but that
+     * stub takes has no app. Most TVs have no browser.
+     */
+    private fun linkOpener(url: String): String? {
+        return try {
+            val uri = Uri.parse(url)
+            val intent = Intent(Intent.ACTION_VIEW, uri)
+            val apps = packageManager.queryIntentActivities(
+                intent,
+                PackageManager.MATCH_DEFAULT_ONLY
+            )
+            if (apps.any { !it.activityInfo.packageName.endsWith(".frameworkpackagestubs") }) {
+                return "app"
+            }
+            val web = uri.scheme == "https" || uri.scheme == "http"
+            if (web && hasWebView()) "page" else null
+        } catch (_: Exception) {
+            null
+        }
+    }
+
+    private fun hasWebView(): Boolean {
+        if (!packageManager.hasSystemFeature(PackageManager.FEATURE_WEBVIEW)) return false
+        return Build.VERSION.SDK_INT < Build.VERSION_CODES.O ||
+            android.webkit.WebView.getCurrentWebViewPackage() != null
     }
 
     /**

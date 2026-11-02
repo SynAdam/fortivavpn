@@ -8,8 +8,8 @@ import '../services/tunnel_channels.dart';
 /// Whether the app is running on a TV, where a remote is all the user has.
 ///
 /// One app serves phones and TVs. On a TV it does not lock itself to
-/// portrait, a remote's focus is always drawn, and links it cannot open
-/// there (Telegram, a website) are shown as a QR code for a phone instead.
+/// portrait, a remote's focus is always drawn, and a link nothing on the
+/// TV can open is shown as a QR code for a phone, see openOutside.
 /// The layout does not ask this: it follows the screen's shape, see
 /// [isWide], so a box that does not say it is a TV still gets the TV
 /// layout.

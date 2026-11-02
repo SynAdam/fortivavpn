@@ -211,7 +211,7 @@ class UpdateDialog {
 
   /// Open [url] in the app that handles it: the Play Store, Telegram, or a
   /// browser when Telegram is not installed. On a TV, a QR code for a phone
-  /// when the TV cannot open it.
+  /// when nothing on the TV can open it.
   static Future<void> _openOutside(Uri url) async {
     try {
       await openOutside(url);

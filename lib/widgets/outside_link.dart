@@ -13,26 +13,62 @@ final appNavigatorKey = GlobalKey<NavigatorState>();
 
 /// Open [url] outside the app: in Telegram, the Play Store or a browser.
 ///
-/// On a TV the link is shown as a QR code for the user's phone instead.
-/// Telegram is not on a TV, a browser seldom is, and a remote makes a poor
-/// keyboard. A Play Store link still opens on the TV, which has the store,
-/// and becomes a code only when nothing there opens it.
+/// On a TV the link opens in the app there that takes it, as on a phone.
+/// Most TVs have no browser, so a web page then opens inside this app. A
+/// link nothing on the TV can use, such as Telegram on a TV without it,
+/// becomes a QR code for the user's phone.
 ///
 /// Returns whether the link was opened or shown. Never throws.
 Future<bool> openOutside(Uri url) async {
-  if (FormFactor.isTv && !_opensOnTv(url)) return LinkQrDialog.show(url);
-  var opened = false;
-  try {
-    opened = await launchUrl(url, mode: LaunchMode.externalApplication);
-  } catch (e) {
-    debugPrint('openOutside: could not open $url ($e)');
-  }
-  if (!opened && FormFactor.isTv) return LinkQrDialog.show(url);
-  return opened;
+  if (FormFactor.isTv) return _openOnTv(url);
+  return _launch(url, LaunchMode.externalApplication);
 }
 
-bool _opensOnTv(Uri url) =>
-    url.scheme == 'market' || url.host == 'play.google.com';
+Future<bool> _openOnTv(Uri url) async {
+  final opener = await _tvOpener(url);
+  if (opener == 'app' && await _launch(url, LaunchMode.externalApplication)) {
+    return true;
+  }
+  if (opener == 'page' &&
+      _readsAsPage(url) &&
+      await _launch(url, LaunchMode.inAppWebView)) {
+    return true;
+  }
+  return LinkQrDialog.show(url);
+}
+
+Future<bool> _launch(Uri url, LaunchMode mode) async {
+  try {
+    return await launchUrl(url, mode: mode);
+  } catch (e) {
+    debugPrint('openOutside: could not open $url ($e)');
+    return false;
+  }
+}
+
+/// How the TV can open [url]: 'app' when an app there takes it, 'page'
+/// when only a web page inside this app can, null when nothing can. Android
+/// TV has a stub that takes every web link only to say it cannot, so the
+/// platform answers, not a plain launch.
+Future<String?> _tvOpener(Uri url) async {
+  try {
+    return await TunnelChannels.method.invokeMethod<String>('linkOpener', {
+      'url': url.toString(),
+    });
+  } catch (e) {
+    debugPrint('openOutside: no answer on how to open $url ($e)');
+    return null;
+  }
+}
+
+/// A page inside the app is no use for Telegram, which needs its app to
+/// join or write, nor for Play, which needs the store app. A phone has
+/// both, so those links become a code instead.
+bool _readsAsPage(Uri url) => !const {
+  't.me',
+  'telegram.me',
+  'play.google.com',
+}.contains(url.host.toLowerCase());
 
 /// A link as a QR code, for a phone to open what a TV cannot.
 class LinkQrDialog extends StatelessWidget {
