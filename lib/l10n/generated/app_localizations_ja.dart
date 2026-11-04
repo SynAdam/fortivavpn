@@ -109,7 +109,8 @@ class SJa extends S {
       'Fortiva が運営し、オンラインを維持しているサーバーです。アプリを使う全員で共有します。まずはここから。';
 
   @override
-  String get communityTabExplainer => '追加の接続オプションです。速度と利用可否は変わることがあります。';
+  String get communityTabExplainer =>
+      'ほかの人が共有している公開サーバーです。問題ないかもしれませんが、Fortiva が運営しているものではありません。速度と利用可否は変わることがあります。';
 
   @override
   String get noFreeServers => '無料サーバーなし';
@@ -323,7 +324,7 @@ class SJa extends S {
 
   @override
   String get shareDiagnosticsBody =>
-      '接続レポート、通信事業者と国、スマートフォンの機種と Android のバージョン、Google Play によるとアプリをどこで見つけたか、そしてメッセージ、プレミアムのご案内、招待カードを見たか、タップしたかを送信します。開いたページや送信した内容を私たちが見ることはありません。';
+      '接続レポート、通信事業者と国、スマートフォンの機種と Android のバージョン、Google Play によるとアプリをどこで見つけたか、そしてメッセージ、プレミアムのご案内、招待カードを見たか、タップしたかを送信します。オンの間は、アプリがバックグラウンドでサーバーのテストも行います。ほかの人が共有している公開サーバーも含まれます。オフにすると、これらのテストは止まります。開いたページや送信した内容を私たちが見ることはありません。';
 
   @override
   String get security => 'セキュリティ';
@@ -469,6 +470,21 @@ class SJa extends S {
   String get openVpnSettings => 'VPN設定を開く';
 
   @override
+  String get killSwitchTitle => 'VPN なしのインターネットをブロック';
+
+  @override
+  String get killSwitchSubtitle =>
+      'Fortiva が接続していない間、Android はこのスマートフォンのインターネットをすべてブロックできます。';
+
+  @override
+  String get killSwitchSteps =>
+      'Android の VPN 設定で、FortivaVPN の横にある歯車をタップします。「常時接続 VPN」をオンにしてから、「VPN 以外の接続のブロック」をオンにします。';
+
+  @override
+  String get killSwitchUndo =>
+      'オンの間は、Fortiva が接続するまでほかのアプリはインターネットを使えません。元に戻すには、そこで「VPN 以外の接続のブロック」をオフにします。';
+
+  @override
   String get yourServer => 'あなたのサーバー';
 
   @override
@@ -484,7 +500,8 @@ class SJa extends S {
   String get communityServer => 'コミュニティサーバー';
 
   @override
-  String get communityServerCaption => '追加の接続オプションです。いつでも使えなくなることがあります。';
+  String get communityServerCaption =>
+      'ほかの人が共有している公開サーバーです。Fortiva の運営ではありません。';
 
   @override
   String communityServerNumber(String n) {

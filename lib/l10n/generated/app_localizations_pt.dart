@@ -110,7 +110,7 @@ class SPt extends S {
 
   @override
   String get communityTabExplainer =>
-      'Opções extras de conexão. A velocidade e a disponibilidade variam.';
+      'Servidores públicos compartilhados por outras pessoas. Eles podem estar perfeitamente bem, mas a Fortiva não os mantém. A velocidade e a disponibilidade variam.';
 
   @override
   String get noFreeServers => 'Sem servidores gratuitos';
@@ -327,7 +327,7 @@ class SPt extends S {
 
   @override
   String get shareDiagnosticsBody =>
-      'Envia relatórios de conexão, sua operadora e seu país, o modelo do celular, a versão do Android, onde você encontrou o app segundo o Google Play e se você viu ou tocou nas nossas mensagens, nas ofertas do Premium e no cartão de convite. Nunca vemos as páginas que você abre nem o que você envia.';
+      'Envia relatórios de conexão, sua operadora e seu país, o modelo do celular, a versão do Android, onde você encontrou o app segundo o Google Play e se você viu ou tocou nas nossas mensagens, nas ofertas do Premium e no cartão de convite. Enquanto estiver ativado, o app também testa servidores em segundo plano, incluindo servidores públicos compartilhados por outras pessoas. Desativar interrompe esses testes. Nunca vemos as páginas que você abre nem o que você envia.';
 
   @override
   String get security => 'Segurança';
@@ -486,6 +486,21 @@ class SPt extends S {
   String get openVpnSettings => 'Abrir configurações de VPN';
 
   @override
+  String get killSwitchTitle => 'Bloquear internet sem VPN';
+
+  @override
+  String get killSwitchSubtitle =>
+      'O Android pode bloquear toda a internet deste celular enquanto a Fortiva não estiver conectada.';
+
+  @override
+  String get killSwitchSteps =>
+      'Nas configurações de VPN do Android, toque na engrenagem ao lado de FortivaVPN. Ative \"VPN sempre ativa\" e depois \"Bloquear conexões sem VPN\".';
+
+  @override
+  String get killSwitchUndo =>
+      'Enquanto estiver ativado, os outros apps ficam sem internet até a Fortiva se conectar. Para desfazer, desative \"Bloquear conexões sem VPN\" lá.';
+
+  @override
   String get yourServer => 'SEU SERVIDOR';
 
   @override
@@ -503,7 +518,7 @@ class SPt extends S {
 
   @override
   String get communityServerCaption =>
-      'Uma opção extra de conexão. Pode parar de funcionar a qualquer momento.';
+      'Um servidor público compartilhado por outras pessoas. A Fortiva não o mantém.';
 
   @override
   String communityServerNumber(String n) {

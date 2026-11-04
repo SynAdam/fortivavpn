@@ -110,7 +110,7 @@ class SUr extends S {
 
   @override
   String get communityTabExplainer =>
-      'اضافی کنکشن آپشنز۔ رفتار اور دستیابی بدلتی رہتی ہے۔';
+      'دوسرے لوگوں کے شیئر کیے ہوئے عوامی سرورز۔ ہو سکتا ہے ان میں کوئی مسئلہ نہ ہو، لیکن Fortiva انہیں نہیں چلاتا۔ رفتار اور دستیابی بدلتی رہتی ہے۔';
 
   @override
   String get noFreeServers => 'کوئی مفت سرور نہیں';
@@ -325,7 +325,7 @@ class SUr extends S {
 
   @override
   String get shareDiagnosticsBody =>
-      'کنکشن رپورٹس، آپ کا آپریٹر اور ملک، فون کا ماڈل اور اینڈرائیڈ ورژن، Google Play کے مطابق آپ کو ایپ کہاں سے ملی، اور یہ کہ آپ نے ہمارے پیغامات، پریمیم آفرز اور دعوتی کارڈ دیکھے یا ان پر ٹیپ کیا، بھیجے جاتے ہیں۔ آپ جو صفحات کھولتے ہیں یا جو کچھ بھیجتے ہیں، وہ ہم کبھی نہیں دیکھتے۔';
+      'کنکشن رپورٹس، آپ کا آپریٹر اور ملک، فون کا ماڈل اور اینڈرائیڈ ورژن، Google Play کے مطابق آپ کو ایپ کہاں سے ملی، اور یہ کہ آپ نے ہمارے پیغامات، پریمیم آفرز اور دعوتی کارڈ دیکھے یا ان پر ٹیپ کیا، بھیجے جاتے ہیں۔ جب تک یہ آن ہے، ایپ پس منظر میں سرورز بھی جانچتی ہے، جن میں دوسروں کے شیئر کیے ہوئے عوامی سرورز بھی شامل ہیں۔ اسے بند کرنے سے یہ جانچ رک جاتی ہے۔ آپ جو صفحات کھولتے ہیں یا جو کچھ بھیجتے ہیں، وہ ہم کبھی نہیں دیکھتے۔';
 
   @override
   String get security => 'سیکیورٹی';
@@ -479,6 +479,21 @@ class SUr extends S {
   String get openVpnSettings => 'VPN سیٹنگز کھولیں';
 
   @override
+  String get killSwitchTitle => 'VPN کے بغیر انٹرنیٹ بلاک کریں';
+
+  @override
+  String get killSwitchSubtitle =>
+      'جب تک Fortiva متصل نہیں ہے، اینڈرائیڈ اس فون پر سارا انٹرنیٹ بلاک کر سکتا ہے۔';
+
+  @override
+  String get killSwitchSteps =>
+      'اینڈرائیڈ کی VPN سیٹنگز میں FortivaVPN کے ساتھ والے گیئر پر ٹیپ کریں۔ \"ہمیشہ آن VPN\" آن کریں، پھر \"بنا VPN والے کنکشنز کو مسدود کریں\"۔';
+
+  @override
+  String get killSwitchUndo =>
+      'جب تک یہ آن ہے، Fortiva کے متصل ہونے تک دوسری ایپس کے پاس انٹرنیٹ نہیں ہوگا۔ اسے واپس کرنے کے لیے وہیں \"بنا VPN والے کنکشنز کو مسدود کریں\" بند کریں۔';
+
+  @override
   String get yourServer => 'آپ کا سرور';
 
   @override
@@ -496,7 +511,7 @@ class SUr extends S {
 
   @override
   String get communityServerCaption =>
-      'ایک اضافی کنکشن آپشن۔ یہ کسی بھی وقت بند ہو سکتا ہے۔';
+      'دوسروں کا شیئر کیا ہوا عوامی سرور۔ Fortiva اسے نہیں چلاتا۔';
 
   @override
   String communityServerNumber(String n) {

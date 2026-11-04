@@ -1,3 +1,4 @@
+import '../../utils/countries.dart';
 import '../../utils/link_id.dart';
 import '../../utils/vless_link.dart';
 
@@ -255,18 +256,19 @@ class Server {
     final remark = json['remark'] as String? ?? '';
     final type = json['type'] as String? ?? 'free';
 
+    final country = _serverCountry(countryCode);
     // Use remark as display name if available, otherwise fall back to city/country
     final displayName = remark.isNotEmpty
         ? remark
-        : (city.isNotEmpty ? city : countryName(countryCode));
+        : (city.isNotEmpty ? city : country);
 
     return Server(
       id: (json['id'] as int?)?.toString() ?? json['id'].toString(),
       name: displayName,
-      country: countryName(countryCode),
+      country: country,
       city: city,
       connectionUri: json['uri'] as String,
-      flagEmoji: _getFlagEmoji(countryCode),
+      flagEmoji: _serverFlag(countryCode),
       remark: remark,
       latencyMs: null, // Will be measured by ping
       load: ServerLoad.normal,
@@ -309,8 +311,13 @@ class Server {
     // the link carries. Lifted out of the label so the tile can show it
     // where the flag goes and say the country in words, instead of a
     // globe next to "Unknown" beside a label that starts with a flag.
+    // An Iranian flag is no country: such a link is a relay inside Iran
+    // whose exit the app cannot place, so it reads as a link with none, a
+    // globe and a number.
     final flagged = _splitLeadingFlag(displayName);
-    final country = flagged.code == null ? '' : countryName(flagged.code!);
+    final code = flagged.code;
+    final country = code == null ? '' : _serverCountry(code);
+    final flag = code == null || country.isEmpty ? null : flagged.flag;
 
     return Server(
       id: '$communityIdPrefix$index',
@@ -325,7 +332,7 @@ class Server {
       country: country,
       city: '',
       connectionUri: connectionUri,
-      flagEmoji: flagged.flag ?? '🌍',
+      flagEmoji: flag ?? '🌍',
       remark: flagged.rest,
       latencyMs: null,
       load: ServerLoad.normal,
@@ -385,83 +392,67 @@ class Server {
     return Server(
       id: 'dedicated-${endpoint.isNotEmpty ? endpoint : index}',
       name: place,
-      country: parsed.region.isEmpty ? '' : countryName(parsed.region),
+      country: parsed.region.isEmpty ? '' : _serverCountry(parsed.region),
       city: parsed.place,
       connectionUri: uri,
-      flagEmoji: parsed.region.isEmpty ? '🌍' : _getFlagEmoji(parsed.region),
+      flagEmoji: parsed.region.isEmpty ? '🌍' : _serverFlag(parsed.region),
       remark: label ?? '',
       isDedicated: true,
     );
   }
 
-  /// The English name for an ISO country code, or the code itself when
-  /// the table does not cover it.
+  /// The name for an ISO country code in [language] (English unless one
+  /// is given), or the code itself when the tables do not name it, such as
+  /// the EU flag some channels post.
   ///
-  /// Public because the IP screen resolves the same codes, and duplicating
-  /// the table would let the two drift.
-  static String countryName(String countryCode) {
-    const countryNames = {
-      'US': 'United States',
-      'GB': 'United Kingdom',
-      'DE': 'Germany',
-      'FR': 'France',
-      'NL': 'Netherlands',
-      'SE': 'Sweden',
-      'SG': 'Singapore',
-      'JP': 'Japan',
-      'CA': 'Canada',
-      'AU': 'Australia',
-      'HK': 'Hong Kong',
-      'KR': 'South Korea',
-      'IN': 'India',
-      'BR': 'Brazil',
-      'CH': 'Switzerland',
-      'IT': 'Italy',
-      'ES': 'Spain',
-      'RU': 'Russia',
-      'TR': 'Turkey',
-      'PL': 'Poland',
-      // The fleet's own locations. Without these a dedicated server reads
-      // as "Helsinki, FI" on the home screen, since an unmapped code is
-      // returned verbatim.
-      'FI': 'Finland',
-      'NO': 'Norway',
-      'DK': 'Denmark',
-      'IE': 'Ireland',
-      'IS': 'Iceland',
-      'AT': 'Austria',
-      'BE': 'Belgium',
-      'CZ': 'Czechia',
-      'HU': 'Hungary',
-      'RO': 'Romania',
-      'BG': 'Bulgaria',
-      'GR': 'Greece',
-      'PT': 'Portugal',
-      'LU': 'Luxembourg',
-      'EE': 'Estonia',
-      'LV': 'Latvia',
-      'LT': 'Lithuania',
-      'UA': 'Ukraine',
-      'AE': 'United Arab Emirates',
-      'IL': 'Israel',
-      'QA': 'Qatar',
-      'KZ': 'Kazakhstan',
-      'AM': 'Armenia',
-      'GE': 'Georgia',
-      'AZ': 'Azerbaijan',
-      'TW': 'Taiwan',
-      'TH': 'Thailand',
-      'VN': 'Vietnam',
-      'MY': 'Malaysia',
-      'ID': 'Indonesia',
-      'PH': 'Philippines',
-      'NZ': 'New Zealand',
-      'MX': 'Mexico',
-      'AR': 'Argentina',
-      'CL': 'Chile',
-      'ZA': 'South Africa',
-    };
-    return countryNames[countryCode.toUpperCase()] ?? countryCode;
+  /// Public because the IP screen resolves the same codes, and a second
+  /// table would let the two drift.
+  static String countryName(
+    String countryCode, {
+    String language = CountryNames.fallbackLanguage,
+  }) => CountryNames.nameOf(countryCode, language) ?? countryCode;
+
+  /// [countryName] for a server's own country, and nothing for Iran, which
+  /// is never shown as a server's country (CountryNames.neverAServerCountry).
+  static String _serverCountry(String countryCode) =>
+      CountryNames.neverAServerCountry.contains(countryCode.toUpperCase())
+      ? ''
+      : countryName(countryCode);
+
+  /// [flagFor] for a server's own country: the globe for Iran, as for a
+  /// server with no country.
+  static String _serverFlag(String countryCode) =>
+      CountryNames.neverAServerCountry.contains(countryCode.toUpperCase())
+      ? '🌍'
+      : _getFlagEmoji(countryCode);
+
+  /// The two capital letters a flag emoji spells, or null when [flag] is
+  /// not two regional-indicator symbols.
+  static String? codeOfFlag(String flag) {
+    final runes = flag.runes.toList();
+    if (runes.length != 2) return null;
+    if (runes.any((r) => r < 0x1F1E6 || r > 0x1F1FF)) return null;
+    return String.fromCharCodes([for (final r in runes) r - 0x1F1E6 + 0x41]);
+  }
+
+  /// The ISO code of the country this server is shown in. Read off its
+  /// flag, which every constructor draws from that code, so a server kept
+  /// from before has one too. Null when the server names no country, or
+  /// one the tables do not know.
+  String? get countryCode {
+    if (country.isEmpty) return null;
+    final code = codeOfFlag(flagEmoji);
+    return code != null && CountryNames.isServerCountry(code) ? code : null;
+  }
+
+  /// [country] in [language] (a language code such as `fa`). [country] is
+  /// stored in English, because it is also what search and the saved
+  /// lists keep. Screens show this instead. Text the tables cannot place
+  /// is returned as it is.
+  String countryIn(String language) {
+    final code = countryCode;
+    if (code == null) return country;
+    return CountryNames.nameOf(code, language) ?? country;
   }
 
   /// Percent-decode a link's fragment, keeping it verbatim when that fails.

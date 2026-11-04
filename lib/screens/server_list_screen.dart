@@ -62,9 +62,11 @@ class _ServerListScreenState extends State<ServerListScreen> {
     if (_searchQuery.isNotEmpty) {
       final q = _searchQuery.toLowerCase();
       filtered = filtered.where((s) {
-        // The title as the row shows it, so a Persian user finds
-        // «سرور عمومی ۳» by typing what they see.
+        // The title and the country as the row shows them, so a Persian
+        // user finds «سرور عمومی ۳» or «آلمان» by typing what they see. The
+        // English country stays searchable too.
         return serverTitle(context, s).toLowerCase().contains(q) ||
+            serverCountry(context, s).toLowerCase().contains(q) ||
             s.name.toLowerCase().contains(q) ||
             s.country.toLowerCase().contains(q) ||
             s.city.toLowerCase().contains(q) ||
@@ -72,7 +74,11 @@ class _ServerListScreenState extends State<ServerListScreen> {
       }).toList();
     }
 
-    return sortForDisplay(filtered, (s) => serverState.getPingResult(s.id));
+    return sortForDisplay(
+      filtered,
+      (s) => serverState.getPingResult(s.id),
+      countryOf: (s) => serverCountry(context, s),
+    );
   }
 
   /// Make [server] the one the home screen connects through, and go back
@@ -214,8 +220,9 @@ class _ServerListScreenState extends State<ServerListScreen> {
       ),
       body: Column(
         children: [
-          // What these are, before the list. A community link is not a
-          // server we run, and the row alone does not say so.
+          // What these are, before the list: public servers shared by other
+          // people, which we do not run. The row alone does not say so, so
+          // the note above it does.
           const Padding(
             padding: EdgeInsetsDirectional.fromSTEB(20, 12, 16, 0),
             child: _CommunityExplainer(),
@@ -282,6 +289,18 @@ class _ServerListScreenState extends State<ServerListScreen> {
           Expanded(
             child: Consumer<ServerState>(
               builder: (context, serverState, _) {
+                // The row marked "In use" is the server the home card
+                // names (serverInUse). The selection alone stayed on a
+                // community link after the user moved back to their own
+                // servers, and the list marked it while our server carried
+                // the tunnel. Without the VPN (a test of this screen
+                // alone), the selection.
+                final dedicated = context.watch<DedicatedState?>();
+                final inUseId = context.select<VpnService?, String?>(
+                  (vpn) => vpn == null || dedicated == null
+                      ? serverState.selectedServer?.id
+                      : serverInUse(vpn, dedicated, serverState)?.id,
+                );
                 // Only the very first load gets a spinner in place of the
                 // list. A refresh keeps the rows in view under the pull
                 // indicator, instead of blanking them for a second.
@@ -326,6 +345,7 @@ class _ServerListScreenState extends State<ServerListScreen> {
                     emptyIcon: Icons.people_outline_rounded,
                     emptyMessage: l10n.noCommunityServers,
                     live: live,
+                    inUseId: inUseId,
                   ),
                 );
               },
@@ -396,6 +416,7 @@ class _ServerListScreenState extends State<ServerListScreen> {
     required IconData emptyIcon,
     required String emptyMessage,
     required bool live,
+    required String? inUseId,
   }) {
     final l10n = S.of(context)!;
     final filtered = _filterAndSort(servers, serverState);
@@ -447,11 +468,17 @@ class _ServerListScreenState extends State<ServerListScreen> {
             fastest,
             serverState,
             live: live,
+            inUseId: inUseId,
             gap: AppDesign.space16,
             heading: _fastestHeading(),
           );
         }
-        return _buildRow(rows[index - lead], serverState, live: live);
+        return _buildRow(
+          rows[index - lead],
+          serverState,
+          live: live,
+          inUseId: inUseId,
+        );
       },
     );
   }
@@ -463,6 +490,7 @@ class _ServerListScreenState extends State<ServerListScreen> {
     Server server,
     ServerState serverState, {
     required bool live,
+    required String? inUseId,
     double gap = AppDesign.space8,
     Widget? heading,
   }) {
@@ -471,7 +499,7 @@ class _ServerListScreenState extends State<ServerListScreen> {
       padding: EdgeInsets.only(bottom: gap),
       child: ServerCard(
         server: server,
-        isSelected: server.id == serverState.selectedServer?.id,
+        isSelected: server.id == inUseId,
         isPinging: serverState.isPinging(server.id),
         isQueued: serverState.isQueued(server.id),
         pingResult: serverState.getPingResult(server.id),
@@ -574,9 +602,9 @@ class _LoadFailed extends StatelessWidget {
   }
 }
 
-/// One short line saying where these servers come from and when to reach
-/// for them. A calm note, not a box: it is read once, then the list is
-/// what matters.
+/// A short note saying who shares these servers: other people, not
+/// Fortiva, which does not run them. A calm note, not a box: it is
+/// read once, then the list is what matters.
 class _CommunityExplainer extends StatelessWidget {
   const _CommunityExplainer();
 

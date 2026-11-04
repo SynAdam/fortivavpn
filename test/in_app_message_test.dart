@@ -169,7 +169,7 @@ void main() {
         direct: route('direct'),
         tunnel: (_) => route('tunnel'),
         relay: (_) => route('relay', answers: true),
-        tunnelPort: () async => 10808,
+        tunnelSocks: () async => const LocalSocks.noAuth(10808),
         relays: () async => const [
           ApiRelay(url: 'https://203.0.113.5:443', pin: 'aa'),
         ],

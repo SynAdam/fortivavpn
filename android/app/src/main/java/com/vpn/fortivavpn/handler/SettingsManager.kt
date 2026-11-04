@@ -273,13 +273,6 @@ object SettingsManager {
         return Utils.parseInt(MmkvManager.decodeSettingsString(AppConfig.PREF_SOCKS_PORT), AppConfig.PORT_SOCKS.toInt())
     }
 
-    /**
-     * Get the HTTP port.
-     * @return The HTTP port.
-     */
-    fun getHttpPort(): Int {
-        return getSocksPort() + if (Utils.isXray()) 0 else 1
-    }
 
     /** The geo databases the core resolves `geoip:` and `geosite:` tokens from. */
     private val GEO_ASSETS = arrayOf("geosite.dat", "geoip.dat")

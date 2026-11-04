@@ -54,7 +54,7 @@ class _Route {
 /// The tunnel client, trusting the test certificate the way the real one
 /// trusts a public one.
 http.Client _tunnel(int port) => tunnelClient(
-  port,
+  LocalSocks.noAuth(port),
   timeout: const Duration(seconds: 5),
   onBadCertificate: (cert) =>
       ApiRelay(url: 'https://x', pin: _testPin).matches(cert),
@@ -79,16 +79,24 @@ void main() {
     late int? tunnelPort;
     late DateTime now;
 
-    ApiClient client({List<ApiRelay> relays = const [_relay]}) =>
-        ApiClient.forTest(
-          direct: direct.client,
-          tunnel: (_) => tunnel.client,
-          relay: (_) => relay.client,
-          tunnelRelay: (_, _) => tunnelRelay.client,
-          relays: () async => relays,
-          tunnelPort: () async => tunnelPort,
-          now: () => now,
-        );
+    ApiClient client({
+      List<ApiRelay> relays = const [_relay],
+      bool relaysOnCommunity = false,
+      Future<bool?> Function()? onCommunity,
+    }) => ApiClient.forTest(
+      direct: direct.client,
+      tunnel: (_) => tunnel.client,
+      relay: (_) => relay.client,
+      tunnelRelay: (_, _) => tunnelRelay.client,
+      relays: () async => relays,
+      tunnelSocks: () async {
+        final port = tunnelPort;
+        return port == null ? null : LocalSocks.noAuth(port);
+      },
+      tunnelOnCommunity: onCommunity,
+      relaysOnCommunity: () => relaysOnCommunity,
+      now: () => now,
+    );
 
     setUp(() {
       direct = _Route('direct', (_) => _ok());
@@ -181,6 +189,169 @@ void main() {
       expect(
         jsonDecode(tunnelRelay.requests.single.body)['via_tunnel'],
         isTrue,
+      );
+    });
+
+    group('with the switch for community links on', () {
+      setUp(() {
+        direct = _Route('direct', (_) => const SocketException('reset'));
+        tunnelPort = 10808;
+      });
+
+      test('a tunnel through a community server carries the call only to '
+          'a relay, never to our API host', () async {
+        final answer = await client(
+          relaysOnCommunity: true,
+          onCommunity: () async => true,
+        ).post('/api/v1/devices/abc/events', body: {'via_tunnel': false});
+        expect(answer, {'ok': true});
+        expect(tunnel.requests, isEmpty);
+        expect(tunnelRelay.requests, hasLength(1));
+        expect(
+          tunnelRelay.requests.single.url.toString(),
+          'https://203.0.113.5/api/v1/devices/abc/events',
+        );
+        expect(
+          jsonDecode(tunnelRelay.requests.single.body)['via_tunnel'],
+          isTrue,
+        );
+      });
+
+      test('when the relays inside it fail, the relay on the phone own '
+          'network carries the call', () async {
+        tunnelRelay = _Route('tunnel relay', (_) => TimeoutException('x'));
+        await client(
+          relaysOnCommunity: true,
+          onCommunity: () async => true,
+        ).get('/api/v1/app/config');
+        expect(tunnel.requests, isEmpty);
+        expect(relay.requests, hasLength(1));
+      });
+
+      test('every relay goes through a community tunnel, so a third one '
+          'answers when the first two fail', () async {
+        relay = _Route('relay', (_) => TimeoutException('x'));
+        final throughTunnel = <String>[];
+        const four = [
+          _relay,
+          ApiRelay(url: 'https://203.0.113.6:443', pin: _testPin),
+          ApiRelay(url: 'https://203.0.113.7:443', pin: _testPin),
+          ApiRelay(url: 'https://203.0.113.8:443', pin: _testPin),
+        ];
+        ApiClient twoFail(bool on) => ApiClient.forTest(
+          direct: direct.client,
+          tunnel: (_) => tunnel.client,
+          relay: (_) => relay.client,
+          tunnelRelay: (_, r) => _Route('tunnel relay', (_) {
+            throughTunnel.add(r.url);
+            return r.url.contains('203.0.113.7')
+                ? _ok()
+                : TimeoutException('x');
+          }).client,
+          relays: () async => four,
+          tunnelSocks: () async => const LocalSocks.noAuth(10808),
+          tunnelOnCommunity: () async => true,
+          relaysOnCommunity: () => on,
+          now: () => now,
+        );
+        final answer = await twoFail(true).get('/api/v1/app/config');
+        expect(answer, {'ok': true});
+        expect(tunnel.requests, isEmpty);
+        expect(throughTunnel, [
+          'https://203.0.113.5:443',
+          'https://203.0.113.6:443',
+          'https://203.0.113.7:443',
+        ]);
+        expect(relay.requests, isEmpty);
+
+        // With the switch off the tunnel itself is a route, and at most two
+        // relays go through it, as before.
+        tunnel = _Route('tunnel', (_) => TimeoutException('no answer'));
+        throughTunnel.clear();
+        await expectLater(
+          twoFail(false).get('/api/v1/app/config'),
+          throwsA(anything),
+        );
+        expect(tunnel.requests, hasLength(1));
+        expect(throughTunnel, hasLength(2));
+      });
+
+      test('a tunnel the app cannot place counts as community', () async {
+        await client(
+          relaysOnCommunity: true,
+          onCommunity: () async => null,
+        ).get('/api/v1/app/config');
+        expect(tunnel.requests, isEmpty);
+        await client(
+          relaysOnCommunity: true,
+          onCommunity: () async => throw StateError('no answer'),
+        ).get('/api/v1/app/config');
+        expect(tunnel.requests, isEmpty);
+        await client(relaysOnCommunity: true).get('/api/v1/app/config');
+        expect(tunnel.requests, isEmpty);
+        expect(tunnelRelay.requests, hasLength(3));
+      });
+
+      test('a tunnel through our own doors still carries calls to our API '
+          'host', () async {
+        await client(
+          relaysOnCommunity: true,
+          onCommunity: () async => false,
+        ).get('/api/v1/app/config');
+        expect(tunnel.requests, hasLength(1));
+        expect(tunnelRelay.requests, isEmpty);
+      });
+
+      test(
+        'with the switch off, a community tunnel is used as before',
+        () async {
+          await client(onCommunity: () async => true).get('/api/v1/app/config');
+          expect(tunnel.requests, hasLength(1));
+        },
+      );
+
+      test('a call the phone own network carries uses only that', () async {
+        direct = _Route('direct', (_) => _ok());
+        await client(
+          relaysOnCommunity: true,
+          onCommunity: () async => true,
+        ).get('/api/v1/app/config');
+        expect(direct.requests, hasLength(1));
+        expect(tunnel.requests, isEmpty);
+        expect(tunnelRelay.requests, isEmpty);
+      });
+
+      test(
+        'after the exit failed, the tunnel is not put back at the end',
+        () async {
+          var on = false;
+          var relaysDown = false;
+          tunnel = _Route('tunnel', (_) => TimeoutException('no answer'));
+          tunnelRelay = _Route(
+            'tunnel relay',
+            (_) => relaysDown ? TimeoutException('x') : _ok(),
+          );
+          relay = _Route('relay', (_) => TimeoutException('x'));
+          final c = ApiClient.forTest(
+            direct: direct.client,
+            tunnel: (_) => tunnel.client,
+            relay: (_) => relay.client,
+            tunnelRelay: (_, _) => tunnelRelay.client,
+            relays: () async => const [_relay],
+            tunnelSocks: () async => const LocalSocks.noAuth(10808),
+            tunnelOnCommunity: () async => true,
+            relaysOnCommunity: () => on,
+            now: () => now,
+          );
+          // Switch off: the tunnel fails and a relay inside it carries the
+          // call, so the tunnel goes after the relays for a while.
+          await c.get('/api/v1/app/config');
+          expect(tunnel.requests, hasLength(1));
+          on = true;
+          relaysDown = true;
+          await expectLater(c.get('/api/v1/app/config'), throwsA(anything));
+          expect(tunnel.requests, hasLength(1));
+        },
       );
     });
 
@@ -422,6 +593,19 @@ void main() {
       c.close();
     });
 
+    test('the client for the phone own network carries an https call, and '
+        'a certificate from no blocked authority passes', () async {
+      final url = 'https://127.0.0.1:${server.port}';
+      final c = directClient(
+        timeout: const Duration(seconds: 5),
+        onBadCertificate: (cert) =>
+            ApiRelay(url: 'https://x', pin: _testPin).matches(cert),
+      );
+      final r = await c.get(Uri.parse('$url/api/v1/app/config'));
+      expect(r.body, 'relayed /api/v1/app/config');
+      c.close();
+    });
+
     test('a relay with any other certificate is refused', () async {
       final url = 'https://127.0.0.1:${server.port}';
       final c = relayClient(
@@ -593,6 +777,133 @@ void main() {
       expect(request.sublist(0, 8), [0x05, 0x01, 0x00, 0x01, 127, 0, 0, 1]);
       expect((request[8] << 8) | request[9], target.port);
       c.close();
+    });
+
+    group('with credentials', () {
+      /// A proxy that asks for [user] and [pass], or for nothing when they
+      /// are null, then answers one CONNECT. [hellos] records each hello.
+      Future<ServerSocket> authProxy(
+        List<List<int>> hellos, {
+        String? user,
+        String? pass,
+      }) async {
+        final server = await ServerSocket.bind(InternetAddress.loopbackIPv4, 0);
+        server.listen((client) {
+          final buffer = <int>[];
+          var stage = 0;
+          client.listen((data) {
+            buffer.addAll(data);
+            if (stage == 0 &&
+                buffer.length >= 2 &&
+                buffer.length >= 2 + buffer[1]) {
+              final n = 2 + buffer[1];
+              hellos.add(buffer.sublist(0, n));
+              buffer.removeRange(0, n);
+              client.add([0x05, user == null ? 0x00 : 0x02]);
+              stage = user == null ? 2 : 1;
+            }
+            if (stage == 1 && buffer.length >= 2) {
+              final ulen = buffer[1];
+              if (buffer.length < 3 + ulen) return;
+              final plen = buffer[2 + ulen];
+              if (buffer.length < 3 + ulen + plen) return;
+              final u = utf8.decode(buffer.sublist(2, 2 + ulen));
+              final p = utf8.decode(buffer.sublist(3 + ulen, 3 + ulen + plen));
+              buffer.removeRange(0, 3 + ulen + plen);
+              final ok = u == user && p == pass;
+              client.add([0x01, ok ? 0x00 : 0x01]);
+              if (!ok) {
+                client.destroy();
+                return;
+              }
+              stage = 2;
+            }
+            if (stage == 2 && buffer.length >= 7) {
+              stage = 3;
+              client.add([0x05, 0x00, 0x00, 0x01, 127, 0, 0, 1, 0, 80]);
+            }
+          });
+        });
+        return server;
+      }
+
+      Future<void> handshake(int port, LocalSocks? auth) async {
+        final socket = await Socket.connect(InternetAddress.loopbackIPv4, port);
+        try {
+          await socks5Handshake(socket, 'example.com', 443, auth: auth);
+        } finally {
+          socket.destroy();
+        }
+      }
+
+      test('the right credentials are taken', () async {
+        final hellos = <List<int>>[];
+        final server = await authProxy(hellos, user: 'u1', pass: 'p1');
+        await handshake(
+          server.port,
+          LocalSocks(port: server.port, user: 'u1', pass: 'p1'),
+        );
+        expect(hellos.single, [0x05, 0x02, 0x00, 0x02]);
+        await server.close();
+      });
+
+      test('wrong credentials are refused', () async {
+        final server = await authProxy([], user: 'u1', pass: 'p1');
+        await expectLater(
+          handshake(
+            server.port,
+            LocalSocks(port: server.port, user: 'u1', pass: 'nope'),
+          ),
+          throwsA(
+            isA<SocksException>().having(
+              (e) => e.message,
+              'message',
+              socksCredentialsRefused,
+            ),
+          ),
+        );
+        await server.close();
+      });
+
+      test(
+        'a proxy that asks for none still works when they are offered',
+        () async {
+          final hellos = <List<int>>[];
+          final server = await authProxy(hellos);
+          await handshake(
+            server.port,
+            LocalSocks(port: server.port, user: 'u1', pass: 'p1'),
+          );
+          expect(hellos.single, [0x05, 0x02, 0x00, 0x02]);
+          await server.close();
+        },
+      );
+
+      test('without them only no authentication is offered', () async {
+        final hellos = <List<int>>[];
+        final server = await authProxy(hellos);
+        await handshake(server.port, LocalSocks.noAuth(server.port));
+        expect(hellos.single, [0x05, 0x01, 0x00]);
+        await server.close();
+      });
+
+      test('the platform answer is read with or without them', () {
+        expect(
+          LocalSocks.fromChannel({'port': 10808, 'user': 'u', 'pass': 'p'}),
+          const LocalSocks(port: 10808, user: 'u', pass: 'p'),
+        );
+        expect(
+          LocalSocks.fromChannel({'port': 10808}),
+          const LocalSocks.noAuth(10808),
+        );
+        expect(LocalSocks.fromChannel(10808), const LocalSocks.noAuth(10808));
+        expect(LocalSocks.fromChannel(null), isNull);
+        expect(LocalSocks.fromChannel({'port': 'x'}), isNull);
+        expect(
+          const LocalSocks(port: 1, user: 'u', pass: 'p').toString(),
+          isNot(contains('p)')),
+        );
+      });
     });
 
     test('a proxy that refuses the connection fails the route', () async {

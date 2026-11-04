@@ -7,6 +7,7 @@ import android.os.Handler
 import android.os.Looper
 import android.util.Log
 import com.vpn.fortivavpn.MainActivity
+import com.vpn.fortivavpn.handler.LocalSocks
 import com.vpn.fortivavpn.handler.SettingsManager
 import io.flutter.FlutterInjector
 import io.flutter.embedding.engine.FlutterEngine
@@ -84,12 +85,13 @@ class NoticeJobService : JobService() {
 
     private fun handle(call: MethodCall, result: MethodChannel.Result) {
         when (call.method) {
-            "socksPort" -> {
+            "localSocks" -> {
                 // The tunnel runs in another process, so whether it is up is
                 // read by knocking on its SOCKS port. Off the main thread.
+                // With it come the credentials of this start (LocalSocks).
                 Thread {
-                    val port = listeningSocksPort()
-                    main.post { result.success(port) }
+                    val answer = listeningSocksPort()?.let { LocalSocks.answer(it) }
+                    main.post { result.success(answer) }
                 }.start()
             }
             "country" -> result.success(NoticeNotifier.country(applicationContext))

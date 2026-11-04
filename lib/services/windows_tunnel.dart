@@ -94,9 +94,9 @@ class WindowsTunnel {
       }
       throw PlatformException(code: e.code, message: _message(e));
     }
-    // testConnection and socksPort go through the core's SOCKS port, which
+    // testConnection and localSocks go through the core's SOCKS port, which
     // only Android opens; the review prompt and the Play listing are Play's.
-    // The callers already expect these to be missing, as they are on iOS.
+    // The callers already expect these to be missing.
     throw MissingPluginException(
       'No implementation found for method $method on Windows',
     );

@@ -110,7 +110,7 @@ class SHi extends S {
 
   @override
   String get communityTabExplainer =>
-      'अतिरिक्त कनेक्शन विकल्प। गति और उपलब्धता बदलती रहती है।';
+      'दूसरे लोगों के साझा किए गए सार्वजनिक सर्वर। हो सकता है इनमें कोई दिक्कत न हो, लेकिन Fortiva इन्हें नहीं चलाता। गति और उपलब्धता बदलती रहती है।';
 
   @override
   String get noFreeServers => 'कोई मुफ़्त सर्वर नहीं';
@@ -325,7 +325,7 @@ class SHi extends S {
 
   @override
   String get shareDiagnosticsBody =>
-      'कनेक्शन रिपोर्ट, आपका ऑपरेटर और देश, फ़ोन का मॉडल और Android संस्करण, Google Play के अनुसार आपको ऐप कहाँ मिला, और यह कि आपने हमारे संदेश, प्रीमियम ऑफ़र और आमंत्रण कार्ड देखे या उन पर टैप किया, भेजे जाते हैं। आप जो पेज खोलते हैं या जो कुछ भेजते हैं, उसे हम कभी नहीं देखते।';
+      'कनेक्शन रिपोर्ट, आपका ऑपरेटर और देश, फ़ोन का मॉडल और Android संस्करण, Google Play के अनुसार आपको ऐप कहाँ मिला, और यह कि आपने हमारे संदेश, प्रीमियम ऑफ़र और आमंत्रण कार्ड देखे या उन पर टैप किया, भेजे जाते हैं। जब तक यह चालू है, ऐप बैकग्राउंड में सर्वर भी जाँचता है, जिनमें दूसरों के साझा किए गए सार्वजनिक सर्वर भी शामिल हैं। इसे बंद करने से ये जाँचें रुक जाती हैं। आप जो पेज खोलते हैं या जो कुछ भेजते हैं, उसे हम कभी नहीं देखते।';
 
   @override
   String get security => 'सुरक्षा';
@@ -484,6 +484,21 @@ class SHi extends S {
   String get openVpnSettings => 'VPN सेटिंग खोलें';
 
   @override
+  String get killSwitchTitle => 'बिना VPN के इंटरनेट ब्लॉक करें';
+
+  @override
+  String get killSwitchSubtitle =>
+      'जब तक Fortiva कनेक्ट नहीं है, Android इस फ़ोन पर पूरा इंटरनेट ब्लॉक कर सकता है।';
+
+  @override
+  String get killSwitchSteps =>
+      'Android की VPN सेटिंग में, FortivaVPN के बगल वाले गियर पर टैप करें। \"वीपीएन हमेशा चालू रखें\" चालू करें, फिर \"बिना वीपीएन वाले कनेक्शन ब्लॉक करें\"।';
+
+  @override
+  String get killSwitchUndo =>
+      'जब तक यह चालू है, Fortiva के कनेक्ट होने तक दूसरे ऐप्स के पास इंटरनेट नहीं होगा। इसे वापस करने के लिए, वहीं \"बिना वीपीएन वाले कनेक्शन ब्लॉक करें\" बंद करें।';
+
+  @override
   String get yourServer => 'आपका सर्वर';
 
   @override
@@ -501,7 +516,7 @@ class SHi extends S {
 
   @override
   String get communityServerCaption =>
-      'एक अतिरिक्त कनेक्शन विकल्प। यह किसी भी समय काम करना बंद कर सकता है।';
+      'दूसरों का साझा किया गया सार्वजनिक सर्वर। Fortiva इसे नहीं चलाता।';
 
   @override
   String communityServerNumber(String n) {

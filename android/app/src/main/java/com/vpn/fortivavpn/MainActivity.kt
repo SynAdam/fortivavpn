@@ -38,6 +38,7 @@ import com.vpn.fortivavpn.handler.DoorOutbound
 import com.vpn.fortivavpn.handler.DoorOutbounds
 import com.vpn.fortivavpn.handler.LinkFacts
 import com.vpn.fortivavpn.handler.LogPrivacy
+import com.vpn.fortivavpn.handler.LocalSocks
 import com.vpn.fortivavpn.handler.MmkvManager
 import com.vpn.fortivavpn.handler.NetworkKey
 import com.vpn.fortivavpn.handler.PeerHandoff
@@ -65,10 +66,6 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.withTimeoutOrNull
 import java.net.HttpURLConnection
 import java.net.Inet6Address
-import java.net.InetSocketAddress
-import java.net.Proxy
-import java.net.Socket
-import java.net.URL
 import java.security.MessageDigest
 
 class MainActivity : FlutterActivity() {
@@ -336,6 +333,17 @@ class MainActivity : FlutterActivity() {
                             call.argument<Number>("session_stall_ms")?.toLong(),
                             call.argument<Number>("session_busy_bytes")?.toLong(),
                         )
+                        // Our own doors held behind a community link, by
+                        // their positions in the link and the alternates,
+                        // and the backend's interval for checking them
+                        // again (MoveBack). Written on every connect, empty
+                        // when absent, so nothing lingers from an earlier
+                        // one. A restart from the tile or always-on reads
+                        // them with the doors.
+                        writeMoveBack(
+                            call.argument<List<Any?>>("own_doors"),
+                            call.argument<Number>("move_back_every_s")?.toInt(),
+                        )
                         connectTunnel(link, alternates, exits, penalties, outbounds, takeSlot(call), result)
                     } else {
                         result.error("INVALID_ARGUMENT", "Link is null", null)
@@ -469,12 +477,13 @@ class MainActivity : FlutterActivity() {
                 "testConnection" -> {
                     testConnectionViaSocks(result)
                 }
-                "socksPort" -> {
+                "localSocks" -> {
                     // Where the core's SOCKS inbound listens while a tunnel
-                    // is up. The app's own calls to the backend go through it
-                    // when the phone's network drops them, because this app
-                    // is left out of its own tunnel.
-                    result.success(SettingsManager.getSocksPort())
+                    // is up, and the credentials it asks for at this start
+                    // (LocalSocks). The app's own calls to the backend go
+                    // through it when the phone's network drops them,
+                    // because this app is left out of its own tunnel.
+                    result.success(if (isVpnActive()) LocalSocks.answer(SettingsManager.getSocksPort()) else null)
                 }
                 "installId" -> {
                     // Scoped to this app's signing key, this user and this
@@ -887,13 +896,9 @@ class MainActivity : FlutterActivity() {
      */
     private fun privateDnsAnswersThroughTunnel(host: String): Boolean {
         return try {
-            val proxy = Proxy(
-                Proxy.Type.SOCKS,
-                InetSocketAddress(AppConfig.LOOPBACK, SettingsManager.getSocksPort()),
-            )
-            Socket(proxy).use { raw ->
-                raw.soTimeout = 5000
-                raw.connect(InetSocketAddress.createUnresolved(host, 853), 5000)
+            // Through the core's SOCKS port with the credentials of this
+            // start (LocalSocks), naming the provider so the core looks it up.
+            LocalSocks.connect(host, 853, 5000).use { raw ->
                 val factory = javax.net.ssl.SSLSocketFactory.getDefault() as javax.net.ssl.SSLSocketFactory
                 (factory.createSocket(raw, host, 853, true) as javax.net.ssl.SSLSocket).use { tls ->
                     tls.sslParameters = tls.sslParameters.apply {
@@ -1159,6 +1164,7 @@ class MainActivity : FlutterActivity() {
                 MmkvManager.encodeSettings(AppConfig.PREF_AUTOSELECT_GUIDS, "")
                 MmkvManager.encodeSettings(AppConfig.PREF_AUTOSELECT_EXITS, "")
                 MmkvManager.encodeSettings(AppConfig.PREF_AUTOSELECT_PENALTIES, "")
+                writeMoveBack(null, null)
                 writeDoorOutbounds(emptyList(), emptyList())
                 MmkvManager.setSelectServer(guid)
                 MmkvManager.encodeSettings(AppConfig.PREF_MODE, AppConfig.VPN)
@@ -1187,6 +1193,22 @@ class MainActivity : FlutterActivity() {
         if (encoded.isNotEmpty() || !MmkvManager.decodeSettingsString(AppConfig.PREF_DOOR_OUTBOUNDS).isNullOrEmpty()) {
             MmkvManager.encodeSettings(AppConfig.PREF_DOOR_OUTBOUNDS, encoded)
         }
+    }
+
+    /**
+     * Keeps the positions of our own doors held behind a community link
+     * ([own], from the connect call) and the backend's interval for the
+     * move back, for the tunnel's process (V2RayServiceManager, MoveBack).
+     * Anything that is not a position above 0 is left out, and an interval
+     * below 30 seconds is none.
+     */
+    private fun writeMoveBack(own: List<Any?>?, everyS: Int?) {
+        val positions = own.orEmpty().mapNotNull { (it as? Number)?.toInt() }.filter { it > 0 }
+        MmkvManager.encodeSettings(AppConfig.PREF_AUTOSELECT_OWN, positions.joinToString(","))
+        MmkvManager.encodeSettings(
+            AppConfig.PREF_MOVE_BACK_EVERY_S,
+            if (positions.isNotEmpty() && everyS != null && everyS >= 30) everyS.toString() else "",
+        )
     }
 
     /**
@@ -1556,21 +1578,24 @@ class MainActivity : FlutterActivity() {
         CoroutineScope(Dispatchers.IO).launch {
             var sample: HashMap<String, Any>? = null
             try {
-                val socksPort = SettingsManager.getSocksPort()
-                val proxy = Proxy(Proxy.Type.SOCKS, InetSocketAddress("127.0.0.1", socksPort))
-                val url = URL("https://speed.cloudflare.com/__down?bytes=$bytes")
-                val conn = url.openConnection(proxy) as HttpURLConnection
-                conn.connectTimeout = capMs
-                conn.readTimeout = capMs
-                try {
-                    // The page itself refusing says nothing about the
-                    // tunnel: the stall watch falls back to its older check.
-                    sample = ThroughputSample.take(capMs, SystemClock::elapsedRealtime) {
-                        val code = conn.responseCode
-                        code to (if (code == HttpURLConnection.HTTP_OK) conn.inputStream else null)
+                // Through the core's SOCKS port with the credentials of this
+                // start (LocalSocks), then TLS to the page and one GET.
+                val host = "speed.cloudflare.com"
+                LocalSocks.connect(host, 443, capMs).use { raw ->
+                    val factory = javax.net.ssl.SSLSocketFactory.getDefault() as javax.net.ssl.SSLSocketFactory
+                    (factory.createSocket(raw, host, 443, true) as javax.net.ssl.SSLSocket).use { tls ->
+                        tls.soTimeout = capMs
+                        tls.sslParameters = tls.sslParameters.apply {
+                            endpointIdentificationAlgorithm = "HTTPS"
+                        }
+                        tls.startHandshake()
+                        // The page itself refusing says nothing about the
+                        // tunnel: the stall watch falls back to its older check.
+                        sample = ThroughputSample.take(capMs, SystemClock::elapsedRealtime) {
+                            val (code, body) = LocalSocks.httpGet(tls, host, "/__down?bytes=$bytes")
+                            code to (if (code == HttpURLConnection.HTTP_OK) body else null)
+                        }
                     }
-                } finally {
-                    conn.disconnect()
                 }
             } catch (e: Exception) {
                 Log.e(TAG, "throughput sample failed: ${e.message}")

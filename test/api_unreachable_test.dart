@@ -114,7 +114,7 @@ void main() {
         (_) => r == _blocked ? TimeoutException('no answer') : _ok(),
       ),
       relays: () async => const [_blocked, _working],
-      tunnelPort: () async => 10808,
+      tunnelSocks: () async => const LocalSocks.noAuth(10808),
       relayWorked: (r) async => worked.add(r),
       relayFailed: (r) async => failed.add(r),
     );
@@ -137,9 +137,9 @@ void main() {
         reads++;
         return const [_blocked, _working];
       },
-      tunnelPort: () async {
+      tunnelSocks: () async {
         reads++;
-        return 10808;
+        return const LocalSocks.noAuth(10808);
       },
     );
 
@@ -523,7 +523,7 @@ void main() {
       tunnelRelay: (_, _) => _answers((_) => _ok()),
       relay: (_) => _answers((_) => TimeoutException('no answer')),
       relays: () async => const [_blocked, _working],
-      tunnelPort: () async => 10808,
+      tunnelSocks: () async => const LocalSocks.noAuth(10808),
       relayWorked: (r) async => worked.add(r),
     );
 
@@ -551,7 +551,7 @@ void main() {
         return _ok();
       }),
       relays: () async => const [_working],
-      tunnelPort: () async => 10808,
+      tunnelSocks: () async => const LocalSocks.noAuth(10808),
       now: () => clock,
     );
 

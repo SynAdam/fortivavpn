@@ -10,12 +10,14 @@ import 'package:shared_preferences/shared_preferences.dart';
 
 import '../api/api_client.dart';
 import '../api/bootstrap.dart';
+import '../api/local_socks.dart';
 import '../core/state/app_config_state.dart';
 import '../core/state/locale_state.dart';
 import '../data/models/checklist_settings.dart';
 import '../data/models/stall_watch_settings.dart';
 import '../l10n/generated/app_localizations.dart';
 import 'connect_diagnostics.dart';
+import 'saved_tunnel.dart';
 import 'stall_watch.dart';
 import 'vpn_event_reporter.dart';
 
@@ -31,7 +33,11 @@ Future<void> keeperMain() async {
     // The relays the fallback file named, from what earlier runs saved.
     await Bootstrap.instance.restore();
     await Keeper.restoreSettings();
-    ApiClient.tunnelSocksPort = KeeperChannel.socksPort;
+    // Before any call: the backend's switch for calls through a community
+    // tunnel, and where the tunnel goes, as the app saved it.
+    await AppConfigState.restoreApiRouting();
+    ApiClient.tunnelOnCommunity = SavedTunnel.onCommunity;
+    ApiClient.tunnelSocks = KeeperChannel.localSocks;
     await Keeper().run().timeout(Keeper.budget);
   } catch (e) {
     debugPrint('Keeper: the run failed ($e)');
@@ -44,10 +50,13 @@ Future<void> keeperMain() async {
 abstract final class KeeperChannel {
   static const _channel = MethodChannel('com.vpn.fortivavpn/keeper');
 
-  /// The tunnel's SOCKS port while a tunnel is up, else null.
-  static Future<int?> socksPort() async {
+  /// The tunnel's SOCKS port and its credentials while a tunnel is up,
+  /// else null.
+  static Future<LocalSocks?> localSocks() async {
     try {
-      return await _channel.invokeMethod<int>('socksPort');
+      return LocalSocks.fromChannel(
+        await _channel.invokeMethod<Object?>('localSocks'),
+      );
     } catch (e) {
       debugPrint('KeeperChannel: no SOCKS port ($e)');
       return null;
@@ -518,7 +527,7 @@ class Keeper {
 
   /// Whether the tunnel's core still listens.
   static Future<bool> _socksListens() async =>
-      await KeeperChannel.socksPort() != null;
+      await KeeperChannel.localSocks() != null;
 
   /// The notification, in the language the user chose in the app.
   static Future<void> _showStalled(String language) async {

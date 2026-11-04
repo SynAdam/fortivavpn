@@ -11,11 +11,13 @@ import '../api/bootstrap.dart';
 import '../api/device_identity.dart';
 import '../api/message_service.dart';
 import '../api/notices_file.dart';
+import '../core/state/app_config_state.dart';
 import '../core/state/locale_state.dart';
 import '../core/state/message_state.dart';
 import '../data/models/in_app_message.dart';
 import '../l10n/generated/app_localizations.dart';
 import 'notice_channel.dart';
+import 'saved_tunnel.dart';
 import 'vpn_event_reporter.dart';
 
 /// The background check for messages, started by NoticeJobService on
@@ -31,7 +33,10 @@ Future<void> noticePullMain() async {
     // the direct route. Read from what earlier runs saved; nothing here
     // reads the fallback file from the hosts.
     await Bootstrap.instance.restore();
-    ApiClient.tunnelSocksPort = NoticeChannel.socksPort;
+    // Before any call, as in the keeper's run.
+    await AppConfigState.restoreApiRouting();
+    ApiClient.tunnelOnCommunity = SavedTunnel.onCommunity;
+    ApiClient.tunnelSocks = NoticeChannel.localSocks;
     await NoticePull().run().timeout(NoticePull.budget);
   } catch (e) {
     debugPrint('NoticePull: the check failed ($e)');

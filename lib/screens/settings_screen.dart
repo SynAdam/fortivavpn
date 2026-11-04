@@ -27,6 +27,7 @@ import '../l10n/generated/app_localizations.dart';
 import '../utils/number_localizer.dart';
 import '../utils/site_links.dart';
 import '../widgets/background_card.dart';
+import '../widgets/kill_switch_row.dart';
 import '../widgets/language_picker.dart';
 import '../widgets/notices_switch.dart';
 import '../widgets/outside_link.dart';
@@ -205,6 +206,20 @@ class _SettingsScreenState extends State<SettingsScreen> {
                   MaterialPageRoute(
                     builder: (_) =>
                         const ReadableWidth(child: DnsSettingsScreen()),
+                  ),
+                ),
+              ),
+              // Android's own block of all internet while no VPN is
+              // connected: the steps, and a way to Android's VPN settings.
+              // Only while the backend turns it on (KillSwitchStatus).
+              KillSwitchStatus(
+                builder: (context, open) => _divided(
+                  _buildTile(
+                    context,
+                    icon: Icons.vpn_lock_outlined,
+                    title: l10n.killSwitchTitle,
+                    subtitle: l10n.killSwitchSubtitle,
+                    onTap: open,
                   ),
                 ),
               ),
@@ -676,9 +691,12 @@ class _SettingsScreenState extends State<SettingsScreen> {
   }
 
   /// The diagnostics switch, with the whole of what it sends written next
-  /// to it. That text is Google Play's prominent disclosure: its words and
-  /// its place beside the switch stay as they are. A screen reader hears
-  /// the title and the text together with the switch, as one control.
+  /// to it. The text's first sentence is Google Play's prominent
+  /// disclosure: its words and its place beside the switch stay as they
+  /// are. The sentences after it say what else the switch allows: the
+  /// tests of servers the app runs in the background, which stop when it
+  /// is off. A screen reader hears the title and the text together with
+  /// the switch, as one control.
   ///
   /// The disclosure is set at the reading size in the secondary color,
   /// not as fine print, because Play asks for it to be prominent. The icon
@@ -794,8 +812,12 @@ class _SettingsScreenState extends State<SettingsScreen> {
             child: Column(
               children: [
                 for (final (i, child) in children.indexed) ...[
-                  // NoticesStatus rows draw their own divider (_divided).
-                  if (i > 0 && child is! NoticesStatus) _rowDivider,
+                  // NoticesStatus and KillSwitchStatus rows draw their own
+                  // divider (_divided), because they may draw nothing.
+                  if (i > 0 &&
+                      child is! NoticesStatus &&
+                      child is! KillSwitchStatus)
+                    _rowDivider,
                   child,
                 ],
               ],

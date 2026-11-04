@@ -1,11 +1,9 @@
 import 'dart:async';
 import 'dart:convert';
-import 'dart:io';
 import 'dart:math';
 
 import 'package:flutter/foundation.dart';
 import 'package:http/http.dart' as http;
-import 'package:http/io_client.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import '../api/api_client.dart';
@@ -156,12 +154,13 @@ class SizeProbeRunner {
     ];
   }
 
-  /// A client for [route]: the relay's pinned client, or a plain one on the
-  /// phone's own network.
+  /// A client for [route]: the relay's pinned client, or on the phone's own
+  /// network the one ApiClient uses there, which refuses certificates from
+  /// a blocked authority.
   static http.Client defaultClient(SizeProbeRoute route, Duration timeout) {
     final relay = route.relay;
     if (relay != null) return relayClient(relay, timeout: timeout);
-    return IOClient(HttpClient()..connectionTimeout = timeout);
+    return directClient(timeout: timeout);
   }
 
   /// Run once if the config asks for it and this network is due. Returns

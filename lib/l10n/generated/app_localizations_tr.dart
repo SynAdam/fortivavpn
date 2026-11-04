@@ -110,7 +110,7 @@ class STr extends S {
 
   @override
   String get communityTabExplainer =>
-      'Ek bağlantı seçenekleri. Hız ve erişilebilirlik değişebilir.';
+      'Başkalarının paylaştığı herkese açık sunucular. Hiçbir sorunları olmayabilir, ancak Fortiva bunları işletmez. Hız ve erişilebilirlik değişebilir.';
 
   @override
   String get noFreeServers => 'Ücretsiz sunucu yok';
@@ -326,7 +326,7 @@ class STr extends S {
 
   @override
   String get shareDiagnosticsBody =>
-      'Bağlantı raporları, operatörünüz ve ülkeniz, telefon modeli ve Android sürümü, Google Play\'e göre uygulamayı nereden bulduğunuz, ayrıca mesajlarımızı, Premium tekliflerimizi ve davet kartımızı görüp görmediğiniz ya da onlara dokunup dokunmadığınız gönderilir. Açtığınız sayfaları veya gönderdiklerinizi asla görmeyiz.';
+      'Bağlantı raporları, operatörünüz ve ülkeniz, telefon modeli ve Android sürümü, Google Play\'e göre uygulamayı nereden bulduğunuz, ayrıca mesajlarımızı, Premium tekliflerimizi ve davet kartımızı görüp görmediğiniz ya da onlara dokunup dokunmadığınız gönderilir. Açık olduğu sürece uygulama arka planda sunucuları da test eder; bunlara başkalarının paylaştığı herkese açık sunucular da dahildir. Kapatmak bu testleri durdurur. Açtığınız sayfaları veya gönderdiklerinizi asla görmeyiz.';
 
   @override
   String get security => 'Güvenlik';
@@ -478,6 +478,21 @@ class STr extends S {
   String get openVpnSettings => 'VPN ayarlarını aç';
 
   @override
+  String get killSwitchTitle => 'VPN olmadan interneti engelle';
+
+  @override
+  String get killSwitchSubtitle =>
+      'Fortiva bağlı değilken Android bu telefondaki tüm interneti engelleyebilir.';
+
+  @override
+  String get killSwitchSteps =>
+      'Android\'in VPN ayarlarında FortivaVPN uygulamasının yanındaki dişli simgesine dokunun. \"Her zaman açık VPN\" seçeneğini, ardından \"VPN\'si olmayan bağlantıları engelle\" seçeneğini açın.';
+
+  @override
+  String get killSwitchUndo =>
+      'Bu açıkken Fortiva bağlanana kadar diğer uygulamaların interneti olmaz. Geri almak için oradaki \"VPN\'si olmayan bağlantıları engelle\" seçeneğini kapatın.';
+
+  @override
   String get yourServer => 'SUNUCUNUZ';
 
   @override
@@ -495,7 +510,7 @@ class STr extends S {
 
   @override
   String get communityServerCaption =>
-      'Ek bir bağlantı seçeneği. Her an çalışmayı bırakabilir.';
+      'Başkalarının paylaştığı herkese açık bir sunucu. Fortiva bunu işletmez.';
 
   @override
   String communityServerNumber(String n) {

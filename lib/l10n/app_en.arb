@@ -33,7 +33,10 @@
   "communityLoadFailed": "Could not load this list",
   "communityRetry": "Try again",
   "officialTabExplainer": "Run by Fortiva and kept online by us. Shared by everyone who uses the app. Start here.",
-  "communityTabExplainer": "Extra connection options. Speed and availability vary.",
+  "communityTabExplainer": "Public servers shared by other people. They may well be fine, but Fortiva does not run them. Speed and availability vary.",
+  "@communityTabExplainer": {
+    "description": "Note above the Community list. Says these are public servers shared by other people, that they may well be fine, that Fortiva does not run them, and that speed and availability vary. \"Fine\" means they may cause no problem at all, not that they are fast or work well: speed is the last sentence. Keep it calm and neutral, as in English, in plain everyday words."
+  },
   "noFreeServers": "No free servers yet",
   "noPremiumServers": "No premium servers yet",
   "noResultsFor": "No results for \"{query}\"",
@@ -132,9 +135,9 @@
   "tools": "Diagnostics",
   "settingsGeneral": "General",
   "shareDiagnosticsTitle": "Share connection diagnostics",
-  "shareDiagnosticsBody": "Sends connection reports, your carrier and country, phone model and Android version, where Google Play says you found the app, and whether you saw or tapped our messages, Premium offers and invite card. We never see the pages you open or what you send.",
+  "shareDiagnosticsBody": "Sends connection reports, your carrier and country, phone model and Android version, where Google Play says you found the app, and whether you saw or tapped our messages, Premium offers and invite card. While it is on, the app also tests servers in the background, including public servers shared by others. Turning it off stops these tests. We never see the pages you open or what you send.",
   "@shareDiagnosticsBody": {
-    "description": "Under the Share connection diagnostics switch in Settings. It names what the switch sends, so it must change when the switch starts or stops sending something."
+    "description": "Under the Share connection diagnostics switch in Settings. The first sentence names what the switch sends, and is Google Play's disclosure: keep it as it is. The next two say that the switch also lets the app test servers in the background, public servers shared by others among them, and that turning it off stops those tests. Change it whenever the switch starts or stops sending or testing something."
   },
   "security": "Compliance",
   "privacyDashboard": "Endpoint Analysis",
@@ -211,12 +214,31 @@
   "homeOfflineTryingAgain": "Your phone has no internet right now. Trying again soon.",
   "diagPathFailed": "The path was open but the tunnel did not come up. Tap to try again.",
   "openVpnSettings": "Open VPN settings",
+  "killSwitchTitle": "Block internet without VPN",
+  "@killSwitchTitle": {
+    "description": "Settings row, Connection section: opens the steps for Android's own setting that blocks all internet while no VPN is connected. Only shown when the backend turns it on. Short."
+  },
+  "killSwitchSubtitle": "Android can block all internet on this phone while Fortiva is not connected.",
+  "@killSwitchSubtitle": {
+    "description": "Under killSwitchTitle. One sentence. Says Android can do this, not that the app does it."
+  },
+  "killSwitchSteps": "In Android's VPN settings, tap the gear next to FortivaVPN. Turn on \"Always-on VPN\", then \"Block connections without VPN\".",
+  "@killSwitchSteps": {
+    "description": "The steps in the sheet that killSwitchTitle opens. FortivaVPN is the app's name as Android's VPN list shows it (app_name in android/app/src/main/res/values/strings.xml): keep it exactly so, in Latin letters, in every language. The two quoted names are Android's own switch labels in Settings > Network > VPN: use the label Android shows in this language (AOSP Settings strings vpn_menu_lockdown and vpn_require_connection), quoted the way this language quotes system labels elsewhere in the app."
+  },
+  "killSwitchUndo": "While it is on, other apps have no internet until Fortiva connects. To undo it, turn off \"Block connections without VPN\" there.",
+  "@killSwitchUndo": {
+    "description": "Under killSwitchSteps. Says what happens while the setting is on (other apps have no internet until Fortiva connects) and how to undo it. Use the same Android label as killSwitchSteps."
+  },
   "yourServer": "YOUR SERVER",
   "yourServerCaption": "Yours alone. No one else connects through it.",
   "ourServer": "OUR SERVER",
   "ourServerCaption": "Run by Fortiva and shared with everyone. Used until your own server is ready.",
   "communityServer": "COMMUNITY SERVER",
-  "communityServerCaption": "An extra connection option. It may stop working at any time.",
+  "communityServerCaption": "A public server shared by others. Fortiva does not run it.",
+  "@communityServerCaption": {
+    "description": "Line under COMMUNITY SERVER on the home card, shown whenever the status says the phone is connected through a community server. Same meaning as communityTabExplainer, for one server. Keep it about as long as the English, because the card counts toward the home screen's height. Calm and neutral, as in English."
+  },
   "communityServerNumber": "Community server {n}",
   "@communityServerNumber": {
     "description": "Title of a community link that names no country; n is its position in the list, already in the phone's digits.",

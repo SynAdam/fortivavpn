@@ -81,9 +81,15 @@ void main() {
     expect(title, isNot(contains('203.0.113.9')));
   });
 
-  testWidgets('a link with a flag is its country', (tester) async {
+  testWidgets('a link with a flag is its country, in the phone language', (
+    tester,
+  ) async {
     expect(
       await titleIn(tester, const Locale('fa'), (c) => serverTitle(c, flagged)),
+      'آلمان',
+    );
+    expect(
+      await titleIn(tester, const Locale('en'), (c) => serverTitle(c, flagged)),
       'Germany',
     );
   });

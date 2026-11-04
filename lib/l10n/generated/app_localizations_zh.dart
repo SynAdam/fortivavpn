@@ -108,7 +108,8 @@ class SZh extends S {
   String get officialTabExplainer => '由 Fortiva 运营并保持在线。所有使用本应用的用户共享。从这里开始。';
 
   @override
-  String get communityTabExplainer => '额外的连接选项。速度和可用性可能有所不同。';
+  String get communityTabExplainer =>
+      '由其他人共享的公共服务器。它们也许没有任何问题，但 Fortiva 并不运营这些服务器。速度和可用性可能有所不同。';
 
   @override
   String get noFreeServers => '暂无免费服务器';
@@ -322,7 +323,7 @@ class SZh extends S {
 
   @override
   String get shareDiagnosticsBody =>
-      '发送连接报告、您的运营商和国家/地区、手机型号和 Android 版本、Google Play 显示的您发现本应用的来源，以及您是否看过或点击过我们的消息、高级版优惠和邀请卡片。我们绝不会看到您打开的页面或您发送的内容。';
+      '发送连接报告、您的运营商和国家/地区、手机型号和 Android 版本、Google Play 显示的您发现本应用的来源，以及您是否看过或点击过我们的消息、高级版优惠和邀请卡片。开启期间，应用还会在后台测试服务器，其中包括他人共享的公共服务器。关闭后，这些测试会停止。我们绝不会看到您打开的页面或您发送的内容。';
 
   @override
   String get security => '合规';
@@ -471,6 +472,20 @@ class SZh extends S {
   String get openVpnSettings => '打开 VPN 设置';
 
   @override
+  String get killSwitchTitle => '无 VPN 时屏蔽网络';
+
+  @override
+  String get killSwitchSubtitle => 'Fortiva 未连接时，Android 可以屏蔽这部手机上的所有网络连接。';
+
+  @override
+  String get killSwitchSteps =>
+      '在 Android 的 VPN 设置中，点按 FortivaVPN 旁边的齿轮图标。开启「始终开启的 VPN」，然后开启「屏蔽未使用 VPN 的所有连接」。';
+
+  @override
+  String get killSwitchUndo =>
+      '开启后，在 Fortiva 连接之前，其他应用将无法上网。如需撤消，请在那里关闭「屏蔽未使用 VPN 的所有连接」。';
+
+  @override
   String get yourServer => '您的服务器';
 
   @override
@@ -486,7 +501,7 @@ class SZh extends S {
   String get communityServer => '社区服务器';
 
   @override
-  String get communityServerCaption => '额外的连接选项。随时可能停止工作。';
+  String get communityServerCaption => '由他人共享的公共服务器。Fortiva 不运营此服务器。';
 
   @override
   String communityServerNumber(String n) {

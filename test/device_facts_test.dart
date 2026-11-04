@@ -47,7 +47,7 @@ void main() {
           200,
         );
       }),
-      tunnelPort: () async => null,
+      tunnelSocks: () async => null,
     );
     return DeviceService.forTest(
       client: client,
@@ -129,7 +129,7 @@ void main() {
               200,
             );
           }),
-          tunnelPort: () async => null,
+          tunnelSocks: () async => null,
         ),
         place: DevicePlace(channel: channel),
         testLab: TestLab(channel: channel, android: false),

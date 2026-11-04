@@ -273,11 +273,31 @@ object V2rayConfigManager {
      * penalty of 0 or less is none, and with none at all the setting is
      * left out (null).
      */
-    fun autoSelectPenalties(tags: List<String>, penalties: List<Int>): Map<String, Int>? =
+    fun autoSelectPenalties(
+        tags: List<String>,
+        penalties: List<Int>,
+        own: Set<Int> = emptySet(),
+    ): Map<String, Int>? =
         tags.mapNotNull { tag ->
-            val ms = autoSelectMemberIndex(tag)?.let { penalties.getOrNull(it) } ?: 0
+            val index = autoSelectMemberIndex(tag)
+            var ms = index?.let { penalties.getOrNull(it) } ?: 0
+            // Our own doors held behind a community link: every other door
+            // ranks behind them, so the core moves back to one of ours once
+            // it opens. A penalty counts only for a member the core
+            // measured alive, so it never makes a dead door win, and the
+            // only working door is used whatever its penalty.
+            if (own.isNotEmpty() && index != null && index !in own) ms = maxOf(ms, OWN_FIRST_PENALTY_MS)
             if (ms > 0) tag to ms else null
         }.toMap().ifEmpty { null }
+
+    /**
+     * The penalty of every door that is not one of ours while our doors are
+     * held behind a community link. Not a tunable: an ordering mark above
+     * any score a working door can have (a probe answers within 5 seconds,
+     * and the backend's own penalties stay under 1.5 seconds), so a working
+     * door of ours always ranks first.
+     */
+    const val OWN_FIRST_PENALTY_MS = 30_000
 
     /**
      * A config that holds every door in [guids] at once.
@@ -308,6 +328,9 @@ object V2rayConfigManager {
      * A door the last connect gave the backend's outbound is dialled with
      * it, unless [doorOutbounds] is false (DoorOutbounds).
      *
+     * [own] holds the positions of our own doors held behind a community
+     * link. Every other door then ranks behind them ([autoSelectPenalties]).
+     *
      * Returns a failed result when it cannot build a group of at least two
      * doors that starts with the first guid. The caller then connects through
      * that one door as before.
@@ -318,6 +341,7 @@ object V2rayConfigManager {
         exits: List<String> = emptyList(),
         penalties: List<Int> = emptyList(),
         doorOutbounds: Boolean = true,
+        own: Set<Int> = emptySet(),
     ): ConfigResult {
         val result = ConfigResult(false)
         try {
@@ -375,7 +399,7 @@ object V2rayConfigManager {
                     val exit = autoSelectMemberIndex(door.tag)?.let { exits.getOrNull(it) }
                     if (exit.isNullOrBlank()) null else door.tag to exit
                 }.toMap().ifEmpty { null },
-                penalties = autoSelectPenalties(doors.map { it.tag }, penalties),
+                penalties = autoSelectPenalties(doors.map { it.tag }, penalties, own),
             )
             // The template's first outbound is the placeholder for the one
             // proxy; the group and its doors take its place.
@@ -404,7 +428,7 @@ object V2rayConfigManager {
             result.content = JsonUtil.toJsonPretty(v2rayConfig) ?: ""
             result.guid = guids.first()
             return DoorOutbounds.finish(result, swaps) {
-                getV2rayAutoSelectConfig(context, guids, exits, penalties, doorOutbounds = false)
+                getV2rayAutoSelectConfig(context, guids, exits, penalties, doorOutbounds = false, own = own)
             }
         } catch (e: Exception) {
             Log.e(AppConfig.TAG, "Failed to build a config that holds several doors", e)
@@ -616,18 +640,44 @@ object V2rayConfigManager {
                 v2rayConfig.inbounds[0].sniffing?.destOverride?.add("fakedns")
             }
 
-            if (Utils.isXray()) {
-                v2rayConfig.inbounds.removeAt(1)
-            } else {
-                val httpPort = SettingsManager.getHttpPort()
-                v2rayConfig.inbounds[1].port = httpPort
-            }
+            // The SOCKS port asks for the credentials of this start of the
+            // core (LocalSocks), so no other app on the phone can use the
+            // tunnel through it. tun2socks and the app's own checks send
+            // them. With none made, it stays open as before, and tun2socks
+            // then gets none either, so the two never disagree.
+            v2rayConfig.inbounds[0] = withLocalAuth(v2rayConfig.inbounds[0], LocalSocks.current())
+            // Nothing needs an HTTP inbound, which would let any app use the
+            // tunnel with no credentials at all. The template has none; one
+            // a custom template brings is dropped too.
+            v2rayConfig.inbounds.removeAll { it.protocol == "http" }
 
         } catch (e: Exception) {
             Log.e(AppConfig.TAG, "Failed to configure inbounds", e)
             return false
         }
         return true
+    }
+
+    /**
+     * [inbound], the core's SOCKS inbound, asking for [auth]'s user name and
+     * password, with UDP on. Unchanged without [auth]. The core binds the
+     * UDP of an association to the TCP connection that authenticated it,
+     * so the credentials cover UDP too, and the same port's answer to plain
+     * HTTP proxy requests asks for them as well.
+     */
+    internal fun withLocalAuth(inbound: V2rayConfig.InboundBean, auth: LocalSocks.Auth?): V2rayConfig.InboundBean {
+        if (auth == null) {
+            Log.w(AppConfig.TAG, "[config] no credentials for the SOCKS port; it stays open")
+            return inbound
+        }
+        return inbound.copy(
+            settings = mapOf(
+                "auth" to "password",
+                "accounts" to listOf(mapOf("user" to auth.user, "pass" to auth.pass)),
+                "udp" to true,
+                "userLevel" to 8,
+            ),
+        )
     }
 
     /**

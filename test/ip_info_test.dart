@@ -29,10 +29,14 @@ void main() {
       expect(info.lon, 0);
     });
 
-    test('an unmapped code stands in for itself rather than blanking', () {
+    test('a code is named, and one the tables lack stands in for itself', () {
       expect(
         IpInfo.fromBackend({'ip': '1.2.3.4', 'country': 'NG'}).country,
-        'NG',
+        'Nigeria',
+      );
+      expect(
+        IpInfo.fromBackend({'ip': '1.2.3.4', 'country': 'ZZ'}).country,
+        'ZZ',
       );
     });
 

@@ -110,7 +110,7 @@ class SFr extends S {
 
   @override
   String get communityTabExplainer =>
-      'Options de connexion supplémentaires. La vitesse et la disponibilité varient.';
+      'Des serveurs publics partagés par d\'autres personnes. Ils ne posent peut-être aucun problème, mais Fortiva ne les gère pas. La vitesse et la disponibilité varient.';
 
   @override
   String get noFreeServers => 'Aucun serveur gratuit';
@@ -329,7 +329,7 @@ class SFr extends S {
 
   @override
   String get shareDiagnosticsBody =>
-      'Envoie les rapports de connexion, votre opérateur et votre pays, le modèle du téléphone, la version d\'Android, l\'endroit où vous avez trouvé l\'application selon Google Play et si vous avez vu ou touché nos messages, nos offres Premium et notre carte d\'invitation. Nous ne voyons jamais les pages que vous ouvrez ni ce que vous envoyez.';
+      'Envoie les rapports de connexion, votre opérateur et votre pays, le modèle du téléphone, la version d\'Android, l\'endroit où vous avez trouvé l\'application selon Google Play et si vous avez vu ou touché nos messages, nos offres Premium et notre carte d\'invitation. Tant que cette option est activée, l\'application teste aussi des serveurs en arrière-plan, dont des serveurs publics partagés par d\'autres. La désactiver arrête ces tests. Nous ne voyons jamais les pages que vous ouvrez ni ce que vous envoyez.';
 
   @override
   String get security => 'Sécurité';
@@ -491,6 +491,21 @@ class SFr extends S {
   String get openVpnSettings => 'Ouvrir les réglages VPN';
 
   @override
+  String get killSwitchTitle => 'Bloquer Internet sans VPN';
+
+  @override
+  String get killSwitchSubtitle =>
+      'Android peut bloquer tout Internet sur ce téléphone tant que Fortiva n\'est pas connecté.';
+
+  @override
+  String get killSwitchSteps =>
+      'Dans les réglages VPN d\'Android, touchez la roue dentée à côté de FortivaVPN. Activez « VPN permanent », puis « Bloquer les connexions sans VPN ».';
+
+  @override
+  String get killSwitchUndo =>
+      'Tant que c\'est activé, les autres applications n\'ont pas accès à Internet jusqu\'à ce que Fortiva se connecte. Pour annuler, désactivez « Bloquer les connexions sans VPN » à cet endroit.';
+
+  @override
   String get yourServer => 'VOTRE SERVEUR';
 
   @override
@@ -509,7 +524,7 @@ class SFr extends S {
 
   @override
   String get communityServerCaption =>
-      'Une option de connexion supplémentaire. Elle peut cesser de fonctionner à tout moment.';
+      'Un serveur public partagé par d\'autres. Fortiva ne le gère pas.';
 
   @override
   String communityServerNumber(String n) {

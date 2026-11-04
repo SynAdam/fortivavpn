@@ -6,6 +6,7 @@ import 'package:http/http.dart' as http;
 
 import '../api/api_client.dart';
 import '../api/api_routes.dart';
+import '../api/blocked_authorities.dart';
 import '../api/bootstrap.dart';
 import 'report_queue.dart';
 import 'vpn_event_reporter.dart';
@@ -150,13 +151,17 @@ class DeliveryLog {
   /// The message of a socket error names the host and port it dialled,
   /// which is our own server, and may name more on some platforms. Only the
   /// kind of failure leaves the phone: timeout, refused, reset,
-  /// unreachable, dns, tls, certificate, closed, socks, socket, or the
-  /// error's type.
+  /// unreachable, dns, tls, certificate, blocked_ca, closed, socks, socket,
+  /// or the error's type.
   static String? errorClass(Object? error) {
     if (error == null) return null;
     final text = error.toString().toLowerCase();
     final String kind;
-    if (error is TimeoutException) {
+    if (error is BlockedAuthority) {
+      // Before the text checks: a certificate from an authority the app
+      // refuses, which says someone on the path forged one.
+      kind = 'blocked_ca';
+    } else if (error is TimeoutException) {
       kind = 'timeout';
     } else if (error is SocksException) {
       kind = 'socks';

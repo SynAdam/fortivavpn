@@ -28,6 +28,31 @@ Server? activeServer(DedicatedState dedicated, ServerState servers) {
   return dedicated.selectedServer ?? servers.selectedServer;
 }
 
+/// The server the tunnel goes through, or that the next tap dials, as the
+/// home card names it: a community link the core moved to by itself
+/// (VpnService.communityDoorInUse), which the selection does not follow,
+/// and otherwise [activeServer].
+///
+/// Your servers and the community list mark this one "In use", so the two
+/// lists and the home card name the same server. Each list used to mark
+/// its own selection: after a fallback onto a community link, Your servers
+/// still marked our server while the home card said community server.
+///
+/// Null through the backup network, which is on neither list, and while
+/// the allowance is spent and no community link carries the tunnel.
+Server? serverInUse(
+  VpnService vpn,
+  DedicatedState dedicated,
+  ServerState servers,
+) {
+  if (vpn.onPsiphon) return null;
+  final active = activeServer(dedicated, servers);
+  final link = vpn.status == VpnStatus.connected
+      ? vpn.communityDoorInUse
+      : null;
+  return link != null && !(active?.isCommunity ?? false) ? link : active;
+}
+
 /// Re-read this device's servers and allowance, and take down a tunnel
 /// that the allowance no longer covers.
 ///
@@ -221,6 +246,7 @@ Future<void> dialServer(
       // The tunnel is on another shared link now, so the card names it
       // and the next tap tries it first.
       onShared: (s) => servers.selectServer(s, byFallback: true),
+      onMovedBack: (_) => _movedBack(servers),
       allowanceSpent: () => askAllowance(vpn, dedicated),
       beforeRetry: () => _beforeRetry(vpn, dedicated, servers),
       afterStall: afterStall,
@@ -276,6 +302,10 @@ Future<void> dialServer(
     // next tap tries it first, as if the user had picked it, after a look
     // at our own doors.
     onShared: (s) => servers.selectServer(s, byFallback: true),
+    // The core moved back from a community link to one of our doors held
+    // behind it: the card names our server again (onSwitchedServer selects
+    // it), and the next tap starts from our doors.
+    onMovedBack: (_) => _movedBack(servers),
     allowanceSpent: () => askAllowance(vpn, dedicated),
     // A new list and this device's servers again, before each try after
     // nothing was open, and the doors as they then stand.
@@ -291,6 +321,13 @@ Future<void> dialServer(
       (flow.chosen?.isDedicated ?? false)) {
     servers.clearChoice();
   }
+}
+
+/// The community link the fallback chose is no longer the selection once
+/// the tunnel has moved back to one of our doors. One the user picked
+/// stays, though nothing holds our doors behind such a link.
+void _movedBack(ServerState servers) {
+  if (servers.chosenByFallback) servers.clearChoice();
 }
 
 /// The server of this device's own whose doors a tap tries first, or null

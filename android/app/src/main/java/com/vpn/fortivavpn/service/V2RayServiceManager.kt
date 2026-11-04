@@ -16,9 +16,9 @@ import com.vpn.fortivavpn.R
 import com.vpn.fortivavpn.dto.ConfigResult
 import com.vpn.fortivavpn.dto.EConfigType
 import com.vpn.fortivavpn.dto.ProfileItem
+import com.vpn.fortivavpn.handler.LocalSocks
 import com.vpn.fortivavpn.handler.MmkvManager
 import com.vpn.fortivavpn.handler.SettingsManager
-import com.vpn.fortivavpn.handler.SpeedtestManager
 import com.vpn.fortivavpn.handler.V2rayConfigManager
 import com.vpn.fortivavpn.util.MessageUtil
 import com.vpn.fortivavpn.util.PluginUtil
@@ -201,11 +201,19 @@ object V2RayServiceManager {
             return StartFailure.BAD_PROFILE
         }
 
+        // New credentials for the SOCKS port of this start, before any of
+        // its configs is built, so the group, the fallbacks of CoreStart
+        // and tun2socks all read the same ones (LocalSocks).
+        LocalSocks.renew()
+
         // Several doors at once when the app sent standby doors with this
         // one, and the one door otherwise or when the group cannot be built.
         val doors = standbyDoors(guid)
+        // Our own doors held behind a community link, when the app sent
+        // some with these doors (MoveBack).
+        val own = if (doors.size > 1) ownDoors() else emptySet()
         var result = if (doors.size > 1) {
-            V2rayConfigManager.getV2rayAutoSelectConfig(service, doors, doorExits(), doorPenalties())
+            V2rayConfigManager.getV2rayAutoSelectConfig(service, doors, doorExits(), doorPenalties(), own = own)
         } else {
             ConfigResult(false)
         }
@@ -244,6 +252,7 @@ object V2RayServiceManager {
                     doorExits(),
                     doorPenalties(),
                     doorOutbounds = false,
+                    own = own,
                 )
             } else {
                 V2rayConfigManager.getV2rayConfig(service, guid, doorOutbounds = false)
@@ -273,6 +282,7 @@ object V2RayServiceManager {
         // The heartbeat and the dead tunnel check, while the app's engine is
         // gone and this tunnel runs on.
         Keeper.start(service)
+        MoveBack.start(own, moveBackEveryS(), started.grouped)
         startMeter()
 
         return null
@@ -285,6 +295,9 @@ object V2RayServiceManager {
      */
     fun stopCoreLoop(reason: String = ""): Boolean {
         autoSelectDoors = 0
+        MoveBack.stop()
+        // The core's SOCKS credentials end with it.
+        LocalSocks.clear()
         stopMeter()
         // Every stop of the core also stops the backup network, when it
         // runs. Returns at once; see PsiphonCore.
@@ -485,6 +498,19 @@ object V2RayServiceManager {
             .map { it.trim().toIntOrNull() ?: 0 }
 
     /**
+     * The positions of our own doors held behind a community link in the
+     * last connect, as PREF_AUTOSELECT_OWN holds them. Empty when there are
+     * none.
+     */
+    private fun ownDoors(): Set<Int> =
+        MmkvManager.decodeSettingsString(AppConfig.PREF_AUTOSELECT_OWN).orEmpty().split(",")
+            .mapNotNull { it.trim().toIntOrNull() }.filter { it > 0 }.toSet()
+
+    /** The backend's interval for the move back, in seconds, or null. */
+    private fun moveBackEveryS(): Int? =
+        MmkvManager.decodeSettingsString(AppConfig.PREF_MOVE_BACK_EVERY_S)?.trim()?.toIntOrNull()
+
+    /**
      * The position of the door new connections go through, in the order the
      * app sent them, and what the group knows about every door. Null when
      * the core holds one door.
@@ -498,6 +524,7 @@ object V2RayServiceManager {
                 if (group.optString("tag") != AppConfig.TAG_PROXY) continue
                 val selected = V2rayConfigManager.autoSelectMemberIndex(group.optString("selected"))
                     ?: return null
+                MoveBack.observe(group)
                 return selected to doorReport(group).toString()
             }
             null
@@ -548,11 +575,15 @@ object V2RayServiceManager {
             m.optString("lastError").takeIf { it.isNotBlank() }?.let { door.put("last_error", it) }
             doors.put(door)
         }
-        return JSONObject()
+        val report = JSONObject()
             .put("state", group.optString("state"))
             .put("switch_count", group.optInt("switches"))
             .put("switches", moves)
             .put("doors", doors)
+        // Moves from a community link back to one of our doors held behind
+        // it, since the core started, when there are such doors.
+        if (MoveBack.active) report.put("move_backs", MoveBack.moveBacks)
+        return report
     }
 
     /**
@@ -621,7 +652,7 @@ object V2RayServiceManager {
     /**
      * Measures the connection delay for the current V2Ray configuration.
      * Tests with primary URL first, then falls back to alternative URL if needed.
-     * Also fetches remote IP information if the delay test was successful.
+     * Nothing sends MSG_MEASURE_DELAY now.
      */
     private fun measureV2rayDelay() {
         if (coreController.isRunning == false) {
@@ -654,13 +685,6 @@ object V2RayServiceManager {
                 service.getString(R.string.connection_test_error, errorStr)
             }
             MessageUtil.sendMsg2UI(service, AppConfig.MSG_MEASURE_DELAY_SUCCESS, result)
-
-            // Only fetch IP info if the delay test was successful
-            if (time >= 0) {
-                SpeedtestManager.getRemoteIPInfo()?.let { ip ->
-                    MessageUtil.sendMsg2UI(service, AppConfig.MSG_MEASURE_DELAY_SUCCESS, "$result\n$ip")
-                }
-            }
         }
     }
 

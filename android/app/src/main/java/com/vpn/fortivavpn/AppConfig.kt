@@ -58,6 +58,30 @@ object AppConfig {
     const val PREF_AUTOSELECT_PENALTIES = "pref_autoselect_penalties"
 
     /**
+     * The positions in PREF_AUTOSELECT_GUIDS of our own doors held behind a
+     * community link (the app's StandbyDoors.ownBehind), comma-separated.
+     * The core ranks every other door behind them
+     * (V2rayConfigManager.autoSelectPenalties), so it moves back to one of
+     * ours once it opens. Empty when the app sent none.
+     */
+    const val PREF_AUTOSELECT_OWN = "pref_autoselect_own"
+
+    /**
+     * How often, in seconds, the tunnel's process asks the core to check
+     * the doors of PREF_AUTOSELECT_OWN again while it is on a community
+     * link (service/MoveBack.kt), as the backend set it. Empty when it set
+     * none: the core's own probes then decide when.
+     */
+    const val PREF_MOVE_BACK_EVERY_S = "pref_move_back_every_s"
+
+    /**
+     * The user name and password of the core's local SOCKS port for the
+     * running start of the core, as "user:pass" (handler/LocalSocks.kt).
+     * Made by the tunnel's process at each start and removed at each stop.
+     */
+    const val PREF_LOCAL_SOCKS_AUTH = "pref_local_socks_auth"
+
+    /**
      * The backend's outbound of each door of the last connect that has one,
      * as a JSON object from the door's guid to what the app sent for it
      * (handler/DoorOutbounds.kt). Empty or absent when no door has one.

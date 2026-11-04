@@ -110,7 +110,7 @@ class SId extends S {
 
   @override
   String get communityTabExplainer =>
-      'Pilihan koneksi tambahan. Kecepatan dan ketersediaannya bervariasi.';
+      'Server publik yang dibagikan orang lain. Server ini mungkin tidak bermasalah, tetapi Fortiva tidak mengelolanya. Kecepatan dan ketersediaannya bervariasi.';
 
   @override
   String get noFreeServers => 'Belum ada server gratis';
@@ -327,7 +327,7 @@ class SId extends S {
 
   @override
   String get shareDiagnosticsBody =>
-      'Mengirim laporan koneksi, operator dan negara Anda, model ponsel dan versi Android, dari mana Anda menemukan aplikasi ini menurut Google Play, serta apakah Anda melihat atau mengetuk pesan, penawaran Premium, dan kartu undangan kami. Kami tidak pernah melihat halaman yang Anda buka atau apa yang Anda kirim.';
+      'Mengirim laporan koneksi, operator dan negara Anda, model ponsel dan versi Android, dari mana Anda menemukan aplikasi ini menurut Google Play, serta apakah Anda melihat atau mengetuk pesan, penawaran Premium, dan kartu undangan kami. Selama ini aktif, aplikasi juga menguji server di latar belakang, termasuk server publik yang dibagikan orang lain. Menonaktifkannya akan menghentikan pengujian ini. Kami tidak pernah melihat halaman yang Anda buka atau apa yang Anda kirim.';
 
   @override
   String get security => 'Kepatuhan';
@@ -487,6 +487,21 @@ class SId extends S {
   String get openVpnSettings => 'Buka pengaturan VPN';
 
   @override
+  String get killSwitchTitle => 'Blokir internet tanpa VPN';
+
+  @override
+  String get killSwitchSubtitle =>
+      'Android dapat memblokir semua internet di ponsel ini selama Fortiva tidak terhubung.';
+
+  @override
+  String get killSwitchSteps =>
+      'Di pengaturan VPN Android, ketuk ikon roda gigi di samping FortivaVPN. Aktifkan \"VPN selalu aktif\", lalu \"Memblokir koneksi tanpa VPN\".';
+
+  @override
+  String get killSwitchUndo =>
+      'Selama ini aktif, aplikasi lain tidak punya internet sampai Fortiva terhubung. Untuk membatalkannya, nonaktifkan \"Memblokir koneksi tanpa VPN\" di sana.';
+
+  @override
   String get yourServer => 'SERVER ANDA';
 
   @override
@@ -505,7 +520,7 @@ class SId extends S {
 
   @override
   String get communityServerCaption =>
-      'Pilihan koneksi tambahan. Bisa berhenti bekerja kapan saja.';
+      'Server publik yang dibagikan orang lain. Fortiva tidak mengelolanya.';
 
   @override
   String communityServerNumber(String n) {

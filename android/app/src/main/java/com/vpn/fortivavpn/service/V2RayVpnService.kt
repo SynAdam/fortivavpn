@@ -10,7 +10,6 @@ import android.net.LocalSocketAddress
 import android.net.Network
 import android.net.NetworkCapabilities
 import android.net.NetworkRequest
-import android.net.ProxyInfo
 import android.net.VpnService
 import android.os.Build
 import android.os.ParcelFileDescriptor
@@ -28,6 +27,7 @@ import com.vpn.fortivavpn.AppConfig
 import com.vpn.fortivavpn.AppConfig.LOOPBACK
 import com.vpn.fortivavpn.BuildConfig
 import com.vpn.fortivavpn.R
+import com.vpn.fortivavpn.handler.LocalSocks
 import com.vpn.fortivavpn.handler.MmkvManager
 import com.vpn.fortivavpn.handler.SettingsManager
 import com.vpn.fortivavpn.util.MessageUtil
@@ -41,6 +41,9 @@ class V2RayVpnService : VpnService(), ServiceControl {
     companion object {
         private const val VPN_MTU = 1500
         private const val TUN2SOCKS = "libtun2socks.so"
+
+        /** Where tun2socks reads the SOCKS password of the running start. */
+        private const val TUN2SOCKS_PASSWORD = "tun2socks_password"
 
         /**
          * Why a tunnel that was up is not any more, as the app reports it.
@@ -601,9 +604,6 @@ class V2RayVpnService : VpnService(), ServiceControl {
 
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
             builder.setMetered(false)
-            if (MmkvManager.decodeSettingsBool(AppConfig.PREF_APPEND_HTTP_PROXY)) {
-                builder.setHttpProxy(ProxyInfo.buildDirectProxy(LOOPBACK, SettingsManager.getHttpPort()))
-            }
         }
 
         // Create a new interface using the builder and save the parameters.
@@ -707,23 +707,25 @@ class V2RayVpnService : VpnService(), ServiceControl {
             // ignored
         }
 
-        val cmd = arrayListOf(
-            File(applicationContext.applicationInfo.nativeLibraryDir, TUN2SOCKS).absolutePath,
-            "--netif-ipaddr", vpnConfig.ipv4Router,
-            "--netif-netmask", "255.255.255.252",
-            "--socks-server-addr", "$LOOPBACK:${socksPort}",
-            "--tunmtu", VPN_MTU.toString(),
-            "--sock-path", sockPath,
-            // UDP as SOCKS5 UDP ASSOCIATE, which the core's SOCKS inbound
-            // accepts. In this build --enable-udprelay means the udpgw
-            // protocol aimed at 0.0.0.0:0, which the core does not speak, so
-            // every UDP packet was dropped: DNS over UDP, voice calls, games.
-            // DNS still worked only because Android upgrades its own lookups
-            // to DNS over TLS when it can. With Private DNS set to a
-            // provider it cannot, and on 2026-10-02 a phone in Iran
-            // connected but could not resolve a single new name.
-            "--socks5-udp",
-            "--loglevel", "debug"  // Changed from "notice" to "debug" for verbose UDP logs
+        // The credentials the core's SOCKS port asks for at this start
+        // (LocalSocks). The password goes in a file, not on the command
+        // line, where other processes could read it. With none, tun2socks
+        // gets none, as the core's port then asks for none.
+        // A file that cannot be written is no reason to start without them:
+        // the core would then refuse every connection. The password goes on
+        // the command line instead, which Android shows to no other app.
+        val auth = LocalSocks.current()
+        val passwordFile = File(applicationContext.noBackupFilesDir, TUN2SOCKS_PASSWORD)
+        val passwordPath = if (auth != null && writePassword(passwordFile, auth.pass)) passwordFile.absolutePath else null
+        val cmd = Tun2socksArgs.build(
+            binary = File(applicationContext.applicationInfo.nativeLibraryDir, TUN2SOCKS).absolutePath,
+            routerAddress = vpnConfig.ipv4Router,
+            socksAddress = "$LOOPBACK:${socksPort}",
+            mtu = VPN_MTU,
+            sockPath = sockPath,
+            auth = auth,
+            passwordPath = passwordPath,
+            debugBuild = BuildConfig.DEBUG,
         )
 
         if (MmkvManager.decodeSettingsBool(AppConfig.PREF_PREFER_IPV6)) {
@@ -738,7 +740,7 @@ class V2RayVpnService : VpnService(), ServiceControl {
             Log.i(AppConfig.TAG, "   - DNS Gateway: $LOOPBACK:$localDnsPort")
         }
         
-        Log.i(AppConfig.TAG, "📋 TUN2SOCKS Command: ${cmd.joinToString(" ")}")
+        Log.i(AppConfig.TAG, "📋 TUN2SOCKS Command: ${Tun2socksArgs.forLog(cmd)}")
 
         try {
             val proBuilder = ProcessBuilder(cmd)
@@ -790,6 +792,22 @@ class V2RayVpnService : VpnService(), ServiceControl {
         }
         return StartFailure.PROCESS_ERROR
     }
+
+    /**
+     * Writes [pass] to [file] with no newline, readable by this app only.
+     * False when it could not, and tun2socks then starts with no
+     * credentials (see [startTun2socks]).
+     */
+    private fun writePassword(file: File, pass: String): Boolean =
+        try {
+            file.writeText(pass, Charsets.UTF_8)
+            file.setReadable(false, false)
+            file.setReadable(true, true)
+            true
+        } catch (e: Exception) {
+            Log.e(AppConfig.TAG, "Could not write the SOCKS password for tun2socks", e)
+            false
+        }
 
     /**
      * Sends the file descriptor to the tun2socks process.
@@ -857,6 +875,10 @@ class V2RayVpnService : VpnService(), ServiceControl {
             }
         } catch (e: Exception) {
             Log.e(AppConfig.TAG, "Failed to destroy $TUN2SOCKS process", e)
+        }
+        try {
+            File(applicationContext.noBackupFilesDir, TUN2SOCKS_PASSWORD).delete()
+        } catch (_: Exception) {
         }
 
         V2RayServiceManager.stopCoreLoop(teardownReason())

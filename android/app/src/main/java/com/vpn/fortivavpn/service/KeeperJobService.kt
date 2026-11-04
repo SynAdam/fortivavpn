@@ -12,6 +12,7 @@ import android.os.Looper
 import android.util.Log
 import com.vpn.fortivavpn.AppConfig
 import com.vpn.fortivavpn.MainActivity
+import com.vpn.fortivavpn.handler.LocalSocks
 import com.vpn.fortivavpn.handler.SettingsManager
 import com.vpn.fortivavpn.handler.TunnelProbe
 import com.vpn.fortivavpn.util.MessageUtil
@@ -107,9 +108,11 @@ class KeeperJobService : JobService() {
                 val works = TunnelProbe.tunnelCarries()
                 main.post { result.success(works) }
             }.start()
-            "socksPort" -> Thread {
-                val port = listeningSocksPort()
-                main.post { result.success(port) }
+            "localSocks" -> Thread {
+                // The port and the credentials of this start of the core
+                // (LocalSocks), when something listens on the port.
+                val answer = listeningSocksPort()?.let { LocalSocks.answer(it) }
+                main.post { result.success(answer) }
             }.start()
             "showStalled" -> result.success(
                 NoticeNotifier.showStalled(

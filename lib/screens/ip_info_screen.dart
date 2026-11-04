@@ -7,6 +7,7 @@ import '../data/models/ip_info.dart';
 import '../services/ip_info_service.dart';
 import '../services/vpn_service.dart';
 import '../utils/number_localizer.dart';
+import '../widgets/server_title.dart';
 import '../widgets/ui/app_card.dart';
 import '../widgets/ui/pressable.dart';
 import '../widgets/ui/section_label.dart';
@@ -143,11 +144,12 @@ class _IpInfoScreenState extends State<IpInfoScreen> {
   /// left out.
   List<(String, String)> _details(BuildContext context, IpInfo info) {
     final l10n = S.of(context)!;
+    final country = info.countryIn(appLanguage(context));
     return [
-      if (info.country.isNotEmpty)
+      if (country.isNotEmpty)
         (
           l10n.ipLocation,
-          info.city.isEmpty ? info.country : '${info.country}, ${info.city}',
+          info.city.isEmpty ? country : '$country, ${info.city}',
         ),
       if (info.isp.isNotEmpty) (l10n.ipProvider, info.isp),
       if (info.org.isNotEmpty) (l10n.ipOrganization, info.org),

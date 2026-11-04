@@ -283,6 +283,12 @@ class AccountService {
     // connections. The same for every device and nothing about the account,
     // kept like the flags above.
     'remote_connection_data',
+    // The backend's last switches for community links: calls on the relays
+    // while the tunnel goes through one, and the move back to our servers.
+    // The same for every device and nothing about the account, kept like
+    // the flags above.
+    'remote_api_via_relays_on_community',
+    'remote_move_back',
     // The backend's last backup network settings. The same for every device
     // and nothing about the account, kept like the flags above. Whether this
     // device may use the network comes with the device's own answer, which

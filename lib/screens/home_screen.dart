@@ -39,6 +39,7 @@ import '../services/notice_channel.dart';
 import '../services/peer_pick.dart';
 import '../services/test_point.dart';
 import '../services/vpn_service.dart';
+import '../utils/countries.dart';
 import '../utils/number_localizer.dart';
 import '../widgets/apn_guide_card.dart';
 import '../widgets/elapsed_time.dart';
@@ -1639,6 +1640,12 @@ class _HomeScreenState extends State<HomeScreen> {
     final active = activeServer(dedicated, serverState);
     final latency = _latencyFor(active, dedicated, serverState);
     final isConnected = vpn.status == VpnStatus.connected && !vpn.isVerifying;
+    // With our doors held behind a community link, the core can move back
+    // to the link by itself, also while the app was closed, and the
+    // selection then still names our door. The status line and the card
+    // name the link the tunnel is on instead (serverInUse), never one of
+    // ours. The lists mark the same server "In use".
+    final named = serverInUse(vpn, dedicated, serverState) ?? active;
     // Null in tests of the screen built without payments.
     final billing = context.watch<BillingState?>();
     // Null in tests of the screen built without it.
@@ -1680,7 +1687,7 @@ class _HomeScreenState extends State<HomeScreen> {
       blocked: dedicated.isBlocked,
       starting: _starting,
       stopped: _stoppedNote?.isActive ?? false,
-      community: active?.isCommunity ?? false,
+      community: named?.isCommunity ?? false,
     );
     final face = _powerFace(
       vpn,
@@ -1819,9 +1826,9 @@ class _HomeScreenState extends State<HomeScreen> {
     // still opens the list, and a pick there dials as any pick does.
     final onBackup = vpn.onPsiphon && !dedicated.isBlocked;
     final serverCard = _ServerCard(
-      server: onBackup ? Server.psiphon : active,
+      server: onBackup ? Server.psiphon : named,
       backupRegion: onBackup ? vpn.psiphonRegion : null,
-      ping: onBackup ? null : latency,
+      ping: onBackup || !identical(named, active) ? null : latency,
       // The tunnel is up and checked through what the card names, and
       // carrying data: on the backup network the card names that. A
       // stalled tunnel stays calm, as the button turns to its warning.
@@ -2446,12 +2453,12 @@ class _ServerCard extends StatelessWidget {
   /// allowance, which is a property of this device's server.
   bool get _isOwn => server?.isDedicated ?? true;
 
-  /// The country [backupRegion] names, when the app knows its name.
-  String? get _backupCountry {
+  /// The country [backupRegion] names in [language], when the app knows
+  /// its name. Never Iran (CountryNames.neverAServerCountry).
+  String? _backupCountry(String language) {
     final region = backupRegion;
-    if (region == null) return null;
-    final name = Server.countryName(region);
-    return name == region ? null : name;
+    if (region == null || !CountryNames.isServerCountry(region)) return null;
+    return CountryNames.nameOf(region, language);
   }
 
   /// Which of the kinds of server this is, since from the outside they look
@@ -2473,9 +2480,10 @@ class _ServerCard extends StatelessWidget {
     if (_blocked) return l10n.quotaLimitReached;
     final s = server;
     if (s == null) return l10n.homePreparing;
-    if (_isBackup) return _backupCountry ?? l10n.backupNetworkPlace;
+    final language = appLanguage(context);
+    if (_isBackup) return _backupCountry(language) ?? l10n.backupNetworkPlace;
     final city = s.city.trim();
-    final country = s.country.trim();
+    final country = s.countryIn(language).trim();
     if (city.isNotEmpty && country.isNotEmpty) return '$city, $country';
     if (country.isNotEmpty) return country;
     if (city.isNotEmpty) return city;
@@ -2500,7 +2508,7 @@ class _ServerCard extends StatelessWidget {
   String get _flag {
     if (_isBackup) {
       final region = backupRegion;
-      return region != null && _backupCountry != null
+      return region != null && CountryNames.isServerCountry(region)
           ? Server.flagFor(region)
           : '';
     }

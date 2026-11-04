@@ -170,11 +170,11 @@ class ApiClient {
   static final ApiClient _instance = ApiClient._internal();
   factory ApiClient() => _instance;
   ApiClient._internal()
-    : _direct = http.Client(),
-      _tunnelFor = ((port) => tunnelClient(port, timeout: ApiConfig.timeout)),
+    : _direct = directClient(timeout: ApiConfig.timeout),
+      _tunnelFor = ((socks) => tunnelClient(socks, timeout: ApiConfig.timeout)),
       _relayFor = ((relay) => relayClient(relay, timeout: ApiConfig.timeout)),
-      _tunnelRelayFor = ((port, relay) =>
-          tunnelRelayClient(port, relay, timeout: ApiConfig.timeout)),
+      _tunnelRelayFor = ((socks, relay) =>
+          tunnelRelayClient(socks, relay, timeout: ApiConfig.timeout)),
       // The relays forward to our own backend, so a build pointed at a
       // local one must never fall back to them.
       _relays = ApiConfig.baseOverridden
@@ -182,18 +182,22 @@ class ApiClient {
           : ApiRelays.current,
       _relayWorked = ApiRelays.noteWorked,
       _relayFailed = ApiRelays.noteFailed,
-      _tunnelPort = null,
+      _tunnelSocks = null,
+      _onCommunity = null,
+      _relaysOnCommunity = null,
       _now = DateTime.now;
 
   /// A client whose routes are given, for tests that have no network.
   @visibleForTesting
   ApiClient.forTest({
     required http.Client direct,
-    http.Client Function(int port)? tunnel,
+    http.Client Function(LocalSocks socks)? tunnel,
     http.Client Function(ApiRelay relay)? relay,
-    http.Client Function(int port, ApiRelay relay)? tunnelRelay,
+    http.Client Function(LocalSocks socks, ApiRelay relay)? tunnelRelay,
     Future<List<ApiRelay>> Function()? relays,
-    Future<int?> Function()? tunnelPort,
+    Future<LocalSocks?> Function()? tunnelSocks,
+    Future<bool?> Function()? tunnelOnCommunity,
+    bool Function()? relaysOnCommunity,
     DateTime Function()? now,
     Future<void> Function(ApiRelay relay)? relayWorked,
     Future<void> Function(ApiRelay relay)? relayFailed,
@@ -204,13 +208,34 @@ class ApiClient {
        _relays = relays ?? (() async => const []),
        _relayWorked = relayWorked ?? ((_) async {}),
        _relayFailed = relayFailed ?? ((_) async {}),
-       _tunnelPort = tunnelPort,
+       _tunnelSocks = tunnelSocks,
+       _onCommunity = tunnelOnCommunity,
+       _relaysOnCommunity = relaysOnCommunity ?? (() => false),
        _now = now ?? DateTime.now;
 
-  /// The SOCKS port of a running tunnel, or null when none is up or the
-  /// tunnel cannot carry this app's calls. Set by VpnService, which owns
-  /// the answer.
-  static Future<int?> Function()? tunnelSocksPort;
+  /// The SOCKS port of a running tunnel and its credentials, or null when
+  /// none is up or the tunnel cannot carry this app's calls. Set by
+  /// VpnService, which owns the answer, and by the engines that run with
+  /// no screen.
+  static Future<LocalSocks?> Function()? tunnelSocks;
+
+  /// Whether the running tunnel goes through a community server: true for
+  /// one, false for one of ours, null when the engine cannot tell. Set by
+  /// VpnService, and by the engines that run with no screen from what the
+  /// app saved (SavedTunnel).
+  static Future<bool?> Function()? tunnelOnCommunity;
+
+  /// The backend's `api_via_relays_on_community` switch, as the last config
+  /// that landed set it (AppConfigState). Off on a phone the backend has
+  /// never answered, which keeps the routes as they were.
+  ///
+  /// While it is on and the tunnel goes through a community server, or the
+  /// app cannot tell where it goes, a call is never sent to our API host
+  /// through the tunnel. Through the tunnel it goes only to the relays,
+  /// whose certificates are pinned and whose hello names another site, so
+  /// the server's operator cannot tell the phone runs this app. The direct
+  /// route leaves outside the tunnel and stays.
+  static bool relaysOnCommunity = false;
 
   /// Told about every try of every call, on every route, when it ends. Set
   /// at startup by DeliveryLog.install. Called synchronously and never
@@ -253,18 +278,24 @@ class ApiClient {
   static const tunnelRelays = 2;
 
   final http.Client _direct;
-  final http.Client Function(int port) _tunnelFor;
+  final http.Client Function(LocalSocks socks) _tunnelFor;
   final http.Client Function(ApiRelay relay) _relayFor;
-  final http.Client Function(int port, ApiRelay relay) _tunnelRelayFor;
+  final http.Client Function(LocalSocks socks, ApiRelay relay) _tunnelRelayFor;
   final Future<List<ApiRelay>> Function() _relays;
   final Future<void> Function(ApiRelay relay) _relayWorked;
   final Future<void> Function(ApiRelay relay) _relayFailed;
-  final Future<int?> Function()? _tunnelPort;
+  final Future<LocalSocks?> Function()? _tunnelSocks;
+  final Future<bool?> Function()? _onCommunity;
+  final bool Function()? _relaysOnCommunity;
   final DateTime Function() _now;
 
-  final Map<int, http.Client> _tunnelClients = {};
+  final Map<LocalSocks, http.Client> _tunnelClients = {};
   final Map<ApiRelay, http.Client> _relayClients = {};
-  final Map<(int, ApiRelay), http.Client> _tunnelRelayClients = {};
+  final Map<(LocalSocks, ApiRelay), http.Client> _tunnelRelayClients = {};
+
+  /// The tunnel the clients above were made for. A new start of the tunnel
+  /// has new credentials, and the clients of the old one are closed.
+  LocalSocks? _clientsFor;
   DateTime? _directFailedAt;
 
   /// When a relay through the tunnel last carried a call after the tunnel
@@ -429,6 +460,13 @@ class ApiClient {
   /// tunnel the relays are dialled from abroad, where their addresses are
   /// not blocked; on the phone's own network they often are.
   ///
+  /// With [relaysOnCommunity] on, a tunnel through a community server, or
+  /// one the app cannot place, is left out as a route of its own: only the
+  /// relays go through it ([_relaysOnly]). Then every relay goes through
+  /// it, not only the first [tunnelRelays], in place of the route that was
+  /// left out: a relay that is down, or that this exit cannot reach, must
+  /// not end the call while another relay would answer.
+  ///
   /// A generator that runs only as far as the call has asked. When the
   /// phone's own network goes first, the other routes are worked out only
   /// once it has failed, so a call that network carries never waits for
@@ -441,26 +479,31 @@ class ApiClient {
         failedAt != null && _now().difference(failedAt) < preferOthersFor;
     if (!directFailedLately) yield _Route.direct();
     final others = <_Route>[];
-    int? port;
+    LocalSocks? socks;
     try {
-      port = await (_tunnelPort ?? tunnelSocksPort)?.call();
+      socks = await (_tunnelSocks ?? tunnelSocks)?.call();
     } catch (e) {
       debugPrint('ApiClient: could not read the tunnel port ($e)');
     }
+    if (socks != null) _useTunnel(socks);
+    final relaysOnly = socks != null && await _relaysOnly();
     final exitFailedAt = _tunnelExitFailedAt;
     final exitFailedLately =
         exitFailedAt != null &&
         _now().difference(exitFailedAt) < preferOthersFor;
-    if (port != null && !exitFailedLately) others.add(_Route.tunnel(port));
+    if (socks != null && !relaysOnly && !exitFailedLately) {
+      others.add(_Route.tunnel(socks));
+    }
     try {
       final relays = await _relays();
-      if (port != null) {
-        for (final relay in relays.take(tunnelRelays)) {
-          others.add(_Route.tunnelRelay(port, relay));
+      if (socks != null) {
+        final inTunnel = relaysOnly ? relays.length : tunnelRelays;
+        for (final relay in relays.take(inTunnel)) {
+          others.add(_Route.tunnelRelay(socks, relay));
         }
         // Its exit could not reach us lately: the tunnel goes after the
         // relays inside it.
-        if (exitFailedLately) others.add(_Route.tunnel(port));
+        if (exitFailedLately && !relaysOnly) others.add(_Route.tunnel(socks));
       }
       for (final relay in relays) {
         others.add(_Route.relay(relay));
@@ -474,6 +517,41 @@ class ApiClient {
     if (directFailedLately) yield _Route.direct();
   }
 
+  /// Whether a call may go through the tunnel only to the relays: the
+  /// switch is on and the tunnel goes through a community server, or the
+  /// app cannot tell. A wrong guess this way costs little, because the
+  /// relays through the tunnel are still there. A wrong guess the other
+  /// way would show our API host's name to a stranger's server. Never
+  /// throws.
+  Future<bool> _relaysOnly() async {
+    final on = (_relaysOnCommunity ?? (() => relaysOnCommunity))();
+    if (!on) return false;
+    try {
+      final community = await (_onCommunity ?? tunnelOnCommunity)?.call();
+      return community != false;
+    } catch (e) {
+      debugPrint('ApiClient: could not tell where the tunnel goes ($e)');
+      return true;
+    }
+  }
+
+  /// Closes the clients made for an earlier start of the tunnel, whose
+  /// credentials the core no longer takes, when [socks] is a new one.
+  void _useTunnel(LocalSocks socks) {
+    final known = _clientsFor;
+    if (known == socks) return;
+    _clientsFor = socks;
+    if (known == null) return;
+    for (final client in _tunnelClients.values) {
+      client.close();
+    }
+    for (final client in _tunnelRelayClients.values) {
+      client.close();
+    }
+    _tunnelClients.clear();
+    _tunnelRelayClients.clear();
+  }
+
   /// The body [route] sends, as JSON, or null when there is none.
   ///
   /// Through the tunnel the call reaches the backend from our own exit
@@ -481,7 +559,9 @@ class ApiClient {
   /// passes the phone's own address on, so the phone's answer stands.
   static String? _encode(_Route route, Map<String, dynamic>? body) {
     if (body == null) return null;
-    final sent = route.port != null && body.containsKey('via_tunnel')
+    final throughTunnel =
+        route.kind == _RouteKind.tunnel || route.kind == _RouteKind.tunnelRelay;
+    final sent = throughTunnel && body.containsKey('via_tunnel')
         ? {...body, 'via_tunnel': true}
         : body;
     return jsonEncode(sent);
@@ -622,14 +702,17 @@ class ApiClient {
     return switch (route.kind) {
       _RouteKind.direct => (_direct, ApiConfig.baseUrl),
       _RouteKind.tunnel => (
-        _tunnelClients.putIfAbsent(route.port!, () => _tunnelFor(route.port!)),
+        _tunnelClients.putIfAbsent(
+          route.socks!,
+          () => _tunnelFor(route.socks!),
+        ),
         ApiConfig.baseUrl,
       ),
       _RouteKind.tunnelRelay => (
         _tunnelRelayClients.putIfAbsent((
-          route.port!,
+          route.socks!,
           route.relay!,
-        ), () => _tunnelRelayFor(route.port!, route.relay!)),
+        ), () => _tunnelRelayFor(route.socks!, route.relay!)),
         route.relay!.url,
       ),
       _RouteKind.relay => (
@@ -706,17 +789,18 @@ enum _RouteKind { direct, tunnel, tunnelRelay, relay }
 
 /// One way a call can reach the backend.
 class _Route {
-  const _Route._(this.kind, {this.port, this.relay});
+  const _Route._(this.kind, {this.socks, this.relay});
 
   factory _Route.direct() => const _Route._(_RouteKind.direct);
-  factory _Route.tunnel(int port) => _Route._(_RouteKind.tunnel, port: port);
+  factory _Route.tunnel(LocalSocks socks) =>
+      _Route._(_RouteKind.tunnel, socks: socks);
   factory _Route.relay(ApiRelay relay) =>
       _Route._(_RouteKind.relay, relay: relay);
-  factory _Route.tunnelRelay(int port, ApiRelay relay) =>
-      _Route._(_RouteKind.tunnelRelay, port: port, relay: relay);
+  factory _Route.tunnelRelay(LocalSocks socks, ApiRelay relay) =>
+      _Route._(_RouteKind.tunnelRelay, socks: socks, relay: relay);
 
   final _RouteKind kind;
-  final int? port;
+  final LocalSocks? socks;
   final ApiRelay? relay;
 
   String get name => switch (kind) {

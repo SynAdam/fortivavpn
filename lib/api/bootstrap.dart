@@ -212,8 +212,8 @@ class Bootstrap extends ChangeNotifier {
 
   /// A client through the running tunnel, or null when none is up.
   static Future<http.Client?> _tunnelClient() async {
-    final port = await ApiClient.tunnelSocksPort?.call();
-    return port == null ? null : tunnelClient(port, timeout: readTimeout);
+    final socks = await ApiClient.tunnelSocks?.call();
+    return socks == null ? null : tunnelClient(socks, timeout: readTimeout);
   }
 
   /// What a read of [url] asks for. GitHub's API sends JSON about the file

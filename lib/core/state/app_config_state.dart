@@ -4,6 +4,7 @@ import 'dart:convert';
 import 'package:flutter/foundation.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
+import '../../api/api_client.dart';
 import '../../api/api_routes.dart';
 import '../../api/app_config_service.dart';
 import '../../api/bootstrap.dart';
@@ -90,6 +91,17 @@ class AppConfigState extends ChangeNotifier {
   /// block) are kept between launches, as JSON. Missing when the last
   /// config that landed had the block off or had none.
   static const psiphonKey = 'remote_psiphon';
+
+  /// Set while the backend's last config had `api_via_relays_on_community`
+  /// on. Missing when the last config that landed had it off or had no
+  /// such key. Also read by the engines that run with no screen
+  /// ([restoreApiRouting]).
+  static const relaysOnCommunityKey = 'remote_api_via_relays_on_community';
+
+  /// Where the backend's last move back settings (`move_back_to_own` and
+  /// `move_back_every_s`) are kept between launches, as JSON. Missing when
+  /// the last config that landed had the move back off or had no such key.
+  static const moveBackKey = 'remote_move_back';
 
   final Future<AppConfig> Function() _fetch;
   final Future<String?> Function() _fallbackFile;
@@ -217,6 +229,8 @@ class AppConfigState extends ChangeNotifier {
     await _restoreConnectionData();
     await _restoreStallWatchSettings();
     await _restorePsiphon();
+    await restoreApiRouting();
+    await _restoreMoveBack();
     // In the background: a download must never hold up a tap. Usually
     // there is nothing to do, because the list for the saved sha is on the
     // phone already.
@@ -237,6 +251,15 @@ class AppConfigState extends ChangeNotifier {
       await _keepTlsFragment(flags.tlsFragment);
       await _keepStandbyDoors(flags.standbyDoors);
       await _keepStallWatch(flags.stallWatch);
+      // A config without the keys turns both off, here and on the next
+      // launch: that is how the backend turns them off.
+      ApiClient.relaysOnCommunity = flags.apiViaRelaysOnCommunity;
+      await _keepApiRouting(flags.apiViaRelaysOnCommunity);
+      StandbyDoors.moveBack = flags.moveBackToOwn;
+      StandbyDoors.moveBackEvery = flags.moveBackToOwn
+          ? flags.moveBackEvery
+          : null;
+      await _keepMoveBack(flags.moveBackToOwn, flags.moveBackEvery);
       // A config with no block turns the settings off here and on the
       // next launch: the newest answer is the one that counts.
       ChecklistSettings.current = _config!.checklist;
@@ -491,6 +514,70 @@ class AppConfigState extends ChangeNotifier {
       if (prefs.getBool(standbyDoorsKey) == true) StandbyDoors.enabled = true;
     } catch (e) {
       debugPrint('AppConfigState: could not read standby doors ($e)');
+    }
+  }
+
+  /// Put the backend's last `api_via_relays_on_community` back in force,
+  /// before any call: the app's engine runs it before its fetch, and the
+  /// engines that run with no screen before their calls. Nothing saved
+  /// leaves it off, as on a phone the backend has never answered.
+  static Future<void> restoreApiRouting() async {
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      ApiClient.relaysOnCommunity = prefs.getBool(relaysOnCommunityKey) == true;
+    } catch (e) {
+      debugPrint('AppConfigState: could not read the API routing ($e)');
+    }
+  }
+
+  Future<void> _keepApiRouting(bool on) async {
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      if (on) {
+        await prefs.setBool(relaysOnCommunityKey, true);
+      } else {
+        await prefs.remove(relaysOnCommunityKey);
+      }
+    } catch (e) {
+      debugPrint('AppConfigState: could not save the API routing ($e)');
+    }
+  }
+
+  /// Put the backend's last move back settings back in force, so a tap
+  /// before the fetch lands, or on a launch whose fetch failed, holds our
+  /// doors behind a community link the way the backend last asked.
+  /// Nothing saved, or a copy that cannot be read, leaves it off.
+  Future<void> _restoreMoveBack() async {
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      final saved = prefs.getString(moveBackKey);
+      if (saved == null) return;
+      final decoded = jsonDecode(saved);
+      if (decoded is! Map) return;
+      StandbyDoors.moveBack = true;
+      final every = decoded['every_s'];
+      StandbyDoors.moveBackEvery =
+          every is int && every >= FeatureFlags.moveBackFloor.inSeconds
+          ? Duration(seconds: every)
+          : null;
+    } catch (e) {
+      debugPrint('AppConfigState: could not read the move back ($e)');
+    }
+  }
+
+  Future<void> _keepMoveBack(bool on, Duration? every) async {
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      if (on) {
+        await prefs.setString(
+          moveBackKey,
+          jsonEncode({'every_s': ?every?.inSeconds}),
+        );
+      } else {
+        await prefs.remove(moveBackKey);
+      }
+    } catch (e) {
+      debugPrint('AppConfigState: could not save the move back ($e)');
     }
   }
 

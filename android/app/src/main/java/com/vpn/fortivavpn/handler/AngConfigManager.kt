@@ -426,20 +426,13 @@ object AngConfigManager {
             }
             Log.i(AppConfig.TAG, url)
 
-            var configText = try {
-                val httpPort = SettingsManager.getHttpPort()
-                HttpUtil.getUrlContentWithUserAgent(url, 15000, httpPort)
+            // Direct: the core has no HTTP inbound any more, and its SOCKS
+            // port asks for credentials (LocalSocks).
+            val configText = try {
+                HttpUtil.getUrlContentWithUserAgent(url)
             } catch (e: Exception) {
-                Log.e(AppConfig.ANG_PACKAGE, "Update subscription: proxy not ready or other error", e)
+                Log.e(AppConfig.TAG, "Update subscription: Failed to get URL content with user agent", e)
                 ""
-            }
-            if (configText.isEmpty()) {
-                configText = try {
-                    HttpUtil.getUrlContentWithUserAgent(url)
-                } catch (e: Exception) {
-                    Log.e(AppConfig.TAG, "Update subscription: Failed to get URL content with user agent", e)
-                    ""
-                }
             }
             if (configText.isEmpty()) {
                 return 0

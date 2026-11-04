@@ -110,7 +110,7 @@ class SAr extends S {
 
   @override
   String get communityTabExplainer =>
-      'خيارات اتصال إضافية. تختلف السرعة ومدى التوفر.';
+      'خوادم عامة يشاركها أشخاص آخرون. قد لا تكون فيها أي مشكلة، لكن Fortiva لا تديرها. تختلف السرعة ومدى التوفر.';
 
   @override
   String get noFreeServers => 'لا توجد خوادم مجانية';
@@ -325,7 +325,7 @@ class SAr extends S {
 
   @override
   String get shareDiagnosticsBody =>
-      'تُرسَل تقارير الاتصال، وشركة الاتصالات والبلد، وطراز الهاتف وإصدار أندرويد، ومن أين وجدت التطبيق بحسب Google Play، وما إذا كنت قد رأيت رسائلنا وعروض بريميوم وبطاقة الدعوة أو نقرت عليها. لا نرى أبدًا الصفحات التي تفتحها ولا ما ترسله.';
+      'تُرسَل تقارير الاتصال، وشركة الاتصالات والبلد، وطراز الهاتف وإصدار أندرويد، ومن أين وجدت التطبيق بحسب Google Play، وما إذا كنت قد رأيت رسائلنا وعروض بريميوم وبطاقة الدعوة أو نقرت عليها. وما دام هذا الخيار مفعّلًا، يختبر التطبيق أيضًا الخوادم في الخلفية، ومنها خوادم عامة يشاركها آخرون. وإيقافه يوقف هذه الاختبارات. لا نرى أبدًا الصفحات التي تفتحها ولا ما ترسله.';
 
   @override
   String get security => 'الأمان';
@@ -485,6 +485,21 @@ class SAr extends S {
   String get openVpnSettings => 'فتح إعدادات VPN';
 
   @override
+  String get killSwitchTitle => 'حظر الإنترنت بدون VPN';
+
+  @override
+  String get killSwitchSubtitle =>
+      'يمكن لأندرويد حظر كل الإنترنت على هذا الهاتف ما دامت Fortiva غير متصلة.';
+
+  @override
+  String get killSwitchSteps =>
+      'في إعدادات VPN في أندرويد، انقر على رمز الترس بجانب FortivaVPN. فعّل «شبكة VPN قيد التشغيل دائمًا»، ثم «حظر أي اتصالات بدون شبكة VPN».';
+
+  @override
+  String get killSwitchUndo =>
+      'ما دام مفعّلًا، لا يتوفر الإنترنت للتطبيقات الأخرى حتى تتصل Fortiva. للتراجع عنه، أوقف «حظر أي اتصالات بدون شبكة VPN» من هناك.';
+
+  @override
   String get yourServer => 'خادمك';
 
   @override
@@ -502,7 +517,7 @@ class SAr extends S {
 
   @override
   String get communityServerCaption =>
-      'خيار اتصال إضافي. قد يتوقف عن العمل في أي وقت.';
+      'خادم عام يشاركه آخرون. لا تديره Fortiva.';
 
   @override
   String communityServerNumber(String n) {

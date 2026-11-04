@@ -48,6 +48,10 @@ class Announcement {
 class FeatureFlags {
   final bool showPremiumUpsell;
   final bool enableServerPing;
+
+  /// Whether Settings shows the row that explains Android's own block of
+  /// connections without a VPN (KillSwitchStatus). Off unless the config
+  /// sends true. The app never turns that block on itself.
   final bool enableKillSwitch;
   final bool enableSplitTunneling;
 
@@ -103,10 +107,40 @@ class FeatureFlags {
   /// for every phone without a release. See StallWatch.
   final bool stallWatch;
 
+  /// Whether the app's own calls stay off our API host while the tunnel
+  /// goes through a community server: through the tunnel they then go only
+  /// to the relays (ApiClient.relaysOnCommunity). Off unless the config
+  /// sends `api_via_relays_on_community: true`.
+  final bool apiViaRelaysOnCommunity;
+
+  /// Whether a tunnel through a community server keeps checking our own
+  /// servers and moves back to one when it opens (StandbyDoors.ownBehind).
+  /// Off unless the config sends `move_back_to_own: true`.
+  final bool moveBackToOwn;
+
+  /// How often the tunnel's process checks our own servers again while it
+  /// is on a community server, from `move_back_every_s`. Null when the
+  /// config sends none, or a value below [moveBackFloor]: the tunnel then
+  /// leaves the checks to the core's own timing.
+  final Duration? moveBackEvery;
+
+  /// The keys of the three switches above, which [AppConfig.fromJson] also
+  /// reads at the top level of the config.
+  static const communityKeys = [
+    'api_via_relays_on_community',
+    'move_back_to_own',
+    'move_back_every_s',
+  ];
+
+  /// The shortest [moveBackEvery] the app takes. A guard against a value
+  /// that would probe every few seconds, not a default: the interval
+  /// itself only ever comes from the backend.
+  static const moveBackFloor = Duration(seconds: 30);
+
   const FeatureFlags({
     this.showPremiumUpsell = true,
     this.enableServerPing = true,
-    this.enableKillSwitch = true,
+    this.enableKillSwitch = false,
     this.enableSplitTunneling = false,
     this.enableReferrals = false,
     this.inviteNudgePercent,
@@ -116,13 +150,17 @@ class FeatureFlags {
     this.reviewPrompt = false,
     this.limitSheet = true,
     this.stallWatch = true,
+    this.apiViaRelaysOnCommunity = false,
+    this.moveBackToOwn = false,
+    this.moveBackEvery,
   });
 
   factory FeatureFlags.fromJson(Map<String, dynamic> json) {
     return FeatureFlags(
       showPremiumUpsell: json['show_premium_upsell'] as bool? ?? true,
       enableServerPing: json['enable_server_ping'] as bool? ?? true,
-      enableKillSwitch: json['enable_kill_switch'] as bool? ?? true,
+      // Read without a cast, as review_prompt is below.
+      enableKillSwitch: json['enable_kill_switch'] == true,
       enableSplitTunneling: json['enable_split_tunneling'] as bool? ?? false,
       enableReferrals: json['enable_referrals'] as bool? ?? false,
       tlsFragment: json['tls_fragment'] as String? ?? '',
@@ -136,8 +174,19 @@ class FeatureFlags {
       stallWatch: json['stall_watch'] != false,
       inviteNudgePercent: _percent(json['invite_nudge_percent']),
       referralRules: _rules(json['referral_rules']),
+      apiViaRelaysOnCommunity: json['api_via_relays_on_community'] == true,
+      moveBackToOwn: json['move_back_to_own'] == true,
+      moveBackEvery: _moveBackEvery(json['move_back_every_s']),
     );
   }
+
+  /// [value] in seconds as a duration, when it is a whole number of at
+  /// least [moveBackFloor]. Null otherwise. Read without a cast, as
+  /// review_prompt is.
+  static Duration? _moveBackEvery(Object? value) =>
+      value is int && value >= moveBackFloor.inSeconds
+      ? Duration(seconds: value)
+      : null;
 
   /// [value] when it is a whole percent from 1 to 100, else null. Read
   /// without a cast, as review_prompt is: a value of the wrong type must
@@ -164,6 +213,9 @@ class FeatureFlags {
       'review_prompt': reviewPrompt,
       'limit_sheet': limitSheet,
       'stall_watch': stallWatch,
+      'api_via_relays_on_community': apiViaRelaysOnCommunity,
+      'move_back_to_own': moveBackToOwn,
+      if (moveBackEvery case final every?) 'move_back_every_s': every.inSeconds,
     };
   }
 }
@@ -428,9 +480,7 @@ class AppConfig {
               ?.map((e) => Announcement.fromJson(e as Map<String, dynamic>))
               .toList() ??
           [],
-      featureFlags: json['feature_flags'] != null
-          ? FeatureFlags.fromJson(json['feature_flags'] as Map<String, dynamic>)
-          : const FeatureFlags(),
+      featureFlags: _flags(json),
       checklist: ChecklistSettings.fromJson(json['checklist']),
       apiRelays: ApiRelays.parse(json['api_relays']),
       bootstrapMirrors: json['bootstrap_mirrors'] is List
@@ -446,6 +496,21 @@ class AppConfig {
       psiphon: PsiphonSettings.fromJson(json['psiphon']),
       stallWatch: StallWatchSettings.fromJson(json['stall_watch']),
     );
+  }
+
+  /// The `feature_flags` block of [json]. The switches for community links
+  /// ([FeatureFlags.communityKeys]) are read there, and at the top level of
+  /// the config when the block does not have them, so either place the
+  /// backend puts them in works.
+  static FeatureFlags _flags(Map<String, dynamic> json) {
+    final block = json['feature_flags'] as Map<String, dynamic>?;
+    final top = {
+      for (final key in FeatureFlags.communityKeys)
+        if (json.containsKey(key) && !(block?.containsKey(key) ?? false))
+          key: json[key],
+    };
+    if (block == null && top.isEmpty) return const FeatureFlags();
+    return FeatureFlags.fromJson({...?block, ...top});
   }
 
   /// Whether the `connect_trace` block [json] turns the trace on. Read

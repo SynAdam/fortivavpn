@@ -1,3 +1,4 @@
+import '../../utils/countries.dart';
 import 'server.dart';
 
 /// Model representing IP geolocation information
@@ -63,6 +64,12 @@ class IpInfo {
       timezone: '',
     );
   }
+
+  /// [country] in [language] (a language code such as `fa`), when
+  /// [countryCode] is one the app has names for. This is the address the
+  /// phone's traffic leaves from, so Iran is named here as any country.
+  String countryIn(String language) =>
+      CountryNames.nameOf(countryCode, language) ?? country;
 
   /// Get flag emoji from country code
   String get flagEmoji {

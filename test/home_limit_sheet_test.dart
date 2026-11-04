@@ -287,6 +287,7 @@ class _QuickFlow extends ConnectFlow {
     bool Function()? blocked,
     void Function(Server server)? onSwitchedServer,
     void Function(Server server)? onShared,
+    void Function(Server server)? onMovedBack,
     Future<bool> Function()? allowanceSpent,
     Future<void> Function()? beforeRetry,
     bool afterStall = false,

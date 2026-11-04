@@ -6,10 +6,8 @@ import android.text.TextUtils
 import android.util.Log
 import com.vpn.fortivavpn.AppConfig
 import com.vpn.fortivavpn.R
-import com.vpn.fortivavpn.dto.IPAPIInfo
 import com.vpn.fortivavpn.extension.responseLength
 import com.vpn.fortivavpn.util.HttpUtil
-import com.vpn.fortivavpn.util.JsonUtil
 import kotlinx.coroutines.isActive
 import libv2ray.Libv2ray
 import java.io.IOException
@@ -177,17 +175,6 @@ object SpeedtestManager {
         }
 
         return Pair(elapsed, result)
-    }
-
-    fun getRemoteIPInfo(): String? {
-        val httpPort = SettingsManager.getHttpPort()
-        var content = HttpUtil.getUrlContent(AppConfig.IP_API_URL, 5000, httpPort) ?: return null
-
-        var ipInfo = JsonUtil.fromJson(content, IPAPIInfo::class.java) ?: return null
-        var ip = ipInfo.ip ?: ipInfo.clientIp ?: ipInfo.ip_addr ?: ipInfo.query
-        var country = ipInfo.country_code ?: ipInfo.country ?: ipInfo.countryCode
-
-        return "(${country ?: "unknown"}) $ip"
     }
 
     /**

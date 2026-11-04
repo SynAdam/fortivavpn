@@ -9,6 +9,8 @@ import '../../data/models/connection_info.dart';
 export '../../data/models/connection_info.dart' show VpnStatus;
 import '../../data/models/server.dart';
 import '../api/api_client.dart';
+import '../api/local_socks.dart';
+import '../data/models/app_config.dart' show FeatureFlags;
 import '../data/models/connection_data.dart';
 import '../data/models/door_outbound.dart';
 import '../data/models/psiphon_settings.dart';
@@ -16,6 +18,7 @@ import '../data/models/stall_watch_settings.dart';
 import '../utils/link_source.dart';
 // Every override of [VpnService.connect] names it.
 export '../utils/link_source.dart' show LinkSource;
+import '../utils/standby_doors.dart';
 import '../utils/tls_fragment.dart';
 import '../utils/vless_link.dart';
 import 'connect_diagnostics.dart';
@@ -107,8 +110,9 @@ const startFailedSlotTaken = 'slot_taken';
 ///
 /// Both platforms start in full VPN mode and then verify traffic (see
 /// _trafficFlows):
-///   1. Android: through the core's SOCKS5 inbound (port 10808), because
-///      the app is left out of its own tunnel
+///   1. Android: through the core's SOCKS5 inbound, with the credentials
+///      of that start of the tunnel (LocalSocks), because the app is left
+///      out of its own tunnel
 ///   2. iOS: with an ordinary request, which the tunnel carries
 class VpnService extends ChangeNotifier {
   static final _methodChannel = TunnelChannels.method;
@@ -340,8 +344,12 @@ class VpnService extends ChangeNotifier {
     // For the same reason a call that the phone's own network drops can be
     // sent again through the core's SOCKS port, and only while a tunnel is
     // up: with none, nothing listens there.
-    ApiClient.tunnelSocksPort = () async =>
-        Platform.isAndroid && isConnected ? await _socksPort() : null;
+    ApiClient.tunnelSocks = () async =>
+        Platform.isAndroid && isConnected ? await _localSocks() : null;
+    // And where that tunnel goes: while it goes through a community
+    // server, the backend can keep our API host off it (ApiClient
+    // relaysOnCommunity).
+    ApiClient.tunnelOnCommunity = () async => onCommunityLink;
     // The heartbeat's lifetime is exactly the tunnel's, and every path that
     // changes the tunnel's state already notifies. Hanging it off that is
     // one rule in one place instead of a start and a stop in a dozen
@@ -426,21 +434,116 @@ class VpnService extends ChangeNotifier {
   /// reporter that knows whether its requests go through the tunnel.
   VpnEventReporter get reporter => _events;
 
-  int? _socksPortCache;
+  /// What [connect] adds for our doors held behind a community link: their
+  /// positions in [server] and then [standby], and the backend's interval.
+  /// Nothing on any other connect, or off Android, whose core alone ranks
+  /// and checks them this way.
+  Map<String, dynamic> _moveBackArgs(Server server, List<Server> standby) {
+    if (!Platform.isAndroid) return const {};
+    return moveBackArgs(server, standby, every: StandbyDoors.moveBackEvery);
+  }
 
-  /// The core's local SOCKS port, read once from the platform. The core's
-  /// default when the platform cannot say.
-  Future<int> _socksPort() async {
-    final known = _socksPortCache;
-    if (known != null) return known;
+  /// [_moveBackArgs] without the platform check, for tests.
+  @visibleForTesting
+  static Map<String, dynamic> moveBackArgs(
+    Server server,
+    List<Server> standby, {
+    Duration? every,
+  }) {
+    if (!server.isCommunity || standby.isEmpty) return const {};
+    final own = [
+      for (final (i, door) in standby.indexed)
+        if (door.isDedicated && door.door != null) i + 1,
+    ];
+    if (own.isEmpty) return const {};
+    return {
+      'own_doors': own,
+      if (every != null && every >= FeatureFlags.moveBackFloor)
+        'move_back_every_s': every.inSeconds,
+    };
+  }
+
+  /// The core's local SOCKS port and the credentials of this start of the
+  /// tunnel, from the platform, or null when it cannot say. Read on every
+  /// call that needs it, not kept: every start of the tunnel has new
+  /// credentials, and a call goes through the tunnel only after its direct
+  /// route failed, so the read is rare. Without credentials no route
+  /// through the port works, so there is no port of the app's own to fall
+  /// back on.
+  Future<LocalSocks?> _localSocks() async {
     try {
-      final port = await _methodChannel.invokeMethod<int>('socksPort');
-      if (port != null && port > 0) return _socksPortCache = port;
+      return LocalSocks.fromChannel(
+        await _methodChannel.invokeMethod<Object?>('localSocks'),
+      );
     } catch (e) {
       debugPrint('VpnService: could not read the SOCKS port ($e)');
+      return null;
     }
-    return 10808;
   }
+
+  /// Whether the tunnel may carry this app's calls through a community
+  /// server: true when the door in use, or any door the core holds, is a
+  /// community link, false for a tunnel through our own doors or the
+  /// backup network, null when the app cannot tell.
+  ///
+  /// Every door the core holds, not only the one in use: the core moves
+  /// between them by itself, and the app hears of a move only on its next
+  /// read. With our doors held behind a community link
+  /// (StandbyDoors.ownBehind), a tunnel back on one of ours still counts.
+  ///
+  /// In an app reopened over a running tunnel the doors are not known, and
+  /// this reads what the attempt kept ([_communityHeld], the strategy).
+  bool? get onCommunityLink {
+    if (onPsiphon) return false;
+    if (_doors.isNotEmpty) return _doors.any((d) => d.isCommunity);
+    if (_communityHeld) return true;
+    return communitySource(_currentStrategy?['src']);
+  }
+
+  /// What a strategy's `src` says about community links: true for one,
+  /// false for a source of ours, null for anything else.
+  static bool? communitySource(Object? src) {
+    if (src == LinkSource.communityPick.wire ||
+        src == LinkSource.communityFallback.wire) {
+      return true;
+    }
+    if (src == LinkSource.own.wire ||
+        src == LinkSource.officialShared.wire ||
+        src == LinkSource.psiphon.wire) {
+      return false;
+    }
+    return null;
+  }
+
+  /// Whether the doors of the tunnel held a community link, as the attempt
+  /// kept it, for an app reopened over it, which has no doors.
+  bool _communityHeld = false;
+
+  /// The community links among the doors of the tunnel, by position, as
+  /// the attempt kept them, for an app reopened over it, which has no
+  /// doors ([communityDoorInUse]).
+  Map<int, Server> _keptCommunity = const {};
+
+  /// The community link the tunnel is on now, or null when it is on none
+  /// or the app cannot tell.
+  ///
+  /// With our doors held behind a community link the core can move from
+  /// one of ours back to the link by itself, also while the app is closed.
+  /// The selection then still names our door, so the home screen reads
+  /// this to name the link instead. In an app reopened over the tunnel
+  /// this is the link the attempt kept at the position the core reports.
+  Server? get communityDoorInUse {
+    if (onPsiphon) return null;
+    if (_doors.isNotEmpty) {
+      final door = activeDoor;
+      return door != null && door.isCommunity ? door : null;
+    }
+    return _keptCommunity[_doorIndex];
+  }
+
+  /// The key the attempt is kept under, also read by the engines that run
+  /// with no screen (SavedTunnel).
+  static const attemptKey = _prefAttempt;
 
   /// Runs the checks that say why a connection failed. Without it every
   /// failure reaches the backend as a bare string and no verdict can be
@@ -579,6 +682,17 @@ class VpnService extends ChangeNotifier {
   /// put it: `failover`, `faster`, `recovered` or `startup`. Null when the
   /// core gave no reason. Set before listeners hear of the move.
   String? _switchReason;
+
+  /// The state the core's door group gave on the last read: `starting`,
+  /// `ok`, `degraded`, `down` or `idle`. Null before a read, and with one
+  /// door.
+  String? _groupState;
+
+  /// The [_attemptRun] whose connected event waits for the core's first
+  /// pick ([_settleDoor]). A move found meanwhile is followed and not
+  /// reported, as one found while verifying: the connected event names the
+  /// door it moved to.
+  int? _settlingRun;
 
   /// Bytes the core reported outside a heartbeat. Reading its counters
   /// resets them, so these are owed to the next beat.
@@ -1573,6 +1687,8 @@ class VpnService extends ChangeNotifier {
     if (group != null) {
       _moves += moves.length;
       _failovers += moves.where((m) => m.reason == 'failover').length;
+      final state = group['state'];
+      _groupState = state is String ? state : null;
     } else if (moved) {
       _moves++;
     }
@@ -1588,10 +1704,12 @@ class VpnService extends ChangeNotifier {
       _switchReason = left?.reason;
     }
     // A move while connecting or verifying shows up in the connected event,
-    // which names the door in use. A move after it gets a row of its own, so
-    // the switch and the door it left are on record when it happens and not
-    // only inferred from the next heartbeat.
-    if (isConnected && !_isVerifying) {
+    // which names the door in use, and so does one while that event waits
+    // for the core's first pick ([_settleDoor]). A move after it gets a row
+    // of its own, so the switch and the door it left are on record when it
+    // happens and not only inferred from the next heartbeat.
+    final settling = _settlingRun != null && _settlingRun == _attemptRun;
+    if (isConnected && !_isVerifying && !settling) {
       if (group != null) {
         for (final move in moves) {
           unawaited(_reportMove(move, group, stats));
@@ -1606,7 +1724,9 @@ class VpnService extends ChangeNotifier {
     if (moved || moves.isNotEmpty || forgot) {
       unawaited(_saveConnectionInfo(onlyIfKept: true));
     }
-    if (moved) notifyListeners();
+    // A reopened app hears of the core's door only here, and the home
+    // screen names a community link it moved to ([communityDoorInUse]).
+    if (moved || forgot) notifyListeners();
   }
 
   /// What the core's door group says about itself, from a stats reply.
@@ -1688,6 +1808,10 @@ class VpnService extends ChangeNotifier {
         'door_states': _doorStates(group),
         'switch_count': ?group['switch_count'],
         'group_state': ?group['state'],
+        // Moves back from a community link to one of our doors, counted in
+        // the tunnel's process, so the ones made while the app was away
+        // are in too.
+        'move_backs': ?group['move_backs'],
       },
     // The backup network's library is built into the app, so a newer one
     // needs a release. The backend counts the phones that hear of one.
@@ -1736,6 +1860,7 @@ class VpnService extends ChangeNotifier {
     _doorIndex = 0;
     _movesSeenUntil = 0;
     _switchReason = null;
+    _groupState = null;
   }
 
   /// Whether traffic verification is running, for tests that need the
@@ -1785,6 +1910,7 @@ class VpnService extends ChangeNotifier {
         'reason': ?move.reason,
         'switch_count': ?group['switch_count'],
         'door_states': _doorStates(group),
+        ..._moveBackFacts(move.from, move.to),
         ..._networkOf(stats),
       },
     );
@@ -1809,9 +1935,38 @@ class VpnService extends ChangeNotifier {
       'door_index': index,
       'server_id': ?_doors[index].serverId,
       'doors': _doors.length,
+      if (from != null && _doors.contains(from))
+        ..._moveBackFacts(_doors.indexOf(from), index),
       ..._networkOf(stats),
     },
   );
+
+  /// For a move from a community link back to one of our doors held behind
+  /// it: `move_back` true, and `from_src`, where the link it left came from
+  /// (community_fallback or community_pick). Empty for any other move. The
+  /// backend counts these from door_switched rows.
+  Map<String, dynamic> _moveBackFacts(int from, int to) {
+    if (from < 0 || from >= _doors.length || to < 0 || to >= _doors.length) {
+      return const {};
+    }
+    final left = _doors[from];
+    final now = _doors[to];
+    if (!left.isCommunity || !now.isDedicated || now.door == null) {
+      return const {};
+    }
+    return {'move_back': true, 'from_src': _sourceOf(from).wire};
+  }
+
+  /// Whether the tunnel is on one of our doors although it was dialled
+  /// through a community link: the core moved back while connecting.
+  bool get _movedBackWhileConnecting {
+    final door = activeDoor;
+    return _doors.isNotEmpty &&
+        _doors.first.isCommunity &&
+        door != null &&
+        door.isDedicated &&
+        door.door != null;
+  }
 
   /// The read in flight, so the next one waits for it. See [_tunnelStats].
   Future<void> _statsQueue = Future<void>.value();
@@ -2198,11 +2353,14 @@ class VpnService extends ChangeNotifier {
   Future<void> reportConnected(String? host, Duration? duration) async {
     _tellOutcome(VpnEventType.connected);
     // Before the first await, for the reason given in reportVerifyFailure.
-    final door = _currentDoor;
+    var door = _currentDoor;
     final attemptId = _currentAttemptId;
-    final strategy = _currentStrategy;
+    var strategy = _currentStrategy;
     final timeline = _timelineReport;
-    final uri = _currentUri;
+    var uri = _currentUri;
+    var movedBack = _movedBackWhileConnecting;
+    var doorIndex = _doorIndex;
+    final run = _attemptRun;
     // Held in the queue now, before the platform report and the day's
     // diagnosis: "Connected" is on screen, and the app can be closed before
     // they finish (VpnEventReporter.hold).
@@ -2213,8 +2371,25 @@ class VpnService extends ChangeNotifier {
       strategy: strategy,
       serverHost: host,
       duration: duration,
-      diag: timeline == null ? null : {'timeline': timeline},
+      diag: timeline == null && !movedBack
+          ? null
+          : {'timeline': ?timeline, if (movedBack) 'move_back': true},
     );
+    // The core's first pick may still be a guess it is measuring. The
+    // event then names the door the core settles on, which is the one
+    // carrying the tunnel: on 2026-11-04 a connected row named a gRPC door
+    // whose port was blocked while XHTTP carried the traffic, and the
+    // move came 29 seconds later with the next read. Unless another
+    // attempt has started since, in which case the door is not this
+    // attempt's.
+    if (await _settleDoor(run)) {
+      door = _currentDoor;
+      strategy = _currentStrategy;
+      host = _currentServerHost;
+      uri = _currentUri;
+      movedBack = _movedBackWhileConnecting;
+      doorIndex = _doorIndex;
+    }
     Map<String, dynamic>? diag;
     try {
       final report = await _diagnostics.platformReport();
@@ -2235,6 +2410,16 @@ class VpnService extends ChangeNotifier {
       debugPrint('VpnService: platform report failed: $e');
     }
     if (timeline != null) diag = {...?diag, 'timeline': timeline};
+    if (movedBack) diag = {...?diag, 'move_back': true};
+    // A standby door carries the tunnel, not the one dialled: where it sits
+    // among the doors the core holds, and which door was dialled.
+    if (doorIndex > 0 && doorIndex < _doors.length && run == _attemptRun) {
+      diag = {
+        ...?diag,
+        'door_index': doorIndex,
+        'dialled_door': ?_doors.first.door,
+      };
+    }
     await _events.recordHeld(
       held,
       VpnEventType.connected,
@@ -2245,6 +2430,47 @@ class VpnService extends ChangeNotifier {
       duration: duration,
       diag: diag,
     );
+  }
+
+  /// The longest the connected event waits for the core's first pick
+  /// ([_settleDoor]). The core gives its first pick's probe 5 seconds
+  /// before it moves to a door that answered (the autoselect patch's
+  /// defaultProbeTimeout), and a check through the tunnel can pass on a
+  /// connection the core already moved, before the group does.
+  @visibleForTesting
+  static Duration doorSettleLimit = const Duration(seconds: 8);
+
+  /// How often [_settleDoor] reads the core's door meanwhile.
+  @visibleForTesting
+  static Duration doorSettleGap = const Duration(seconds: 1);
+
+  /// The door group's state while its pick is a guess not yet measured.
+  static const _groupStarting = 'starting';
+
+  /// Waits, at most [doorSettleLimit], while the core's door group says
+  /// its pick is still a guess (`starting`), reading the door it is on
+  /// every [doorSettleGap]. True when it waited and the attempt of [run] is
+  /// still the one up, so what the service holds about the door is fresh
+  /// and still this attempt's. False at once with one door, through the
+  /// backup network, and once the group has settled.
+  Future<bool> _settleDoor(int run) async {
+    if (onPsiphon || _doors.length < 2 || _groupState != _groupStarting) {
+      return false;
+    }
+    _settlingRun = run;
+    try {
+      final deadline = DateTime.now().add(doorSettleLimit);
+      while (_groupState == _groupStarting &&
+          DateTime.now().isBefore(deadline)) {
+        await Future<void>.delayed(doorSettleGap);
+        if (run != _attemptRun || !isConnected) return false;
+        await _readDoor();
+        if (run != _attemptRun || !isConnected) return false;
+      }
+      return true;
+    } finally {
+      if (_settlingRun == run) _settlingRun = null;
+    }
   }
 
   /// Where the "measured a success on this network today" marks live.
@@ -2557,12 +2783,15 @@ class VpnService extends ChangeNotifier {
     _restoredDoorKey = null;
     _movesSeenUntil = 0;
     _switchReason = null;
+    _groupState = null;
     _carriedUp = 0;
     _carriedDown = 0;
     _verifiedAt = null;
     _moves = 0;
     _failovers = 0;
     _currentAttemptId = attemptId ?? newAttemptId();
+    _communityHeld = false;
+    _keptCommunity = const {};
     _dialledSource = source ?? LinkSource.of(server);
     _currentStrategy = _dialledSource.strategy(server, link);
     _status = VpnStatus.connecting;
@@ -2653,6 +2882,12 @@ class VpnService extends ChangeNotifier {
                 for (final door in [server, ...standby]) door.penaltyMs,
               ],
             if (outbounds.any((o) => o.isNotEmpty)) 'doorOutbounds': outbounds,
+            // Our own doors held behind a community link, by position in
+            // the link and then the alternates (StandbyDoors.ownBehind).
+            // The core ranks every other door behind them, so it moves
+            // back to one of ours once it opens, and the tunnel's process
+            // asks it to check them again every move_back_every_s.
+            ..._moveBackArgs(server, standby),
             if (remoteDns != null && remoteDns.isNotEmpty) 'dns': remoteDns,
             'take_slot': takeSlot,
             ...session,
@@ -2768,7 +3003,11 @@ class VpnService extends ChangeNotifier {
 
   /// Open the system VPN screen. Returns false when the device has no such
   /// screen to open, so the caller can leave the message as the only guidance.
-  Future<bool> openVpnSettings() async {
+  Future<bool> openVpnSettings() => openSystemVpnSettings();
+
+  /// [openVpnSettings] with no service, for the Settings row about Android's
+  /// own block of connections without a VPN (KillSwitchStatus).
+  static Future<bool> openSystemVpnSettings() async {
     if (!Platform.isAndroid) return false;
     try {
       return await _methodChannel.invokeMethod<bool>('openVpnSettings') ??
@@ -2946,7 +3185,43 @@ class VpnService extends ChangeNotifier {
     'verified_at': ?_verifiedAt?.toUtc().toIso8601String(),
     'moves': _moves,
     'failovers': _failovers,
+    if (_communityHeld || _doors.any((d) => d.isCommunity))
+      'community_held': true,
+    if (_communityDoors().isNotEmpty)
+      'community_doors': [
+        for (final e in _communityDoors().entries)
+          {'at': e.key, 'id': e.value.id, 'uri': e.value.connectionUri},
+      ],
   };
+
+  /// The community links among the doors, by position: from the doors
+  /// when the app has them, else what the attempt kept.
+  Map<int, Server> _communityDoors() {
+    if (_doors.isEmpty) return _keptCommunity;
+    return {
+      for (var i = 0; i < _doors.length; i++)
+        if (_doors[i].isCommunity) i: _doors[i],
+    };
+  }
+
+  /// [_attemptFacts]' community_doors read back. A row that does not read
+  /// as a community link at a position is left out.
+  static Map<int, Server> _readCommunityDoors(Object? raw) {
+    if (raw is! List) return const {};
+    final out = <int, Server>{};
+    for (final row in raw) {
+      if (row is! Map) continue;
+      final at = row['at'];
+      final id = row['id'];
+      final uri = row['uri'];
+      if (at is! int || at < 0 || id is! String || uri is! String) continue;
+      if (!id.startsWith(Server.communityIdPrefix) || uri.isEmpty) continue;
+      final index = int.tryParse(id.substring(Server.communityIdPrefix.length));
+      if (index == null || index < 0) continue;
+      out[at] = Server.fromConnectionUri(uri, index: index);
+    }
+    return out;
+  }
 
   Future<void> _restoreConnectionInfo() async {
     if (_currentConnection != null) return; // already set
@@ -2997,6 +3272,8 @@ class VpnService extends ChangeNotifier {
     _verifiedAt = DateTime.tryParse(text('verified_at') ?? '');
     _moves = whole('moves');
     _failovers = whole('failovers');
+    _communityHeld = facts['community_held'] == true;
+    _keptCommunity = _readCommunityDoors(facts['community_doors']);
     return true;
   }
 

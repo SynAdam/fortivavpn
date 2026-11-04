@@ -220,7 +220,16 @@ class _MyServersScreenState extends State<MyServersScreen> {
             );
           }
 
-          final selectedId = state.selectedServer?.id;
+          // The server the home card names, so "In use" is never on ours
+          // while a community link or the backup network carries the
+          // tunnel (serverInUse). Without the VPN or the shared lists (a
+          // test of this screen alone), this device's own selection.
+          final servers = context.watch<ServerState?>();
+          final selectedId = context.select<VpnService?, String?>(
+            (vpn) => vpn == null || servers == null
+                ? state.selectedServer?.id
+                : serverInUse(vpn, state, servers)?.id,
+          );
           // "Get unlimited" shows only when this copy can buy something
           // here (BillingState.canBuy), this device is not Premium and the
           // backend sent an upsell block (BillingState.offersAllowed). With

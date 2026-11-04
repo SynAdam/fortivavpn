@@ -10,8 +10,12 @@ import 'package:http/io_client.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import '../services/network_keys.dart';
+import 'blocked_authorities.dart';
 import 'built_in.dart';
+import 'local_socks.dart';
 import 'server_clock.dart';
+
+export 'local_socks.dart';
 
 /// A relay: a server outside Iran that passes the app's calls on to the
 /// backend.
@@ -604,7 +608,7 @@ http.Client relayClient(ApiRelay relay, {required Duration timeout}) {
 /// The relays are on other networks, and through the tunnel they are
 /// dialled from abroad, where their addresses are not blocked.
 http.Client tunnelRelayClient(
-  int socksPort,
+  LocalSocks socks,
   ApiRelay relay, {
   required Duration timeout,
 }) {
@@ -613,11 +617,11 @@ http.Client tunnelRelayClient(
     ..connectionTimeout = timeout
     ..findProxy = ((_) => 'DIRECT')
     ..connectionFactory = (uri, _, _) async {
-      final task = await Socket.startConnect('127.0.0.1', socksPort);
+      final task = await Socket.startConnect('127.0.0.1', socks.port);
       final port = uri.hasPort ? uri.port : 443;
       final ready = task.socket.then((socket) async {
         try {
-          await socks5Handshake(socket, uri.host, port);
+          await socks5Handshake(socket, uri.host, port, auth: socks);
           return await SecureSocket.secure(
             socket,
             host: relayServerName,
@@ -645,16 +649,64 @@ http.Client tunnelRelayClient(
 /// [onBadCertificate] is for tests, whose servers have no public
 /// certificate.
 http.Client tunnelClient(
-  int socksPort, {
+  LocalSocks socks, {
   required Duration timeout,
   @visibleForTesting bool Function(X509Certificate)? onBadCertificate,
 }) {
   final client = HttpClient()
     ..connectionTimeout = timeout
     ..connectionFactory = socksConnector(
-      socksPort,
+      socks.port,
+      auth: socks,
       onBadCertificate: onBadCertificate,
     );
+  return IOClient(client);
+}
+
+/// The client for calls on the phone's own network: what a plain
+/// `http.Client()` does, and a refusal of any server whose certificate
+/// comes from a blocked authority ([BlockedAuthorities]).
+///
+/// The TLS handshake is done in the connection factory, so the server's
+/// certificate can be read before any request goes out. HttpClient uses
+/// the socket the factory returns as it is. Through a proxy set in the
+/// environment, the factory returns the plain socket to the proxy and
+/// HttpClient makes the tunnel and the handshake itself, as it always did.
+/// Plain http, which only a debug build pointed at a local backend uses,
+/// goes out as it is.
+///
+/// [context] and [onBadCertificate] are for tests, whose servers have no
+/// public certificate.
+http.Client directClient({
+  required Duration timeout,
+  @visibleForTesting SecurityContext? context,
+  @visibleForTesting bool Function(X509Certificate)? onBadCertificate,
+}) {
+  final client = HttpClient(context: context)
+    ..connectionTimeout = timeout
+    ..connectionFactory = (uri, proxyHost, proxyPort) async {
+      if (proxyHost != null && proxyPort != null) {
+        return Socket.startConnect(proxyHost, proxyPort);
+      }
+      final task = await Socket.startConnect(uri.host, uri.port);
+      if (uri.scheme != 'https') return task;
+      final ready = task.socket.then<Socket>((socket) async {
+        try {
+          final secure = await SecureSocket.secure(
+            socket,
+            host: uri.host,
+            context: context,
+            onBadCertificate: onBadCertificate,
+          );
+          BlockedAuthorities.check(secure);
+          return secure;
+        } catch (_) {
+          socket.destroy();
+          rethrow;
+        }
+      });
+      return ConnectionTask.fromSocket(ready, task.cancel);
+    };
   return IOClient(client);
 }
 
@@ -669,15 +721,19 @@ class SocksException implements IOException {
 }
 
 /// An [HttpClient.connectionFactory] that opens every connection through
-/// the SOCKS5 proxy at [proxyHost]:[proxyPort], with no authentication.
+/// the SOCKS5 proxy at [proxyHost]:[proxyPort], with the credentials in
+/// [auth] when it has them, and with no authentication otherwise.
 ///
 /// https only. The TLS handshake is done here, over the proxied socket,
 /// because HttpClient uses whatever socket the factory returns as it is.
 /// A plain socket could not be handed back: the SOCKS replies were read
-/// from it, and a socket's bytes can be read by one listener only.
+/// from it, and a socket's bytes can be read by one listener only. A
+/// server whose certificate comes from a blocked authority is refused
+/// ([BlockedAuthorities]).
 Future<ConnectionTask<Socket>> Function(Uri, String?, int?) socksConnector(
   int proxyPort, {
   String proxyHost = '127.0.0.1',
+  LocalSocks? auth,
   bool Function(X509Certificate)? onBadCertificate,
 }) {
   return (uri, _, _) async {
@@ -686,14 +742,16 @@ Future<ConnectionTask<Socket>> Function(Uri, String?, int?) socksConnector(
     }
     final task = await Socket.startConnect(proxyHost, proxyPort);
     final port = uri.hasPort ? uri.port : 443;
-    final ready = task.socket.then((socket) async {
+    final ready = task.socket.then<Socket>((socket) async {
       try {
-        await socks5Handshake(socket, uri.host, port);
-        return await SecureSocket.secure(
+        await socks5Handshake(socket, uri.host, port, auth: auth);
+        final secure = await SecureSocket.secure(
           socket,
           host: uri.host,
           onBadCertificate: onBadCertificate,
         );
+        BlockedAuthorities.check(secure);
+        return secure;
       } catch (_) {
         socket.destroy();
         rethrow;
@@ -703,19 +761,49 @@ Future<ConnectionTask<Socket>> Function(Uri, String?, int?) socksConnector(
   };
 }
 
+/// The message of the [SocksException] a proxy that refused the
+/// credentials gives. VpnService reads them again after it.
+const socksCredentialsRefused = 'proxy refused the credentials';
+
 /// Ask the SOCKS5 proxy on [socket] to connect it to [host]:[port].
+///
+/// With credentials in [auth], the hello offers both no authentication and
+/// a user name and password (RFC 1929), and the proxy picks one. Without,
+/// it offers no authentication only, as before.
 ///
 /// Reads exactly the proxy's replies, then pauses its listener rather than
 /// cancelling it: cancelling shuts the socket's read side, and the caller
 /// still has a TLS handshake to run over it.
 @visibleForTesting
-Future<void> socks5Handshake(Socket socket, String host, int port) async {
+Future<void> socks5Handshake(
+  Socket socket,
+  String host,
+  int port, {
+  LocalSocks? auth,
+}) async {
   final reader = _ByteReader(socket);
   try {
-    socket.add(const [0x05, 0x01, 0x00]);
+    final withAuth = auth != null && auth.hasAuth;
+    socket.add(
+      withAuth ? const [0x05, 0x02, 0x00, 0x02] : const [0x05, 0x01, 0x00],
+    );
     final hello = await reader.take(2);
-    if (hello[0] != 0x05 || hello[1] != 0x00) {
-      throw const SocksException('proxy refused no-authentication');
+    if (hello[0] != 0x05) throw const SocksException('not a SOCKS5 proxy');
+    if (hello[1] == 0x02 && withAuth) {
+      final user = utf8.encode(auth.user!);
+      final pass = utf8.encode(auth.pass!);
+      if (user.length > 255 || pass.length > 255) {
+        throw const SocksException('credentials too long');
+      }
+      socket.add([0x01, user.length, ...user, pass.length, ...pass]);
+      final verdict = await reader.take(2);
+      if (verdict[1] != 0x00) {
+        throw const SocksException(socksCredentialsRefused);
+      }
+    } else if (hello[1] != 0x00) {
+      throw SocksException(
+        withAuth ? socksCredentialsRefused : 'proxy refused no-authentication',
+      );
     }
 
     socket.add([0x05, 0x01, 0x00, ..._address(host), port >> 8, port & 0xff]);

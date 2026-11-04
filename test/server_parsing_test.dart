@@ -214,17 +214,24 @@ void main() {
       expect(country.name, 'Germany');
     });
 
-    test('an unmapped country code is shown as the code itself', () {
+    test('every country code is named, and anything else is the code', () {
       final server = Server.fromApiJson({
         'id': 3,
         'country_code': 'NG',
         'uri': real,
       });
-      // The name table covers the fleet, not the world, so a code outside
-      // it stands in for itself. The flag is still correct, because that
-      // is pure arithmetic on the two letters rather than a lookup.
-      expect(server.country, 'NG');
+      // The tables name every ISO 3166-1 code, not only the fleet's.
+      expect(server.country, 'Nigeria');
       expect(server.flagEmoji, '\u{1F1F3}\u{1F1EC}');
+      // A code that is no country's stands in for itself. The flag is
+      // still drawn, because that is arithmetic on the two letters.
+      final other = Server.fromApiJson({
+        'id': 5,
+        'country_code': 'EU',
+        'uri': real,
+      });
+      expect(other.country, 'EU');
+      expect(other.flagEmoji, '\u{1F1EA}\u{1F1FA}');
     });
 
     test('a missing country code degrades to the globe', () {

@@ -110,7 +110,7 @@ class SEn extends S {
 
   @override
   String get communityTabExplainer =>
-      'Extra connection options. Speed and availability vary.';
+      'Public servers shared by other people. They may well be fine, but Fortiva does not run them. Speed and availability vary.';
 
   @override
   String get noFreeServers => 'No free servers yet';
@@ -327,7 +327,7 @@ class SEn extends S {
 
   @override
   String get shareDiagnosticsBody =>
-      'Sends connection reports, your carrier and country, phone model and Android version, where Google Play says you found the app, and whether you saw or tapped our messages, Premium offers and invite card. We never see the pages you open or what you send.';
+      'Sends connection reports, your carrier and country, phone model and Android version, where Google Play says you found the app, and whether you saw or tapped our messages, Premium offers and invite card. While it is on, the app also tests servers in the background, including public servers shared by others. Turning it off stops these tests. We never see the pages you open or what you send.';
 
   @override
   String get security => 'Compliance';
@@ -486,6 +486,21 @@ class SEn extends S {
   String get openVpnSettings => 'Open VPN settings';
 
   @override
+  String get killSwitchTitle => 'Block internet without VPN';
+
+  @override
+  String get killSwitchSubtitle =>
+      'Android can block all internet on this phone while Fortiva is not connected.';
+
+  @override
+  String get killSwitchSteps =>
+      'In Android\'s VPN settings, tap the gear next to FortivaVPN. Turn on \"Always-on VPN\", then \"Block connections without VPN\".';
+
+  @override
+  String get killSwitchUndo =>
+      'While it is on, other apps have no internet until Fortiva connects. To undo it, turn off \"Block connections without VPN\" there.';
+
+  @override
   String get yourServer => 'YOUR SERVER';
 
   @override
@@ -504,7 +519,7 @@ class SEn extends S {
 
   @override
   String get communityServerCaption =>
-      'An extra connection option. It may stop working at any time.';
+      'A public server shared by others. Fortiva does not run it.';
 
   @override
   String communityServerNumber(String n) {

@@ -109,7 +109,8 @@ class SKo extends S {
       'Fortiva가 운영하고 유지하는 서버입니다. 앱을 쓰는 모든 사람이 함께 씁니다. 여기서 시작하세요.';
 
   @override
-  String get communityTabExplainer => '추가 연결 옵션입니다. 속도와 이용 가능 여부는 달라질 수 있습니다.';
+  String get communityTabExplainer =>
+      '다른 사람들이 공유하는 공개 서버입니다. 아무 문제가 없을 수도 있지만, Fortiva가 운영하지 않습니다. 속도와 이용 가능 여부는 달라질 수 있습니다.';
 
   @override
   String get noFreeServers => '무료 서버 없음';
@@ -323,7 +324,7 @@ class SKo extends S {
 
   @override
   String get shareDiagnosticsBody =>
-      '연결 보고서, 통신사와 국가, 휴대폰 모델과 Android 버전, Google Play 기준으로 앱을 어디에서 찾았는지, 그리고 메시지, 프리미엄 안내, 초대 카드를 보거나 탭했는지 여부를 보냅니다. 회원님이 여는 페이지나 보내는 내용은 절대 보지 않습니다.';
+      '연결 보고서, 통신사와 국가, 휴대폰 모델과 Android 버전, Google Play 기준으로 앱을 어디에서 찾았는지, 그리고 메시지, 프리미엄 안내, 초대 카드를 보거나 탭했는지 여부를 보냅니다. 켜져 있는 동안 앱은 백그라운드에서 서버도 테스트하며, 여기에는 다른 사람들이 공유하는 공개 서버도 포함됩니다. 끄면 이 테스트가 중단됩니다. 회원님이 여는 페이지나 보내는 내용은 절대 보지 않습니다.';
 
   @override
   String get security => '보안';
@@ -468,6 +469,21 @@ class SKo extends S {
   String get openVpnSettings => 'VPN 설정 열기';
 
   @override
+  String get killSwitchTitle => 'VPN 없이 인터넷 차단';
+
+  @override
+  String get killSwitchSubtitle =>
+      'Fortiva가 연결되지 않은 동안 Android에서 이 휴대폰의 모든 인터넷을 차단할 수 있습니다.';
+
+  @override
+  String get killSwitchSteps =>
+      'Android VPN 설정에서 FortivaVPN 옆의 톱니바퀴를 탭하세요. \"연결 유지 VPN\"을 켠 다음 \"VPN 없는 연결 차단\"을 켜세요.';
+
+  @override
+  String get killSwitchUndo =>
+      '켜져 있는 동안에는 Fortiva가 연결될 때까지 다른 앱에서 인터넷을 사용할 수 없습니다. 되돌리려면 그곳에서 \"VPN 없는 연결 차단\"을 끄세요.';
+
+  @override
   String get yourServer => '내 서버';
 
   @override
@@ -484,7 +500,8 @@ class SKo extends S {
   String get communityServer => '커뮤니티 서버';
 
   @override
-  String get communityServerCaption => '추가 연결 옵션입니다. 언제든지 작동이 멈출 수 있습니다.';
+  String get communityServerCaption =>
+      '다른 사람들이 공유하는 공개 서버입니다. Fortiva가 운영하지 않습니다.';
 
   @override
   String communityServerNumber(String n) {

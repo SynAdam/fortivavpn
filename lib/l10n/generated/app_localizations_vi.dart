@@ -110,7 +110,7 @@ class SVi extends S {
 
   @override
   String get communityTabExplainer =>
-      'Các lựa chọn kết nối thêm. Tốc độ và tính sẵn sàng có thể thay đổi.';
+      'Các máy chủ công cộng do người khác chia sẻ. Có thể chúng hoàn toàn không có vấn đề gì, nhưng Fortiva không vận hành chúng. Tốc độ và tính sẵn sàng có thể thay đổi.';
 
   @override
   String get noFreeServers => 'Chưa có máy chủ miễn phí';
@@ -327,7 +327,7 @@ class SVi extends S {
 
   @override
   String get shareDiagnosticsBody =>
-      'Gửi báo cáo kết nối, nhà mạng và quốc gia của bạn, mẫu điện thoại và phiên bản Android, nơi bạn tìm thấy ứng dụng theo Google Play, và việc bạn đã xem hay nhấn vào tin nhắn, ưu đãi Premium và thẻ mời của chúng tôi. Chúng tôi không bao giờ thấy các trang bạn mở hay nội dung bạn gửi.';
+      'Gửi báo cáo kết nối, nhà mạng và quốc gia của bạn, mẫu điện thoại và phiên bản Android, nơi bạn tìm thấy ứng dụng theo Google Play, và việc bạn đã xem hay nhấn vào tin nhắn, ưu đãi Premium và thẻ mời của chúng tôi. Khi tùy chọn này bật, ứng dụng cũng kiểm tra các máy chủ ở chế độ nền, kể cả máy chủ công cộng do người khác chia sẻ. Tắt tùy chọn này sẽ dừng các lần kiểm tra đó. Chúng tôi không bao giờ thấy các trang bạn mở hay nội dung bạn gửi.';
 
   @override
   String get security => 'Tuân thủ';
@@ -484,6 +484,21 @@ class SVi extends S {
   String get openVpnSettings => 'Mở cài đặt VPN';
 
   @override
+  String get killSwitchTitle => 'Chặn internet khi không có VPN';
+
+  @override
+  String get killSwitchSubtitle =>
+      'Android có thể chặn mọi kết nối internet trên điện thoại này khi Fortiva chưa kết nối.';
+
+  @override
+  String get killSwitchSteps =>
+      'Trong cài đặt VPN của Android, nhấn vào biểu tượng bánh răng bên cạnh FortivaVPN. Bật \"VPN luôn bật\", sau đó bật \"Chặn các đường kết nối không qua VPN\".';
+
+  @override
+  String get killSwitchUndo =>
+      'Khi tùy chọn này bật, các ứng dụng khác sẽ không có internet cho đến khi Fortiva kết nối. Để hoàn tác, hãy tắt \"Chặn các đường kết nối không qua VPN\" ở đó.';
+
+  @override
   String get yourServer => 'MÁY CHỦ CỦA BẠN';
 
   @override
@@ -502,7 +517,7 @@ class SVi extends S {
 
   @override
   String get communityServerCaption =>
-      'Một lựa chọn kết nối thêm. Có thể ngừng hoạt động bất cứ lúc nào.';
+      'Máy chủ công cộng do người khác chia sẻ. Fortiva không vận hành máy chủ này.';
 
   @override
   String communityServerNumber(String n) {

@@ -23,6 +23,8 @@ drop 10-11 09:16:12.346 I/GoLog   ( 4242): [Info] [1406141838] app/dispatcher: t
 drop 10-11 09:16:12.347 I/GoLog   ( 4242): from tcp:127.0.0.1:43210 accepted tcp:example.com:443 [socks -> proxy]
 drop 10-11 09:16:12.347 I/GoLog   ( 4242): from udp:127.0.0.1:5353 accepted udp:198.51.100.53:53 [socks >> direct]
 drop 10-11 09:16:12.347 I/GoLog   ( 4242): from DNS accepted udp:203.0.113.53:53 [dns-out]
+# With the SOCKS port's credentials, the core adds the user name at the end.
+drop 11-04 09:16:12.347 I/GoLog   ( 4242): from tcp:127.0.0.1:43211 accepted tcp:example.com:443 [socks -> proxy] email: 0123456789abcdef0123456789abcdef
 # Requests, packets and dials.
 drop 10-11 09:16:12.348 I/GoLog   ( 4242): [Info] [1406141838] proxy/socks: TCP Connect request to tcp:203.0.113.7:443
 drop 10-11 09:16:12.348 I/GoLog   ( 4242): [Info] [1406141838] proxy/socks: TCP Connect request to tcp:[2001:db8::7]:443

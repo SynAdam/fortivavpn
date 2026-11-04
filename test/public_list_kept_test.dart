@@ -19,6 +19,7 @@ import 'package:fortiva_vpn/services/path_finder.dart';
 import 'package:fortiva_vpn/services/path_memory.dart';
 import 'package:fortiva_vpn/services/vpn_event_reporter.dart';
 import 'package:fortiva_vpn/services/vpn_service.dart';
+import 'package:fortiva_vpn/utils/countries.dart';
 import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
@@ -909,7 +910,8 @@ void main() {
       await tester.tap(_retryButton);
       await tester.pump();
       await tester.pump();
-      expect(find.text('Germany'), findsOneWidget);
+      // The link's country, in Persian as the tab is.
+      expect(find.text(CountryNames.nameOf('DE', 'fa')!), findsOneWidget);
       await _closePublicTab(tester);
     });
 

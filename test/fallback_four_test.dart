@@ -528,6 +528,55 @@ void main() {
       expect(vpn.dialled, [chosen.pathKey]);
       expect(probed, [chosen.pathKey]);
     });
+
+    group('with the move back on', () {
+      setUp(() {
+        StandbyDoors.enabled = true;
+        StandbyDoors.androidOverride = true;
+        StandbyDoors.moveBack = true;
+      });
+      tearDown(() => StandbyDoors.moveBack = false);
+
+      for (final (name, checklist) in [
+        ('with the number', () => settings(ownFirst: 1)),
+        ('without the number', () => settings()),
+        ('with no checklist', () => null),
+      ]) {
+        test('$name, the kept pick is dialled with our doors behind '
+            'it', () async {
+          openHere = {chosen.pathKey};
+          final vpn = _FakeVpn({chosen.pathKey});
+          final f = flow(vpn, checklist());
+
+          await f.connect(
+            doors,
+            picked: chosen,
+            ownFirst: true,
+            shared: () async => community,
+          );
+          await pumpEventQueue();
+
+          expect(vpn.dialled, [chosen.pathKey]);
+          expect(vpn.standbys.last, isNotEmpty);
+          expect(
+            vpn.standbys.last.every((d) => d.isDedicated && !d.isCommunity),
+            isTrue,
+          );
+        });
+      }
+
+      test('a link the user picked gets none of our doors behind it', () async {
+        openHere = {chosen.pathKey};
+        final vpn = _FakeVpn({chosen.pathKey});
+        final f = flow(vpn, settings());
+
+        await f.connect(doors, picked: chosen, shared: () async => community);
+        await pumpEventQueue();
+
+        expect(vpn.dialled, [chosen.pathKey]);
+        expect(vpn.standbys.last, isEmpty);
+      });
+    });
   });
 
   group('4. trying again after nothing was open', () {

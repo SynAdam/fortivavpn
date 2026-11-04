@@ -236,7 +236,7 @@ void main() {
       final channel = WindowsTunnel(pipe: UnixSocketPipe(service.path)).method;
       for (final method in [
         'testConnection',
-        'socksPort',
+        'localSocks',
         'requestReview',
         'openPlayListing',
       ]) {

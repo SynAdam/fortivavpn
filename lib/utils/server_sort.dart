@@ -11,10 +11,16 @@ import '../data/models/server.dart';
 ///
 /// Ties keep their incoming order, so a rebuild never reshuffles the list
 /// under the user's thumb.
+///
+/// [countryOf] is the country as the row shows it, in the app's language,
+/// so the groups follow the alphabet the user reads. The stored English
+/// name without it.
 List<Server> sortForDisplay(
   List<Server> servers,
-  int? Function(Server server) latencyOf,
-) {
+  int? Function(Server server) latencyOf, {
+  String Function(Server server)? countryOf,
+}) {
+  final country = countryOf ?? (Server s) => s.country;
   int band(Server s) {
     final latency = latencyOf(s);
     if (latency == null) return s.country.isEmpty ? 2 : 1;
@@ -30,7 +36,7 @@ List<Server> sortForDisplay(
       final byLatency = latencyOf(a.$2)!.compareTo(latencyOf(b.$2)!);
       if (byLatency != 0) return byLatency;
     } else if (bandA == 1) {
-      final byCountry = a.$2.country.compareTo(b.$2.country);
+      final byCountry = country(a.$2).compareTo(country(b.$2));
       if (byCountry != 0) return byCountry;
     }
     return a.$1.compareTo(b.$1);

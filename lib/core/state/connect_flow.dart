@@ -422,6 +422,11 @@ class ConnectFlow extends ChangeNotifier {
   /// dialled to one of its spares (StandbyDoors.shared).
   void Function(Server server)? _onShared;
 
+  /// Who to tell when the core moves from a community link back to one of
+  /// our own doors held behind it (StandbyDoors.ownBehind), so the card
+  /// names our server and the next tap starts from our doors.
+  void Function(Server server)? _onMovedBack;
+
   /// Whether the allowance is spent now, for a tap that dials only shared
   /// links ([connectShared]). Null for any other tap.
   bool Function()? _blocked;
@@ -947,6 +952,7 @@ class ConnectFlow extends ChangeNotifier {
     Future<List<Server>> Function()? shared,
     void Function(Server server)? onSwitchedServer,
     void Function(Server server)? onShared,
+    void Function(Server server)? onMovedBack,
     Future<bool> Function()? allowanceSpent,
     Future<void> Function()? beforeRetry,
     List<Server> Function()? latest,
@@ -976,6 +982,7 @@ class ConnectFlow extends ChangeNotifier {
       shared: shared,
       onSwitchedServer: onSwitchedServer,
       onShared: onShared,
+      onMovedBack: onMovedBack,
       allowanceSpent: allowanceSpent,
     );
     await tap(afterStall ? TraceTrigger.stall : trigger);
@@ -1350,6 +1357,7 @@ class ConnectFlow extends ChangeNotifier {
     bool Function()? blocked,
     void Function(Server server)? onSwitchedServer,
     void Function(Server server)? onShared,
+    void Function(Server server)? onMovedBack,
     Future<bool> Function()? allowanceSpent,
     Future<void> Function()? beforeRetry,
     bool afterStall = false,
@@ -1391,6 +1399,7 @@ class ConnectFlow extends ChangeNotifier {
       onSwitchedServer: onSwitchedServer,
       selection: selection,
       onShared: onShared,
+      onMovedBack: onMovedBack,
       blocked: blocked,
       allowanceSpent: allowanceSpent,
       body: (run, attemptId, trace) {
@@ -1886,12 +1895,14 @@ class ConnectFlow extends ChangeNotifier {
     Future<List<Server>> Function()? shared,
     void Function(Server server)? onSwitchedServer,
     void Function(Server server)? onShared,
+    void Function(Server server)? onMovedBack,
     Future<bool> Function()? allowanceSpent,
   }) => _begin(
     trigger: trigger,
     onSwitchedServer: onSwitchedServer,
     selection: selection,
     onShared: onShared,
+    onMovedBack: onMovedBack,
     allowanceSpent: allowanceSpent,
     body: (run, attemptId, trace) => _connect(
       paths,
@@ -1929,6 +1940,7 @@ class ConnectFlow extends ChangeNotifier {
     void Function(Server server)? onSwitchedServer,
     Server? Function()? selection,
     void Function(Server server)? onShared,
+    void Function(Server server)? onMovedBack,
     bool Function()? blocked,
     Future<bool> Function()? allowanceSpent,
   }) async {
@@ -1950,6 +1962,7 @@ class ConnectFlow extends ChangeNotifier {
     _onSwitchedServer = onSwitchedServer;
     _selection = selection;
     _onShared = onShared;
+    _onMovedBack = onMovedBack;
     _permissionRefused = false;
     _startStages();
     final started = _tapStartedAt = DateTime.now();
@@ -2074,8 +2087,31 @@ class ConnectFlow extends ChangeNotifier {
       // device's own servers ([_blocked] is set then). The shared links are
       // unmetered, so none is dialled then.
       if (_spentNow(_blocked)) return;
+      // A community link the fallback chose on an earlier tap ([ownFirst]),
+      // dialled again: with the move back on, our doors stand behind it, as
+      // behind the fallback's own dial ([_fallBack]), whatever the
+      // backend's own_first_doors says. Not behind a link the user picked,
+      // which is their choice.
+      List<Server>? standby;
+      if (ownFirst && picked.isCommunity && StandbyDoors.moveBack) {
+        final network = await _networkKey();
+        if (_halted(run)) return;
+        _standbyPool = _ordered(paths, preferred);
+        _poolPreferred = preferred;
+        _standbyIpv6 = await _ipv6.usable(network);
+        if (_halted(run)) return;
+        standby = StandbyDoors.ownBehind(
+          picked,
+          _standbyPool,
+          slots: StandbyDoors.max,
+          ipv6: _standbyIpv6,
+        );
+      }
       _set(ConnectStage.connecting, picked);
-      if (await _attempt(picked, run)) {
+      if (await _attempt(picked, run, standby: standby)) {
+        // Followed like the fallback's own dial, so a move back to one of
+        // our doors moves the selection with it (_followCore).
+        if (standby != null && standby.isNotEmpty) _onDoor = picked;
         _finish(ConnectStage.done, picked, run);
         await _rememberShared(picked);
         return;
@@ -3690,7 +3726,17 @@ class ConnectFlow extends ChangeNotifier {
       for (final c in rows)
         if (c.state == PathCheckState.pending) c.path,
     ], count: fallback?.standby);
-    if (await _attempt(open, run, source: source, standby: spares)) {
+    // Behind a community link, some of our own doors too, when the backend
+    // asks for the move back: the core moves back to one of ours once it
+    // opens. In the slots the spares leave.
+    final ownBehind = StandbyDoors.ownBehind(
+      open,
+      _standbyPool,
+      slots: StandbyDoors.max - spares.length,
+      ipv6: _standbyIpv6,
+    );
+    final standby = [...spares, ...ownBehind];
+    if (await _attempt(open, run, source: source, standby: standby)) {
       onShared?.call(open);
       // Followed like an own door: a move the core makes to a spare
       // later in the session moves the selection with it (_followCore).
@@ -4063,7 +4109,22 @@ class ConnectFlow extends ChangeNotifier {
       notifyListeners();
       return;
     }
-    unawaited(_rememberSwitch(from, to, failed: _leftForFailure));
+    if (from.isCommunity) {
+      // Back on one of our doors from a community link held in front of
+      // them. The link still worked unless the core left it because it
+      // failed.
+      final reason = _vpn.switchReason;
+      unawaited(
+        _rememberSwitch(
+          from,
+          to,
+          failed: reason == 'failover' || reason == 'recovered',
+        ),
+      );
+      _onMovedBack?.call(to);
+    } else {
+      unawaited(_rememberSwitch(from, to, failed: _leftForFailure));
+    }
     if (!_sameServer(from, to)) _onSwitchedServer?.call(to);
     notifyListeners();
   }

@@ -4,6 +4,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:fortiva_vpn/data/models/connection_info.dart';
 import 'package:fortiva_vpn/data/models/server.dart';
 import 'package:fortiva_vpn/l10n/generated/app_localizations.dart';
+import 'package:fortiva_vpn/utils/countries.dart';
 import 'package:fortiva_vpn/widgets/ui/signal_bars.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
@@ -145,7 +146,9 @@ void main() {
     final heading = lookupS(const Locale('vi')).ourServer;
     expect(paragraph(tester, heading).didExceedMaxLines, isFalse);
     final chip = rectOf(tester, find.byType(LatencyChip));
-    final place = rectOf(tester, find.text('Falkenstein, Germany'));
+    // The country in the app's language, as the card shows it.
+    final germany = CountryNames.nameOf('DE', 'vi');
+    final place = rectOf(tester, find.text('Falkenstein, $germany'));
     expect(chip.center.dy, moreOrLessEquals(place.center.dy, epsilon: 0.5));
     expect(chip.left, greaterThan(place.right));
     await inviteHomeDone(tester);

@@ -158,7 +158,7 @@ void main() {
         direct: answers(() => const SocketException('reset')),
         tunnel: (_) => answers(() => http.Response('{}', 200)),
         relays: () async => const [relay],
-        tunnelPort: () async => 10808,
+        tunnelSocks: () async => const LocalSocks.noAuth(10808),
         now: () => at,
       );
       await c.get('/api/v1/app/config');
@@ -169,7 +169,7 @@ void main() {
         tunnel: (_) => answers(() => TimeoutException('no answer')),
         tunnelRelay: (_, _) => answers(() => http.Response('{}', 200)),
         relays: () async => const [relay],
-        tunnelPort: () async => 10808,
+        tunnelSocks: () async => const LocalSocks.noAuth(10808),
         now: () => at,
       );
       await viaRelay.get('/api/v1/app/config');

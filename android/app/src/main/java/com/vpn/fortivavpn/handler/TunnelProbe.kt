@@ -7,10 +7,6 @@ import android.os.Build
 import android.telephony.TelephonyManager
 import android.util.Log
 import com.vpn.fortivavpn.AppConfig
-import java.net.HttpURLConnection
-import java.net.InetSocketAddress
-import java.net.Proxy
-import java.net.URL
 
 /**
  * What the app's main process can learn about the tunnel and the phone's
@@ -20,8 +16,9 @@ import java.net.URL
 object TunnelProbe {
     private const val TAG = AppConfig.TAG
 
-    /** The check page the tunnel must carry. A 204, or a 200 from a proxy. */
-    private const val CHECK_URL = "http://connectivitycheck.gstatic.com/generate_204"
+    /** The check page the tunnel must carry, over plain http. A 204, or a 200 from a proxy. */
+    private const val CHECK_HOST = "connectivitycheck.gstatic.com"
+    private const val CHECK_PATH = "/generate_204"
     private const val CHECK_TIMEOUT_MS = 5000
 
     /**
@@ -50,21 +47,16 @@ object TunnelProbe {
     }
 
     /**
-     * Whether a request through the tunnel's SOCKS port gets an answer.
-     * Blocking: call off the main thread.
+     * Whether a request through the tunnel's SOCKS port gets an answer, with
+     * the credentials of this start of the core (LocalSocks). Blocking: call
+     * off the main thread.
      */
     fun tunnelCarries(): Boolean =
         try {
-            val socksPort = SettingsManager.getSocksPort()
-            val proxy = Proxy(Proxy.Type.SOCKS, InetSocketAddress("127.0.0.1", socksPort))
-            val conn = URL(CHECK_URL).openConnection(proxy) as HttpURLConnection
-            conn.connectTimeout = CHECK_TIMEOUT_MS
-            conn.readTimeout = CHECK_TIMEOUT_MS
-            conn.instanceFollowRedirects = false
-            conn.useCaches = false
-            val code = conn.responseCode
-            conn.disconnect()
-            Log.d(TAG, "SOCKS test result: HTTP $code (via port $socksPort)")
+            val code = LocalSocks.connect(CHECK_HOST, 80, CHECK_TIMEOUT_MS).use { socket ->
+                LocalSocks.httpGet(socket, CHECK_HOST, CHECK_PATH).first
+            }
+            Log.d(TAG, "SOCKS test result: HTTP $code")
             code == 204 || code == 200
         } catch (e: Exception) {
             Log.e(TAG, "SOCKS test failed: ${e.message}")

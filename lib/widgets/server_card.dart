@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import '../core/design_system.dart';
 import '../data/models/server.dart';
 import '../l10n/generated/app_localizations.dart';
+import '../utils/countries.dart';
 import '../utils/vless_link.dart';
 import 'server_title.dart';
 import 'ui/pressable.dart';
@@ -46,11 +47,15 @@ class ServerCard extends StatelessWidget {
 
   /// The second line of a tile.
   ///
-  /// For one of our servers, where it is. For a community link, how it is
+  /// For one of our servers, where it is, with the country in [language]
+  /// (a language code such as `fa`). For a community link, how it is
   /// secured and the port: what a user who knows what is blocked on their
   /// network can act on. Not the host: a raw address or someone else's
   /// hostname tells a user nothing and tells a screenshot too much.
-  static String subtitleFor(Server server) {
+  static String subtitleFor(
+    Server server, {
+    String language = CountryNames.fallbackLanguage,
+  }) {
     if (server.isCommunity) {
       final uri = server.connectionUri;
       final security = VlessLink.security(uri);
@@ -58,10 +63,12 @@ class ServerCard extends StatelessWidget {
       return [how.toUpperCase(), '${VlessLink.port(uri)}'].join(' · ');
     }
     if (server.country.isEmpty) return server.city;
+    final country = server.countryIn(language);
+    // A city that only repeats the country is not said twice.
     if (server.city.isNotEmpty && server.city != server.country) {
-      return '${server.country} · ${server.city}';
+      return '$country · ${server.city}';
     }
-    return server.country;
+    return country;
   }
 
   @override
@@ -78,7 +85,7 @@ class ServerCard extends StatelessWidget {
     return ServerRow(
       flag: server.flagEmoji,
       title: serverTitle(context, server),
-      subtitle: subtitleFor(server),
+      subtitle: subtitleFor(server, language: appLanguage(context)),
       heading: heading,
       isSelected: isSelected,
       live: live,

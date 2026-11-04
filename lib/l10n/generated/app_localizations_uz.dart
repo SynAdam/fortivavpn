@@ -110,7 +110,7 @@ class SUz extends S {
 
   @override
   String get communityTabExplainer =>
-      'Qoʻshimcha ulanish imkoniyatlari. Tezlik va mavjudlik har xil boʻlishi mumkin.';
+      'Boshqalar ulashgan ochiq serverlar. Ularda hech qanday muammo boʻlmasligi mumkin, lekin Fortiva ularni boshqarmaydi. Tezlik va mavjudlik har xil boʻlishi mumkin.';
 
   @override
   String get noFreeServers => 'Bepul serverlar hali yoʻq';
@@ -328,7 +328,7 @@ class SUz extends S {
 
   @override
   String get shareDiagnosticsBody =>
-      'Ulanish hisobotlari, operatoringiz va mamlakatingiz, telefon modeli va Android versiyasi, Google Play maʼlumotiga koʻra ilovani qayerdan topganingiz, shuningdek, xabarlarimiz, Premium takliflarimiz va doʻstlarni taklif qilish kartasini koʻrgan yoki bosganingiz yuboriladi. Siz ochgan sahifalarni yoki yuborgan narsalaringizni biz hech qachon koʻrmaymiz.';
+      'Ulanish hisobotlari, operatoringiz va mamlakatingiz, telefon modeli va Android versiyasi, Google Play maʼlumotiga koʻra ilovani qayerdan topganingiz, shuningdek, xabarlarimiz, Premium takliflarimiz va doʻstlarni taklif qilish kartasini koʻrgan yoki bosganingiz yuboriladi. Bu yoqilgan paytda ilova fonda serverlarni ham sinaydi, jumladan boshqalar ulashgan ochiq serverlarni. Uni oʻchirsangiz, bu sinovlar toʻxtaydi. Siz ochgan sahifalarni yoki yuborgan narsalaringizni biz hech qachon koʻrmaymiz.';
 
   @override
   String get security => 'Muvofiqlik';
@@ -486,6 +486,21 @@ class SUz extends S {
   String get openVpnSettings => 'VPN sozlamalarini ochish';
 
   @override
+  String get killSwitchTitle => 'VPNsiz internetni bloklash';
+
+  @override
+  String get killSwitchSubtitle =>
+      'Fortiva ulanmagan paytda Android bu telefondagi butun internetni bloklashi mumkin.';
+
+  @override
+  String get killSwitchSteps =>
+      'Android VPN sozlamalarida FortivaVPN yonidagi tishli gʻildirakka bosing. \"Doimiy VPN\"ni, keyin \"VPN tarmoqsiz ulanishlarni bloklash\"ni yoqing.';
+
+  @override
+  String get killSwitchUndo =>
+      'Bu yoqilgan paytda Fortiva ulanmaguncha boshqa ilovalarda internet boʻlmaydi. Bekor qilish uchun oʻsha yerda \"VPN tarmoqsiz ulanishlarni bloklash\"ni oʻchiring.';
+
+  @override
   String get yourServer => 'SIZNING SERVERINGIZ';
 
   @override
@@ -504,7 +519,7 @@ class SUz extends S {
 
   @override
   String get communityServerCaption =>
-      'Qoʻshimcha ulanish imkoniyati. Istalgan vaqtda ishlamay qolishi mumkin.';
+      'Boshqalar ulashgan ochiq server. Fortiva uni boshqarmaydi.';
 
   @override
   String communityServerNumber(String n) {

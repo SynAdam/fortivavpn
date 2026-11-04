@@ -327,10 +327,10 @@ abstract class S {
   /// **'Run by Fortiva and kept online by us. Shared by everyone who uses the app. Start here.'**
   String get officialTabExplainer;
 
-  /// No description provided for @communityTabExplainer.
+  /// Note above the Community list. Says these are public servers shared by other people, that they may well be fine, that Fortiva does not run them, and that speed and availability vary. "Fine" means they may cause no problem at all, not that they are fast or work well: speed is the last sentence. Keep it calm and neutral, as in English, in plain everyday words.
   ///
   /// In en, this message translates to:
-  /// **'Extra connection options. Speed and availability vary.'**
+  /// **'Public servers shared by other people. They may well be fine, but Fortiva does not run them. Speed and availability vary.'**
   String get communityTabExplainer;
 
   /// No description provided for @noFreeServers.
@@ -735,10 +735,10 @@ abstract class S {
   /// **'Share connection diagnostics'**
   String get shareDiagnosticsTitle;
 
-  /// Under the Share connection diagnostics switch in Settings. It names what the switch sends, so it must change when the switch starts or stops sending something.
+  /// Under the Share connection diagnostics switch in Settings. The first sentence names what the switch sends, and is Google Play's disclosure: keep it as it is. The next two say that the switch also lets the app test servers in the background, public servers shared by others among them, and that turning it off stops those tests. Change it whenever the switch starts or stops sending or testing something.
   ///
   /// In en, this message translates to:
-  /// **'Sends connection reports, your carrier and country, phone model and Android version, where Google Play says you found the app, and whether you saw or tapped our messages, Premium offers and invite card. We never see the pages you open or what you send.'**
+  /// **'Sends connection reports, your carrier and country, phone model and Android version, where Google Play says you found the app, and whether you saw or tapped our messages, Premium offers and invite card. While it is on, the app also tests servers in the background, including public servers shared by others. Turning it off stops these tests. We never see the pages you open or what you send.'**
   String get shareDiagnosticsBody;
 
   /// No description provided for @security.
@@ -1005,6 +1005,30 @@ abstract class S {
   /// **'Open VPN settings'**
   String get openVpnSettings;
 
+  /// Settings row, Connection section: opens the steps for Android's own setting that blocks all internet while no VPN is connected. Only shown when the backend turns it on. Short.
+  ///
+  /// In en, this message translates to:
+  /// **'Block internet without VPN'**
+  String get killSwitchTitle;
+
+  /// Under killSwitchTitle. One sentence. Says Android can do this, not that the app does it.
+  ///
+  /// In en, this message translates to:
+  /// **'Android can block all internet on this phone while Fortiva is not connected.'**
+  String get killSwitchSubtitle;
+
+  /// The steps in the sheet that killSwitchTitle opens. FortivaVPN is the app's name as Android's VPN list shows it (app_name in android/app/src/main/res/values/strings.xml): keep it exactly so, in Latin letters, in every language. The two quoted names are Android's own switch labels in Settings > Network > VPN: use the label Android shows in this language (AOSP Settings strings vpn_menu_lockdown and vpn_require_connection), quoted the way this language quotes system labels elsewhere in the app.
+  ///
+  /// In en, this message translates to:
+  /// **'In Android\'s VPN settings, tap the gear next to FortivaVPN. Turn on \"Always-on VPN\", then \"Block connections without VPN\".'**
+  String get killSwitchSteps;
+
+  /// Under killSwitchSteps. Says what happens while the setting is on (other apps have no internet until Fortiva connects) and how to undo it. Use the same Android label as killSwitchSteps.
+  ///
+  /// In en, this message translates to:
+  /// **'While it is on, other apps have no internet until Fortiva connects. To undo it, turn off \"Block connections without VPN\" there.'**
+  String get killSwitchUndo;
+
   /// No description provided for @yourServer.
   ///
   /// In en, this message translates to:
@@ -1035,10 +1059,10 @@ abstract class S {
   /// **'COMMUNITY SERVER'**
   String get communityServer;
 
-  /// No description provided for @communityServerCaption.
+  /// Line under COMMUNITY SERVER on the home card, shown whenever the status says the phone is connected through a community server. Same meaning as communityTabExplainer, for one server. Keep it about as long as the English, because the card counts toward the home screen's height. Calm and neutral, as in English.
   ///
   /// In en, this message translates to:
-  /// **'An extra connection option. It may stop working at any time.'**
+  /// **'A public server shared by others. Fortiva does not run it.'**
   String get communityServerCaption;
 
   /// Title of a community link that names no country; n is its position in the list, already in the phone's digits.

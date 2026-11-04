@@ -3,6 +3,8 @@ import 'dart:io';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart';
 
+import '../api/local_socks.dart';
+
 /// What Android says about notifications for messages from the Fortiva
 /// team.
 enum NoticePermission {
@@ -31,10 +33,13 @@ abstract final class NoticeChannel {
 
   // ── the background check's engine ──────────────────────────────────
 
-  /// The tunnel's SOCKS port while a tunnel is up, else null.
-  static Future<int?> socksPort() async {
+  /// The tunnel's SOCKS port and its credentials while a tunnel is up,
+  /// else null.
+  static Future<LocalSocks?> localSocks() async {
     try {
-      return await _channel.invokeMethod<int>('socksPort');
+      return LocalSocks.fromChannel(
+        await _channel.invokeMethod<Object?>('localSocks'),
+      );
     } catch (e) {
       debugPrint('NoticeChannel: no SOCKS port ($e)');
       return null;

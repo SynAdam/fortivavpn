@@ -28,6 +28,19 @@ class StandbyDoors {
   @visibleForTesting
   static bool? androidOverride;
 
+  /// From remote config (`move_back_to_own`): whether a tunnel through a
+  /// community link holds some of our own doors too, so the core moves
+  /// back to one of ours once it opens ([ownBehind]). Off on a phone the
+  /// backend has never answered, and kept between launches like
+  /// [enabled] (AppConfigState).
+  static bool moveBack = false;
+
+  /// From remote config (`move_back_every_s`): how often the tunnel's
+  /// process asks the core to check our doors again while it is on a
+  /// community link. Null leaves that to the core's own timing. The app
+  /// has no interval of its own.
+  static Duration? moveBackEvery;
+
   /// The most doors held next to the dialled one. Each costs a small probe
   /// every few minutes while the tunnel carries traffic, so the list is
   /// short. The Android and Windows cores enforce the same number.
@@ -140,6 +153,44 @@ class StandbyDoors {
             seen.add(s.pathKey))
           s,
     ].take(count < max ? count : max - 1).toList();
+  }
+
+  /// Our own doors to hold behind [dialled], a community link, so the
+  /// tunnel moves back to our servers once one of them opens, without a
+  /// new tap and without a drop: the core moves new connections to a
+  /// member of its group as soon as that member answers its probes, and
+  /// ranks every community link behind our doors (V2rayConfigManager,
+  /// own-first penalties).
+  ///
+  /// Our doors from [pool] in its order, at most [slots], the ones dialled
+  /// at an address no door before them is dialled at first, so one blocked
+  /// address does not fill every slot. IPv6 doors are left out when [ipv6]
+  /// is false, as in [pick].
+  ///
+  /// Empty unless [moveBack] and [enabled] are on, on Android only (the
+  /// tunnel's process there runs the checks), and only when [dialled] is a
+  /// community link.
+  static List<Server> ownBehind(
+    Server dialled,
+    List<Server> pool, {
+    required int slots,
+    bool ipv6 = true,
+    bool? android,
+  }) {
+    final onAndroid = android ?? androidOverride ?? Platform.isAndroid;
+    if (!moveBack || !enabled || !onAndroid || slots <= 0) return const [];
+    if (!dialled.isCommunity) return const [];
+    final seen = <String>{};
+    final hosts = <String>{};
+    final fresh = <Server>[];
+    final again = <Server>[];
+    for (final door in pool) {
+      if (door.door == null || !door.isDedicated) continue;
+      if (!seen.add(door.pathKey)) continue;
+      if (!ipv6 && dialsIpv6(door)) continue;
+      (hosts.add(VlessLinkHost.of(door)) ? fresh : again).add(door);
+    }
+    return [...fresh, ...again].take(slots).toList();
   }
 
   /// Whether [door] is dialled at an IPv6 address, such as the backend's

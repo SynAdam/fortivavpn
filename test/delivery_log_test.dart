@@ -4,6 +4,7 @@ import 'dart:io';
 
 import 'package:flutter_test/flutter_test.dart';
 import 'package:fortiva_vpn/api/api_client.dart';
+import 'package:fortiva_vpn/api/blocked_authorities.dart';
 import 'package:fortiva_vpn/api/api_routes.dart';
 import 'package:fortiva_vpn/services/delivery_log.dart';
 import 'package:fortiva_vpn/services/report_queue.dart';
@@ -227,6 +228,8 @@ void main() {
         'certificate',
       ),
       (const SocksException('proxy could not connect (reply 5)'), 'socks'),
+      (const SocksException('proxy refused the credentials'), 'socks'),
+      (const BlockedAuthority(), 'blocked_ca'),
       (http.ClientException('Connection closed before full header'), 'closed'),
       (const SocketException('something else, address = 10.1.2.3'), 'socket'),
       (StateError('odd'), 'StateError'),
@@ -258,7 +261,7 @@ void main() {
         );
         return http.Response('{"accepted": 1}', 200);
       }),
-      tunnelPort: () async => null,
+      tunnelSocks: () async => null,
     );
     final (log, _) = logWith(post: post);
     DeliveryLog.install(log);
@@ -320,7 +323,7 @@ void main() {
         ),
         relay: (_) => MockClient((_) async => http.Response('{}', 200)),
         relays: () async => [relay],
-        tunnelPort: () async => null,
+        tunnelSocks: () async => null,
       );
       final body = {
         'events': [
@@ -356,7 +359,7 @@ void main() {
           }
           return http.Response('{"accepted": 1}', 200);
         }),
-        tunnelPort: () async => null,
+        tunnelSocks: () async => null,
       );
 
       // One failed upload of a report.

@@ -26,6 +26,11 @@ import java.io.File
  * ConfigRig.kt and this test onto origin/main, delete the file, and run the
  * test twice.
  *
+ * Made again on 2026-11-04, when the core's HTTP inbound was taken out of
+ * every config (LocalInboundsTest): that inbound is the only difference
+ * from the hashes before. The rig makes no SOCKS credentials, so the SOCKS
+ * inbound is the one main builds.
+ *
  * A door that carries one is dialled with the backend's JSON as it came,
  * and the rest of the config stays what main builds.
  */
