@@ -13,7 +13,7 @@ current it is, and when we move it.
 | Artifact | `android/app/libs/libv2ray.aar` | `ios/Frameworks/LibXray.xcframework` (Git LFS) |
 | Reproducible | yes, `android/core/build-in-linux.sh` | yes, `ios/core/` |
 | Pinned in | `android/core/go.mod` + `go.sum`, `android/core/stage-xray.sh`, the toolchain in `android/core/Dockerfile` | `LIBXRAY_TAG` in `ios/core/build.sh`, `ios/core/checksums.txt` |
-| Patches | `android/core/patches/` (the `autoselect` outbound, its calmer failover, the backend's stability penalty, the sinkhole dial) | none |
+| Patches | `android/core/patches/` (the `autoselect` outbound, its calmer failover, the backend's stability penalty, the sinkhole dial, the WireGuard close, the gRPC clients' close) | none |
 
 Both platforms terminate VLESS in Xray-core and hand plaintext to a local
 SOCKS5 inbound on `:10808`, which `tun2socks` (Android) / `hev-socks5-tunnel`
@@ -47,6 +47,12 @@ Instead:
 - **Otherwise refresh quarterly**, regardless, so drift stays bounded.
 - **Always device-test before release.** Both artifacts are prebuilt binaries:
   a changed binding compiles cleanly and fails when a user taps Connect.
+- **A Go or module fix for code the core calls means a core rebuild before
+  the next release.** `tool/core_vulncheck.sh`, which `tool/release.sh` runs,
+  refuses the release until the rebuilt core is committed (for the Windows
+  tunnel, the moved `windows/core/go.mod`), or the finding is
+  accepted for at most 31 days in `android/core/vulncheck-accept.txt`. See
+  "Known vulnerabilities" in [`android/core/README.md`](android/core/README.md).
 - **Build the Android core with `android/core/build-in-linux.sh`.** It builds
   in `/build/fortiva-core` inside a linux/amd64 container whose toolchain
   `android/core/Dockerfile` pins. gomobile writes the absolute build folder

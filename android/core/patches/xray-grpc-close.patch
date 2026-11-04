@@ -1,0 +1,372 @@
+Xray-core: an outbound's gRPC clients close with it
+
+The gRPC transport keeps one client per outbound and destination in a cache
+for the whole process (globalDialerMap in transport/internet/grpc/dial.go),
+and calls Connect on each client it makes. Nothing closed those clients when
+their core stopped. A client whose door works stayed connected to it. A
+client whose door fails kept redialling with gRPC's backoff, every 30 to 40
+seconds once the backoff tops out, for as long as the process lived. The app
+runs one core after another in the tunnel's process, and one core for each
+door check in the main process. On 2026-11-04, on the emulator, the tunnel's
+process dialled two gRPC REALITY doors 50 times in 10 minutes while it
+carried a community link with the screen off. Those doors belonged to the
+core it had run before.
+
+Closing an outbound handler now releases its stream settings
+(MemoryStreamConfig.Release). The gRPC transport registers a release hook
+that closes and forgets every client it made for those settings, and it
+makes no new client for released settings, so a dial that races the close
+leaves nothing behind. Other outbounds keep their clients, also when they
+dial the same destination.
+
+Upstream has the same report open (XTLS/Xray-core#7177) and a draft fix that
+also closes the clients from the handler (XTLS/Xray-core#7178). Neither was
+merged or released on 2026-11-04.
+
+Base:    github.com/xtls/xray-core v1.260327.1-0.20260728075948-5ca6f4b7d4dc
+         (v26.7.28), applied after xray-failover-calm.patch. Its change to
+         handler.go is in Close, away from what xray-autoselect.patch adds.
+Licence: MPL-2.0, the same as Xray-core. The tests were written for Fortiva.
+
+  app/proxyman/outbound/handler.go        Close releases the stream settings
+  transport/internet/memory_settings.go   Release, Released and
+                                          RegisterReleaseHook
+  transport/internet/grpc/dial.go         closeClients, the release hook;
+                                          no client for released settings
+  transport/internet/grpc/close_test.go
+
+Apply with: patch -p1 < xray-grpc-close.patch   (stage-xray.sh does this)
+
+diff --color -ruN xray-base/app/proxyman/outbound/handler.go xray-patched/app/proxyman/outbound/handler.go
+--- xray-base/app/proxyman/outbound/handler.go	2026-11-04 05:52:01
++++ xray-patched/app/proxyman/outbound/handler.go	2026-11-04 05:52:21
+@@ -416,6 +416,10 @@
+ func (h *Handler) Close() error {
+ 	common.Close(h.mux)
+ 	common.Close(h.proxy)
++	// Transports such as gRPC keep their clients for these settings in
++	// process-wide caches. Releasing the settings closes those clients, so
++	// they do not outlive the core and keep dialling.
++	h.streamSettings.Release()
+ 	return nil
+ }
+ 
+diff --color -ruN xray-base/transport/internet/grpc/close_test.go xray-patched/transport/internet/grpc/close_test.go
+--- xray-base/transport/internet/grpc/close_test.go	1969-12-31 17:00:00
++++ xray-patched/transport/internet/grpc/close_test.go	2026-11-04 05:53:10
+@@ -0,0 +1,202 @@
++package grpc
++
++import (
++	"context"
++	gonet "net"
++	"sync"
++	"sync/atomic"
++	"testing"
++	"time"
++
++	"github.com/xtls/xray-core/common/net"
++	"github.com/xtls/xray-core/transport/internet"
++	"google.golang.org/grpc"
++	"google.golang.org/grpc/connectivity"
++)
++
++// countingListener counts the connections it accepted and those still open.
++// With closeAtOnce it closes each one as soon as it is accepted, like a door
++// whose port answers and whose handshake fails.
++type countingListener struct {
++	gonet.Listener
++	closeAtOnce bool
++	accepted    atomic.Int64
++	open        atomic.Int64
++}
++
++type countedConn struct {
++	gonet.Conn
++	l    *countingListener
++	once sync.Once
++}
++
++func (c *countedConn) Close() error {
++	c.once.Do(func() { c.l.open.Add(-1) })
++	return c.Conn.Close()
++}
++
++func (l *countingListener) Accept() (gonet.Conn, error) {
++	c, err := l.Listener.Accept()
++	if err != nil {
++		return nil, err
++	}
++	l.accepted.Add(1)
++	l.open.Add(1)
++	conn := &countedConn{Conn: c, l: l}
++	if l.closeAtOnce {
++		conn.Close()
++	}
++	return conn, nil
++}
++
++func listen(t *testing.T, closeAtOnce bool) (*countingListener, net.Destination) {
++	t.Helper()
++	inner, err := gonet.Listen("tcp", "127.0.0.1:0")
++	if err != nil {
++		t.Fatal(err)
++	}
++	l := &countingListener{Listener: inner, closeAtOnce: closeAtOnce}
++	if closeAtOnce {
++		go func() {
++			for {
++				if _, err := l.Accept(); err != nil {
++					return
++				}
++			}
++		}()
++	} else {
++		// A gRPC server with no services: the client connects and stays
++		// connected, as it does to a door that works.
++		server := grpc.NewServer()
++		go server.Serve(l)
++		t.Cleanup(server.Stop)
++	}
++	t.Cleanup(func() { inner.Close() })
++	port := inner.Addr().(*gonet.TCPAddr).Port
++	return l, net.TCPDestination(net.LocalHostIP, net.Port(port))
++}
++
++func newSettings() *internet.MemoryStreamConfig {
++	return &internet.MemoryStreamConfig{
++		ProtocolName:     protocolName,
++		ProtocolSettings: &Config{ServiceName: "close-test"},
++	}
++}
++
++func cached(dest net.Destination, s *internet.MemoryStreamConfig) bool {
++	globalDialerAccess.Lock()
++	defer globalDialerAccess.Unlock()
++	_, found := globalDialerMap[dialerConf{dest, s}]
++	return found
++}
++
++func waitFor(t *testing.T, what string, cond func() bool) {
++	t.Helper()
++	deadline := time.Now().Add(5 * time.Second)
++	for !cond() {
++		if time.Now().After(deadline) {
++			t.Fatal(what)
++		}
++		time.Sleep(20 * time.Millisecond)
++	}
++}
++
++// Two outbounds with the same destination each have their own client.
++// Releasing the settings of one closes its client and its connection, and
++// leaves the other outbound's client connected.
++func TestReleaseClosesOnlyTheClientsOfThoseSettings(t *testing.T) {
++	l, dest := listen(t, false)
++	closing, staying := newSettings(), newSettings()
++	defer staying.Release()
++
++	a, err := getGrpcClient(context.Background(), dest, closing)
++	if err != nil {
++		t.Fatal(err)
++	}
++	b, err := getGrpcClient(context.Background(), dest, staying)
++	if err != nil {
++		t.Fatal(err)
++	}
++	waitFor(t, "the two clients never connected", func() bool { return l.open.Load() == 2 })
++
++	closing.Release()
++	if a.GetState() != connectivity.Shutdown {
++		t.Fatalf("the released client is %v, want SHUTDOWN", a.GetState())
++	}
++	if cached(dest, closing) {
++		t.Fatal("the released client is still cached")
++	}
++	waitFor(t, "the released client's connection stayed open", func() bool { return l.open.Load() == 1 })
++	if b.GetState() == connectivity.Shutdown || !cached(dest, staying) {
++		t.Fatal("releasing one outbound closed the other outbound's client")
++	}
++}
++
++// A client whose door fails keeps redialling with backoff, every 30 to 40
++// seconds once the backoff tops out. Before the release hook it went on after
++// its core had stopped, for as long as the process lived.
++func TestAReleasedClientStopsRedialling(t *testing.T) {
++	l, dest := listen(t, true)
++	s := newSettings()
++	if _, err := getGrpcClient(context.Background(), dest, s); err != nil {
++		t.Fatal(err)
++	}
++	waitFor(t, "the client never redialled the failing door", func() bool { return l.accepted.Load() >= 2 })
++
++	s.Release()
++	// A connect that had started before the release can still arrive.
++	time.Sleep(200 * time.Millisecond)
++	after := l.accepted.Load()
++	// The backoff after two failures is about 1.1 s, then 1.7 s, then 2.5 s:
++	// a client still alive dials at least once in this wait.
++	time.Sleep(4 * time.Second)
++	if got := l.accepted.Load(); got != after {
++		t.Fatalf("the door was dialled %d more times after the release", got-after)
++	}
++}
++
++// A dial that reaches the transport after its outbound closed gets no client,
++// since nothing would ever close it.
++func TestReleasedSettingsGetNoNewClient(t *testing.T) {
++	l, dest := listen(t, false)
++	s := newSettings()
++	s.Release()
++	if _, err := getGrpcClient(context.Background(), dest, s); err == nil {
++		t.Fatal("a client was made for released settings")
++	}
++	if cached(dest, s) {
++		t.Fatal("released settings have a cached client")
++	}
++	time.Sleep(200 * time.Millisecond)
++	if n := l.accepted.Load(); n != 0 {
++		t.Fatalf("the door was dialled %d times for released settings", n)
++	}
++}
++
++// Release runs its hooks once, and a nil MemoryStreamConfig is ignored, as an
++// outbound with no stream settings has none.
++func TestReleaseRunsItsHooksOnceAndIgnoresNil(t *testing.T) {
++	var nilSettings *internet.MemoryStreamConfig
++	nilSettings.Release()
++	if nilSettings.Released() {
++		t.Fatal("nil settings read as released")
++	}
++	s := newSettings()
++	var calls atomic.Int64
++	internet.RegisterReleaseHook(func(released *internet.MemoryStreamConfig) {
++		if released == s {
++			calls.Add(1)
++		}
++	})
++	if s.Released() {
++		t.Fatal("new settings read as released")
++	}
++	s.Release()
++	s.Release()
++	if !s.Released() {
++		t.Fatal("released settings do not read as released")
++	}
++	if n := calls.Load(); n != 1 {
++		t.Fatalf("the hook ran %d times, want 1", n)
++	}
++}
+diff --color -ruN xray-base/transport/internet/grpc/dial.go xray-patched/transport/internet/grpc/dial.go
+--- xray-base/transport/internet/grpc/dial.go	2026-11-04 05:52:01
++++ xray-patched/transport/internet/grpc/dial.go	2026-11-04 05:52:21
+@@ -36,6 +36,7 @@
+ 
+ func init() {
+ 	common.Must(internet.RegisterTransportDialer(protocolName, Dial))
++	internet.RegisterReleaseHook(closeClients)
+ }
+ 
+ type dialerConf struct {
+@@ -78,6 +79,13 @@
+ 	globalDialerAccess.Lock()
+ 	defer globalDialerAccess.Unlock()
+ 
++	// The outbound that owns these settings has closed, and closeClients has
++	// run or is waiting for this lock. A client made now would never be
++	// closed.
++	if streamSettings.Released() {
++		return nil, errors.New("the outbound has closed")
++	}
++
+ 	if globalDialerMap == nil {
+ 		globalDialerMap = make(map[dialerConf]*grpc.ClientConn)
+ 	}
+@@ -204,6 +212,27 @@
+ 	}
+ 	globalDialerMap[dialerConf{dest, streamSettings}] = conn
+ 	return conn, err
++}
++
++// closeClients closes and forgets every client made for streamSettings. It
++// is the release hook: the outbound that owns streamSettings has closed. The
++// clients are closed outside the lock, so dials of other outbounds do not wait
++// for them.
++func closeClients(streamSettings *internet.MemoryStreamConfig) {
++	var clients []*grpc.ClientConn
++	globalDialerAccess.Lock()
++	for key, client := range globalDialerMap {
++		if key.MemoryStreamConfig == streamSettings {
++			delete(globalDialerMap, key)
++			if client != nil {
++				clients = append(clients, client)
++			}
++		}
++	}
++	globalDialerAccess.Unlock()
++	for _, client := range clients {
++		client.Close()
++	}
+ }
+ 
+ // setUserAgent overrides the user-agent on a ClientConn to remove the
+diff --color -ruN xray-base/transport/internet/memory_settings.go xray-patched/transport/internet/memory_settings.go
+--- xray-base/transport/internet/memory_settings.go	2026-11-04 05:52:01
++++ xray-patched/transport/internet/memory_settings.go	2026-11-04 05:52:21
+@@ -1,6 +1,9 @@
+ package internet
+ 
+ import (
++	"sync"
++	"sync/atomic"
++
+ 	"github.com/xtls/xray-core/common/net"
+ 	"github.com/xtls/xray-core/transport/internet/finalmask"
+ )
+@@ -17,6 +20,46 @@
+ 	QuicParams       *QuicParams
+ 	SocketSettings   *SocketConfig
+ 	DownloadSettings *MemoryStreamConfig
++
++	// Set by Release.
++	released atomic.Bool
++}
++
++var (
++	releaseHooksAccess sync.RWMutex
++	releaseHooks       []func(*MemoryStreamConfig)
++)
++
++// RegisterReleaseHook adds a function that Release calls for every
++// MemoryStreamConfig it releases. A transport that keeps connections for a
++// MemoryStreamConfig longer than one dial registers one from its init, to
++// close them.
++func RegisterReleaseHook(hook func(*MemoryStreamConfig)) {
++	releaseHooksAccess.Lock()
++	defer releaseHooksAccess.Unlock()
++	releaseHooks = append(releaseHooks, hook)
++}
++
++// Release says that the outbound that owns these settings has closed. It runs
++// every registered hook once, so each transport closes what it keeps for
++// these settings. After it, Released reports true, and a transport must not
++// keep anything new for them. Only the first call does anything, and a nil
++// MemoryStreamConfig is ignored.
++func (s *MemoryStreamConfig) Release() {
++	if s == nil || !s.released.CompareAndSwap(false, true) {
++		return
++	}
++	releaseHooksAccess.RLock()
++	hooks := releaseHooks
++	releaseHooksAccess.RUnlock()
++	for _, hook := range hooks {
++		hook(s)
++	}
++}
++
++// Released reports whether Release has been called.
++func (s *MemoryStreamConfig) Released() bool {
++	return s != nil && s.released.Load()
+ }
+ 
+ // ToMemoryStreamConfig converts a StreamConfig to MemoryStreamConfig. It returns a default non-nil MemoryStreamConfig for nil input.

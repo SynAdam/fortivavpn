@@ -13,6 +13,11 @@
 #
 # Usage:  ./build-in-linux.sh          build every shipped ABI
 #         ./build-in-linux.sh arm64    build one ABI (not shippable)
+#         ./build-in-linux.sh --vulncheck <out-dir>
+#                                      build nothing: scan the source and the
+#                                      committed .aar with govulncheck
+#                                      (vulncheck.sh) and copy the results
+#                                      into <out-dir>
 #
 # Needs Docker, and network access for the image's downloads and the Go
 # modules. Google builds the NDK for Linux for x86_64 only, so the container
@@ -26,7 +31,27 @@
 # so a second build is faster. To remove them:
 #   docker volume rm fortiva-core-gomod fortiva-core-gocache
 #
+# --vulncheck uses the same image, copy and volumes. The copy also takes the
+# committed ../app/libs/libv2ray.aar and a copy of ../../windows/core made
+# the same way, and nothing is copied back into the tree.
+# tool/core_vulncheck.sh runs this mode and reads the results.
+#
 set -euo pipefail
+
+log() { printf '\033[1;34m==>\033[0m %s\n' "$*"; }
+die() { printf '\033[1;31mERROR:\033[0m %s\n' "$*" >&2; exit 1; }
+
+mode=build
+out_dir=""
+if [[ "${1:-}" == "--vulncheck" ]]; then
+  [[ $# -eq 2 && -n "$2" ]] || die "usage: ./build-in-linux.sh --vulncheck <out-dir>"
+  [[ -d "$2" ]] || die "$2 is not a folder"
+  # Resolved before the cd below, so a relative folder means the one it
+  # names from where the script was started.
+  out_dir=$(cd "$2" && pwd)
+  mode=vulncheck
+  shift 2
+fi
 
 cd "$(dirname "$0")"
 
@@ -35,9 +60,6 @@ readonly PLATFORM="linux/amd64"
 readonly IMAGE_NAME="fortiva-core-builder"
 readonly GOMOD_VOLUME="fortiva-core-gomod"
 readonly GOCACHE_VOLUME="fortiva-core-gocache"
-
-log() { printf '\033[1;34m==>\033[0m %s\n' "$*"; }
-die() { printf '\033[1;31mERROR:\033[0m %s\n' "$*" >&2; exit 1; }
 
 sha256_of() {
   if command -v sha256sum >/dev/null; then
@@ -81,19 +103,54 @@ cleanup() {
 }
 trap cleanup EXIT
 
-if git rev-parse --is-inside-work-tree >/dev/null 2>&1; then
-  while IFS= read -r -d '' f; do
-    # A tracked file deleted in the working tree is left out.
-    [[ -f "$f" ]] || continue
-    mkdir -p "$stage/android/core/$(dirname "$f")"
-    cp -p "$f" "$stage/android/core/$f"
-  done < <(git ls-files -z --cached --others --exclude-standard)
-else
-  mkdir -p "$stage/android/core"
-  cp -Rp . "$stage/android/core/"
-  rm -rf "$stage/android/core/.src" "$stage/android/core/.bin"
-fi
+# copy_tree <dir> <dest>: the files of <dir> as git sees them, or all of it
+# without the folders the scripts stage into and build into when <dir> is
+# not in a git tree.
+copy_tree() {
+  local src=$1 dest=$2 f
+  mkdir -p "$dest"
+  if git -C "$src" rev-parse --is-inside-work-tree >/dev/null 2>&1; then
+    while IFS= read -r -d '' f; do
+      # A tracked file deleted in the working tree is left out.
+      [[ -f "$src/$f" ]] || continue
+      mkdir -p "$dest/$(dirname "$f")"
+      cp -p "$src/$f" "$dest/$f"
+    done < <(git -C "$src" ls-files -z --cached --others --exclude-standard)
+  else
+    cp -Rp "$src/." "$dest/"
+    rm -rf "$dest/.src" "$dest/.bin" "$dest/.assets" "$dest/dist"
+  fi
+}
+copy_tree . "$stage/android/core"
 [[ -x "$stage/android/core/build.sh" ]] || die "no build.sh in the copy of $(pwd)"
+
+# --- vulnerability scan ---------------------------------------------------
+if [[ "$mode" == vulncheck ]]; then
+  [[ -x "$stage/android/core/vulncheck.sh" ]] || die "no vulncheck.sh in the copy of $(pwd)"
+  [[ -f ../app/libs/libv2ray.aar ]] || die "no ../app/libs/libv2ray.aar to scan"
+  mkdir -p "$stage/android/app/libs"
+  cp -p ../app/libs/libv2ray.aar "$stage/android/app/libs/libv2ray.aar"
+  # The Windows tunnel builds from the same patched Xray-core, so
+  # vulncheck.sh scans it too.
+  [[ -f ../../windows/core/go.mod ]] || die "no ../../windows/core/go.mod to scan"
+  copy_tree ../../windows/core "$stage/windows/core"
+  cid=$(docker create --platform "$PLATFORM" \
+    -v "$GOMOD_VOLUME:/go/pkg/mod" \
+    -v "$GOCACHE_VOLUME:/go/cache" \
+    -e VULNCHECK_OUT=/build/out \
+    ${GOPROXY:+-e GOPROXY} \
+    -w "$BUILD_DIR/android/core" \
+    "$image" ./vulncheck.sh)
+  docker cp "$stage/." "$cid:$BUILD_DIR"
+  log "running vulncheck.sh in $BUILD_DIR/android/core ($PLATFORM container)"
+  rc=0
+  docker start -a "$cid" || rc=$?
+  # Copied even after a failure, so the results so far can be read.
+  docker cp "$cid:/build/out/." "$out_dir" 2>/dev/null || true
+  [[ $rc -eq 0 ]] || die "vulncheck.sh failed in the container (exit $rc)"
+  log "scan results copied into $out_dir"
+  exit 0
+fi
 
 # --- build ----------------------------------------------------------------
 old_sum=$(awk '$2=="libv2ray.aar"{print $1}' checksums.txt 2>/dev/null || true)

@@ -23,9 +23,12 @@ go 1.26.0
 
 // Pinned deliberately, not just for reproducibility: the core links the Go
 // standard library, so the toolchain version IS part of our TLS/crypto attack
-// surface. Bump this whenever a Go patch release fixes a stdlib advisory that
-// `govulncheck -mode=binary` reports against the built .so.
-toolchain go1.26.5
+// surface. Move it whenever a Go patch release fixes an advisory in code the
+// core calls. tool/core_vulncheck.sh refuses a release while the core calls
+// code with a known vulnerability. go1.26.10 is the first 1.26 release that
+// distrusts the eight eMudhra intermediates whose private keys anyone can
+// recover (October 2026); x509distrust/ tests that.
+toolchain go1.26.10
 
 require (
 	github.com/2dust/AndroidLibXrayLite v0.0.0-20260820071603-c634d1baea97
@@ -126,20 +129,20 @@ require (
 	github.com/zeebo/blake3 v0.2.4 // indirect
 	gitlab.torproject.org/tpo/anti-censorship/pluggable-transports/goptlib v1.5.0 // indirect
 	go4.org/netipx v0.0.0-20231129151722-fdeea329fbba // indirect
-	golang.org/x/crypto v0.54.0 // indirect
+	golang.org/x/crypto v0.58.0 // indirect
 	golang.org/x/exp v0.0.0-20240506185415-9bf2ced13842 // indirect
-	golang.org/x/mod v0.38.0 // indirect
-	golang.org/x/net v0.57.0 // indirect
-	golang.org/x/sync v0.22.0 // indirect
-	golang.org/x/sys v0.47.0 // indirect
-	golang.org/x/text v0.40.0 // indirect
+	golang.org/x/mod v0.41.0 // indirect
+	golang.org/x/net v0.62.0 // indirect
+	golang.org/x/sync v0.24.0 // indirect
+	golang.org/x/sys v0.49.0 // indirect
+	golang.org/x/text v0.43.0 // indirect
 	golang.org/x/time v0.14.0 // indirect
-	golang.org/x/tools v0.48.0 // indirect
+	golang.org/x/tools v0.51.0 // indirect
 	golang.zx2c4.com/wintun v0.0.0-20230126152724-0fa3db229ce2 // indirect
 	golang.zx2c4.com/wireguard v0.0.0-20250521234502-f333402bd9cb // indirect
 	golang.zx2c4.com/wireguard/windows v1.0.1 // indirect
-	google.golang.org/genproto/googleapis/rpc v0.0.0-20260414002931-afd174a4e478 // indirect
-	google.golang.org/grpc v1.82.1 // indirect
+	google.golang.org/genproto/googleapis/rpc v0.0.0-20260526163538-3dc84a4a5aaa // indirect
+	google.golang.org/grpc v1.83.2 // indirect
 	google.golang.org/protobuf v1.36.11 // indirect
 	gopkg.in/yaml.v2 v2.4.0 // indirect
 	gvisor.dev/gvisor v0.0.0-20260122175437-89a5d21be8f0 // indirect

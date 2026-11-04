@@ -65,6 +65,12 @@ not v2ray-core.
   `proxy/autoselect/` and `infra/conf/autoselect.go`, and adds
   `proxy/autoselect/stability_penalty_test.go` and
   `proxy/autoselect/stability_penalty_integration_test.go`.
+- Closing an outbound's gRPC clients when the outbound closes, added to
+  Xray-core by `android/core/patches/xray-grpc-close.patch`: Mozilla Public
+  License 2.0. Written for Fortiva. It changes
+  `app/proxyman/outbound/handler.go`, `transport/internet/memory_settings.go`
+  and `transport/internet/grpc/dial.go`, and adds
+  `transport/internet/grpc/close_test.go`.
 - Closing the WireGuard outbound without a crash when it still carries
   traffic, added to Xray-core by
   `android/core/patches/xray-wireguard-close.patch`. Written for Fortiva. It

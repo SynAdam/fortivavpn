@@ -1,0 +1,16 @@
+# Known vulnerabilities in code the core calls that may ship for now.
+#
+# tool/core_vulncheck.sh refuses a release while the core calls code with a
+# known vulnerability (README.md, "Known vulnerabilities"). Add a finding
+# here only when no fixed version exists yet, or the fix cannot ship in
+# time, and say why the core may ship meanwhile. Add and remove lines in a
+# pull request, so everyone sees them.
+#
+# One finding per line:
+#
+#   GO-YYYY-NNNN until YYYY-MM-DD: reason
+#
+# The finding is accepted until the end of that day. The date may be at most
+# 31 days ahead, and an entry past its date refuses the release until it is
+# fixed or accepted again. Lines that start with # and empty lines are
+# ignored.

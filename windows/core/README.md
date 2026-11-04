@@ -111,6 +111,14 @@ architecture asked for, was not built from `android/core/.src/xray-core`, or
 lacks REALITY, Vision, the autoselect outbound, the TUN inbound or the
 finalmask fragment. Each of those otherwise fails at connect, on a user's PC.
 
+`go.mod` pins the same Go as `android/core/go.mod`. `tool/core_vulncheck.sh`,
+which `tool/release.sh` runs before it tags, refuses when the two differ. It
+also scans this core's source for windows/amd64 and windows/arm64 and refuses
+while it calls code with a known vulnerability. When it names a module on a
+Windows build, move that module here with `GOFLAGS= go get` and
+`GOFLAGS= go mod tidy`, after `./stage.sh`, then run `go test ./...`. See
+"Known vulnerabilities" in [`android/core/README.md`](../../android/core/README.md).
+
 On macOS or Linux, `go build ./cmd/fortiva-core && ./fortiva-core run -assets .assets`
 serves the same pipe calls on `/tmp/fortiva-tunnel.sock`, without capturing
 anything, and `./fortiva-core call <method> '<json>'` drives it.

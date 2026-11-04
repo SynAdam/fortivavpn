@@ -78,8 +78,8 @@ RUN curl -fsSLo /tmp/platform.zip "https://dl.google.com/android/repository/${PL
 
 # Go, the version of the toolchain line in go.mod. The sha256 is the one
 # https://go.dev/dl/ lists.
-ARG GO_VERSION=1.26.5
-ARG GO_SHA256=5c2c3b16caefa1d968a94c1daca04a7ca301a496d9b086e17ad77bb81393f053
+ARG GO_VERSION=1.26.10
+ARG GO_SHA256=ccfe7ae822d2c2f41f4fe7c956199967a4dac22d0ee0d2b2bfdb440aab3b20c5
 RUN curl -fsSLo /tmp/go.tar.gz "https://go.dev/dl/go${GO_VERSION}.linux-amd64.tar.gz"; \
     echo "${GO_SHA256}  /tmp/go.tar.gz" | sha256sum -c -; \
     tar -C /usr/local -xzf /tmp/go.tar.gz; \

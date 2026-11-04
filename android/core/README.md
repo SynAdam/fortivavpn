@@ -12,6 +12,7 @@ consumes only the `.aar` this produces.
 | Pinned versions | `go.mod` (exact), `go.sum` (checksums), `stage-xray.sh` (Xray-core version and checksum), `stage-psiphon.sh` (Psiphon's quic-go fork version and checksum) |
 | Toolchain | `Dockerfile` (Go, NDK, JDK, Android platform and base image, each by version and checksum); `build-in-linux.sh` builds in it |
 | Last built | `checksums.txt` |
+| Known vulnerabilities | `tool/core_vulncheck.sh` refuses a release while the core calls code with one. See [Known vulnerabilities](#known-vulnerabilities). |
 
 ## Why this exists
 
@@ -109,7 +110,11 @@ the versions the core came from, the build folder, and the sha256 of the
 `build-in-linux.sh` refuses to build when the image and the source disagree:
 
 - A new `toolchain` line in `go.mod` needs `GO_VERSION` and `GO_SHA256` in
-  `Dockerfile` (from <https://go.dev/dl/>).
+  `Dockerfile` (from <https://go.dev/dl/>), and the same `toolchain` line in
+  `windows/core/go.mod`, which `tool/core_vulncheck.sh` refuses to scan with
+  another Go. After the rebuild, run `CGO_ENABLED=0 go test ./x509distrust/`
+  here, `./stage.sh && go test ./...` in `windows/core`, and
+  `tool/core_vulncheck.sh` from the repository root.
 - A new NDK changes `REQUIRED_NDK` in `build.sh`, `ndkVersion` in
   `android/app/build.gradle.kts`, and `NDK_VERSION`, `NDK_RELEASE` and
   `NDK_SHA256` in `Dockerfile`. Google's package index
@@ -128,6 +133,7 @@ and each patch file starts with where it came from and its licence.
 |---|---|
 | `xray-autoselect.patch` | The `autoselect` outbound: a group of outbounds that sends each connection through the healthiest member and retries a failed connection on the next one. Written by CluvexStudio for ZedSecure, MPL-2.0. |
 | `xray-failover-calm.patch` | Failover in the `autoselect` outbound leaves a failing door only for one that has been calmer, and prefers a door on the same server (the new `exits` setting), so the user's exit address changes less. Applied after `xray-autoselect.patch`. Ours, MPL-2.0. |
+| `xray-grpc-close.patch` | Closing an outbound closes the gRPC clients it made. The gRPC transport keeps its clients in a cache for the whole process, so before this a stopped core's clients stayed connected to working doors and kept redialling failing ones every 30 to 40 seconds, in the tunnel's process and in the main process, where door checks run. Upstream has the same report open (XTLS/Xray-core#7177). Ours, MPL-2.0. |
 | `xray-sinkhole.patch` | A connection headed to Iran's filtering sinkhole (10.10.34.0/24) is dialled by its sniffed name, even with routeOnly. Apps that looked a name up before the tunnel came up hold that address. Ours, MPL-2.0. |
 | `xray-stability-penalty.patch` | The `autoselect` outbound adds the backend's penalty for a door to that door's score (the new `penalties` setting), so a door that answers probes fast but fails in the middle of sessions stops winning on its probes alone. Applied after `xray-failover-calm.patch`. Ours, MPL-2.0. |
 | `xray-wireguard-close.patch` | Closing a WireGuard outbound while it still carries traffic no longer ends the process. Its gVisor device closed a channel that a sender could still be waiting on, and that sender panicked on a goroutine where nothing recovers. It also sets the bind's functions before `device.NewDevice` starts using them. Ours: the change to `netstack.go` is MIT (the licence `netstack.go` carries), `client.go` and the new test are MPL-2.0. |
@@ -145,7 +151,7 @@ To run a patch's tests against our base:
 
 ```bash
 ./stage-xray.sh
-(cd .src/xray-core && go test -race ./proxy/wireguard/ ./proxy/autoselect/ ./app/dispatcher/)
+(cd .src/xray-core && go test -race ./proxy/wireguard/ ./proxy/autoselect/ ./app/dispatcher/ ./transport/internet/grpc/)
 ```
 
 Xray-core is MPL-2.0, so the changed files have to be available to anyone who
@@ -176,10 +182,136 @@ we hand over for the Android build.
    runtime.
 6. Commit `go.mod`, `go.sum`, `stage-xray.sh`, `checksums.txt`, and the `.aar` together.
 
+After a bump, `tool/core_vulncheck.sh` must pass before the next release,
+and the forks it cannot see must be checked by hand (see
+[Known vulnerabilities](#known-vulnerabilities), "What it cannot see").
+
 `build.sh` refuses to emit an `.aar` that is missing the Java API the Kotlin
 layer calls, is missing REALITY/XTLS-Vision or the autoselect outbound, lacks
 the geo data, or is not 16 KB page-aligned on 64-bit. Each of those otherwise fails on a user's phone
 rather than in CI.
+
+## Known vulnerabilities
+
+`tool/core_vulncheck.sh` refuses while the Android core or the Windows
+tunnel (`windows/core`) contains code with a known vulnerability that the
+check can see, or while a core cannot be checked. `tool/release.sh` runs it
+before it tags a release. Run it from the repository root. It needs Docker
+and network access, and takes a few minutes.
+
+What it does:
+
+1. It checks that the committed `.aar` is the one `checksums.txt` records,
+   and that `checksums.txt` names the Go that `go.mod` pins.
+2. It runs `./build-in-linux.sh --vulncheck <folder>`, which runs
+   `vulncheck.sh` in the image that builds the core, on a copy of this
+   directory and the committed `.aar`. `vulncheck.sh`:
+   - installs govulncheck at the version it pins, from the module proxy;
+   - reads the build info of each `libgojni.so` in the committed `.aar`. Each
+     one must be built by the pinned Go and link every module that is not
+     replaced at the version `go.mod` resolves, as check 5 of `build.sh`
+     requires of a new build. So the source it scans is the source of the
+     shipped core;
+   - scans the source of the three packages `build.sh` binds, once for each
+     ABI, with the settings gomobile builds that ABI with: `GOOS=android`,
+     cgo with the NDK's clang for that ABI, `GOARM=7` on 32-bit ARM. It
+     refuses when `build.sh` binds another list of packages;
+   - scans each `libgojni.so` with `govulncheck -mode=binary`;
+   - scans the source of the Windows tunnel, `windows/core/cmd/fortiva-core`,
+     for windows/amd64 and windows/arm64, the two builds
+     `windows/core/build.sh` makes. `build-in-linux.sh` copies
+     `windows/core` into the container for this. It refuses when
+     `windows/core/go.mod` pins another Go than this `go.mod`, because the
+     image's Go scans both cores and `x509distrust` tests that Go;
+   - looks up each module that this `go.mod` or `windows/core/go.mod`
+     replaces with a folder (Xray-core and Psiphon's quic-go fork) with
+     `govulncheck -mode=query`, at the version `go.mod` requires;
+   - runs `go test ./x509distrust/`.
+3. `tool/core_vulncheck.py` reads the results and decides.
+
+What blocks:
+
+- A source-mode finding whose trace reaches a function, on any ABI, unless
+  `vulncheck-accept.txt` accepts it. Source mode follows the call graph from
+  the bound packages, so such a finding is in code the core can call.
+- Every advisory query mode lists for a module that a `go.mod` replaces
+  with a folder, unless `vulncheck-accept.txt` accepts it. govulncheck looks
+  such a module up under the folder's path (`./.src/xray-core`) and has no
+  version for it, so the source scan never reports an advisory there, even
+  in code the core calls. Query mode looks up the base version the stage
+  scripts patch, and it cannot see calls, so each advisory it lists blocks.
+  When one of our patches fixes it, accept it with that reason.
+- A failed `go test ./x509distrust/`: the pinned Go still trusts the eight
+  eMudhra intermediates whose private keys anyone can recover (October 2026,
+  advisory GO-2026-6809). Xray's TLS, uTLS and Psiphon's TLS verify with
+  Go's `crypto/x509` on Android, so with such a Go they accept a forged
+  certificate for any name through AAA Certificate Services, which the
+  Android system store holds. go1.26.10 and go1.27.3 drop those chains. The
+  test verifies the eight public cross-certificates against the AOSP copy of
+  that root and needs no private key.
+- A scan that did not run or whose file is missing.
+
+What does not block:
+
+- A finding in a module or package the core links but does not call. It is
+  printed.
+- Every binary-mode finding. `build.sh` links with `-s`, which removes the
+  symbol table, so in binary mode govulncheck can only match modules and
+  versions. It reports advisories in code the core does not contain, and
+  cannot tell whether the code is called. The results are printed for
+  information.
+
+What it cannot see:
+
+- Forks published under their own module path. `apernet/quic-go` and
+  `Psiphon-Labs/quic-go` are forks of quic-go, and `Psiphon-Labs/psiphon-tls`,
+  `Psiphon-Labs/utls`, `refraction-networking/utls` and `xtls/reality` are
+  forks of the standard library's `crypto/tls`. govulncheck matches an
+  advisory only to the module it is filed under, so an advisory for
+  `github.com/quic-go/quic-go` or for `crypto/tls` never matches a fork. At
+  each bump of Xray-core or Psiphon, read the advisories for those two since
+  the date of each fork's base (https://pkg.go.dev/vuln/list), and check
+  that the fork has each fix.
+
+When it refuses, it lists each finding with the module, the version found,
+the fixed version, the builds it was found on and one call path from the
+core's entry point, or says that query mode found it. Then:
+
+- for a module, in this folder for an Android ABI or in `windows/core` for a
+  Windows build, run `./stage-xray.sh && ./stage-psiphon.sh` here, then
+  `GOFLAGS= go get <module>@<fixed version> && GOFLAGS= go mod tidy`;
+- for Xray-core or Psiphon's quic-go fork, move to a fixed version as
+  [Bumping the core](#bumping-the-core) or [Bumping Psiphon](#bumping-psiphon)
+  says;
+- for the standard library (module `stdlib`), move the toolchain (see
+  [Moving the toolchain](#moving-the-toolchain)), in `windows/core/go.mod`
+  too;
+- rebuild with `./build-in-linux.sh`, test a real connection on a device
+  (step 5 of [Bumping the core](#bumping-the-core)), and commit the `.aar`
+  with `go.mod`, `go.sum` and `checksums.txt`.
+
+When no fix exists yet, or the fix cannot ship in time, add the finding to
+`vulncheck-accept.txt` in a pull request, one line each:
+
+```
+GO-YYYY-NNNN until YYYY-MM-DD: why the core may ship meanwhile
+```
+
+The finding is accepted until the end of that day, at most 31 days ahead. An
+entry past its date, or more than 31 days ahead, refuses the release. An
+entry that no scan reports any more prints a warning. Without this file, a
+finding with no upstream fix would block every release, an urgent
+connection fix included.
+
+govulncheck reads the live database at vuln.go.dev, so a core that passed
+yesterday can be refused today. `.github/workflows/core-upstream-watch.yml`
+also runs govulncheck, every Monday and on pull requests that change the
+core, but only in binary mode on arm64, and it only reports.
+
+After a change to `tool/core_vulncheck.py`, run
+`python3 tool/core_vulncheck_test.py`. CI does not run it. After a change to
+`vulncheck.sh` or the `--vulncheck` mode of `build-in-linux.sh`, run
+`tool/core_vulncheck.sh`.
 
 ## Psiphon
 
@@ -245,19 +377,26 @@ Other things to know:
   core has no refraction networking (Conjure). Psiphon's own builds do.
   Building with the tag needs Psiphon's `replace/dtls`, which is not in the
   module download.
-- 15 of Psiphon's dependencies are built at a newer version than Psiphon
+- 19 of Psiphon's dependencies are built at a newer version than Psiphon
   pins: andybalholm/brotli, klauspost/compress, klauspost/cpuid, miekg/dns,
   pires/go-proxyproto, quic-go/qpack (patched), refraction-networking/utls,
   syndtr/gocapability, tailscale/netlink, vishvananda/netlink and netns,
-  x/exp, x/net, wireguard and protobuf. For most of them, Xray-core needs the
-  newer version. syndtr/gocapability is different: gomobile builds in a
+  x/crypto, x/exp, x/net, x/sync, x/sys, x/text, wireguard and protobuf. For
+  most of them, Xray-core needs the newer version. x/crypto, x/net, x/sync,
+  x/sys and x/text are newer for the reason in the next point. syndtr/gocapability is different: gomobile builds in a
   module of its own that requires every module of ours directly, so a
   requirement that Go's graph pruning drops here (from runc) counts there.
   `go.mod` pins the version that is actually linked. They all compile. Only
   the end-to-end test against our own `psiphond` shows that Psiphon still
   works with them.
-- Modules Xray-core already linked keep their versions, except
-  `pion/dtls/v3`, which moves from v3.1.4 to v3.1.5.
+- Modules Xray-core already linked keep the versions AndroidLibXrayLite
+  pins, with two exceptions. Psiphon moves `pion/dtls/v3` from v3.1.4 to
+  v3.1.5. And grpc is at v1.83.2 and x/net at v0.62.0, because the versions
+  AndroidLibXrayLite pins (v1.82.1 and v0.57.0) have advisories in code the
+  core calls (see [Known vulnerabilities](#known-vulnerabilities)). They pull
+  x/crypto, x/sync, x/sys, x/text and genproto's googleapis/rpc up with them.
+  An AndroidLibXrayLite bump keeps these versions unless it requires newer
+  ones.
 - `build.sh` sets `psiphon/common/buildinfo.buildRev` to the first 10 hex
   digits of the commit (`96f782c6f6`), as Psiphon's own `make.bash` does with
   `git rev-parse --short=10`. Psiphon sends it to its servers as
@@ -326,7 +465,10 @@ Other things to know:
 7. Test the fallback end to end against our own `psiphond` in Docker. Do not
    connect to Psiphon's network until Psiphon has given us partner IDs.
 8. Commit `go.mod`, `go.sum`, `stage-psiphon.sh`, the patch,
-   `checksums.txt` and the `.aar` together.
+   `checksums.txt` and the `.aar` together. Before the next release,
+   `tool/core_vulncheck.sh` must pass, and the forks it cannot see must be
+   checked by hand (see [Known vulnerabilities](#known-vulnerabilities),
+   "What it cannot see").
 
 ## The app's side of the contract
 
