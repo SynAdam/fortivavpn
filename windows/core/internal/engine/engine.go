@@ -94,6 +94,9 @@ type Options struct {
 	// PingURL is what a door check fetches. Android's default, the group's
 	// probe URL, when empty.
 	PingURL string
+	// Adapter returns the TUN interface Capture adds, asked at each connect:
+	// config.Adapter, the Wintun one, when nil.
+	Adapter func() config.AdapterSpec
 }
 
 // Engine is the tunnel. It is safe for concurrent use.
@@ -128,6 +131,14 @@ func New(opts Options) *Engine {
 		status:  Status{State: Disconnected, Since: time.Now().UnixMilli()},
 		changed: make(chan struct{}),
 	}
+}
+
+// adapter is the TUN interface this engine captures with.
+func (e *Engine) adapter() config.AdapterSpec {
+	if e.opts.Adapter != nil {
+		return e.opts.Adapter()
+	}
+	return config.Adapter
 }
 
 // Status returns the tunnel's current status.
@@ -225,7 +236,7 @@ func (e *Engine) run(ctx context.Context, id uint64, req config.Request) {
 	}
 
 	resolveCtx, cancel := context.WithTimeout(ctx, 8*time.Second)
-	built, err := config.Build(resolveCtx, req, e.opts.Resolve)
+	built, err := config.BuildWith(resolveCtx, req, e.opts.Resolve, e.adapter())
 	cancel()
 	if err != nil {
 		fail(ReasonConfig, err)
@@ -241,7 +252,7 @@ func (e *Engine) run(ctx context.Context, id uint64, req config.Request) {
 		// the group, so a bad standby door cannot keep the user offline.
 		e.opts.Logs.Printf("[engine] door group refused, trying the chosen door alone: %v", err)
 		single := config.Request{Link: req.Link, DNS: req.DNS}
-		if built, err = config.Build(ctx, single, e.opts.Resolve); err == nil {
+		if built, err = config.BuildWith(ctx, single, e.opts.Resolve, e.adapter()); err == nil {
 			inst, err = startInstance(built.Config)
 		}
 	}

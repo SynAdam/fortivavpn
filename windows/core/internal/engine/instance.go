@@ -9,6 +9,7 @@ import (
 	"io"
 	"net"
 	"net/http"
+	"sync"
 	"time"
 
 	applog "github.com/xtls/xray-core/app/log"
@@ -22,6 +23,13 @@ import (
 )
 
 var logAppType = serial.ToTypedMessage(&applog.Config{}).Type
+
+// instanceMu makes instances start one at a time. Each one writes the
+// core's process-wide dialer tables as it starts (internet.InitSystemDialer),
+// and parallel door checks start several at once. Nothing reads what those
+// writes hold (see the config package), but two of them at once are still
+// a data race.
+var instanceMu sync.Mutex
 
 // startInstance builds cfg the way the core's own loader does, refusing any
 // field it does not know, and starts it. The log module is left out: see
@@ -41,6 +49,8 @@ func startInstance(cfg *xray.Config) (*core.Instance, error) {
 	}
 	stripLogApp(built)
 
+	instanceMu.Lock()
+	defer instanceMu.Unlock()
 	inst, err := core.New(built)
 	if err != nil {
 		return nil, fmt.Errorf("core: %w", err)

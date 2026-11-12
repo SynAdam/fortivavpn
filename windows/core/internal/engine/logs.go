@@ -23,6 +23,8 @@ type LogSink struct {
 	full  bool
 	out   io.Writer
 	debug bool
+	// coreOut is the least severe core message that also goes to out.
+	coreOut xlog.Severity
 }
 
 // ringLines is how much of the log the diagnostics carry back.
@@ -35,27 +37,48 @@ const maxLine = 600
 // NewLogSink returns a sink that also writes every line to out when it is
 // not nil, which is what "fortiva-core run" does with the console.
 func NewLogSink(out io.Writer, debug bool) *LogSink {
-	return &LogSink{lines: make([]string, ringLines), out: out, debug: debug}
+	return &LogSink{lines: make([]string, ringLines), out: out, debug: debug, coreOut: xlog.Severity_Debug}
+}
+
+// QuietCore writes only the core's warnings and errors to out; the rest
+// still goes into the tail. The engine's own lines go to out as before.
+// The router build uses it: the core logs every connection at Info, with
+// the address of the device on the LAN and the site it reached, and out is
+// the router's syslog.
+func (s *LogSink) QuietCore() {
+	s.mu.Lock()
+	s.coreOut = xlog.Severity_Warning
+	s.mu.Unlock()
 }
 
 // Handle implements xray's log.Handler.
 func (s *LogSink) Handle(msg xlog.Message) {
+	// A message of another kind counts as Info.
+	severity := xlog.Severity_Info
 	switch m := msg.(type) {
 	case *xlog.GeneralMessage:
 		if m.Severity == xlog.Severity_Debug && !s.debug {
 			return
 		}
+		severity = m.Severity
 	case *xlog.AccessMessage:
 		// The access log is off in every configuration; a stray one is
 		// a connection list nobody asked to keep.
 		return
 	}
-	s.Printf("%s", msg.String())
+	s.mu.Lock()
+	toOut := severity <= s.coreOut
+	s.mu.Unlock()
+	s.add(msg.String(), toOut)
 }
 
 // Printf adds one line of the engine's own.
 func (s *LogSink) Printf(format string, args ...any) {
-	line := time.Now().Format("15:04:05.000 ") + fmt.Sprintf(format, args...)
+	s.add(fmt.Sprintf(format, args...), true)
+}
+
+func (s *LogSink) add(text string, toOut bool) {
+	line := time.Now().Format("15:04:05.000 ") + text
 	if len(line) > maxLine {
 		line = line[:maxLine] + "..."
 	}
@@ -67,7 +90,7 @@ func (s *LogSink) Printf(format string, args ...any) {
 	}
 	out := s.out
 	s.mu.Unlock()
-	if out != nil {
+	if out != nil && toOut {
 		fmt.Fprintln(out, line)
 	}
 }

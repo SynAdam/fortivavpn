@@ -62,19 +62,22 @@ const (
 	FallbackProbeURL = "https://www.google.com/generate_204"
 )
 
+// AdapterSpec is how a platform's TUN interface is named and addressed.
+type AdapterSpec struct {
+	Name    string
+	Desc    string
+	MTU     uint32
+	Address []string
+	Routes  []string
+}
+
 // Adapter is how the Wintun adapter is named and addressed. The addresses
 // are only there so routes have an interface to point at; nothing is
 // addressed to them. The IPv4 one is Android's tunnel address. The IPv6 one
 // is a unique local address, which also makes Windows prefer IPv4 for
 // everything while the tunnel is up (RFC 6724 rule 5: a ULA source does not
 // match a global destination's label).
-var Adapter = struct {
-	Name    string
-	Desc    string
-	MTU     uint32
-	Address []string
-	Routes  []string
-}{
+var Adapter = AdapterSpec{
 	Name:    "Fortiva",
 	Desc:    "Fortiva Tunnel",
 	MTU:     1500,
@@ -83,6 +86,38 @@ var Adapter = struct {
 	// any other default route whatever its metric, and they leave the
 	// physical interface's own default route alone for the core to use.
 	Routes: []string{"0.0.0.0/1", "128.0.0.0/1", "::/1", "8000::/1"},
+}
+
+// RouterAdapter is the TUN interface of the router build (cmd/fortiva-router).
+// The same addresses and routes as Windows. On Linux the routes go into the
+// main table, which the router also uses for the traffic it forwards from
+// its LAN, so every device behind the router reaches the tunnel without a
+// rule of its own. OpenWrt's firewall needs the name: the package puts
+// "fortiva0" in a zone of its own (router/files/usr/share/fortiva/firewall.sh).
+// A router with IPv6 turned off uses it WithoutIPv6.
+var RouterAdapter = AdapterSpec{
+	Name:    "fortiva0",
+	MTU:     1500,
+	Address: Adapter.Address,
+	Routes:  Adapter.Routes,
+}
+
+// WithoutIPv6 is a with only its IPv4 addresses and routes. A Linux kernel
+// refuses an IPv6 address on an interface that has IPv6 turned off, and the
+// TUN inbound then fails to start.
+func (a AdapterSpec) WithoutIPv6() AdapterSpec {
+	ipv4 := func(list []string) []string {
+		var out []string
+		for _, s := range list {
+			if p, err := netip.ParsePrefix(s); err == nil && p.Addr().Is4() {
+				out = append(out, s)
+			}
+		}
+		return out
+	}
+	a.Address = ipv4(a.Address)
+	a.Routes = ipv4(a.Routes)
+	return a
 }
 
 // Request is what the app asks to connect to.
@@ -133,6 +168,11 @@ var ErrNoDoor = errors.New("no usable door")
 // Build turns a request into a configuration. Alternates that cannot be
 // used are left out and listed in Skipped; the chosen link must be usable.
 func Build(ctx context.Context, req Request, resolve Resolver) (*Built, error) {
+	return BuildWith(ctx, req, resolve, Adapter)
+}
+
+// BuildWith is Build with the TUN interface of another platform.
+func BuildWith(ctx context.Context, req Request, resolve Resolver, adapter AdapterSpec) (*Built, error) {
 	dns, err := dnsServers(req.DNS)
 	if err != nil {
 		return nil, err
@@ -239,12 +279,12 @@ func Build(ctx context.Context, req Request, resolve Resolver) (*Built, error) {
 		Tag:      TunTag,
 		Protocol: "tun",
 		Settings: xray.TunSettings{
-			Name:                   Adapter.Name,
-			Desc:                   Adapter.Desc,
-			MTU:                    Adapter.MTU,
-			Gateway:                Adapter.Address,
+			Name:                   adapter.Name,
+			Desc:                   adapter.Desc,
+			MTU:                    adapter.MTU,
+			Gateway:                adapter.Address,
 			DNS:                    dns,
-			AutoSystemRoutingTable: Adapter.Routes,
+			AutoSystemRoutingTable: adapter.Routes,
 			// Empty, not absent: the engine binds the core's own sockets to
 			// the interface that holds the real default route. The core's
 			// "auto" guesses that interface from its name and address and

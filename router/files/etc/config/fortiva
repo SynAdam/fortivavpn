@@ -1,0 +1,10 @@
+
+config fortiva 'main'
+	# Start Fortiva when the router starts.
+	option enabled '1'
+	# Send the network's lookups through the tunnel while it is up.
+	option dns_through_tunnel '1'
+	# The resolvers asked through the tunnel, comma separated.
+	option dns '1.1.1.1'
+	# The WAN device, when the default route's is not the right one.
+	option wan ''

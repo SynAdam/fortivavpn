@@ -354,3 +354,19 @@ func urlEscape(s string) string {
 	}
 	return b.String()
 }
+
+func TestARouterWithoutIPv6GetsAnInterfaceWithoutIPv6(t *testing.T) {
+	built, err := BuildWith(context.Background(), Request{Link: wsTLS}, noLookups, RouterAdapter.WithoutIPv6())
+	if err != nil {
+		t.Fatal(err)
+	}
+	loadInbound(t, built.Tun)
+	tun := built.Tun.Settings.(xray.TunSettings)
+	if !reflect.DeepEqual(tun.Gateway, []string{"10.10.14.1/30"}) || !reflect.DeepEqual(tun.AutoSystemRoutingTable, []string{"0.0.0.0/1", "128.0.0.0/1"}) {
+		t.Fatalf("address %v routes %v, want IPv4 only", tun.Gateway, tun.AutoSystemRoutingTable)
+	}
+	// The router's own adapter, and Windows', keep IPv6.
+	if len(RouterAdapter.Address) != 2 || len(RouterAdapter.Routes) != 4 || len(Adapter.Routes) != 4 {
+		t.Fatalf("WithoutIPv6 changed the adapter it was called on: %+v %+v", RouterAdapter, Adapter)
+	}
+}

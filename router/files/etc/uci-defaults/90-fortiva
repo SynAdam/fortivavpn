@@ -1,0 +1,13 @@
+#!/bin/sh
+# Gets the firewall ready for the tunnel at install, or at the first boot
+# after an upgrade: the fortiva zone, and a forwarding to it from every zone
+# that forwards to wan (/usr/share/fortiva/firewall.sh, which the service
+# also runs at every start). Without them the firewall drops what the zones
+# send into the tunnel.
+
+/usr/share/fortiva/firewall.sh
+
+# The settings page reads the service's output through rpcd.
+/etc/init.d/rpcd reload >/dev/null 2>&1
+rm -f /tmp/luci-indexcache /tmp/luci-indexcache.* 2>/dev/null
+exit 0

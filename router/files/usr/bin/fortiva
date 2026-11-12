@@ -1,0 +1,15 @@
+#!/bin/sh
+# Runs the Fortiva program wherever the service keeps it: on flash, or
+# unpacked into memory on a router with little flash (/etc/init.d/fortiva).
+#
+#   fortiva status           what it is doing, as JSON
+#   fortiva connect          turn the tunnel on
+#   fortiva disconnect       turn the tunnel off
+#   fortiva redeem CODE      apply a Premium code to this router
+#   fortiva version          what it was built from
+
+for bin in /usr/lib/fortiva/fortiva /tmp/fortiva/fortiva; do
+	[ -x "$bin" ] && exec "$bin" "$@"
+done
+echo "fortiva: the service is not running. Start it with: /etc/init.d/fortiva start" >&2
+exit 1

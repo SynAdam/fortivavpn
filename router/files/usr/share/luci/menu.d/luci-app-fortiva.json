@@ -1,0 +1,14 @@
+{
+	"admin/services/fortiva": {
+		"title": "Fortiva VPN",
+		"order": 50,
+		"action": {
+			"type": "view",
+			"path": "fortiva/status"
+		},
+		"depends": {
+			"acl": [ "luci-app-fortiva" ],
+			"uci": { "fortiva": true }
+		}
+	}
+}

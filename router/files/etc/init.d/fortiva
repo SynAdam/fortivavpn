@@ -1,0 +1,136 @@
+#!/bin/sh /etc/rc.common
+# Fortiva VPN for OpenWrt: keeps the router, and every device behind it,
+# connected through Fortiva. router/README.md in the clients repository.
+
+USE_PROCD=1
+START=95
+STOP=10
+
+PROG_DIR=/usr/lib/fortiva
+RUN_DIR=/tmp/fortiva
+
+# The program is kept on flash as it is when the flash has room, or packed
+# when it has not (install.sh decides). A packed one is unpacked into memory
+# at every start.
+fortiva_binary() {
+	if [ -x "$PROG_DIR/fortiva" ]; then
+		echo "$PROG_DIR/fortiva"
+		return 0
+	fi
+	[ -f "$PROG_DIR/fortiva.gz" ] || return 1
+	mkdir -p "$RUN_DIR"
+	if [ ! -x "$RUN_DIR/fortiva" ] || [ "$PROG_DIR/fortiva.gz" -nt "$RUN_DIR/fortiva" ]; then
+		gunzip -c "$PROG_DIR/fortiva.gz" > "$RUN_DIR/fortiva.new" || {
+			rm -f "$RUN_DIR/fortiva.new"
+			return 1
+		}
+		chmod 755 "$RUN_DIR/fortiva.new"
+		mv "$RUN_DIR/fortiva.new" "$RUN_DIR/fortiva"
+	fi
+	echo "$RUN_DIR/fortiva"
+}
+
+# A quarter of the router's memory, between 48 and 160 MiB. Go returns
+# memory to the system only slowly without a limit, and a router has none to
+# spare.
+fortiva_memory_limit() {
+	local kb
+	kb=$(awk '/^MemTotal:/ {print $2}' /proc/meminfo 2>/dev/null)
+	[ -n "$kb" ] || kb=262144
+	local mib=$((kb / 4096))
+	[ "$mib" -lt 48 ] && mib=48
+	[ "$mib" -gt 160 ] && mib=160
+	echo "$mib"
+}
+
+# The interface language, when it is one the app has; English otherwise.
+fortiva_language() {
+	local lang
+	lang=$(uci -q get luci.main.lang)
+	case "$lang" in
+	en | fa | ar | ur | tr | ru | de | fr | pt | hi | ja | ko | es | id | uk | uz | vi) echo "$lang" ;;
+	zh | zh_* | zh-*) echo zh ;;
+	pt_* | pt-*) echo pt ;;
+	*) echo en ;;
+	esac
+}
+
+# Whether procd runs the program now. procd keeps a running instance whose
+# command did not change, and that program owns the lookups.
+fortiva_running() {
+	type procd_running >/dev/null 2>&1 && procd_running fortiva
+}
+
+# Sends the network's lookups back to the WAN's resolvers.
+fortiva_dns_down() {
+	/usr/share/fortiva/hook.sh down >/dev/null 2>&1
+}
+
+start_service() {
+	local enabled wan dns dns_tunnel api bin model os
+	config_load fortiva
+	config_get_bool enabled main enabled 1
+	if [ "$enabled" != 1 ]; then
+		# No program runs after this, so none may leave the lookups on
+		# the tunnel.
+		fortiva_dns_down
+		return 0
+	fi
+	config_get wan main wan ""
+	config_get dns main dns "1.1.1.1"
+	config_get_bool dns_tunnel main dns_through_tunnel 1
+	# Another backend, for tests. A file only root can write, so neither
+	# the settings page nor its ACL can point the router elsewhere.
+	api=""
+	[ -s /etc/fortiva/api ] && api=$(head -n 1 /etc/fortiva/api)
+
+	bin=$(fortiva_binary) || {
+		echo "fortiva: the program could not be unpacked into memory" >&2
+		fortiva_dns_down
+		return 1
+	}
+	model=$(cat /tmp/sysinfo/model 2>/dev/null)
+	os="OpenWrt"
+	if [ -f /etc/openwrt_release ]; then
+		. /etc/openwrt_release
+		os="OpenWrt ${DISTRIB_RELEASE:-} ${DISTRIB_TARGET:-}"
+	fi
+
+	# Zones added since the last start get their forwarding to the tunnel.
+	/usr/share/fortiva/firewall.sh
+
+	# A program that crashed or was killed may have left the lookups on the
+	# tunnel. They go back to the WAN before a new one starts, whatever
+	# dns_through_tunnel says. The program also does this when it starts,
+	# since procd restarts a crashed one without this script.
+	fortiva_running || fortiva_dns_down
+
+	procd_open_instance
+	procd_set_param command "$bin" run -state /etc/fortiva -assets /usr/share/fortiva
+	procd_append_param command -dns "$dns" -lang "$(fortiva_language)"
+	[ -n "$model" ] && procd_append_param command -model "$model"
+	procd_append_param command -os "$os"
+	[ -n "$wan" ] && procd_append_param command -wan "$wan"
+	[ -n "$api" ] && procd_append_param command -api "$api"
+	# Always given, so the program can take the lookups back; with
+	# dns_through_tunnel off it never sends them to the tunnel.
+	procd_append_param command -hook /usr/share/fortiva/hook.sh
+	[ "$dns_tunnel" = 1 ] || procd_append_param command -dns-tunnel=false
+	procd_set_param env GOMEMLIMIT="$(fortiva_memory_limit)MiB" GOGC=50
+	procd_set_param respawn 3600 5 0
+	# On a stop the program takes the lookups back, then sends its last
+	# events for up to 5 s. procd's default of 5 s would kill it first.
+	procd_set_param term_timeout 15
+	procd_set_param stdout 1
+	procd_set_param stderr 1
+	procd_close_instance
+}
+
+stop_service() {
+	# The program says "down" itself when it stops; this covers a kill.
+	fortiva_dns_down
+}
+
+service_triggers() {
+	procd_add_reload_trigger fortiva
+}

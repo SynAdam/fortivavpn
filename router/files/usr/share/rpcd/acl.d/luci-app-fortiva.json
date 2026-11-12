@@ -1,0 +1,20 @@
+{
+	"luci-app-fortiva": {
+		"description": "Grant access to Fortiva VPN",
+		"read": {
+			"file": {
+				"/usr/bin/fortiva status": [ "exec" ]
+			},
+			"uci": [ "fortiva" ]
+		},
+		"write": {
+			"file": {
+				"/usr/bin/fortiva connect": [ "exec" ],
+				"/usr/bin/fortiva disconnect": [ "exec" ],
+				"/usr/bin/fortiva redeem *": [ "exec" ],
+				"/etc/init.d/fortiva restart": [ "exec" ]
+			},
+			"uci": [ "fortiva" ]
+		}
+	}
+}

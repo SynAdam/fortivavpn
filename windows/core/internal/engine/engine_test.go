@@ -13,6 +13,7 @@ import (
 	"path/filepath"
 	"reflect"
 	"strconv"
+	"strings"
 	"sync/atomic"
 	"testing"
 	"time"
@@ -293,6 +294,33 @@ func TestLogTail(t *testing.T) {
 	}
 	if all := sink.Tail(0); len(all) != ringLines {
 		t.Errorf("ring holds %d lines, want %d", len(all), ringLines)
+	}
+}
+
+func TestAQuietSinkKeepsTheCoresConnectionLinesOutOfItsOutput(t *testing.T) {
+	// 192.0.2.0/24 is for documentation.
+	info := &xlog.GeneralMessage{Severity: xlog.Severity_Info, Content: "[tun] processing from 192.0.2.23:51514 to tcp:example.com:443"}
+	warning := &xlog.GeneralMessage{Severity: xlog.Severity_Warning, Content: "a door failed"}
+	for _, quiet := range []bool{false, true} {
+		var out strings.Builder
+		sink := NewLogSink(&out, false)
+		if quiet {
+			sink.QuietCore()
+		}
+		sink.Handle(info)
+		sink.Handle(warning)
+		sink.Printf("[agent] connected")
+		written := out.String()
+		if strings.Contains(written, "192.0.2.23") == quiet {
+			t.Errorf("quiet %v: the connection line in the output is %v:\n%s", quiet, !quiet, written)
+		}
+		if !strings.Contains(written, "a door failed") || !strings.Contains(written, "[agent] connected") {
+			t.Errorf("quiet %v: a warning or the agent's own line is missing:\n%s", quiet, written)
+		}
+		// The tail, which the logs call reads, keeps what it kept.
+		if tail := strings.Join(sink.Tail(0), "\n"); !strings.Contains(tail, "192.0.2.23") || !strings.Contains(tail, "a door failed") {
+			t.Errorf("quiet %v: tail %q", quiet, tail)
+		}
 	}
 }
 

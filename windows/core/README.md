@@ -148,6 +148,21 @@ that sites work with Wi-Fi and with Ethernet, that switching between the two
 keeps the tunnel, that `tunnelStats` reports the network, and what a DNS leak
 test shows.
 
+## The router build
+
+This module also builds Fortiva for OpenWrt routers
+([`router/README.md`](../../router/README.md)). `cmd/fortiva-router` runs the
+same engine on a Linux TUN interface (`config.RouterAdapter`, without IPv6
+on a router that has it turned off), binds the core's sockets to the WAN
+device (`internal/engine/bind_linux.go`), and adds `internal/agent`, which
+does on the router what the app does on a phone.
+Its log sink writes only the core's warnings and errors to stderr, the
+router's system log (`LogSink.QuietCore`), because the core's Info lines
+name every device's connections.
+`cmd/geotrim` cuts the routing data down to the lists the rules name. A change
+to `internal/config` or `internal/engine` reaches both platforms, so run
+`go test ./...` for both.
+
 ## Not done yet
 
 - DNS leak protection. Windows may also ask the physical network's resolvers
