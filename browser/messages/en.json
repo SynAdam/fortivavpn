@@ -8,5 +8,6 @@
   "extRedeemMovedTooOften": "This key has moved between devices too often lately. Try again later.",
   "extPremiumNotAvailable": "Premium is not available in this browser right now.",
   "extNoServers": "Fortiva has no server for browsers right now. Try again later.",
-  "extPrivateWindows": "Private windows do not go through Fortiva. To include them, allow this extension in private windows in the browser's extension settings."
+  "extPrivateWindows": "Private windows do not go through Fortiva. To include them, allow this extension in private windows in the browser's extension settings.",
+  "extAutomatic": "Automatic"
 }

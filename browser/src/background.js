@@ -356,6 +356,7 @@ ext.runtime.onMessage.addListener((msg, sender, respond) => {
     disconnect: () => controller.disconnect(),
     redeem: () => controller.redeem(msg.code || ''),
     language: () => controller.setLanguage(msg.code || '').then(() => controller.snapshot()),
+    location: () => controller.setLocation(typeof msg.label === 'string' ? msg.label : ''),
   }[msg && msg.type];
   if (!work) return false;
   work().then(respond, (e) => respond({ error: String((e && e.message) || e) }));

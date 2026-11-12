@@ -8,5 +8,6 @@
   "extRedeemMovedTooOften": "Bu kalit soʻnggi paytda qurilmalar orasida juda koʻp koʻchirilgan. Keyinroq qayta urinib koʻring.",
   "extPremiumNotAvailable": "Premium hozir bu brauzerda mavjud emas.",
   "extNoServers": "Fortivada hozir brauzerlar uchun server yoʻq. Keyinroq qayta urinib koʻring.",
-  "extPrivateWindows": "Shaxsiy oynalar Fortiva orqali oʻtmaydi. Ularni ham qoʻshish uchun brauzerning kengaytma sozlamalarida bu kengaytmaga shaxsiy oynalarda ruxsat bering."
+  "extPrivateWindows": "Shaxsiy oynalar Fortiva orqali oʻtmaydi. Ularni ham qoʻshish uchun brauzerning kengaytma sozlamalarida bu kengaytmaga shaxsiy oynalarda ruxsat bering.",
+  "extAutomatic": "Avtomatik"
 }

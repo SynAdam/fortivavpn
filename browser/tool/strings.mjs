@@ -28,7 +28,7 @@ export const FROM_APP = [
   'connectBtn', 'disconnectBtn', 'errorConnectionFailed',
   'quotaLeftOf', 'quotaUnlimited', 'quotaUsedUp',
   'quotaResetsShortly', 'quotaResetsInHours', 'quotaResetsInMinutes',
-  'myServersBlockedWait', 'serverLocation', 'language',
+  'myServersBlockedWait', 'serverLocation', 'language', 'selectServer',
   'redeemTitle', 'redeemHint', 'redeemApply',
   'redeemInvalid', 'redeemUnknown', 'redeemExpired', 'redeemRevoked',
   'redeemExhausted', 'redeemRateLimited', 'redeemUnavailable',

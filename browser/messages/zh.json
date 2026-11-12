@@ -8,5 +8,6 @@
   "extRedeemMovedTooOften": "此密钥最近在设备之间转移得太频繁。请稍后再试。",
   "extPremiumNotAvailable": "高级版目前在此浏览器中不可用。",
   "extNoServers": "Fortiva 目前没有可供浏览器使用的服务器。请稍后再试。",
-  "extPrivateWindows": "隐私窗口不通过 Fortiva。如需包含它们，请在浏览器的扩展程序设置中允许此扩展程序在隐私窗口中运行。"
+  "extPrivateWindows": "隐私窗口不通过 Fortiva。如需包含它们，请在浏览器的扩展程序设置中允许此扩展程序在隐私窗口中运行。",
+  "extAutomatic": "自动"
 }

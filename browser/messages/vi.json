@@ -8,5 +8,6 @@
   "extRedeemMovedTooOften": "Khóa này gần đây đã chuyển giữa các thiết bị quá nhiều lần. Hãy thử lại sau.",
   "extPremiumNotAvailable": "Premium hiện không khả dụng trên trình duyệt này.",
   "extNoServers": "Fortiva hiện chưa có máy chủ cho trình duyệt. Hãy thử lại sau.",
-  "extPrivateWindows": "Cửa sổ riêng tư không đi qua Fortiva. Để bao gồm chúng, hãy cho phép tiện ích này trong cửa sổ riêng tư ở phần cài đặt tiện ích của trình duyệt."
+  "extPrivateWindows": "Cửa sổ riêng tư không đi qua Fortiva. Để bao gồm chúng, hãy cho phép tiện ích này trong cửa sổ riêng tư ở phần cài đặt tiện ích của trình duyệt.",
+  "extAutomatic": "Tự động"
 }

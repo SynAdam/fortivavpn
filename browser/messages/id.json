@@ -8,5 +8,6 @@
   "extRedeemMovedTooOften": "Kunci ini terlalu sering berpindah perangkat belakangan ini. Coba lagi nanti.",
   "extPremiumNotAvailable": "Premium sedang tidak tersedia di browser ini.",
   "extNoServers": "Fortiva sedang tidak punya server untuk browser. Coba lagi nanti.",
-  "extPrivateWindows": "Jendela pribadi tidak lewat Fortiva. Agar ikut lewat, izinkan ekstensi ini di jendela pribadi dari pengaturan ekstensi browser."
+  "extPrivateWindows": "Jendela pribadi tidak lewat Fortiva. Agar ikut lewat, izinkan ekstensi ini di jendela pribadi dari pengaturan ekstensi browser.",
+  "extAutomatic": "Otomatis"
 }

@@ -8,5 +8,6 @@
   "extRedeemMovedTooOften": "Esta chave mudou de dispositivo vezes demais nos últimos tempos. Tente de novo mais tarde.",
   "extPremiumNotAvailable": "O Premium não está disponível neste navegador agora.",
   "extNoServers": "A Fortiva não tem servidor para navegadores agora. Tente de novo mais tarde.",
-  "extPrivateWindows": "As janelas privadas não passam pela Fortiva. Para incluí-las, permita esta extensão em janelas privadas nas configurações de extensões do navegador."
+  "extPrivateWindows": "As janelas privadas não passam pela Fortiva. Para incluí-las, permita esta extensão em janelas privadas nas configurações de extensões do navegador.",
+  "extAutomatic": "Automático"
 }

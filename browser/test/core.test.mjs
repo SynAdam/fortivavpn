@@ -2,7 +2,7 @@ import assert from 'node:assert/strict';
 import { test } from 'node:test';
 
 import { ApiError } from '../src/api.js';
-import { Controller, Status, rotate, spread } from '../src/core.js';
+import { Controller, Status, arrange, locationsOf, rotate, spread } from '../src/core.js';
 
 const PASSWORD = '11111111-2222-3333-4444-555555555555';
 const PROXY = { server_id: 7, host: 'p.example.com', port: 8443, label: 'Germany', username: 'fortiva', password: PASSWORD };
@@ -535,4 +535,67 @@ test('without the person\'s leave, the registration carries no browser, system o
   await w.controller.connect();
   assert.equal(w.registered.length, 1);
   assert.deepEqual(Object.keys(w.registered[0]), ['device_id']);
+});
+
+const DE = { server_id: 13, host: 'de.example.com', port: 9443, label: 'Germany', username: 'fortiva', password: PASSWORD };
+const FI1 = { server_id: 14, host: 'fi1.example.com', port: 9443, label: 'Finland', username: 'fortiva', password: PASSWORD };
+const FI2 = { server_id: 17, host: 'fi2.example.com', port: 9443, label: 'Finland', username: 'fortiva', password: PASSWORD };
+
+test('arrange keeps the backend order when it is ordered, and puts a chosen location first', () => {
+  // A device id whose place in a list of three is not the start.
+  const id = '00000001-0000-4000-8000-000000000000';
+  assert.notEqual(spread(id) % 3, 0);
+  assert.deepEqual(arrange([DE, FI1, FI2], { id, ordered: true }).map((p) => p.server_id), [13, 14, 17]);
+  assert.deepEqual(arrange([DE, FI1, FI2], { id }), rotate([DE, FI1, FI2], spread(id)));
+  assert.deepEqual(arrange([DE, FI1, FI2], { id, ordered: true, chosen: 'Finland' }).map((p) => p.server_id), [14, 17, 13]);
+  // A location no longer offered changes nothing.
+  assert.deepEqual(arrange([DE, FI1], { id, ordered: true, chosen: 'Japan' }).map((p) => p.server_id), [13, 14]);
+  assert.deepEqual(locationsOf([DE, FI1, FI2]), ['Germany', 'Finland']);
+});
+
+test('an ordered answer is checked in its own order', async () => {
+  const w = world({ proxies: [FI1, DE] });
+  w.answer = () => ({ proxies: [FI1, DE], quota: QUOTA, refresh_after_s: 3600, ordered: true });
+  w.broken.add(FI1.host);
+  const snap = await w.controller.connect();
+  // Finland first as the backend ordered it; it fails, so Germany carries.
+  assert.deepEqual(w.checks.filter((c) => c !== 'direct'), [FI1.host, DE.host]);
+  assert.equal(snap.location, 'Germany');
+  assert.deepEqual(snap.locations, ['Finland', 'Germany']);
+  assert.equal(snap.chosenLocation, '');
+});
+
+test('choosing a location connects again with it first, and falls back when it fails', async () => {
+  const w = world({ proxies: [DE, FI1, FI2] });
+  w.answer = () => ({ proxies: [DE, FI1, FI2], quota: QUOTA, refresh_after_s: 3600, ordered: true });
+  assert.equal((await w.controller.connect()).location, 'Germany');
+  let snap = await w.controller.setLocation('Finland');
+  assert.equal(snap.status, Status.ON);
+  assert.equal(snap.location, 'Finland');
+  assert.equal(snap.chosenLocation, 'Finland');
+  assert.deepEqual(w.applied.map((p) => p.server_id), [14, 17, 13]);
+
+  // Both Finland servers fail: Germany still carries the browser.
+  w.broken.add(FI1.host);
+  w.broken.add(FI2.host);
+  snap = await w.controller.connect();
+  assert.equal(snap.status, Status.ON);
+  assert.equal(snap.location, 'Germany');
+  assert.equal(snap.chosenLocation, 'Finland');
+
+  // Back to automatic.
+  w.broken.clear();
+  snap = await w.controller.setLocation('');
+  assert.equal(snap.location, 'Germany');
+  assert.equal(snap.chosenLocation, '');
+});
+
+test('choosing a location while off only keeps it for the next connect', async () => {
+  const w = world({ proxies: [DE, FI1] });
+  w.answer = () => ({ proxies: [DE, FI1], quota: QUOTA, refresh_after_s: 3600, ordered: true });
+  const calls = w.configCalls;
+  const snap = await w.controller.setLocation('Finland');
+  assert.equal(snap.status, Status.OFF);
+  assert.equal(w.configCalls, calls);
+  assert.equal((await w.controller.connect()).location, 'Finland');
 });

@@ -8,5 +8,6 @@
   "extRedeemMovedTooOften": "Dieser Schlüssel ist zuletzt zu oft zwischen Geräten umgezogen. Versuche es später noch einmal.",
   "extPremiumNotAvailable": "Premium ist in diesem Browser gerade nicht verfügbar.",
   "extNoServers": "Fortiva hat gerade keinen Server für Browser. Versuche es später noch einmal.",
-  "extPrivateWindows": "Private Fenster laufen nicht über Fortiva. Damit sie es tun, erlaube dieser Erweiterung in den Erweiterungseinstellungen des Browsers private Fenster."
+  "extPrivateWindows": "Private Fenster laufen nicht über Fortiva. Damit sie es tun, erlaube dieser Erweiterung in den Erweiterungseinstellungen des Browsers private Fenster.",
+  "extAutomatic": "Automatisch"
 }

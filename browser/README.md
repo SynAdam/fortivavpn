@@ -25,10 +25,22 @@ cannot run Xray or speak VLESS. So:
    the check (a page on `www.gstatic.com`) goes through that one proxy, and
    every other request goes direct. It checks each proxy this way, puts the
    ones that passed first and the others after them, and only then turns
-   on the full rules and says Connected. Each browser starts the backend's
-   list at its own place, taken from its device id, so browsers do not all
-   start on the same server. The calls to the backend while it connects go
-   direct, never through proxies it used before.
+   on the full rules and says Connected. It checks them in the backend's
+   order: the answer says `ordered`, with the servers
+   phones on this browser's carrier reach best first and browsers spread
+   over the ones that do as well. An answer without `ordered` is started at
+   this browser's own place, taken from its device id, so browsers do not
+   all start on the same server (`arrange` in `src/core.js`). The calls to
+   the backend while it connects go direct, never through proxies it used
+   before.
+
+   The popup's "Choose a location" lists Automatic and each location the
+   backend offers (the proxies' `label`), when there are at least two. A
+   chosen location's proxies go first and the others stay after them, so a
+   chosen location that fails still leaves a way through. Choosing one
+   while connected connects again with it first. The choice is kept in
+   storage (`chosenLocation`), and a location no longer offered counts as
+   Automatic.
 4. While connected, it checks again every two minutes through the full
    rules. When a check fails, or at once when a proxy refuses the
    credentials it was given, it first asks the backend for the proxies,

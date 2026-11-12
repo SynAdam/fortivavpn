@@ -82,5 +82,7 @@ button[type="submit"]:disabled { opacity: 0.6; cursor: default; }
 
 .language { display: flex; align-items: center; justify-content: space-between; gap: 12px; color: var(--text-3); font-size: 13px; }
 .language select { flex: 0 1 auto; padding: 6px 8px; }
+.place { color: var(--text-2, inherit); font-size: 14px; }
+.place select { max-width: 62%; }
 
 [dir="rtl"] body, body[dir="rtl"] { text-align: right; }

@@ -8,5 +8,6 @@
   "extRedeemMovedTooOften": "このキーは最近デバイス間の移動が多すぎます。後でもう一度お試しください。",
   "extPremiumNotAvailable": "プレミアムは現在このブラウザではご利用いただけません。",
   "extNoServers": "Fortivaには現在ブラウザ用のサーバーがありません。後でもう一度お試しください。",
-  "extPrivateWindows": "プライベートウィンドウはFortivaを通りません。含めるには、ブラウザの拡張機能の設定でこの拡張機能をプライベートウィンドウで許可してください。"
+  "extPrivateWindows": "プライベートウィンドウはFortivaを通りません。含めるには、ブラウザの拡張機能の設定でこの拡張機能をプライベートウィンドウで許可してください。",
+  "extAutomatic": "自動"
 }

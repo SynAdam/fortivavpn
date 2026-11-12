@@ -96,6 +96,7 @@ function render(snap) {
   message.hidden = !text;
 
   renderQuota(snap.quota);
+  renderLocations(snap, state);
 
   $('note').textContent = t(lang, 'extOnlyBrowser');
   $('private').textContent = t(lang, 'extPrivateWindows');
@@ -153,6 +154,31 @@ function renderQuota(q) {
   $('quotaReset').textContent = resetText(q.resets_at, lang);
 }
 
+// The location row: "Automatic" and each location the backend offers. It
+// shows only when there are at least two to choose from.
+function renderLocations(snap, state) {
+  const row = $('locationRow');
+  const places = Array.isArray(snap.locations) ? snap.locations : [];
+  row.hidden = places.length < 2;
+  if (row.hidden) return;
+  $('locationLabel').textContent = t(lang, 'selectServer');
+  const select = $('locationSelect');
+  const want = [['', t(lang, 'extAutomatic')], ...places.map((p) => [p, p])];
+  const same = select.options.length === want.length
+    && want.every(([value, label], i) => select.options[i].value === value && select.options[i].textContent === label);
+  if (!same) {
+    select.textContent = '';
+    for (const [value, label] of want) {
+      const o = document.createElement('option');
+      o.value = value;
+      o.textContent = label;
+      select.appendChild(o);
+    }
+  }
+  select.value = snap.chosenLocation || '';
+  select.disabled = state === 'connecting';
+}
+
 function renderLanguages(choice) {
   const select = $('languageSelect');
   const want = [['', t(lang, 'extLanguageAuto')], ...LANGUAGES.map((code) => [code, NAMES[code]])];
@@ -197,6 +223,17 @@ $('codeForm').addEventListener('submit', async (ev) => {
   result.hidden = false;
   if (res.ok) input.value = '';
   show(await send('state'));
+});
+
+$('locationSelect').addEventListener('change', async (ev) => {
+  if (!last) return;
+  const label = ev.target.value;
+  // While on, the change connects again with that location first.
+  render({ ...last, chosenLocation: label, status: last.wanted && last.status === 'on' ? 'connecting' : last.status });
+  pending++;
+  const res = await send('location', { label });
+  pending--;
+  render(res);
 });
 
 $('languageSelect').addEventListener('change', async (ev) => {

@@ -8,5 +8,6 @@
   "extRedeemMovedTooOften": "Cette clé a changé d'appareil trop souvent ces derniers temps. Réessayez plus tard.",
   "extPremiumNotAvailable": "Premium n'est pas disponible dans ce navigateur pour le moment.",
   "extNoServers": "Fortiva n'a aucun serveur pour les navigateurs pour le moment. Réessayez plus tard.",
-  "extPrivateWindows": "Les fenêtres privées ne passent pas par Fortiva. Pour les inclure, autorisez cette extension dans les fenêtres privées dans les paramètres des extensions du navigateur."
+  "extPrivateWindows": "Les fenêtres privées ne passent pas par Fortiva. Pour les inclure, autorisez cette extension dans les fenêtres privées dans les paramètres des extensions du navigateur.",
+  "extAutomatic": "Automatique"
 }

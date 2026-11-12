@@ -99,6 +99,23 @@ export function rotate(list, n) {
   return [...list.slice(k), ...list.slice(0, k)];
 }
 
+// arrange is the order in which this browser checks and uses proxies. The
+// backend's order when it says the list is ordered for this browser's
+// network (POST /configs/browser, ordered); otherwise the list from this
+// device's own place (spread), so browsers do not all start on the same
+// server. A location the person chose goes first, with the others after
+// it, so a chosen location that fails still leaves a way through.
+export function arrange(list, { id, ordered = false, chosen = '' } = {}) {
+  const start = ordered ? [...list] : rotate(list, spread(id));
+  if (!chosen) return start;
+  return [...start.filter((p) => p.label === chosen), ...start.filter((p) => p.label !== chosen)];
+}
+
+// The locations of a list of proxies, each once, in the order given.
+export function locationsOf(list) {
+  return [...new Set(usable(list).map((p) => p.label).filter(Boolean))];
+}
+
 export function outOfData(quota) {
   if (!quota) return false;
   return quota.blocked === true || (!quota.unlimited && quota.limit_bytes > 0 && quota.remaining_bytes <= 0);
@@ -126,6 +143,7 @@ export class Controller {
     return this.env.store.get([
       'deviceId', 'wanted', 'status', 'error', 'proxies', 'route', 'quota', 'fetchedAt',
       'refreshAfterS', 'registeredVersion', 'misses', 'lastTryAt', 'language',
+      'chosenLocation', 'ordered',
     ]);
   }
 
@@ -148,6 +166,10 @@ export class Controller {
       quota: s.quota || null,
       location: s.status === Status.ON && first ? first.label || '' : '',
       language: s.language || '',
+      // The locations the person can choose, and the chosen one ('' for
+      // automatic, also when the chosen one is no longer offered).
+      locations: locationsOf(s.proxies),
+      chosenLocation: locationsOf(s.proxies).includes(s.chosenLocation) ? s.chosenLocation : '',
     };
   }
 
@@ -172,12 +194,13 @@ export class Controller {
   // rank checks each proxy on its own: only the check goes through it, and
   // every other request goes direct, so a proxy that answers 502 or 407
   // cannot hide behind one that works, and no page waits on a dead one.
-  // The list starts at this device's own place (spread). It returns the
+  // The list goes in this browser's order (arrange). It returns the
   // proxies that passed and those that failed, each in the order checked.
   async rank(id, proxies) {
     const passed = [];
     const failed = [];
-    for (const p of rotate(proxies, spread(id))) {
+    const { ordered, chosenLocation } = await this.env.store.get(['ordered', 'chosenLocation']);
+    for (const p of arrange(proxies, { id, ordered: ordered === true, chosen: chosenLocation || '' })) {
       await this.useRoute({ mode: 'probe', proxies: [p] });
       (await this.env.health() ? passed : failed).push(p);
     }
@@ -391,7 +414,8 @@ export class Controller {
     // a browser moves on to them only when the ones before cannot be
     // reached.
     const kept = used.map((u) => fresh.find((f) => same(f, u))).filter(Boolean);
-    const added = rotate(fresh, spread(id)).filter((f) => !kept.includes(f));
+    const { ordered, chosenLocation } = await this.env.store.get(['ordered', 'chosenLocation']);
+    const added = arrange(fresh, { id, ordered: ordered === true, chosen: chosenLocation || '' }).filter((f) => !kept.includes(f));
     if (kept.length) {
       await this.useRoute({ mode: 'full', proxies: [...kept, ...added] });
       return false;
@@ -424,6 +448,7 @@ export class Controller {
       quota: cfg.quota,
       fetchedAt: this.now(),
       refreshAfterS: Number.isFinite(cfg.refresh_after_s) && cfg.refresh_after_s >= 60 ? cfg.refresh_after_s : 3600,
+      ordered: cfg.ordered === true,
     });
     return cfg;
   }
@@ -523,5 +548,16 @@ export class Controller {
 
   async setLanguage(code) {
     await this.env.store.set({ language: code || '' });
+  }
+
+  // setLocation keeps the location the person chose ('' for automatic) and,
+  // while the browser is on or trying, connects again with it first.
+  setLocation(label) {
+    return this.serial(async () => {
+      await this.env.store.set({ chosenLocation: typeof label === 'string' ? label : '' });
+      const s = await this.read();
+      if (s.wanted && s.status !== Status.NO_DATA && s.status !== Status.OTHER) await this.connectNow();
+      return this.snapshot();
+    });
   }
 }

@@ -8,5 +8,6 @@
   "extRedeemMovedTooOften": "이 키는 최근 기기 간 이동이 너무 많았습니다. 나중에 다시 시도하세요.",
   "extPremiumNotAvailable": "지금은 이 브라우저에서 프리미엄을 사용할 수 없습니다.",
   "extNoServers": "지금은 Fortiva에 브라우저용 서버가 없습니다. 나중에 다시 시도하세요.",
-  "extPrivateWindows": "비공개 창은 Fortiva를 거치지 않습니다. 포함하려면 브라우저의 확장 프로그램 설정에서 이 확장 프로그램을 비공개 창에서 허용하세요."
+  "extPrivateWindows": "비공개 창은 Fortiva를 거치지 않습니다. 포함하려면 브라우저의 확장 프로그램 설정에서 이 확장 프로그램을 비공개 창에서 허용하세요.",
+  "extAutomatic": "자동"
 }
