@@ -1,0 +1,12 @@
+{
+  "extOnlyBrowser": "Solo este navegador pasa por Fortiva. Las demás apps de esta computadora usan tu internet normal.",
+  "extOtherControls": "Otra extensión controla la configuración de conexión de este navegador. Desactívala e intenta de nuevo.",
+  "extLanguageAuto": "Igual que el navegador",
+  "extRedeemAlreadyUsed": "Este navegador ya usó este código.",
+  "extRedeemUnmetered": "Este navegador ya tiene datos ilimitados, así que no necesita este código.",
+  "extRedeemMoved": "Premium se movió a este navegador.",
+  "extRedeemMovedTooOften": "Esta clave ha cambiado de dispositivo demasiadas veces últimamente. Intenta de nuevo más tarde.",
+  "extPremiumNotAvailable": "Premium no está disponible en este navegador en este momento.",
+  "extNoServers": "Fortiva no tiene ningún servidor para navegadores en este momento. Intenta de nuevo más tarde.",
+  "extPrivateWindows": "Las ventanas privadas no pasan por Fortiva. Para incluirlas, permite esta extensión en ventanas privadas en la configuración de extensiones del navegador."
+}

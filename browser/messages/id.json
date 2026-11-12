@@ -1,0 +1,12 @@
+{
+  "extOnlyBrowser": "Hanya browser ini yang lewat Fortiva. Aplikasi lain di komputer ini memakai internet biasa Anda.",
+  "extOtherControls": "Ekstensi lain mengendalikan pengaturan koneksi browser ini. Matikan ekstensi itu, lalu coba lagi.",
+  "extLanguageAuto": "Sama seperti browser",
+  "extRedeemAlreadyUsed": "Browser ini sudah memakai kode ini.",
+  "extRedeemUnmetered": "Browser ini sudah punya kuota tanpa batas, jadi tidak perlu kode ini.",
+  "extRedeemMoved": "Premium dipindahkan ke browser ini.",
+  "extRedeemMovedTooOften": "Kunci ini terlalu sering berpindah perangkat belakangan ini. Coba lagi nanti.",
+  "extPremiumNotAvailable": "Premium sedang tidak tersedia di browser ini.",
+  "extNoServers": "Fortiva sedang tidak punya server untuk browser. Coba lagi nanti.",
+  "extPrivateWindows": "Jendela pribadi tidak lewat Fortiva. Agar ikut lewat, izinkan ekstensi ini di jendela pribadi dari pengaturan ekstensi browser."
+}

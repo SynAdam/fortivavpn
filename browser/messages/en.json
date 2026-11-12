@@ -1,0 +1,12 @@
+{
+  "extOnlyBrowser": "Only this browser goes through Fortiva. Other apps on this computer use your normal internet.",
+  "extOtherControls": "Another extension controls this browser's connection settings. Turn it off, then try again.",
+  "extLanguageAuto": "Same as the browser",
+  "extRedeemAlreadyUsed": "This browser has already used this code.",
+  "extRedeemUnmetered": "This browser already has unlimited data, so it does not need this code.",
+  "extRedeemMoved": "Premium moved to this browser.",
+  "extRedeemMovedTooOften": "This key has moved between devices too often lately. Try again later.",
+  "extPremiumNotAvailable": "Premium is not available in this browser right now.",
+  "extNoServers": "Fortiva has no server for browsers right now. Try again later.",
+  "extPrivateWindows": "Private windows do not go through Fortiva. To include them, allow this extension in private windows in the browser's extension settings."
+}

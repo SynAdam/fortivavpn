@@ -1,0 +1,12 @@
+{
+  "extOnlyBrowser": "Nur dieser Browser läuft über Fortiva. Andere Apps auf diesem Computer nutzen deine normale Internetverbindung.",
+  "extOtherControls": "Eine andere Erweiterung steuert die Verbindungseinstellungen dieses Browsers. Schalte sie aus und versuche es noch einmal.",
+  "extLanguageAuto": "Wie der Browser",
+  "extRedeemAlreadyUsed": "Dieser Browser hat diesen Code schon benutzt.",
+  "extRedeemUnmetered": "Dieser Browser hat schon unbegrenztes Datenvolumen und braucht diesen Code nicht.",
+  "extRedeemMoved": "Premium ist auf diesen Browser umgezogen.",
+  "extRedeemMovedTooOften": "Dieser Schlüssel ist zuletzt zu oft zwischen Geräten umgezogen. Versuche es später noch einmal.",
+  "extPremiumNotAvailable": "Premium ist in diesem Browser gerade nicht verfügbar.",
+  "extNoServers": "Fortiva hat gerade keinen Server für Browser. Versuche es später noch einmal.",
+  "extPrivateWindows": "Private Fenster laufen nicht über Fortiva. Damit sie es tun, erlaube dieser Erweiterung in den Erweiterungseinstellungen des Browsers private Fenster."
+}

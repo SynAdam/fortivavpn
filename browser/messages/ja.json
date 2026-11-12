@@ -1,0 +1,12 @@
+{
+  "extOnlyBrowser": "Fortivaを通るのはこのブラウザだけです。このパソコンのほかのアプリは通常のインターネット接続を使います。",
+  "extOtherControls": "別の拡張機能がこのブラウザの接続設定を管理しています。その拡張機能をオフにしてから、もう一度お試しください。",
+  "extLanguageAuto": "ブラウザと同じ",
+  "extRedeemAlreadyUsed": "このブラウザではすでにこのコードを使っています。",
+  "extRedeemUnmetered": "このブラウザはすでにデータ無制限のため、このコードは必要ありません。",
+  "extRedeemMoved": "プレミアムをこのブラウザに移しました。",
+  "extRedeemMovedTooOften": "このキーは最近デバイス間の移動が多すぎます。後でもう一度お試しください。",
+  "extPremiumNotAvailable": "プレミアムは現在このブラウザではご利用いただけません。",
+  "extNoServers": "Fortivaには現在ブラウザ用のサーバーがありません。後でもう一度お試しください。",
+  "extPrivateWindows": "プライベートウィンドウはFortivaを通りません。含めるには、ブラウザの拡張機能の設定でこの拡張機能をプライベートウィンドウで許可してください。"
+}

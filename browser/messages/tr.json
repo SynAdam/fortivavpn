@@ -1,0 +1,12 @@
+{
+  "extOnlyBrowser": "Fortiva'dan yalnızca bu tarayıcı geçer. Bu bilgisayardaki diğer uygulamalar normal internetinizi kullanır.",
+  "extOtherControls": "Bu tarayıcının bağlantı ayarlarını başka bir uzantı yönetiyor. O uzantıyı kapatın ve tekrar deneyin.",
+  "extLanguageAuto": "Tarayıcıyla aynı",
+  "extRedeemAlreadyUsed": "Bu tarayıcı bu kodu zaten kullandı.",
+  "extRedeemUnmetered": "Bu tarayıcının zaten sınırsız verisi var, bu koda ihtiyacı yok.",
+  "extRedeemMoved": "Premium bu tarayıcıya taşındı.",
+  "extRedeemMovedTooOften": "Bu anahtar son zamanlarda cihazlar arasında çok sık taşındı. Daha sonra tekrar deneyin.",
+  "extPremiumNotAvailable": "Premium şu anda bu tarayıcıda kullanılamıyor.",
+  "extNoServers": "Fortiva'nın şu anda tarayıcılar için sunucusu yok. Daha sonra tekrar deneyin.",
+  "extPrivateWindows": "Gizli pencereler Fortiva'dan geçmez. Onları da dahil etmek için tarayıcının uzantı ayarlarında bu uzantıya gizli pencerelerde izin verin."
+}

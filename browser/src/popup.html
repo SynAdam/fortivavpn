@@ -1,0 +1,53 @@
+<!doctype html>
+<html lang="en" dir="ltr">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Fortiva VPN</title>
+  <link rel="stylesheet" href="popup.css">
+</head>
+<body>
+  <main>
+    <header>
+      <img src="icons/on-32.png" width="28" height="28" alt="">
+      <span class="brand">Fortiva VPN</span>
+    </header>
+
+    <section class="hero">
+      <button id="power" class="power" type="button" aria-describedby="status">
+        <svg viewBox="0 0 24 24" width="40" height="40" aria-hidden="true">
+          <path d="M12 3v8" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"/>
+          <path d="M6.3 6.8a8 8 0 1 0 11.4 0" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"/>
+        </svg>
+      </button>
+      <p id="status" class="status" role="status" aria-live="polite"></p>
+      <p id="location" class="muted"></p>
+      <p id="message" class="message" hidden></p>
+    </section>
+
+    <section class="card" id="quota" hidden>
+      <p id="quotaLine"></p>
+      <div class="bar" id="bar" hidden><div id="barFill"></div></div>
+      <p id="quotaReset" class="muted"></p>
+    </section>
+
+    <p id="note" class="note"></p>
+    <p id="private" class="note private" hidden></p>
+
+    <details id="codeBox" class="card">
+      <summary id="codeTitle"></summary>
+      <form id="codeForm" autocomplete="off">
+        <input id="code" type="text" spellcheck="false" autocapitalize="characters" maxlength="64">
+        <button id="codeApply" type="submit"></button>
+      </form>
+      <p id="codeResult" class="muted" hidden></p>
+    </details>
+
+    <label class="language">
+      <span id="languageLabel"></span>
+      <select id="languageSelect"></select>
+    </label>
+  </main>
+  <script type="module" src="popup.js"></script>
+</body>
+</html>

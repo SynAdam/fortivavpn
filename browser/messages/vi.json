@@ -1,0 +1,12 @@
+{
+  "extOnlyBrowser": "Chỉ trình duyệt này đi qua Fortiva. Các ứng dụng khác trên máy tính này dùng internet bình thường của bạn.",
+  "extOtherControls": "Một tiện ích khác đang điều khiển cài đặt kết nối của trình duyệt này. Hãy tắt tiện ích đó rồi thử lại.",
+  "extLanguageAuto": "Giống trình duyệt",
+  "extRedeemAlreadyUsed": "Trình duyệt này đã dùng mã này rồi.",
+  "extRedeemUnmetered": "Trình duyệt này đã có dữ liệu không giới hạn nên không cần mã này.",
+  "extRedeemMoved": "Premium đã được chuyển sang trình duyệt này.",
+  "extRedeemMovedTooOften": "Khóa này gần đây đã chuyển giữa các thiết bị quá nhiều lần. Hãy thử lại sau.",
+  "extPremiumNotAvailable": "Premium hiện không khả dụng trên trình duyệt này.",
+  "extNoServers": "Fortiva hiện chưa có máy chủ cho trình duyệt. Hãy thử lại sau.",
+  "extPrivateWindows": "Cửa sổ riêng tư không đi qua Fortiva. Để bao gồm chúng, hãy cho phép tiện ích này trong cửa sổ riêng tư ở phần cài đặt tiện ích của trình duyệt."
+}

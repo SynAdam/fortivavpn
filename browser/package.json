@@ -1,0 +1,12 @@
+{
+  "name": "fortiva-browser",
+  "private": true,
+  "type": "module",
+  "description": "Fortiva VPN for Chrome, Edge and Firefox. See README.md.",
+  "license": "GPL-3.0-or-later",
+  "scripts": {
+    "strings": "node tool/strings.mjs",
+    "build": "node build.mjs",
+    "test": "node tool/strings.mjs && node --test test/*.test.mjs"
+  }
+}

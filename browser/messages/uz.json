@@ -1,0 +1,12 @@
+{
+  "extOnlyBrowser": "Fortiva orqali faqat shu brauzer ishlaydi. Bu kompyuterdagi boshqa ilovalar oddiy internetingizdan foydalanadi.",
+  "extOtherControls": "Bu brauzerning ulanish sozlamalarini boshqa kengaytma boshqaryapti. Uni oʻchirib, qayta urinib koʻring.",
+  "extLanguageAuto": "Brauzer bilan bir xil",
+  "extRedeemAlreadyUsed": "Bu brauzer bu kodni allaqachon ishlatgan.",
+  "extRedeemUnmetered": "Bu brauzerda allaqachon cheksiz trafik bor, shuning uchun unga bu kod kerak emas.",
+  "extRedeemMoved": "Premium bu brauzerga koʻchirildi.",
+  "extRedeemMovedTooOften": "Bu kalit soʻnggi paytda qurilmalar orasida juda koʻp koʻchirilgan. Keyinroq qayta urinib koʻring.",
+  "extPremiumNotAvailable": "Premium hozir bu brauzerda mavjud emas.",
+  "extNoServers": "Fortivada hozir brauzerlar uchun server yoʻq. Keyinroq qayta urinib koʻring.",
+  "extPrivateWindows": "Shaxsiy oynalar Fortiva orqali oʻtmaydi. Ularni ham qoʻshish uchun brauzerning kengaytma sozlamalarida bu kengaytmaga shaxsiy oynalarda ruxsat bering."
+}

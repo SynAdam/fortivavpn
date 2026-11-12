@@ -1,0 +1,86 @@
+/* The app's dark palette (lib/core/design_system.dart). */
+:root {
+  --canvas: #0e1318;
+  --surface: #1b2127;
+  --surface-high: #232930;
+  --hairline: #252b31;
+  --outline: #5c636a;
+  --text: #edf0f3;
+  --text-2: #b7bfc6;
+  --text-3: #949ca3;
+  --brand: #c8452b;
+  --brand-bright: #f26b4a;
+  --protected: #6cd5b3;
+  --protected-deep: #2e9c7c;
+  --warning: #f0be67;
+  color-scheme: dark;
+}
+
+* { box-sizing: border-box; }
+
+body {
+  margin: 0;
+  width: 340px;
+  background: var(--canvas);
+  color: var(--text);
+  font: 14px/1.45 system-ui, -apple-system, "Segoe UI", Roboto, "Noto Sans", "Noto Sans Arabic", Tahoma, sans-serif;
+}
+
+main { padding: 16px; display: flex; flex-direction: column; gap: 12px; }
+
+header { display: flex; align-items: center; gap: 8px; }
+.brand { font-weight: 650; letter-spacing: 0.01em; }
+
+.hero { display: flex; flex-direction: column; align-items: center; gap: 6px; padding: 8px 0 4px; text-align: center; }
+
+.power {
+  width: 112px; height: 112px; border-radius: 50%;
+  border: 2px solid var(--outline);
+  background: var(--surface);
+  color: var(--text-2);
+  display: grid; place-items: center;
+  cursor: pointer;
+  transition: border-color 0.2s, color 0.2s, box-shadow 0.2s;
+}
+.power:hover { border-color: var(--text-3); }
+.power:focus-visible { outline: 2px solid var(--brand-bright); outline-offset: 3px; }
+.power[data-state="on"] { border-color: var(--protected); color: var(--protected); box-shadow: 0 0 0 6px rgba(108, 213, 179, 0.12); }
+/* Not connected, and trying again by itself until the button turns it off. */
+.power[data-state="waiting"] { border-color: var(--warning); color: var(--warning); box-shadow: 0 0 0 6px rgba(240, 190, 103, 0.12); }
+.power[data-state="connecting"] { border-color: var(--brand-bright); color: var(--brand-bright); animation: pulse 1.4s ease-in-out infinite; }
+.power:disabled { cursor: default; }
+@keyframes pulse { 50% { box-shadow: 0 0 0 8px rgba(242, 107, 74, 0.14); } }
+@media (prefers-reduced-motion: reduce) { .power[data-state="connecting"] { animation: none; } }
+
+.status { margin: 6px 0 0; font-size: 16px; font-weight: 600; }
+.status[data-state="on"] { color: var(--protected); }
+.muted { margin: 0; color: var(--text-3); font-size: 13px; }
+.message { margin: 4px 0 0; color: var(--brand-bright); font-size: 13px; }
+
+.card { background: var(--surface); border: 1px solid var(--hairline); border-radius: 12px; padding: 12px; }
+.card p { margin: 0; }
+
+.bar { height: 6px; border-radius: 3px; background: var(--surface-high); margin: 8px 0 6px; overflow: hidden; }
+.bar > div { height: 100%; background: var(--protected-deep); }
+
+.note { margin: 0; color: var(--text-3); font-size: 12px; text-align: center; }
+.note.private { color: var(--warning); }
+
+summary { cursor: pointer; color: var(--text-2); }
+form { display: flex; gap: 8px; margin-top: 10px; }
+input, select {
+  flex: 1; min-width: 0;
+  background: var(--surface-high); color: var(--text);
+  border: 1px solid var(--outline); border-radius: 8px; padding: 8px 10px; font: inherit;
+}
+input:focus, select:focus { outline: 2px solid var(--brand-bright); outline-offset: 1px; }
+button[type="submit"] {
+  background: var(--brand); color: #fff; border: 0; border-radius: 8px; padding: 8px 14px; font: inherit; font-weight: 600; cursor: pointer;
+}
+button[type="submit"]:disabled { opacity: 0.6; cursor: default; }
+#codeResult { margin-top: 8px; }
+
+.language { display: flex; align-items: center; justify-content: space-between; gap: 12px; color: var(--text-3); font-size: 13px; }
+.language select { flex: 0 1 auto; padding: 6px 8px; }
+
+[dir="rtl"] body, body[dir="rtl"] { text-align: right; }
