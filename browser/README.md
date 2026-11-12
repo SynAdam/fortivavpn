@@ -34,7 +34,16 @@ cannot run Xray or speak VLESS. So:
    credentials it was given, it first asks the backend for the proxies,
    direct. After a refusal it does not check through that proxy first:
    in Chrome, a request whose proxy credentials the extension cancelled
-   does not end, so the check would wait for its own timeout. A used-up allowance makes every proxy refuse
+   does not end, so the check would wait for its own timeout.
+   The edge proxy refuses credentials with a 403, not a 407, since its
+   version 3: for a page load, Chrome answers a 407 with its own box asking
+   the person for a password, even when the extension cancels the request
+   (Chrome 157, tested on 2026-11-12). A 403 fails the request with no auth
+   event, so a tunnel through a proxy of ours that fails while connected
+   checks the connection at once, at most once in 30 seconds
+   (`webRequest.onErrorOccurred`: `net::ERR_TUNNEL_CONNECTION_FAILED` in
+   Chrome, `NS_ERROR_PROXY_*` with that proxy in Firefox). The check goes
+   through the full rules first, so a site that is down changes nothing. A used-up allowance makes every proxy refuse
    the browser with a 407, and only the backend can tell that apart from a
    broken server, so the popup says the data is used up at once. Then it
    checks each proxy on its own and switches to the ones that pass. The

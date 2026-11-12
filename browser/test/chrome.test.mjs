@@ -51,11 +51,24 @@ async function chrome(data) {
           cr.authExtra = extra;
         },
       },
+      onErrorOccurred: { addListener: (f) => (cr.on.error = f) },
     },
     alarms: { create() {}, onAlarm: listener },
     action: { async setIcon() {} },
     i18n: { getUILanguage: () => 'en' },
     privacy: { network: { webRTCIPHandlingPolicy: { async set() {}, async clear() {} } } },
+  };
+  // The backend and the check page, as answer says. checkPasses is whether
+  // a check through the proxy works.
+  cr.calls = [];
+  globalThis.fetch = async (url) => {
+    cr.calls.push(new URL(url).pathname);
+    if (url.includes('generate_204')) {
+      if (cr.checkPasses) return new Response(null, { status: 204 });
+      throw new TypeError('Failed to fetch');
+    }
+    if (url.endsWith('/configs/browser')) return Response.json(cr.answer);
+    return Response.json({});
   };
   await import(`../src/background.js?chrome=${++loaded}`);
   // What the listener answers a proxy's request for credentials.
@@ -84,4 +97,64 @@ test('Chrome: a proxy of ours gets the credentials, and one it no longer uses ge
   });
   assert.deepEqual(await after.ask(NEW.host, NEW.port), { cancelRequest: true });
   assert.deepEqual(await after.ask('proxy.example.net', 3128), {});
+});
+
+test('Chrome: a tunnel that failed while connected checks the connection at once', async () => {
+  const usedUp = { unlimited: false, limit_bytes: 100, used_bytes: 100, remaining_bytes: 0, blocked: true, resets_at: new Date(Date.now() + 3600e3).toISOString() };
+  const state = () => ({
+    deviceId: '11111111-2222-4333-8444-555555555555',
+    registeredVersion: '2.3.0',
+    wanted: true,
+    status: 'on',
+    proxies: [NEW],
+    route: { mode: 'full', proxies: [NEW] },
+    fetchedAt: Date.now(),
+    refreshAfterS: 3600,
+  });
+  // The allowance ran out: the proxy refuses this browser with 403, which
+  // Chrome reports as a failed tunnel, with no auth event.
+  const cr = await chrome(state());
+  cr.answer = { proxies: [], quota: usedUp, refresh_after_s: 3600 };
+  cr.checkPasses = false;
+  // Another failure changes nothing.
+  cr.on.error({ url: 'https://example.org/', error: 'net::ERR_ABORTED' });
+  for (let i = 0; i < 50; i++) await turn();
+  assert.deepEqual(cr.calls, []);
+  cr.on.error({ url: 'https://example.org/', error: 'net::ERR_TUNNEL_CONNECTION_FAILED' });
+  for (let i = 0; i < 400 && cr.data.status !== 'out_of_data'; i++) await turn();
+  assert.equal(cr.data.status, 'out_of_data', cr.calls.join(', '));
+  assert.deepEqual(cr.calls.slice(0, 2), ['/generate_204', '/api/v1/configs/browser']);
+
+  // A site that is down fails its tunnel too, but the check passes, so
+  // nothing changes.
+  const up = await chrome(state());
+  up.checkPasses = true;
+  up.on.error({ url: 'https://example.org/', error: 'net::ERR_TUNNEL_CONNECTION_FAILED' });
+  for (let i = 0; i < 400 && up.calls.length === 0; i++) await turn();
+  for (let i = 0; i < 50; i++) await turn();
+  assert.equal(up.data.status, 'on');
+  assert.deepEqual(up.calls, ['/generate_204']);
+});
+
+test('Chrome: a tunnel that failed during a connect does not hold back the next check', async () => {
+  const cr = await chrome({
+    deviceId: '11111111-2222-4333-8444-555555555555',
+    registeredVersion: '2.3.0',
+    wanted: true,
+    status: 'connecting',
+    proxies: [NEW],
+    route: { mode: 'probe', proxies: [NEW] },
+    fetchedAt: Date.now(),
+    refreshAfterS: 3600,
+  });
+  cr.checkPasses = true;
+  // A proxy failing its check during the connect.
+  cr.on.error({ url: 'https://www.gstatic.com/generate_204', error: 'net::ERR_TUNNEL_CONNECTION_FAILED' });
+  for (let i = 0; i < 50; i++) await turn();
+  assert.deepEqual(cr.calls, []);
+  // Connected a moment later, a failed tunnel is checked at once.
+  Object.assign(cr.data, { status: 'on', route: { mode: 'full', proxies: [NEW] } });
+  cr.on.error({ url: 'https://example.org/', error: 'net::ERR_TUNNEL_CONNECTION_FAILED' });
+  for (let i = 0; i < 400 && cr.calls.length === 0; i++) await turn();
+  assert.deepEqual(cr.calls, ['/generate_204']);
 });

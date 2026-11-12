@@ -115,6 +115,7 @@ const authority = readFileSync(join(work, 'ca.pem'), 'utf8').replace(/-----[A-Z 
 
 // --- test HTTPS proxies ---------------------------------------------------------
 const ASK = 'HTTP/1.1 407 Proxy Authentication Required\r\nProxy-Authenticate: Basic realm="proxy"\r\nContent-Length: 0\r\n\r\n';
+const FORBIDDEN = 'HTTP/1.1 403 Forbidden\r\nContent-Length: 0\r\n\r\n';
 
 // A proxy that wants Basic credentials. It carries every request until
 // refuseAll, which closes its tunnels and answers 407 to every request from
@@ -155,8 +156,10 @@ function workingProxy() {
     }
     const [user, pass] = Buffer.from(auth.replace(/^Basic /, ''), 'base64').toString().split(':');
     if (pass !== PASSWORD || !user || p.mode === 'refuses') {
+      // As the edge proxy does since version 3: credentials it refuses get
+      // 403, not a second 407, so Chrome shows no password box.
       p.refused++;
-      socket.end(ASK);
+      socket.end(FORBIDDEN);
       return;
     }
     if (p.hold && req.url === 'www.gstatic.com:443') {

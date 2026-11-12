@@ -105,6 +105,25 @@ function checkSoon() {
   controller.verify({ refused: true });
 }
 
+// The edge proxy answers 403, not 407, to credentials it refuses (version 3
+// on): for a page load, Chrome answers a 407 with its own box asking the
+// person for a password, even when the extension cancels the request. A 403
+// fails the request with no auth event, so a failed tunnel through a proxy
+// of ours checks the connection at once instead, once in 30 seconds at
+// most. The check goes through the full rules first, so a site that is down
+// changes nothing; when it fails, the backend is asked (recover), and a
+// used-up allowance shows.
+// Failures while it is not connected, such as a proxy that fails its
+// check during a connect, do not count toward the 30 seconds.
+let tunnelCheckedAt = 0;
+async function tunnelFailed() {
+  if (Date.now() - tunnelCheckedAt <= 30000) return;
+  const { wanted, status } = await ext.storage.local.get(['wanted', 'status']);
+  if (!wanted || status !== Status.ON || Date.now() - tunnelCheckedAt <= 30000) return;
+  tunnelCheckedAt = Date.now();
+  controller.verify();
+}
+
 if (firefox) {
   browser.proxy.onRequest.addListener(
     async (details) => {
@@ -135,7 +154,28 @@ if (firefox) {
     { urls: ['<all_urls>'] },
     ['blocking'],
   );
+
+  // Firefox names the proxy of a failed request, and its error says when the
+  // proxy refused it (NS_ERROR_PROXY_FORBIDDEN for a 403).
+  browser.webRequest.onErrorOccurred.addListener(
+    (details) => {
+      const p = details.proxyInfo;
+      if (!p || !/^NS_ERROR_PROXY_/.test(details.error || '')) return;
+      controller.ownsProxy(p.host, p.port).then((ours) => ours && tunnelFailed()).catch(() => {});
+    },
+    { urls: ['<all_urls>'] },
+  );
 } else {
+  // Chrome does not name the proxy of a failed request. A tunnel that failed
+  // while the rules use our proxies is checked (controller.verify does
+  // nothing unless connected).
+  chrome.webRequest.onErrorOccurred.addListener(
+    (details) => {
+      if (details.error === 'net::ERR_TUNNEL_CONNECTION_FAILED') tunnelFailed().catch(() => {});
+    },
+    { urls: ['<all_urls>'] },
+  );
+
   // Another extension took the proxy setting: the connection is checked at
   // once rather than at the next alarm.
   chrome.proxy.settings.onChange.addListener((details) => {

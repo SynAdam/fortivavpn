@@ -56,6 +56,7 @@ async function firefox(data, { alive = [NEW.host], answer = { proxies: [NEW], qu
           ff.authExtra = extra;
         },
       },
+      onErrorOccurred: { addListener: (f) => (ff.on.error = f) },
     },
     alarms: { create() {}, onAlarm: { addListener: (f) => (ff.on.alarm = f) } },
     action: { async setIcon() {} },
@@ -201,4 +202,45 @@ test('Firefox: a request whose proxy refused the credentials is cancelled, and t
   assert.deepEqual(ff.data.proxies, []);
   assert.deepEqual(await ff.on.auth({ isProxy: true, challenger: { host: NEW.host, port: NEW.port } }), { cancel: true });
   assert.deepEqual(await ff.on.auth({ isProxy: true, challenger: { host: 'proxy.example.net', port: 3128 } }), {});
+});
+
+test('Firefox: a request a proxy of ours refused with 403 checks the connection at once', async () => {
+  const usedUp = { unlimited: false, limit_bytes: 100, used_bytes: 100, remaining_bytes: 0, blocked: true, resets_at: new Date(Date.now() + 3600e3).toISOString() };
+  const state = () => ({
+    deviceId: '11111111-2222-4333-8444-555555555555',
+    registeredVersion: '2.3.0',
+    wanted: true,
+    status: 'on',
+    proxies: [NEW],
+    route: { mode: 'full', proxies: [NEW] },
+    fetchedAt: Date.now(),
+    refreshAfterS: 3600,
+  });
+  // The allowance ran out: the proxy refuses this browser with 403, which
+  // Firefox reports as NS_ERROR_PROXY_FORBIDDEN, and no auth event comes.
+  const ff = await firefox(state(), { alive: [], answer: { proxies: [], quota: usedUp, refresh_after_s: 3600 } });
+  // A request that failed for another reason, or through a proxy that is
+  // not ours, changes nothing.
+  ff.on.error({ url: PAGE, error: 'NS_BINDING_ABORTED', proxyInfo: { host: NEW.host, port: NEW.port } });
+  ff.on.error({ url: PAGE, error: 'NS_ERROR_PROXY_FORBIDDEN', proxyInfo: { host: 'proxy.example.net', port: 3128 } });
+  ff.on.error({ url: PAGE, error: 'NS_ERROR_PROXY_FORBIDDEN' });
+  for (let i = 0; i < 50; i++) await turn();
+  assert.equal(ff.data.status, 'on');
+  assert.deepEqual(ff.log, []);
+  ff.on.error({ url: PAGE, error: 'NS_ERROR_PROXY_FORBIDDEN', proxyInfo: { host: NEW.host, port: NEW.port } });
+  await ff.until(() => ff.data.status === 'out_of_data');
+  assert.equal(ff.data.status, 'out_of_data', ff.log.join('\n'));
+  // The check went through the proxy first, then the backend direct.
+  const calls = ff.log.filter((l) => !l.startsWith('a page meanwhile'));
+  assert.deepEqual(calls.slice(0, 2), ['/generate_204 via new.example.com', '/api/v1/configs/browser via direct']);
+  assert.equal(await ff.way(PAGE), 'direct');
+
+  // A site that is down fails its tunnel too, but the check passes, so
+  // nothing changes.
+  const up = await firefox(state(), { alive: [NEW.host] });
+  up.on.error({ url: PAGE, error: 'NS_ERROR_PROXY_BAD_GATEWAY', proxyInfo: { host: NEW.host, port: NEW.port } });
+  await up.until(() => up.log.length > 0);
+  for (let i = 0; i < 50; i++) await turn();
+  assert.equal(up.data.status, 'on');
+  assert.deepEqual(up.log, ['/generate_204 via new.example.com', 'a page meanwhile via new.example.com']);
 });
