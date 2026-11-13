@@ -33,6 +33,9 @@ type LinuxBinder struct {
 	mu     sync.RWMutex
 	active bool
 	stop   chan struct{}
+	// ipv6 refuses IPv6 in the routing table while a tunnel is starting or
+	// up (ipv6_linux.go). The router build's binder (NewBinder) does.
+	ipv6 bool
 }
 
 // routeFile is where the IPv4 routing table is read from. Tests replace it.
@@ -134,11 +137,16 @@ func (b *LinuxBinder) Device() string {
 	return b.wan.get()
 }
 
-// SetActive implements Binder.
+// SetActive implements Binder. On a router it also refuses IPv6 while a
+// tunnel is starting or up, and stops when none is.
 func (b *LinuxBinder) SetActive(active bool) {
 	b.mu.Lock()
+	changed := b.active != active
 	b.active = active
 	b.mu.Unlock()
+	if changed && b.ipv6 {
+		logRefuseIPv6(active)
+	}
 }
 
 // Network implements Binder. A router's WAN is a cable most of the time; a
@@ -205,5 +213,8 @@ func NewBinder(onChange func()) (Binder, error) {
 	if err := internet.RegisterDialerController(b.Control); err != nil {
 		return nil, err
 	}
+	// A program that was killed while a tunnel was up left IPv6 refused.
+	b.ipv6 = true
+	logRefuseIPv6(false)
 	return b, nil
 }

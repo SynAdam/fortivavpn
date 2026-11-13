@@ -31,12 +31,31 @@ if [ -x /etc/init.d/fortiva ]; then
 	/etc/init.d/fortiva stop >/dev/null 2>&1
 	/etc/init.d/fortiva disable >/dev/null 2>&1
 fi
-# The service takes the lookups back when it stops; this covers a program
-# that was killed.
+# procd stops the program in the background, and the program takes up to
+# 15 s (the service's term_timeout) to give the lookups back, take its
+# routes away and send its last events. Nothing is deleted before it is
+# gone: on 2026-11-13 an uninstall that did not wait deleted the hook the
+# program was about to run, and left its routes up for some seconds.
+i=0
+while pidof fortiva >/dev/null 2>&1 && [ "$i" -lt 20 ]; do
+	sleep 1
+	i=$((i + 1))
+done
+if pidof fortiva >/dev/null 2>&1; then
+	say "the program did not stop in 20 s; stopping it now"
+	kill -9 $(pidof fortiva) 2>/dev/null
+	sleep 1
+fi
+# What a program that was killed leaves behind: the lookups on the tunnel,
+# and IPv6 refused (its TUN interface and routes go with it).
 [ -x /usr/share/fortiva/hook.sh ] && /usr/share/fortiva/hook.sh down >/dev/null 2>&1
+for half in ::/1 8000::/1; do
+	ip -6 route del prohibit "$half" metric 1 >/dev/null 2>&1
+done
 
-# The firewall: the zone, and every forwarding that names it, the ones the
-# install added and any added by hand, since none works without the zone.
+# The firewall: the zone, and every forwarding and rule that names it, the
+# ones the install added and any added by hand, since none works without
+# the zone.
 . /lib/functions.sh
 changed=0
 gone=""
@@ -48,8 +67,14 @@ drop_forwarding() {
 		gone="$gone $1"
 	fi
 }
+drop_rule() {
+	r_dest=""
+	config_get r_dest "$1" dest
+	[ "$r_dest" = fortiva ] && gone="$gone $1"
+}
 config_load firewall
 config_foreach drop_forwarding forwarding
+config_foreach drop_rule rule
 for section in $gone; do
 	uci -q delete "firewall.$section" && changed=1
 done
@@ -60,7 +85,7 @@ fi
 if [ "$changed" = 1 ]; then
 	uci -q commit firewall
 	/etc/init.d/firewall reload >/dev/null 2>&1
-	say "firewall: removed the fortiva zone and its forwardings"
+	say "firewall: removed the fortiva zone, its forwardings and its rules"
 fi
 
 if [ "$package" = 0 ]; then

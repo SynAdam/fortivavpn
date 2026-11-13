@@ -5,7 +5,6 @@ import (
 	"io"
 	"net"
 	"net/netip"
-	"os"
 	"strconv"
 	"strings"
 	"sync"
@@ -22,24 +21,18 @@ var RouterWAN string
 // RouterAdapterName is the router's TUN interface, which is never the WAN.
 var RouterAdapterName = "fortiva0"
 
-// ipv6Setting says whether a new interface gets IPv6. Writing
-// net.ipv6.conf.all.disable_ipv6 also writes this one. Tests replace it.
-var ipv6Setting = "/proc/sys/net/ipv6/conf/default/disable_ipv6"
+// RouterLog is where the router build reports what fails outside the
+// engine's own steps, such as refusing IPv6 (ipv6_linux.go).
+// cmd/fortiva-router sets it to its log.
+var RouterLog func(format string, args ...any)
 
-// RouterAdapter is config.RouterAdapter, without its IPv6 address and
-// routes when new interfaces get no IPv6 or the kernel has none. The engine
-// asks at each connect, so turning IPv6 on or off needs no restart.
+// RouterAdapter is config.RouterAdapter with its IPv4 address and routes
+// alone. The router's tunnel carries IPv4 only; while it is up, IPv6 is
+// refused in the routing table (ipv6_linux.go), so the core never takes an
+// IPv6 connection, and a router with IPv6 turned off, whose kernel refuses
+// an IPv6 address on a new interface, needs nothing of its own.
 func RouterAdapter() config.AdapterSpec {
-	if ipv6Off() {
-		return config.RouterAdapter.WithoutIPv6()
-	}
-	return config.RouterAdapter
-}
-
-func ipv6Off() bool {
-	data, err := os.ReadFile(ipv6Setting)
-	// No file: a kernel without IPv6.
-	return err != nil || strings.TrimSpace(string(data)) != "0"
+	return config.RouterAdapter.WithoutIPv6()
 }
 
 // networkOf names the kind of network a WAN device is. A router's WAN is a

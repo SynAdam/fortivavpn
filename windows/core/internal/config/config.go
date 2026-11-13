@@ -94,7 +94,8 @@ var Adapter = AdapterSpec{
 // its LAN, so every device behind the router reaches the tunnel without a
 // rule of its own. OpenWrt's firewall needs the name: the package puts
 // "fortiva0" in a zone of its own (router/files/usr/share/fortiva/firewall.sh).
-// A router with IPv6 turned off uses it WithoutIPv6.
+// The router uses it WithoutIPv6: its tunnel carries IPv4 alone, and IPv6 is
+// refused in the routing table while it is up (engine/ipv6_linux.go).
 var RouterAdapter = AdapterSpec{
 	Name:    "fortiva0",
 	MTU:     1500,

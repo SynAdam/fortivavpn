@@ -58,7 +58,9 @@ docker network create --subnet 172.31.10.0/24 $p-wan >/dev/null
 # Not --internal: Docker drops bridged packets for addresses outside an
 # internal network's subnet, which is everything the client sends. The
 # client's default route goes to the router instead.
-docker network create --subnet 172.31.20.0/24 $p-lan >/dev/null
+# With IPv6 too, as a LAN gets from an ISP that has it: a device there
+# must be refused on IPv6 at once and fall back to IPv4.
+docker network create --subnet 172.31.20.0/24 --ipv6 --subnet fd00:31:20::/64 $p-lan >/dev/null
 
 log "a door on the wan"
 work=$(mktemp -d)
@@ -85,13 +87,13 @@ log "the router"
 # off; the firewall still runs.
 docker run -d --name $p-router --network $p-wan --ip 172.31.10.30 \
   --cap-add NET_ADMIN --cap-add NET_RAW --device /dev/net/tun \
-  --sysctl net.ipv4.ip_forward=1 \
+  --sysctl net.ipv4.ip_forward=1 --sysctl net.ipv6.conf.all.forwarding=1 \
   "$image" sh -c 'rm -f /etc/rc.d/S*network* /etc/rc.d/S*odhcpd* /etc/rc.d/S*dropbear*; exec /sbin/init' >/dev/null
 sleep 6
 # OpenWrt's boot takes down the interface Docker made before it started;
 # put the wan address back, then add the lan side.
 docker exec $p-router sh -c 'ip link set eth0 up; ip addr add 172.31.10.30/24 dev eth0 2>/dev/null; ip route replace default via 172.31.10.1 dev eth0'
-docker network connect --ip 172.31.20.2 $p-lan $p-router
+docker network connect --ip 172.31.20.2 --ip6 fd00:31:20::2 $p-lan $p-router
 sleep 1
 # Docker may hand the default route to the lan network it just added; on a
 # router it belongs to the wan.
@@ -168,8 +170,12 @@ docker exec $p-router sh -c 'ip link show fortiva0' >/dev/null 2>&1 || die "no f
 # with pipefail the writer's broken pipe would fail the check.
 routes=$(docker exec $p-router ip route)
 grep -q "0.0.0.0/1 dev fortiva0" <<< "$routes" || die "no route into the tunnel"
+# The tunnel carries IPv4 alone; IPv6 is refused in the routing table while
+# it is up, so nothing takes it into the tunnel and none goes around it.
 routes6=$(docker exec $p-router ip -6 route)
-grep -q "::/1 dev fortiva0" <<< "$routes6" || die "no IPv6 route into the tunnel, with IPv6 on"
+# The kernel's own link-local, anycast and multicast entries aside.
+grep "dev fortiva0" <<< "$routes6" | grep -q -v -E "^(fe80::/64|anycast|multicast) " && die "IPv6 routes into the tunnel: $routes6"
+grep -q "prohibit ::/1 " <<< "$routes6" && grep -q "prohibit 8000::/1 " <<< "$routes6" || die "IPv6 is not refused while the tunnel is up: $routes6"
 rules=$(docker exec $p-router nft list ruleset 2>/dev/null)
 grep -q 'iifname "fortiva0"' <<< "$rules" || die "the firewall has no zone for fortiva0"
 guest=$(docker exec $p-router nft list chain inet fw4 forward_guest 2>/dev/null)
@@ -181,20 +187,35 @@ conf=$(docker exec $p-router cat /tmp/dnsmasq.e2e.d/fortiva.conf 2>/dev/null || 
 grep -q "^server=1.1.1.1$" <<< "$conf" && grep -q "^no-resolv$" <<< "$conf" || die "the lookups were not sent through the tunnel: $conf"
 
 log "a client behind the router"
-docker run -d --name $p-client --network $p-lan --ip 172.31.20.50 --cap-add NET_ADMIN \
+docker run -d --name $p-client --network $p-lan --ip 172.31.20.50 --ip6 fd00:31:20::50 --cap-add NET_ADMIN \
   --dns 1.1.1.1 alpine:3.20 sleep 600 >/dev/null
 docker exec $p-client ip route replace default via 172.31.20.2
+docker exec $p-client ip -6 route replace default via fd00:31:20::2
 before=$(docker exec $p-door sh -c 'wc -l < /tmp/access.log' 2>/dev/null || echo 0)
 docker exec $p-client wget -q -T 20 -O /dev/null https://www.gstatic.com/generate_204 || die "the client's fetch failed"
 after=$(docker exec $p-door sh -c 'wc -l < /tmp/access.log')
 [[ "$after" -gt "$before" ]] || die "the door saw none of the client's traffic"
 docker exec $p-door grep -q "gstatic.com" /tmp/access.log || die "the client's site is not in the door's log"
 
+log "IPv6 into the tunnel is refused, so the client falls back to IPv4"
+# Refused by the router's routing table, at once. Taken by the core
+# instead, it would be answered with an HTTP 403, and HTTPS over IPv6 would
+# fail.
+# BusyBox nc says nothing when it cannot connect, so the time tells a
+# refusal (at once) from a connection that is dropped (the full wait).
+t0=$(date +%s)
+v6=$(docker exec $p-client sh -c 'nc -z -w 8 2606:4700:4700::1111 443 2>&1; echo "exit $?"')
+took=$(( $(date +%s) - t0 ))
+grep -q "exit 0" <<< "$v6" && die "an IPv6 connection into the tunnel was taken: $v6"
+[[ "$took" -le 3 ]] || die "an IPv6 connection into the tunnel was dropped, not refused (${took} s): $v6"
+docker exec $p-router uclient-fetch -q -T 20 -O /dev/null https://www.gstatic.com/generate_204 || die "the router's own HTTPS fetch failed"
+
 log "turning it off sends the client around the tunnel"
 docker exec $p-router fortiva disconnect >/dev/null
 sleep 2
 routes=$(docker exec $p-router ip route)
 grep -q "dev fortiva0" <<< "$routes" && die "the routes stayed after turning off"
+docker exec $p-router ip -6 route | grep -q prohibit && die "IPv6 is still refused after turning off"
 docker exec $p-router test -f /tmp/dnsmasq.e2e.d/fortiva.conf && die "the lookups still go to the tunnel after turning off"
 state=$(docker exec $p-router fortiva status | sed -n 's/^  "state": "\(.*\)",/\1/p')
 [[ "$state" == paused ]] || die "the router is $state after turning off"
@@ -281,6 +302,7 @@ fw=$(docker exec $p-router uci show firewall)
 grep -q "fortiva" <<< "$fw" && die "the firewall still names fortiva: $(grep fortiva <<< "$fw")"
 grep -q "firewall.guest_wan.dest='wan'" <<< "$fw" || die "the uninstall took the guest zone's own forwarding"
 docker exec $p-router sh -c 'ip route; ip -6 route' | grep -q fortiva0 && die "routes into the tunnel are left"
+docker exec $p-router ip -6 route | grep -q prohibit && die "IPv6 is still refused after the uninstall"
 
 log "installing again from the file keeps the router's id"
 docker exec $p-router sh /tmp/install.sh "/tmp/$name" >/dev/null

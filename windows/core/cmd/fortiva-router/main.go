@@ -113,6 +113,7 @@ func run(args []string) error {
 
 	engine.RouterWAN = *wan
 	engine.RouterAdapterName = config.RouterAdapter.Name
+	engine.RouterLog = logs.Printf
 	var eng *engine.Engine
 	binder, err := engine.NewBinder(func() {
 		if eng != nil {

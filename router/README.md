@@ -9,7 +9,7 @@ the allowance and takes a Premium code.
 
 | | |
 |---|---|
-| Firmware | OpenWrt 23.05 or newer. Tested on 24.10 (`test/e2e.sh`). |
+| Firmware | OpenWrt 23.05 or newer. Tested on 24.10 (`test/e2e.sh`) and on 25.12 in a virtual machine against Fortiva's servers. |
 | Processor | 64-bit Arm (`aarch64_*`), 32-bit Arm v7 (`arm_cortex-a7`, `-a9`, `-a15`), MIPS little-endian (`mipsel_*`, such as MT7621), MIPS big-endian (`mips_*`, such as ath79), or x86-64 |
 | Memory | 256 MB |
 | Storage | 16 MB free. With more than about 35 MB free the program is kept on flash; with less it stays packed there and is unpacked into memory at every start. An upgrade counts the room of the program it replaces as free. |
@@ -81,19 +81,24 @@ It holds two parts.
 - **The tunnel** is the Windows build's engine: the same patched Xray-core,
   the same configuration and the same door group with standby doors. Xray's
   TUN inbound makes the `fortiva0` interface and adds the two half routes
-  (`0.0.0.0/1`, `128.0.0.0/1`, and the same for IPv6) to the main table.
+  (`0.0.0.0/1` and `128.0.0.0/1`) to the main table.
   Traffic the router forwards from its LAN uses the main table, so every
   device reaches the tunnel without a rule of its own. The program's own
   connections are bound to the WAN device (`SO_BINDTODEVICE`,
   `internal/engine/bind_linux.go`), so the doors do not go into the tunnel
   they carry. While a tunnel is up and the WAN has no default route, they
   are refused instead. The binder hears of route changes from the kernel
-  (netlink), and reads the table every 5 seconds besides. IPv6 that reaches
-  the tunnel is refused, so devices fall back to IPv4 at once, as on
-  Windows. On a router with IPv6 turned off
-  (`net.ipv6.conf.default.disable_ipv6=1`, which
-  `net.ipv6.conf.all.disable_ipv6=1` also sets) `fortiva0` gets no IPv6
-  address or routes. This is checked at each connect.
+  (netlink), and reads the table every 5 seconds besides.
+
+  The tunnel carries IPv4 alone. While it is starting or up, the
+  binder adds a `prohibit` route for each half of the IPv6 space
+  (`internal/engine/ipv6_linux.go`), and takes them away when it stops.
+  The router's own programs then see IPv6 as unreachable and use IPv4, a
+  device behind the router gets "administratively prohibited" at once and
+  falls back to IPv4, and no IPv6 goes around the tunnel. Routing IPv6 into
+  the tunnel, as on Windows, broke HTTPS for every device that had IPv6
+  from its ISP: the core answered each IPv6 connection with an HTTP 403
+  (found on OpenWrt 25.12 on 2026-11-13).
 - **The agent** (`internal/agent`) does what the app does on a phone. It
   registers the router as platform `router`, fetches its own doors from
   `/configs/dedicated` around the tunnel, checks four at a time and connects
@@ -183,7 +188,9 @@ connect, and checks that the device's page went through the door, that
 the lookups went to the tunnel, that a guest zone may forward to it, that
 turning it off takes the routes and the lookups back, that it reconnects
 after a restart, that it sees the WAN's default route go and come back
-within a second, that it connects with IPv6 turned off, that the events
+within a second, that an IPv6 connection from the device is refused at
+once while the router's own HTTPS works, that it connects with IPv6
+turned off, that the events
 reached the backend, and that a kill while connected leaves no lookups on
 the tunnel once the door is gone. `/etc/fortiva/api` points the router at
 the fake backend before the first start, so it never reaches Fortiva's.

@@ -2,8 +2,6 @@ package engine
 
 import (
 	"errors"
-	"os"
-	"path/filepath"
 	"strings"
 	"syscall"
 	"testing"
@@ -74,31 +72,20 @@ func TestASocketIsRefusedWhileTheTunnelIsUpAndNoWANIsKnown(t *testing.T) {
 	}
 }
 
-func TestTheRouterAdapterLeavesOutIPv6WhenTheKernelTurnedItOff(t *testing.T) {
-	dir := t.TempDir()
-	old := ipv6Setting
-	t.Cleanup(func() { ipv6Setting = old })
-	for _, c := range []struct {
-		setting string // "" for no file, as on a kernel without IPv6
-		routes  int
-	}{
-		{"0\n", 4}, {"1\n", 2}, {"", 2},
-	} {
-		ipv6Setting = filepath.Join(dir, "disable_ipv6")
-		os.Remove(ipv6Setting)
-		if c.setting != "" {
-			if err := os.WriteFile(ipv6Setting, []byte(c.setting), 0o644); err != nil {
-				t.Fatal(err)
-			}
+func TestTheRouterAdapterCarriesIPv4Alone(t *testing.T) {
+	// IPv6 is refused in the routing table while the tunnel is up
+	// (ipv6_linux.go), never routed into it: the core would answer it with
+	// an HTTP 403.
+	a := RouterAdapter()
+	if strings.Join(a.Routes, " ") != "0.0.0.0/1 128.0.0.0/1" {
+		t.Errorf("routes %v, want the two IPv4 halves", a.Routes)
+	}
+	for _, addr := range a.Address {
+		if strings.Contains(addr, ":") {
+			t.Errorf("an IPv6 address %s", addr)
 		}
-		a := RouterAdapter()
-		if len(a.Routes) != c.routes {
-			t.Errorf("disable_ipv6 %q: routes %v, want %d", c.setting, a.Routes, c.routes)
-		}
-		for _, addr := range a.Address {
-			if c.routes == 2 && strings.Contains(addr, ":") {
-				t.Errorf("disable_ipv6 %q: an IPv6 address %s", c.setting, addr)
-			}
-		}
+	}
+	if a.Name != "fortiva0" {
+		t.Errorf("name %q", a.Name)
 	}
 }
