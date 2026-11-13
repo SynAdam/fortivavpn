@@ -1,4 +1,4 @@
-<resources>
+<resources xmlns:tools="http://schemas.android.com/tools">
 
     <style name="AppThemeDayNight" parent="Theme.MaterialComponents.DayNight.DarkActionBar">
         <item name="colorPrimary">@color/colorPrimary</item>
@@ -9,10 +9,10 @@
         <item name="android:statusBarColor">@color/colorPrimary</item>
         <item name="android:navigationBarColor">@color/colorPrimary</item>
         <!-- Prevent system "force dark" from double-applying on our custom night palette -->
-        <item name="android:forceDarkAllowed">false</item>
+        <item name="android:forceDarkAllowed" tools:targetApi="29">false</item>
         <!-- Dark mode uses a dark status/nav background, so use light icons -->
         <item name="android:windowLightStatusBar">false</item>
-        <item name="android:windowLightNavigationBar">false</item>
+        <item name="android:windowLightNavigationBar" tools:targetApi="27">false</item>
         <item name="android:fontFamily">@font/vazir</item>
     </style>
 

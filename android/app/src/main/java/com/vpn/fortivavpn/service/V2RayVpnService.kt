@@ -33,9 +33,11 @@ import com.vpn.fortivavpn.handler.SettingsManager
 import com.vpn.fortivavpn.util.MessageUtil
 import com.vpn.fortivavpn.util.MyContextWrapper
 import com.vpn.fortivavpn.util.Utils
+import com.vpn.fortivavpn.util.running
 import java.io.File
 import java.lang.ref.SoftReference
 import java.util.concurrent.atomic.AtomicInteger
+import kotlin.coroutines.cancellation.CancellationException
 
 class V2RayVpnService : VpnService(), ServiceControl {
     companion object {
@@ -102,6 +104,14 @@ class V2RayVpnService : VpnService(), ServiceControl {
     private lateinit var mInterface: ParcelFileDescriptor
     private var isRunning = false
     private lateinit var process: Process
+
+    /**
+     * The step the running start has reached (StartFailure.STEP_*), for a
+     * start that throws ([crashed]). Only the start holding startLock
+     * writes it.
+     */
+    @Volatile
+    private var startStep = StartFailure.STEP_SESSION
 
     /** Set when the platform told us why, before the teardown that follows. */
     private var stopReason: String? = null
@@ -249,9 +259,44 @@ class V2RayVpnService : VpnService(), ServiceControl {
 
         val gen = startGen.incrementAndGet()
         CoroutineScope(Dispatchers.Default).launch {
-            startLock.withLock { start(gen, startId) }
+            startLock.withLock {
+                try {
+                    start(gen, startId)
+                } catch (e: CancellationException) {
+                    throw e
+                } catch (e: Throwable) {
+                    crashed(gen, startId, e)
+                }
+            }
         }
         return START_STICKY
+    }
+
+    /**
+     * Start [gen] threw instead of failing a step. That takes an Error, such
+     * as a method this Android does not have (#444), because every step
+     * catches only Exception. Before this the app heard nothing until its
+     * watchdog gave up, and the core stayed up, so every later tap failed as
+     * [StartFailure.ALREADY_RUNNING] until the app was closed.
+     *
+     * It is reported as [StartFailure.CRASHED] at the step the start had
+     * reached, and what the start brought up is taken down.
+     */
+    private suspend fun crashed(gen: Int, startId: Int, error: Throwable) {
+        // The connect report's log tail drops every line with a dotted
+        // name (LogPrivacy), so the stack trace never reaches the backend.
+        // This line names the Error and the app's method without dots.
+        val at = error.stackTrace.firstOrNull { it.className.startsWith(BuildConfig.APPLICATION_ID) }
+            ?: error.stackTrace.firstOrNull()
+        val where = at?.let { "${it.className.substringAfterLast('.')} ${it.methodName}" } ?: "unknown"
+        Log.e(
+            AppConfig.TAG,
+            "[VpnService] start $gen threw ${error.javaClass.simpleName} in $where at step $startStep",
+            error,
+        )
+        if (abandoned(gen, startId)) return
+        failed(startStep, StartFailure.CRASHED)
+        stopV2Ray(true)
     }
 
     /**
@@ -264,6 +309,7 @@ class V2RayVpnService : VpnService(), ServiceControl {
         // Stopped or replaced while it waited for the start before it. It
         // has brought nothing up, so there is nothing to take down.
         if (stoppedOrReplaced(gen)) return
+        startStep = StartFailure.STEP_SESSION
 
         // A backup network proxy whose session is gone: a normal connect
         // cleared it and has not selected its own profile yet, or the
@@ -303,6 +349,7 @@ class V2RayVpnService : VpnService(), ServiceControl {
         }
 
         Log.d(AppConfig.TAG, "[VpnService] Step 1: Starting core loop...")
+        startStep = StartFailure.STEP_CORE
         val coreFailure = V2RayServiceManager.startCore()
         if (coreFailure != null) {
             Log.e(AppConfig.TAG, "[VpnService] FAILED at Step 1: the core did not start ($coreFailure)")
@@ -322,11 +369,13 @@ class V2RayVpnService : VpnService(), ServiceControl {
         // is not sent into a proxy that has no tunnel yet.
         if (psiphon != null) {
             Log.d(AppConfig.TAG, "[VpnService] Step 1b: Starting the backup network...")
+            startStep = StartFailure.STEP_PSIPHON
             if (!startPsiphon(psiphon, gen, startId)) return
             Log.d(AppConfig.TAG, "[VpnService] Step 1b OK: backup network tunnel up")
         }
 
         Log.d(AppConfig.TAG, "[VpnService] Step 2: Setting up VPN...")
+        startStep = StartFailure.STEP_INTERFACE
         val setup = setupVpnService()
         if (setup == Setup.SLOT_TAKEN) {
             // Another app has the slot, and nobody tapped to take it back.
@@ -350,6 +399,7 @@ class V2RayVpnService : VpnService(), ServiceControl {
         if (abandoned(gen, startId)) return
 
         Log.d(AppConfig.TAG, "[VpnService] Step 3: Starting tun2socks...")
+        startStep = StartFailure.STEP_TUN2SOCKS
         val tunFailure = startTun2socks()
         if (tunFailure != null) {
             Log.e(AppConfig.TAG, "[VpnService] FAILED at Step 3: tun2socks did not start ($tunFailure)")
@@ -363,6 +413,7 @@ class V2RayVpnService : VpnService(), ServiceControl {
         if (abandoned(gen, startId)) return
 
         // The backup network can end between its tunnel and this point.
+        startStep = StartFailure.STEP_FINISH
         if (psiphon != null) {
             PsiphonCore.failure()?.let { failure ->
                 psiphonFailed(psiphon, failure.word, StartFailure.STEP_FINISH)
@@ -824,7 +875,7 @@ class V2RayVpnService : VpnService(), ServiceControl {
         val maxTries = 12
         while (true) {
             try {
-                if (!process.isAlive) {
+                if (!process.running()) {
                     Log.e(AppConfig.TAG, "$TUN2SOCKS is not alive; cannot send FD")
                     return false
                 }

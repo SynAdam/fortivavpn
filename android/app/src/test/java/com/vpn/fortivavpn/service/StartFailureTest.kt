@@ -81,6 +81,7 @@ class StartFailureTest {
             StartFailure.ESTABLISH_ERROR,
             StartFailure.PROCESS_ERROR,
             StartFailure.FD_NOT_SENT,
+            StartFailure.CRASHED,
         ) + PsiphonFailure.entries.map { it.word }
         for (w in words) assertTrue("'$w' would be dropped by the app", word.matches(w))
         // The one word the app ends its search on must stay a word of its own.

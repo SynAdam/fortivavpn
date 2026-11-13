@@ -154,6 +154,15 @@ android {
         }
     }
 
+    // A call to an API newer than minSdk fails the release build. Every
+    // release APK and bundle runs lintVitalRelease, and that only checks
+    // fatal issues, so NewApi has to be one. Process.isAlive() (API 26)
+    // stopped every connect on Android 7 and Fire OS 6 for months, and
+    // nothing in CI builds the Android app (#444).
+    lint {
+        fatal += "NewApi"
+    }
+
 }
 
 // Suppress "source value 8 is obsolete" warnings from dependencies

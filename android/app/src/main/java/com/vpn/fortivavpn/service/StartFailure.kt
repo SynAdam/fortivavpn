@@ -102,6 +102,13 @@ object StartFailure {
     /** The interface could not be handed to tun2socks. */
     const val FD_NOT_SENT = "fd_not_sent"
 
+    /**
+     * The start threw instead of failing its step: an Error such as a
+     * method this Android does not have (#444). Sent at the step it had
+     * reached (V2RayVpnService.crashed).
+     */
+    const val CRASHED = "crashed"
+
     /** The message for a start that failed at [step] for [reason]. */
     fun message(step: String, reason: String): String = "$step:$reason"
 
