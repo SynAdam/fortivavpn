@@ -12,8 +12,8 @@
 # Psiphon:            v1.0.11-0.20260821154217-96f782c6f662 (commit 96f782c6f662, buildRev 96f782c6f6)
 # Psiphon quic-go:    v0.0.0-20250527153145-79fe45fb83b1
 # Patch:              psiphon-quic-go/qpack-v0.6.patch sha256 91f6e87bc6e341ce1906597129a62de4413492883bfde53b180ba27a1049e57c
-# Built with:         go1.26.10, NDK 28.2.13676358, androidapi 21, javac 25.0.1
+# Built with:         go1.26.11, NDK 28.2.13676358, androidapi 21, javac 25.0.1
 # Built in:           /build/fortiva-core, Linux x86_64
-#                     in a container: android/core/build-in-linux.sh, Dockerfile sha256 8955f751f8f5deab4ff9f24f32fa776cdb8867ecbe69ccad0406fe247e0c60ff
+#                     in a container: android/core/build-in-linux.sh, Dockerfile sha256 66303fca9a8b8b2aa1d8404e4c3388c4b7b270aeb137c96830436c69d7fea9a5
 
-0c5f9cd43632eb93af43ecc30aec67149f68ed52907239a5e82cdbd8039ef0fa  libv2ray.aar
+8b4342c3295dcbc56e49b98c38de26d857f595c6dda98204d30082c59d33e9c9  libv2ray.aar

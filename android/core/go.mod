@@ -28,7 +28,7 @@ go 1.26.0
 // code with a known vulnerability. go1.26.10 is the first 1.26 release that
 // distrusts the eight eMudhra intermediates whose private keys anyone can
 // recover (October 2026); x509distrust/ tests that.
-toolchain go1.26.10
+toolchain go1.26.11
 
 require (
 	github.com/2dust/AndroidLibXrayLite v0.0.0-20260820071603-c634d1baea97
@@ -52,7 +52,7 @@ require (
 	github.com/Psiphon-Labs/pion-ice/v4 v4.0.0-20260423180031-37d6e92d021f // indirect
 	github.com/Psiphon-Labs/pion-webrtc/v4 v4.0.0-20260423180049-7ff453f9681a // indirect
 	github.com/Psiphon-Labs/utls v1.1.1-0.20260729134728-7a1fc711853d // indirect
-	github.com/andybalholm/brotli v1.2.0 // indirect
+	github.com/andybalholm/brotli v1.2.7 // indirect
 	github.com/apernet/quic-go v0.59.1-0.20260425001925-6c6cc9bcb716 // indirect
 	github.com/armon/go-proxyproto v0.0.0-20180202201750-5b7edb60ff5f // indirect
 	github.com/axiomhq/hyperloglog v0.2.6 // indirect
@@ -80,7 +80,7 @@ require (
 	github.com/huin/goupnp v1.3.0 // indirect
 	github.com/juju/ratelimit v1.0.2 // indirect
 	github.com/kamstrup/intmap v0.5.2 // indirect
-	github.com/klauspost/compress v1.18.2 // indirect
+	github.com/klauspost/compress v1.20.2 // indirect
 	github.com/klauspost/cpuid/v2 v2.4.0 // indirect
 	github.com/libp2p/go-reuseport v0.4.0 // indirect
 	github.com/marusama/semaphore v0.0.0-20171214154724-565ffd8e868a // indirect
