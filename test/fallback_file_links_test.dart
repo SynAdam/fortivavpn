@@ -66,8 +66,11 @@ void main() {
 
   setUp(() => SharedPreferences.setMockInitialValues({}));
 
+  // The repository reads the same clock: a saved list older than
+  // ServerRepository.savedCommunityMaxAge is dropped, so on the real clock
+  // the lists saved at [now] went stale on 2026-11-10.
   ServerState state(_Source source, _File file) => ServerState(
-    repository: ServerRepository.withConfigSource(source),
+    repository: ServerRepository.withConfigSource(source, clock: () => now),
     bootstrap: file,
     now: () => now,
   );

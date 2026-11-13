@@ -20,19 +20,25 @@ the allowance and takes a Premium code.
 On the router, as root:
 
 ```sh
-wget -O /tmp/install.sh https://github.com/SynAdam/fortivavpn/releases/latest/download/install.sh
+wget -O /tmp/install.sh https://raw.githubusercontent.com/SynAdam/fortivavpn/main/router/install.sh
 sh /tmp/install.sh
 ```
 
 It picks the build for the router's processor, checks memory and storage,
-installs `kmod-tun` and `ca-bundle` when they are missing, checks the
-download against `SHA256SUMS`, and starts Fortiva. Running it again
-upgrades and keeps the settings. A router that cannot reach GitHub can take
-the file from a computer: copy `fortiva-router-<target>.tar.gz` to the
-router and run `sh install.sh fortiva-router-<target>.tar.gz`.
+installs `kmod-tun` and `ca-bundle` when they are missing, downloads the
+build from the newest release on https://github.com/SynAdam/fortivavpn/releases
+that has router files, checks it against `fortiva-router-SHA256SUMS`, and
+starts Fortiva. Running it again upgrades and keeps the settings.
 
-`opkg install fortiva_<version>-1_<arch>.ipk` works too, on releases that
-use opkg.
+A router that cannot reach GitHub can take the files from a computer:
+download `fortiva-router-install.sh` and `fortiva-router-<target>.tar.gz`
+from the release, copy both to the router, and run
+`sh fortiva-router-install.sh fortiva-router-<target>.tar.gz`. The targets
+are `arm64`, `armv7`, `mipsle`, `mips` and `amd64`; `install.sh` says which
+one the router needs when it is given the wrong one.
+
+`router/build.sh` also makes an `.ipk` for each OpenWrt architecture, for
+`opkg install` after `opkg update`. The releases carry only the builds above.
 
 The router is a device of its own with the backend, with its own allowance.
 A Premium key works on it as on a phone: enter it on the LuCI page or run
@@ -47,6 +53,7 @@ fortiva status          # what it is doing, as JSON
 fortiva disconnect      # off; the network uses its own connection
 fortiva connect         # on again
 fortiva redeem CODE     # a Premium key or a gift code
+fortiva uninstall       # take Fortiva off the router
 ```
 
 On or off survives a restart. Settings are in `/etc/config/fortiva`:
@@ -55,6 +62,16 @@ the network's lookups go while the tunnel is up), and `wan` (the internet
 device, when the default route's is not the right one). A test points the
 router at another backend by writing its URL to `/etc/fortiva/api`, a file
 only root can write; the settings page and its ACL cannot reach it.
+
+## Removing it
+
+`fortiva uninstall`, or `sh install.sh --remove`, stops the service, gives
+the network's lookups back to the WAN, removes the firewall zone and every
+forwarding to or from it, and deletes every file the install put on the
+router (listed in `/usr/share/fortiva/FILES`). `/etc/fortiva` stays: it
+holds the router's id, so a later install is the same router with its
+Premium. `fortiva uninstall --purge` deletes it too. `opkg remove fortiva`
+does the same for an `.ipk` install, through the package's `prerm`.
 
 ## How it works
 
@@ -135,7 +152,9 @@ router/build.sh arm64 mipsle    # only these
 
 It cross-compiles from any computer with Go. For each target it makes
 `fortiva-router-<target>.tar.gz` for `install.sh` and an `.ipk` for each
-OpenWrt architecture name of that processor family, with `SHA256SUMS`. It
+OpenWrt architecture name of that processor family, with
+`fortiva-router-SHA256SUMS` (not `SHA256SUMS`, which is the APKs' name on a
+release). It
 refuses a program not built from the patched core, or without what the
 doors need. The API relays are read from `lib/api/built_in.dart` and passed
 to the compiler; they are never written to a file. The public copy's
@@ -168,22 +187,41 @@ within a second, that it connects with IPv6 turned off, that the events
 reached the backend, and that a kill while connected leaves no lookups on
 the tunnel once the door is gone. `/etc/fortiva/api` points the router at
 the fake backend before the first start, so it never reaches Fortiva's.
+`install.sh` downloads the build from a fake list of releases whose newest
+release has no router files, after refusing a download whose checksum does
+not match. At the end the test runs `fortiva uninstall` and checks that
+nothing of Fortiva is left but `/etc/fortiva`, installs again from the file
+and checks that it is the same router, runs `--purge`, and installs and
+removes the `.ipk` next to the build, when there is one for the router.
 Use the `arm64` build on an Arm Mac and `amd64` on a PC.
 
 `test/upgrade.sh` runs `setup.sh` on OpenWrt in Docker with a small file
 system for the program, and checks that an upgrade keeps on flash a
 program that only fits because it replaces the old one.
 
+## Publishing
+
+The router files go on a release of the public copy by hand, like the
+Windows installer: start the Router workflow there
+(`tool/public/overlay/.github/workflows/router.yml`) with the release tag,
+once that release is published. It builds every target at the tag and runs
+`tool/public_sync.py --router`, which checks each build (its version, its
+program, no one's home folder in it) and attaches the five builds,
+`fortiva-router-install.sh` and `fortiva-router-SHA256SUMS`. With publish
+off it only builds and checks them, and keeps them as the run's artifact
+for three days, to try on a router first. A release without router files
+changes nothing for routers: `install.sh` takes the newest release that has
+them.
+
 ## Not done yet
 
-- Publishing. The files are built but not attached to a release. They
-  should go with each release on the public copy, as the Windows installer
-  does (`tool/public_sync.py --windows`), and `install.sh` downloads from
-  there.
 - The LuCI page is in English only. It can take all 18 languages through
   LuCI's own translation files.
 - Choosing which devices on the network use Fortiva. Today every device
   does.
+- Choosing a location, as the app and the browser extension can. The page
+  shows the door's name where it could show the location.
+- Updating itself. A router keeps its version until `install.sh` runs again.
 - The program is about 30 MB, because the core's configuration loader
   links in every protocol. Building the configuration without it would
   make it much smaller.

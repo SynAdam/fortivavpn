@@ -3,6 +3,7 @@
 #
 #   sh install.sh                    download the newest release for this router
 #   sh install.sh FILE.tar.gz        install from a file already on the router
+#   sh install.sh --remove [--purge] take Fortiva off the router again
 #
 # It works with either package manager (opkg up to OpenWrt 24.10, apk after)
 # because it installs the files itself. The package manager is only asked
@@ -11,13 +12,29 @@
 
 set -e
 
-RELEASES="https://github.com/SynAdam/fortivavpn/releases/latest/download"
+REPO="SynAdam/fortivavpn"
+# Not every release has the router files (they are attached by hand, with
+# the Router workflow), so the build comes from the newest release that has
+# it, from GitHub's list of releases, newest first. "latest" is the fallback
+# when that list cannot be read. FORTIVA_RELEASES_API is for tests.
+RELEASES_API="${FORTIVA_RELEASES_API:-https://api.github.com/repos/$REPO/releases?per_page=20}"
+LATEST="https://github.com/$REPO/releases/latest/download"
+# The SHA-256 of every router file of a release. Not SHA256SUMS, which is
+# the APKs'.
+SUMS=fortiva-router-SHA256SUMS
 
 say() { echo "fortiva: $*"; }
 die() { echo "fortiva: $*" >&2; exit 1; }
 
 [ "$(id -u)" = 0 ] || die "run this as root"
 [ -f /etc/openwrt_release ] || die "this is not an OpenWrt router"
+
+if [ "${1:-}" = --remove ]; then
+	shift
+	[ -x /usr/share/fortiva/remove.sh ] || die "Fortiva is not installed on this router"
+	exec /usr/share/fortiva/remove.sh "$@"
+fi
+
 . /etc/openwrt_release
 
 # --- which build ------------------------------------------------------------
@@ -70,13 +87,27 @@ fetch() {
 tmp=$(mktemp -d)
 trap 'rm -rf "$tmp"' EXIT
 
-file="$1"
+# The download folder of the newest release that has [name].
+release_of() {
+	if command -v jsonfilter >/dev/null 2>&1 && fetch "$RELEASES_API" "$tmp/releases.json" 2>/dev/null; then
+		url=$(jsonfilter -i "$tmp/releases.json" -e '@[*].assets[*].browser_download_url' 2>/dev/null |
+			grep "/$1\$" | head -n 1)
+		if [ -n "$url" ]; then
+			echo "${url%/*}"
+			return 0
+		fi
+	fi
+	echo "$LATEST"
+}
+
+file="${1:-}"
 if [ -z "$file" ]; then
 	name="fortiva-router-$target.tar.gz"
+	from=$(release_of "$name")
 	say "downloading $name"
-	fetch "$RELEASES/$name" "$tmp/$name" || die "the download failed; download $name on a computer and run: sh install.sh $name"
-	fetch "$RELEASES/SHA256SUMS" "$tmp/SHA256SUMS" || die "the checksums could not be downloaded"
-	want=$(awk -v n="$name" '$2 == n {print $1}' "$tmp/SHA256SUMS")
+	fetch "$from/$name" "$tmp/$name" || die "the download failed; download $name on a computer from https://github.com/$REPO/releases and run: sh install.sh $name"
+	fetch "$from/$SUMS" "$tmp/$SUMS" || die "the checksums could not be downloaded"
+	want=$(awk -v n="$name" '$2 == n {print $1}' "$tmp/$SUMS")
 	got=$(sha256sum "$tmp/$name" | cut -d' ' -f1)
 	[ -n "$want" ] && [ "$want" = "$got" ] || die "the download is damaged (its checksum does not match)"
 	file="$tmp/$name"

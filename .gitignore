@@ -73,5 +73,12 @@ android/core/.src/
 # Pinned inputs staged by windows/core/stage.sh, and its build output
 windows/core/.assets/
 windows/core/dist/
+# What router/build.sh makes
+router/dist/
 # The installer, when iscc runs without /DOutDir
 windows/installer/Output/
+
+# What browser/build.mjs makes
+browser/dist/
+browser/src/strings.gen.js
+browser/node_modules/

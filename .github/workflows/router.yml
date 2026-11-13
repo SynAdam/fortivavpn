@@ -1,0 +1,141 @@
+# Builds Fortiva for OpenWrt routers at a release tag and attaches the
+# builds and their installer to the tag's GitHub Release here, next to the
+# APKs.
+#
+# Only by hand, for a tag whose release is published already, like the
+# Windows installer: not every release needs new router files. A router
+# downloads from the newest release that has them (router/install.sh), so a
+# release without them changes nothing for routers.
+#
+# The source is the repository the mirror reads, at the tag, because the
+# copy here leaves out the API relays the router is built with
+# (lib/api/built_in.dart). router/build.sh cross-compiles every target on
+# Linux. The files go up with tool/public_sync.py --router, as the source
+# repository's main has it, which checks each build (its version, its
+# program, no one's home folder in it), uploads the builds, install.sh and
+# fortiva-router-SHA256SUMS, and reads them back. With publish off it builds
+# and checks everything, uploads nothing, and keeps the files as the run's
+# artifact for three days, to try on a router first.
+name: Router
+
+on:
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: The release tag, such as v2.4.0
+        required: true
+      publish:
+        description: Attach the router files to the tag's GitHub Release (off builds and checks them, and keeps them as the run's artifact)
+        type: boolean
+        default: true
+
+permissions:
+  contents: read
+
+concurrency:
+  group: router-${{ inputs.tag }}
+  cancel-in-progress: false
+
+jobs:
+  build:
+    name: router builds (cross-compiled)
+    if: github.repository == 'SynAdam/fortivavpn'
+    runs-on: ubuntu-26.04
+    timeout-minutes: 30
+    env:
+      TAG: ${{ inputs.tag }}
+      SOURCE_REPOSITORY: ${{ secrets.SOURCE_REPOSITORY }}
+    steps:
+      - name: check the tag
+        run: |
+          [[ "$TAG" =~ ^v[0-9]+\.[0-9]+\.[0-9]+$ ]] || { echo "Not a release tag: $TAG"; exit 1; }
+          [ -n "$SOURCE_REPOSITORY" ] || { echo "The secret SOURCE_REPOSITORY is not set."; exit 1; }
+
+      # One ref alone, because a fetch prints each branch it fetches, and the
+      # names of our branches stay ours.
+      - name: check out the source repository at the tag
+        uses: actions/checkout@v7
+        with:
+          repository: ${{ env.SOURCE_REPOSITORY }}
+          ref: refs/tags/${{ inputs.tag }}
+          ssh-key: ${{ secrets.SOURCE_DEPLOY_KEY }}
+          persist-credentials: false
+          # The iOS core is in Git LFS; nothing here needs it.
+          lfs: false
+
+      - name: check the tag's version and router build
+        run: |
+          version=$(awk '$1=="version:"{print $2; exit}' pubspec.yaml | cut -d+ -f1)
+          if [ "$TAG" != "v$version" ]; then
+            echo "::error::pubspec.yaml at $TAG says $version, so $TAG is not a release tag"
+            exit 1
+          fi
+          if [ ! -f router/build.sh ] || ! grep -q fortiva-router-SHA256SUMS router/install.sh; then
+            echo "::error::$TAG is older than the router's release files; release a newer version first."
+            exit 1
+          fi
+
+      - uses: actions/setup-go@v5
+        with:
+          go-version-file: windows/core/go.mod
+          cache: false
+
+      # build.sh stages the patched Xray-core and the routing data, each
+      # checked against its pin, and verifies each program it built.
+      - name: build every target
+        run: router/build.sh
+
+      # The builds and the installer only. The .ipk packages stay out of the
+      # release: install.sh takes the builds on every OpenWrt.
+      - name: the files to attach
+        run: |
+          mkdir router-files
+          cp router/dist/fortiva-router-*.tar.gz router/dist/install.sh router-files/
+          ls -l router-files | tee -a "$GITHUB_STEP_SUMMARY"
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: router-files
+          path: router-files/
+          retention-days: ${{ inputs.publish && 1 || 3 }}
+          if-no-files-found: error
+          # The builds are already compressed.
+          compression-level: 0
+
+  attach:
+    name: check, and with publish on attach to the release
+    needs: build
+    runs-on: ubuntu-26.04
+    timeout-minutes: 20
+    # The only job that can write to the repository, and it runs no build
+    # code.
+    permissions:
+      contents: write
+    env:
+      TAG: ${{ inputs.tag }}
+      SOURCE_REPOSITORY: ${{ secrets.SOURCE_REPOSITORY }}
+    steps:
+      # The tools as main has them, whatever the tag has.
+      - name: check out the source repository's main
+        uses: actions/checkout@v7
+        with:
+          repository: ${{ env.SOURCE_REPOSITORY }}
+          ref: refs/heads/main
+          ssh-key: ${{ secrets.SOURCE_DEPLOY_KEY }}
+          persist-credentials: false
+          lfs: false
+
+      - uses: actions/setup-python@v7
+        with:
+          python-version: '3.14'
+
+      - uses: actions/download-artifact@v4
+        with:
+          name: router-files
+          path: router-files
+
+      - name: check, and with publish on attach, the router files
+        env:
+          PUBLIC_PUSH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          PUSH: ${{ inputs.publish && '--push' || '' }}
+        run: python3 tool/public_sync.py "$TAG" $PUSH --in-actions --router router-files

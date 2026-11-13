@@ -13,7 +13,14 @@
 # zone, and a kill while the tunnel is up.
 #
 # The router never reaches Fortiva's backend: /etc/fortiva/api names the
-# fake one before the package is installed.
+# fake one before the package is installed. It never reaches GitHub either:
+# install.sh downloads the build from a fake list of releases, in which the
+# newest release has no router files, as install.sh finds it when the
+# Router workflow has not run for a release.
+#
+# At the end it takes Fortiva off the router (fortiva uninstall), installs
+# it again from the file, which keeps the router's id, and installs and
+# removes the .ipk next to TARBALL, when there is one for the router.
 #
 #   router/test/e2e.sh XRAY TARBALL
 #
@@ -40,7 +47,7 @@ dump() {
   echo "--- events"; docker exec $p-api cat /tmp/events.jsonl 2>/dev/null | tail -10 || true
 }
 cleanup() {
-  docker rm -f $p-router $p-api $p-door $p-client >/dev/null 2>&1 || true
+  docker rm -f $p-router $p-api $p-door $p-client $p-gh >/dev/null 2>&1 || true
   docker network rm $p-wan $p-lan >/dev/null 2>&1 || true
 }
 trap cleanup EXIT
@@ -117,7 +124,37 @@ docker exec $p-router mkdir -p /tmp/dnsmasq.e2e.d
 # The fake backend, before the first start, in the file only root can
 # write (not a uci option, which the LuCI page could set).
 docker exec $p-router sh -c "mkdir -p /etc/fortiva && chmod 700 /etc/fortiva && echo http://172.31.10.10:8080 > /etc/fortiva/api"
-docker exec $p-router sh /tmp/install.sh "/tmp/$(basename "$tarball")"
+
+log "a fake GitHub on the wan, whose newest release has no router files"
+name=$(basename "$tarball")
+gh="$work/github"
+mkdir -p "$gh/v9.9.9" "$gh/v9.9.8"
+cp "$tarball" "$gh/v9.9.8/$name"
+cat > "$gh/releases.json" <<EOF
+[{"tag_name": "v9.9.9", "assets": [{"browser_download_url": "http://172.31.10.40:8000/v9.9.9/FortivaVPN-9.9.9.apk"}]},
+ {"tag_name": "v9.9.8", "assets": [{"browser_download_url": "http://172.31.10.40:8000/v9.9.8/$name"},
+   {"browser_download_url": "http://172.31.10.40:8000/v9.9.8/fortiva-router-SHA256SUMS"}]}]
+EOF
+sums() { python3 -c 'import hashlib, sys; print(hashlib.sha256(open(sys.argv[1], "rb").read()).hexdigest() + "  " + sys.argv[2])' "$1" "$2"; }
+docker run -d --name $p-gh --network $p-wan --ip 172.31.10.40 -v "$gh:/srv:ro" \
+  python:3.12-alpine python3 -m http.server 8000 -d /srv >/dev/null
+releases=http://172.31.10.40:8000/releases.json
+for _ in $(seq 1 30); do
+  docker exec $p-router uclient-fetch -q -O /dev/null "$releases" 2>/dev/null && break
+  sleep 1
+done
+
+log "a damaged download is refused"
+echo "$(printf '0%.0s' $(seq 1 64))  $name" > "$gh/v9.9.8/fortiva-router-SHA256SUMS"
+out=$(docker exec -e FORTIVA_RELEASES_API=$releases $p-router sh /tmp/install.sh 2>&1) && die "a damaged download was installed: $out"
+grep -q "damaged" <<< "$out" || die "the damaged download said: $out"
+docker exec $p-router test -e /etc/init.d/fortiva && die "a damaged download left files behind"
+sums "$tarball" "$name" > "$gh/v9.9.8/fortiva-router-SHA256SUMS"
+
+log "installing from the newest release that has the router's build"
+out=$(docker exec -e FORTIVA_RELEASES_API=$releases $p-router sh /tmp/install.sh 2>&1) || die "the install failed: $out"
+echo "$out"
+grep -q "downloading $name" <<< "$out" || die "install.sh did not download $name"
 
 log "waiting for the router to connect"
 for _ in $(seq 1 60); do
@@ -225,5 +262,86 @@ done
 docker exec $p-router test -f /tmp/dnsmasq.e2e.d/fortiva.conf && die "the lookups still go to a tunnel that is gone"
 state=$(docker exec $p-router fortiva status 2>/dev/null | sed -n 's/^  "state": "\(.*\)",/\1/p')
 [[ -n "$state" && "$state" != connected ]] || die "after the kill the router is ${state:-not running}"
+
+log "fortiva uninstall takes everything off but the router's id"
+docker start $p-door >/dev/null
+id=$(docker exec $p-router sh -c 'fortiva status' | sed -n 's/^  "device_id": "\(.*\)",/\1/p')
+[[ -n "$id" ]] || die "no device id before the uninstall"
+out=$(docker exec $p-router fortiva uninstall 2>&1) || die "fortiva uninstall failed: $out"
+grep -q "removed" <<< "$out" || die "fortiva uninstall said: $out"
+docker exec $p-router sh -c 'pidof fortiva' >/dev/null && die "the program still runs after the uninstall"
+for f in /etc/init.d/fortiva /usr/bin/fortiva /usr/share/fortiva /usr/lib/fortiva /etc/config/fortiva \
+  /www/luci-static/resources/view/fortiva /usr/share/luci/menu.d/luci-app-fortiva.json \
+  /usr/share/rpcd/acl.d/luci-app-fortiva.json /lib/upgrade/keep.d/fortiva /tmp/dnsmasq.e2e.d/fortiva.conf; do
+  docker exec $p-router test -e "$f" && die "$f is still there after the uninstall"
+done
+docker exec $p-router sh -c 'ls /etc/rc.d | grep -q fortiva' && die "the service still starts with the router"
+docker exec $p-router test -d /etc/fortiva || die "the uninstall deleted the router's id"
+fw=$(docker exec $p-router uci show firewall)
+grep -q "fortiva" <<< "$fw" && die "the firewall still names fortiva: $(grep fortiva <<< "$fw")"
+grep -q "firewall.guest_wan.dest='wan'" <<< "$fw" || die "the uninstall took the guest zone's own forwarding"
+docker exec $p-router sh -c 'ip route; ip -6 route' | grep -q fortiva0 && die "routes into the tunnel are left"
+
+log "installing again from the file keeps the router's id"
+docker exec $p-router sh /tmp/install.sh "/tmp/$name" >/dev/null
+for _ in $(seq 1 60); do
+  state=$(docker exec $p-router fortiva status 2>/dev/null | sed -n 's/^  "state": "\(.*\)",/\1/p')
+  [[ "$state" == connected ]] && break
+  sleep 1
+done
+[[ "$state" == connected ]] || die "after the new install the router is $state"
+again=$(docker exec $p-router sh -c 'fortiva status' | sed -n 's/^  "device_id": "\(.*\)",/\1/p')
+[[ "$again" == "$id" ]] || die "the new install is another router"
+docker exec $p-client wget -q -T 20 -O /dev/null https://www.gstatic.com/generate_204 || die "the client's fetch failed after the new install"
+
+log "--purge deletes the router's id too"
+docker exec $p-router sh /tmp/install.sh --remove --purge >/dev/null || die "install.sh --remove --purge failed"
+docker exec $p-router test -e /etc/fortiva && die "--purge kept /etc/fortiva"
+
+case "$name" in
+  *-arm64.tar.gz) ipk=$(ls "$(dirname "$tarball")"/fortiva_*_aarch64_generic.ipk 2>/dev/null | head -n 1) ;;
+  *-amd64.tar.gz) ipk=$(ls "$(dirname "$tarball")"/fortiva_*_x86_64.ipk 2>/dev/null | head -n 1) ;;
+  *) ipk="" ;;
+esac
+if [[ -n "$ipk" ]]; then
+  log "the .ipk installs, and opkg remove leaves no firewall zone"
+  docker exec $p-router sh -c "mkdir -p /etc/fortiva && chmod 700 /etc/fortiva && echo http://172.31.10.10:8080 > /etc/fortiva/api"
+  docker cp "$ipk" $p-router:/tmp/fortiva.ipk
+  # It depends on kmod-tun, which this container has no package lists for:
+  # Docker gives it the TUN driver. An empty package of that name stands in,
+  # since opkg refuses a package with a dependency it cannot find, even with
+  # --nodeps or --force-depends.
+  python3 - "$work/kmod-tun.ipk" <<'PY'
+import io, sys, tarfile
+
+
+def tgz(entries):
+    out = io.BytesIO()
+    with tarfile.open(fileobj=out, mode="w:gz") as tar:
+        for name, data in entries:
+            info = tarfile.TarInfo(name)
+            info.size = len(data)
+            tar.addfile(info, io.BytesIO(data))
+    return out.getvalue()
+
+
+control = b"Package: kmod-tun\nVersion: 0-docker\nArchitecture: all\nDescription: Docker's TUN driver.\n"
+open(sys.argv[1], "wb").write(tgz([("./debian-binary", b"2.0\n"), ("./data.tar.gz", tgz([])),
+                                    ("./control.tar.gz", tgz([("./control", control)]))]))
+PY
+  docker cp "$work/kmod-tun.ipk" $p-router:/tmp/kmod-tun.ipk
+  docker exec $p-router opkg install /tmp/kmod-tun.ipk >/dev/null || die "the stand-in kmod-tun did not install"
+  docker exec $p-router opkg install /tmp/fortiva.ipk >/dev/null || die "opkg install failed"
+  for _ in $(seq 1 60); do
+    state=$(docker exec $p-router fortiva status 2>/dev/null | sed -n 's/^  "state": "\(.*\)",/\1/p')
+    [[ "$state" == connected ]] && break
+    sleep 1
+  done
+  [[ "$state" == connected ]] || die "after opkg install the router is $state"
+  docker exec $p-router opkg remove fortiva >/dev/null || die "opkg remove failed"
+  docker exec $p-router sh -c 'pidof fortiva' >/dev/null && die "the program still runs after opkg remove"
+  docker exec $p-router uci show firewall | grep -q fortiva && die "opkg remove left the firewall naming fortiva"
+  docker exec $p-router test -e /usr/lib/fortiva/fortiva && die "opkg remove left the program on flash"
+fi
 
 log "passed"

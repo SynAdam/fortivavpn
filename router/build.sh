@@ -5,7 +5,8 @@
 #   fortiva-router-<target>.tar.gz   the files, rooted at /, for install.sh
 #   fortiva_<version>-1_<arch>.ipk   the same files as an opkg package, one
 #                                    per OpenWrt architecture name
-#   SHA256SUMS                       for both
+#   install.sh                       the installer
+#   fortiva-router-SHA256SUMS        for all of them (not SHA256SUMS, the APKs' name)
 #
 # <target> is the Go build: arm64, armv7, mipsle, mips or amd64. One Go
 # build serves every OpenWrt architecture of its CPU family (the ARCHES table
@@ -160,7 +161,10 @@ for t in "${targets[@]}"; do
   find "$tree" -type f -exec chmod 644 {} +
   chmod 755 "$tree/etc/init.d/fortiva" "$tree/etc/uci-defaults/90-fortiva" \
     "$tree/usr/bin/fortiva" "$tree/usr/share/fortiva/hook.sh" "$tree/usr/share/fortiva/setup.sh" \
-    "$tree/usr/share/fortiva/firewall.sh"
+    "$tree/usr/share/fortiva/firewall.sh" "$tree/usr/share/fortiva/remove.sh"
+  # Every file the install puts on the router, for remove.sh.
+  (cd "$tree" && { find . -type f | sed 's|^\.||'; echo /usr/share/fortiva/FILES; } | LC_ALL=C sort -u) \
+    > "$tree/usr/share/fortiva/FILES"
 
   tarball="$dist/fortiva-router-$t.tar.gz"
   # The top directories by name, not ".": a "./" entry would set the mode
@@ -199,13 +203,13 @@ EOF
 [ -n "${IPKG_INSTROOT}" ] && exit 0
 /usr/share/fortiva/setup.sh
 EOF
+    # The package manager deletes the package's files; remove.sh undoes the
+    # rest: the service, the lookups, the firewall zone, the program
+    # unpacked on flash.
     cat > "$pkg/control/prerm" <<'EOF'
 #!/bin/sh
 [ -n "${IPKG_INSTROOT}" ] && exit 0
-/etc/init.d/fortiva stop 2>/dev/null
-/etc/init.d/fortiva disable 2>/dev/null
-rm -f /usr/lib/fortiva/fortiva
-rm -rf /tmp/fortiva
+/usr/share/fortiva/remove.sh --package
 exit 0
 EOF
     chmod 755 "$pkg/control/postinst" "$pkg/control/prerm"
@@ -217,6 +221,6 @@ EOF
 done
 
 cp install.sh "$dist/install.sh"
-(cd "$dist" && for f in *; do [[ "$f" == SHA256SUMS ]] || echo "$(sha256 "$f")  $f"; done > SHA256SUMS)
+(cd "$dist" && for f in *; do [[ "$f" == fortiva-router-SHA256SUMS ]] || echo "$(sha256 "$f")  $f"; done > fortiva-router-SHA256SUMS)
 log "done:"
 ls -la "$dist"
