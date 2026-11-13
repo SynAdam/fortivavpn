@@ -1,0 +1,5 @@
+- Android 7 phones and older Fire TV sticks can connect again.
+- The connection notice, country names and links now follow the language you chose in the app. Phones in a language Fortiva does not have get English.
+- On Android TV, links now open in a browser or inside the app instead of showing a QR code.
+- A security update for your connection, and Fortiva sends less data about how you use it.
+- Less battery use in the background.
