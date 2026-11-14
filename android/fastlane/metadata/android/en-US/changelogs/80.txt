@@ -1,0 +1,1 @@
+- When one of our servers gets crowded, Fortiva now connects you through a less busy one, so your connection stays fast.
