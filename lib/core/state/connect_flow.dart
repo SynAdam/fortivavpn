@@ -1218,6 +1218,48 @@ class ConnectFlow extends ChangeNotifier {
   bool _skipFastPath(String network) =>
       network == 'none' && (_checklist()?.fastPath?.skipOffline ?? false);
 
+  /// Whether this tap leaves [remembered], the door that last carried
+  /// traffic on [network], aside for the backend's order. All of these
+  /// must hold: the user picked no server ([preferred] is null), the
+  /// backend marks [remembered]'s server busy ([Server.busy]), [ordered]
+  /// starts on another server, which it does not mark busy, and no tap on
+  /// [network] left a door aside this way in the last
+  /// PathMemory.busySkipEvery. The leave is written down here
+  /// (PathMemory.markBusySkipped), and the tap runs as one with no
+  /// remembered door does: the checklist over the backend's order, in
+  /// which [remembered] keeps its place, and the first door found open is
+  /// dialled and remembered.
+  ///
+  /// The backend spreads phones over the servers that work about as well
+  /// for their carrier, more of them onto the server with fewer online, by
+  /// the server its order starts on. The remembered door is dialled first
+  /// whatever that order says, and it stays fresh for a day after every
+  /// tunnel it carries (PathMemory.fresh). So a phone that moved to one
+  /// server while the others' addresses were blocked stayed there after
+  /// the blocks ended, and only phones with no remembered door followed
+  /// the spread. On the evening of 2026-11-14 one of four servers carried
+  /// 57 to 62% of the phones that reported, against an even share of 25%.
+  ///
+  /// It costs the tap the checklist in place of the fast path, once a day
+  /// on each network, and only while a server is busy. A phone whose
+  /// checklist ends on the busy server anyway keeps its fast path for that
+  /// day. A server the user picked is never left. A backend that marks no
+  /// door busy, and an answer kept from an earlier run, leave every tap as
+  /// it was.
+  Future<bool> _leavesBusy(
+    Server remembered,
+    List<Server> ordered,
+    Server? preferred,
+    String network,
+  ) async {
+    if (preferred != null || !remembered.busy || ordered.isEmpty) return false;
+    final start = ordered.first;
+    if (start.busy || _sameServer(start, remembered)) return false;
+    if (await _memory.busySkippedLately(network)) return false;
+    await _memory.markBusySkipped(network);
+    return true;
+  }
+
   /// The endings of a try that found no way abroad: the phone has no
   /// internet, or only its way abroad is cut ([_noWayAbroad]).
   static const _offlineEndings = {ConnectStage.noInternet, ConnectStage.cutOff};
@@ -2154,13 +2196,24 @@ class ConnectFlow extends ChangeNotifier {
     // and not on no network at all when the backend says so
     // (FastPathSettings.skipOffline). The checklist below then checks the
     // remembered door like any other, with no tunnel brought up for it.
-    final first = remembered == null || _noWayAbroad || _skipFastPath(network)
+    final recalled =
+        remembered == null || _noWayAbroad || _skipFastPath(network)
         ? null
         : ordered
               .where((p) => p.pathKey == remembered)
               .where((p) => preferred == null || _sameServer(p, preferred))
               .where((p) => !closedFirst.contains(p.pathKey))
               .firstOrNull;
+    // Nor, once a day on this network, when the backend marks the
+    // remembered door's server busy and starts its order on another server
+    // ([_leavesBusy]). The checklist then checks the remembered door in its
+    // place in that order.
+    final first =
+        recalled != null &&
+            await _leavesBusy(recalled, ordered, preferred, network)
+        ? null
+        : recalled;
+    if (_halted(run)) return;
 
     // Diagnosis. Read before the fast path, because its search can start
     // beside the fast path's dial ([_fastPath]). The remembered door goes

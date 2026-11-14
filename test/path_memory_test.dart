@@ -410,6 +410,57 @@ void main() {
     });
   });
 
+  // A tap that left the remembered door aside because the backend marked
+  // its server busy (ConnectFlow) does so once a day on each network.
+  group('a door left aside for a busy server', () {
+    const a = 'hel.example|tcp-reality';
+    const b = 'fsn.example|tcp-reality';
+
+    test('is written per network, and counts for a day', () async {
+      final m = memory();
+      expect(await m.busySkippedLately('mobile:Irancell'), isFalse);
+      await m.markBusySkipped('mobile:Irancell');
+      expect(await m.busySkippedLately('mobile:Irancell'), isTrue);
+      expect(await m.busySkippedLately('wifi'), isFalse);
+      now = now.add(const Duration(hours: 23));
+      expect(await m.busySkippedLately('mobile:Irancell'), isTrue);
+      now = now.add(const Duration(hours: 2));
+      expect(await m.busySkippedLately('mobile:Irancell'), isFalse);
+    });
+
+    test('leaves the remembered door and its failures alone', () async {
+      final m = memory();
+      await m.remember('wifi', a);
+      await m.markFailed('wifi', b);
+      await m.markBusySkipped('wifi');
+      expect(await m.recall('wifi'), a);
+      expect(await m.failedToday('wifi'), {b});
+    });
+
+    test('is kept by every write that follows', () async {
+      final m = memory();
+      await m.markBusySkipped('wifi');
+      await m.remember('wifi', b);
+      await m.markFailed('wifi', a);
+      await m.forget('wifi', b);
+      await m.markClosed('wifi', [a]);
+      await m.markSwept('wifi', [b]);
+      await m.prefer('wifi', a);
+      await m.rememberShared('wifi', 'lid:x|');
+      expect(await m.busySkippedLately('wifi'), isTrue);
+    });
+
+    test(
+      'one from the future, after the clock went back, does not count',
+      () async {
+        final m = memory();
+        await m.markBusySkipped('wifi');
+        now = now.subtract(const Duration(hours: 2));
+        expect(await m.busySkippedLately('wifi'), isFalse);
+      },
+    );
+  });
+
   test('garbage in storage reads as no memory', () async {
     SharedPreferences.setMockInitialValues({
       PathMemory.storageKey: '{not json',

@@ -361,7 +361,7 @@ class DedicatedState extends ChangeNotifier {
       _quota = saved.quota;
       await _adoptConfigs(saved.configs, saved.paths);
       if (generation != _generation) return;
-      _adoptPaths(saved.paths);
+      _adoptPaths(saved.paths, kept: true);
       _fromSaved = true;
       _watchRefill();
       notifyListeners();
@@ -443,7 +443,10 @@ class DedicatedState extends ChangeNotifier {
     _adoptPaths(paths);
   }
 
-  void _adoptPaths(List<DedicatedPath> paths) {
+  /// [kept] is true for an answer an earlier run kept ([_restoreSaved]).
+  /// Its doors are adopted as not busy ([Server.busy]): which server was
+  /// busy is a reading of that moment, and a kept answer can be a day old.
+  void _adoptPaths(List<DedicatedPath> paths, {bool kept = false}) {
     TlsFragment.doorSpec = _doorSplit(paths);
     DoorOutbounds.adopt({
       for (final p in paths)
@@ -462,6 +465,7 @@ class DedicatedState extends ChangeNotifier {
           doorLabel: paths[i].label,
           serverId: paths[i].serverId,
           penaltyMs: paths[i].penaltyMs,
+          busy: !kept && paths[i].busy,
           index: i,
         ),
     ];

@@ -159,6 +159,15 @@ class DedicatedPath {
   /// backend older than the field.
   final int penaltyMs;
 
+  /// Whether the backend marks this door's server busy: while it spreads
+  /// phones over the servers, that server's panel holds far more than an
+  /// even share of the phones online. A tap whose remembered door is on a
+  /// busy server then starts where the backend's order starts, when that
+  /// is another server (ConnectFlow, [Server.busy]). Only a `true` counts,
+  /// so a door from a backend older than the field, or a malformed value,
+  /// is not busy.
+  final bool busy;
+
   /// The backend's own outbound for this door, when it sent one
   /// ([DoorOutbound]). Null for every door from a backend that sends none,
   /// and the door is then dialled from [uri] alone.
@@ -172,6 +181,7 @@ class DedicatedPath {
     required this.uri,
     this.preferred = false,
     this.penaltyMs = 0,
+    this.busy = false,
     this.outbound,
   });
 
@@ -183,6 +193,7 @@ class DedicatedPath {
     uri: json['uri'] as String? ?? '',
     preferred: json['preferred'] as bool? ?? false,
     penaltyMs: penaltyOf(json['penalty_ms']),
+    busy: json['busy'] == true,
     outbound: DoorOutbound.fromPath(json),
   );
 

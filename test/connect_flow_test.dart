@@ -296,6 +296,114 @@ void main() {
     });
   });
 
+  // The backend marks the doors of a server that holds far more than an
+  // even share of the phones online, and its order starts this phone on
+  // another server. The remembered door would win over that order.
+  group('a remembered door on a busy server', () {
+    final busy1 = hel1.copyWith(busy: true);
+    final busy2 = hel2.copyWith(busy: true);
+    final order = [fsn1, busy1, busy2];
+    const network = 'mobile:Irancell';
+
+    test('is left aside once: the checklist runs over the backend\'s order '
+        'and the door it opens is remembered', () async {
+      await PathMemory().remember(network, busy1.pathKey);
+      final vpn = _FakeVpn({fsn1.pathKey, busy1.pathKey});
+      probeResults = {fsn1.pathKey: 90, busy1.pathKey: 60};
+      final f = flow(vpn);
+
+      await f.connect(order);
+
+      expect(probed.first, fsn1.pathKey);
+      expect(vpn.dialled, [fsn1.pathKey]);
+      expect(f.stage, ConnectStage.done);
+      expect(f.chosen, fsn1);
+      expect(await PathMemory().recall(network), fsn1.pathKey);
+      expect(await PathMemory().busySkippedLately(network), isTrue);
+    });
+
+    test('keeps its place in the order, and is dialled when the other '
+        'server\'s doors are closed', () async {
+      await PathMemory().remember(network, busy1.pathKey);
+      final vpn = _FakeVpn({busy1.pathKey});
+      probeResults = {busy1.pathKey: 60};
+      final f = flow(vpn);
+
+      await f.connect(order);
+
+      expect(probed.take(2), [fsn1.pathKey, busy1.pathKey]);
+      expect(vpn.dialled, [busy1.pathKey]);
+      expect(f.stage, ConnectStage.done);
+      expect(await PathMemory().recall(network), busy1.pathKey);
+    });
+
+    test('is dialled first again for a day after it was left aside', () async {
+      await PathMemory().markBusySkipped(network);
+      await PathMemory().remember(network, busy1.pathKey);
+      final vpn = _FakeVpn({fsn1.pathKey, busy1.pathKey});
+      final f = flow(vpn);
+
+      await f.connect(order);
+
+      expect(probed, isEmpty);
+      expect(vpn.dialled, [busy1.pathKey]);
+      expect(f.stage, ConnectStage.done);
+    });
+
+    test('of a server the user picked is dialled as before', () async {
+      await PathMemory().remember(network, busy1.pathKey);
+      final vpn = _FakeVpn({fsn1.pathKey, busy1.pathKey});
+      final f = flow(vpn);
+
+      await f.connect(order, preferred: busy1);
+
+      expect(probed, isEmpty);
+      expect(vpn.dialled, [busy1.pathKey]);
+      expect(await PathMemory().busySkippedLately(network), isFalse);
+    });
+
+    test(
+      'is dialled as before when the order starts on its own server',
+      () async {
+        await PathMemory().remember(network, busy2.pathKey);
+        final vpn = _FakeVpn({fsn1.pathKey, busy2.pathKey});
+        final f = flow(vpn);
+
+        await f.connect([busy1, busy2, fsn1]);
+
+        expect(probed, isEmpty);
+        expect(vpn.dialled, [busy2.pathKey]);
+        expect(await PathMemory().busySkippedLately(network), isFalse);
+      },
+    );
+
+    test('is dialled as before when the order starts on another busy '
+        'server', () async {
+      final busyFsn = fsn1.copyWith(busy: true);
+      await PathMemory().remember(network, busy1.pathKey);
+      final vpn = _FakeVpn({fsn1.pathKey, busy1.pathKey});
+      final f = flow(vpn);
+
+      await f.connect([busyFsn, busy1, busy2]);
+
+      expect(probed, isEmpty);
+      expect(vpn.dialled, [busy1.pathKey]);
+      expect(await PathMemory().busySkippedLately(network), isFalse);
+    });
+
+    test('a door that is not busy is dialled as before', () async {
+      await PathMemory().remember(network, hel1.pathKey);
+      final vpn = _FakeVpn({fsn1.pathKey, hel1.pathKey});
+      final f = flow(vpn);
+
+      await f.connect([fsn1, hel1, hel2]);
+
+      expect(probed, isEmpty);
+      expect(vpn.dialled, [hel1.pathKey]);
+      expect(await PathMemory().busySkippedLately(network), isFalse);
+    });
+  });
+
   test('no internet: the doors are checked beside the control fetch, and '
       'none is dialled or reported', () async {
     final vpn = _FakeVpn({});

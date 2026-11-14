@@ -39,6 +39,14 @@ class PathMemory {
   /// Failures on one network before a door is skipped for the day.
   static const maxFailsPerDay = 3;
 
+  /// How long after a tap on a network left the remembered door aside
+  /// because its server was busy ([markBusySkipped]) the taps there dial
+  /// the remembered door first again, busy or not. So a phone is moved off
+  /// a busy server at most once a day on each network, and one whose
+  /// checklist ended on the busy server anyway, because the other server's
+  /// doors are closed on that network, keeps its fast path.
+  static const busySkipEvery = Duration(hours: 24);
+
   /// The networks kept. With a key per Wi-Fi network (NetworkKeys) a phone
   /// can meet many; the ones it met least lately go first.
   static const maxNetworks = 40;
@@ -253,6 +261,34 @@ class PathMemory {
     all[network] = entry;
     if (!NetworkKeys.mayKeep(network)) return;
     await _store(all);
+  }
+
+  /// Record that a tap on [network] left the remembered door aside just
+  /// now because its server was busy (ConnectFlow). The door stays
+  /// remembered, with its failures and the doors that carried traffic:
+  /// the tap's checklist still checks it in its place in the backend's
+  /// order, and whatever door carries the tunnel is remembered as always.
+  /// Every other write keeps the record, since each changes only its own
+  /// keys of the network's entry.
+  Future<void> markBusySkipped(String network) async {
+    final all = await _load();
+    final entry = Map<String, dynamic>.from(all[network] ?? const {});
+    entry['busy_skip'] = _now().toUtc().toIso8601String();
+    all[network] = entry;
+    if (!NetworkKeys.mayKeep(network)) return;
+    await _store(all);
+  }
+
+  /// Whether a tap on [network] left the remembered door aside for a busy
+  /// server less than [busySkipEvery] ago ([markBusySkipped]). A record
+  /// from the future, after the phone's clock went back, does not count,
+  /// so it cannot hold the next move off for longer than a day.
+  Future<bool> busySkippedLately(String network) async {
+    final raw = (await _load())[network]?['busy_skip'];
+    final at = DateTime.tryParse(raw?.toString() ?? '');
+    if (at == null) return false;
+    final ago = _now().difference(at);
+    return !ago.isNegative && ago < busySkipEvery;
   }
 
   /// Record that a check on [network] found each of [pathKeys] closed.

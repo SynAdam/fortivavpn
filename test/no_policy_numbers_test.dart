@@ -297,10 +297,12 @@ const allowedCode = <String, ({List<String> hits, String reason})>{
     reason: 'How often the app probes candidate servers in the background.',
   ),
   'lib/services/path_memory.dart': (
-    hits: ['Duration(hours: 24)', 'maxFailsPerDay = 3'],
+    hits: ['Duration(hours: 24)', 'maxFailsPerDay = 3', 'Duration(hours: 24)'],
     reason:
         'How long a remembered door result stays fresh on the phone, '
-        'and how many failures skip it. Connection tuning.',
+        'how many failures skip it, and how long a phone dials its '
+        'remembered door first again after one tap left it aside for a '
+        'busy server. Connection tuning.',
   ),
   'lib/services/session_tracker.dart': (
     hits: ['Duration(days: 7)'],

@@ -216,4 +216,105 @@ void main() {
     expect(state.paths.map((p) => p.door), ['tcp-reality', 'ws-tls']);
     expect(state.paths.map((p) => p.penaltyMs), [0, 1200]);
   });
+
+  // The backend marks the doors of a server that holds far more than an
+  // even share of the phones online. The connect flow then lets the
+  // backend's order decide where a tap starts.
+  test('a path is busy only when the backend says true', () {
+    final parsed = DedicatedConfigs.fromJson({
+      'configs': [uri],
+      'paths': [
+        {'server_id': 7, 'door': 'tcp-reality', 'uri': uri, 'busy': true},
+        {'server_id': 7, 'door': 'ws-tls', 'uri': '$uri-cdn'},
+        {'server_id': 7, 'door': 'grpc-tls', 'uri': '$uri-g', 'busy': 'true'},
+        {'server_id': 7, 'door': 'xhttp-reality', 'uri': '$uri-x', 'busy': 1},
+        {'server_id': 8, 'door': 'tcp-reality', 'uri': '$uri-8', 'busy': false},
+      ],
+      'quota': {},
+    });
+    expect(parsed.paths.map((p) => p.busy), [true, false, false, false, false]);
+  });
+
+  test('a busy door stays busy through copyWith, and is never kept', () {
+    final s = Server.fromDedicatedPath(
+      uri: uri,
+      door: 'tcp-reality',
+      doorLabel: 'Reality',
+      serverId: 7,
+      busy: true,
+    );
+    expect(s.busy, isTrue);
+    expect(s.copyWith(penaltyMs: 300).busy, isTrue);
+    expect(s.copyWith(busy: false).busy, isFalse);
+    expect(s.toJson().containsKey('busy'), isFalse);
+    expect(Server.fromJson(s.toJson()).busy, isFalse);
+    expect(
+      Server.fromDedicatedPath(uri: uri, door: 'ws-tls', doorLabel: 'TLS').busy,
+      isFalse,
+    );
+  });
+
+  test('the doors a refresh adopts carry busy', () async {
+    SharedPreferences.setMockInitialValues({});
+    final state = DedicatedState();
+    await state.adoptForTest(
+      [uri],
+      const [
+        DedicatedPath(
+          serverId: 7,
+          inboundId: 1,
+          door: 'tcp-reality',
+          label: 'Reality',
+          uri: uri,
+          busy: true,
+        ),
+        DedicatedPath(
+          serverId: 8,
+          inboundId: 2,
+          door: 'tcp-reality',
+          label: 'Reality',
+          uri: '$uri-8',
+        ),
+      ],
+    );
+    expect(state.paths.map((p) => p.busy), [true, false]);
+  });
+
+  // Which server was busy is a reading of the moment the answer came, and a
+  // kept answer can be a day old.
+  test(
+    'an answer kept from an earlier run is adopted with no door busy',
+    () async {
+      SharedPreferences.setMockInitialValues({
+        DedicatedState.prefSaved: jsonEncode({
+          'at': DateTime.now().toUtc().toIso8601String(),
+          'body': {
+            'configs': [uri],
+            'paths': [
+              {
+                'server_id': 7,
+                'inbound_id': 1,
+                'door': 'tcp-reality',
+                'label': 'Reality',
+                'uri': uri,
+                'preferred': true,
+                'busy': true,
+              },
+            ],
+            'quota': {
+              'unlimited': false,
+              'limit_bytes': 100,
+              'used_bytes': 10,
+              'remaining_bytes': 90,
+              'blocked': false,
+            },
+          },
+        }),
+      });
+      final state = DedicatedState();
+      await state.restoreSaved();
+      expect(state.paths.map((p) => p.door), ['tcp-reality']);
+      expect(state.paths.single.busy, isFalse);
+    },
+  );
 }

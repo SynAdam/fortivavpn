@@ -104,6 +104,16 @@ class Server {
   /// link that is not one of our doors.
   final int penaltyMs;
 
+  /// Whether the backend marked this door's server busy in the answer the
+  /// door came in ([DedicatedPath.busy]). The connect flow then lets the
+  /// backend's order, not the door remembered for the network, decide
+  /// where a tap starts (ConnectFlow, PathMemory.busySkippedLately).
+  ///
+  /// Never kept: [toJson] leaves it out, and an answer kept from an earlier
+  /// run is adopted with every door not busy (DedicatedState), because it
+  /// says which server was busy then. False for every other link.
+  final bool busy;
+
   /// What the memory and the scoreboard key on: this server through this
   /// door. Two links to the same server through the same door are the same
   /// path even if the credential differs.
@@ -166,6 +176,7 @@ class Server {
     this.doorLabel,
     this.serverId,
     this.penaltyMs = 0,
+    this.busy = false,
   });
 
   Server copyWith({
@@ -184,6 +195,7 @@ class Server {
     String? doorLabel,
     int? serverId,
     int? penaltyMs,
+    bool? busy,
   }) {
     return Server(
       id: id ?? this.id,
@@ -201,6 +213,7 @@ class Server {
       doorLabel: doorLabel ?? this.doorLabel,
       serverId: serverId ?? this.serverId,
       penaltyMs: penaltyMs ?? this.penaltyMs,
+      busy: busy ?? this.busy,
     );
   }
 
@@ -352,6 +365,7 @@ class Server {
     required String doorLabel,
     int? serverId,
     int penaltyMs = 0,
+    bool busy = false,
     int index = 0,
   }) {
     return Server.fromDedicatedUri(uri, index: index).copyWith(
@@ -359,6 +373,7 @@ class Server {
       doorLabel: doorLabel,
       serverId: serverId,
       penaltyMs: penaltyMs,
+      busy: busy,
     );
   }
 
