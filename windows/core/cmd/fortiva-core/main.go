@@ -116,6 +116,7 @@ func serve(ctx context.Context, logs *engine.LogSink, assets string) error {
 		Capture: runtime.GOOS == "windows",
 		Resolve: resolve,
 		Binder:  binder,
+		Guard:   engine.SystemGuard(),
 		Logs:    logs,
 	})
 

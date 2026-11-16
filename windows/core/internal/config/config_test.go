@@ -161,6 +161,9 @@ func TestSingleDoor(t *testing.T) {
 	if rules[0].Port != "53" || !reflect.DeepEqual(rules[0].IP, []string{DefaultDNS}) || rules[0].OutboundTag != "proxy" {
 		t.Errorf("first rule should send lookups through the tunnel: %+v", rules[0])
 	}
+	if want := []string{"10.10.14.0/30", "224.0.0.0/4", "255.255.255.255/32"}; !reflect.DeepEqual(rules[1].IP, want) || rules[1].OutboundTag != "block" {
+		t.Errorf("second rule should refuse the adapter's own network, want %v: %+v", want, rules[1])
+	}
 	if last := rules[len(rules)-1]; !reflect.DeepEqual(last.IP, []string{"::/0"}) || last.OutboundTag != "block" {
 		t.Errorf("last rule should refuse IPv6: %+v", last)
 	}
@@ -368,5 +371,38 @@ func TestARouterWithoutIPv6GetsAnInterfaceWithoutIPv6(t *testing.T) {
 	// The router's own adapter, and Windows', keep IPv6.
 	if len(RouterAdapter.Address) != 2 || len(RouterAdapter.Routes) != 4 || len(Adapter.Routes) != 4 {
 		t.Fatalf("WithoutIPv6 changed the adapter it was called on: %+v %+v", RouterAdapter, Adapter)
+	}
+}
+
+// A door without TLS and without a host of its own sends its name as the HTTP
+// Host, as the core does when it dials the name. The tunnel dials the looked-up
+// address, so without this a CDN in front of the door would get an address.
+func TestAPlainHTTPDoorKeepsItsNameAsTheHost(t *testing.T) {
+	resolve := fakeResolver(map[string][]string{"cdn.example.net": {"198.51.100.30"}})
+	for _, tc := range []struct {
+		link, want string
+	}{
+		{"vless://11111111-2222-3333-4444-555555555555@cdn.example.net:80?type=ws&security=none&path=%2Fws#plain", "cdn.example.net"},
+		{"vless://11111111-2222-3333-4444-555555555555@cdn.example.net:80?type=ws&security=none&host=front.example.org&path=%2Fws#own", "front.example.org"},
+		// With TLS the core takes the Host from the server name, as before.
+		{"vless://11111111-2222-3333-4444-555555555555@cdn.example.net:443?type=ws&security=tls&sni=front.example.org&path=%2Fws#tls", ""},
+	} {
+		built, err := Build(context.Background(), Request{Link: tc.link}, resolve)
+		if err != nil {
+			t.Fatal(err)
+		}
+		loadStrict(t, built.Config)
+		var out xray.Outbound
+		for _, o := range built.Config.Outbounds {
+			if o.Tag == ProxyTag {
+				out = o
+			}
+		}
+		if got := out.Settings.(xray.VLESSSettings).Vnext[0].Address; got != "198.51.100.30" {
+			t.Errorf("%s: dials %s, want the looked-up address", tc.link, got)
+		}
+		if got := out.StreamSettings.WSSettings.Headers["Host"]; got != tc.want {
+			t.Errorf("%s: Host %q, want %q", tc.link, got, tc.want)
+		}
 	}
 }

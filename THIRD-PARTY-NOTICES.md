@@ -282,6 +282,21 @@ The installer puts the same `geoip.dat` and `geosite.dat` as the Android
 build next to the service. See "Routing data" under Android for their
 source and licence.
 
+## WireGuard for Windows: MIT
+
+The Windows Filtering Platform types and calls in
+`windows/core/internal/firewall` (`types_windows*.go`, `syscall_windows.go`,
+`zsyscall_windows.go`, `mksyscall.go` and `session_windows.go`) come from the
+`tunnel/firewall` package of WireGuard for Windows, with small changes listed
+in that package's `doc.go`. Each of those files keeps its licence header.
+`fortiva-core.exe` also links the module's `winipcfg` package.
+
+- Upstream: https://git.zx2c4.com/wireguard-windows
+- Version: golang.zx2c4.com/wireguard/windows v1.0.1, pinned in
+  `windows/core/go.mod`
+- Copyright (C) 2019-2026 WireGuard LLC
+- Licence: MIT
+
 ## Wintun
 
 The driver of the TUN adapter, by WireGuard LLC, shipped unmodified next to

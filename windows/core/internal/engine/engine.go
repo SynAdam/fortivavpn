@@ -76,6 +76,12 @@ type Binder interface {
 	Network() string
 }
 
+// Guard puts the system's own rules around a capturing tunnel once its
+// adapter is up, and returns what takes them away. On Windows these are the
+// filters of internal/firewall (SystemGuard). A tunnel whose guard fails
+// still runs, without them, and the log says so.
+type Guard func(adapter config.AdapterSpec) (release func(), err error)
+
 // Options configure an Engine.
 type Options struct {
 	// Capture adds the TUN inbound once a door works. Without it the tunnel
@@ -85,7 +91,9 @@ type Options struct {
 	Resolve config.Resolver
 	// Binder is nil where nothing needs binding.
 	Binder Binder
-	Logs   *LogSink
+	// Guard is nil where the tunnel needs no rules of the system's.
+	Guard Guard
+	Logs  *LogSink
 	// VerifyURLs are fetched through the doors, in order, until one answers.
 	VerifyURLs []string
 	// VerifyTimeout bounds each of them. The app gives a whole connect 20
@@ -108,6 +116,10 @@ type Engine struct {
 	changed chan struct{}
 	inst    *core.Instance
 	doors   []string
+	// release takes away what the Guard put around inst.
+	release func()
+	// done closes when the latest attempt's goroutine has finished.
+	done    chan struct{}
 	attempt uint64
 	cancel  context.CancelFunc
 }
@@ -205,8 +217,10 @@ func (e *Engine) Connect(req config.Request) (Status, error) {
 	if e.cancel != nil {
 		e.cancel()
 	}
-	old := e.inst
-	e.inst, e.doors = nil, nil
+	old, oldRelease := e.inst, e.release
+	e.inst, e.doors, e.release = nil, nil, nil
+	prev, done := e.done, make(chan struct{})
+	e.done = done
 	e.attempt++
 	id := e.attempt
 	ctx, cancel := context.WithCancel(context.Background())
@@ -216,10 +230,18 @@ func (e *Engine) Connect(req config.Request) (Status, error) {
 	e.mu.Unlock()
 
 	go func() {
-		// The old tunnel goes first: its adapter holds the routes and its
-		// name, and the new one is created with the same name.
+		defer close(done)
+		// An attempt still starting goes first, then the old tunnel: both
+		// may hold the adapter's name, and the new one is created with the
+		// same name. A cancelled attempt ends within its current step.
+		if prev != nil {
+			<-prev
+		}
 		if old != nil {
 			_ = old.Close()
+		}
+		if oldRelease != nil {
+			oldRelease()
 		}
 		e.run(ctx, id, req)
 	}()
@@ -235,8 +257,9 @@ func (e *Engine) run(ctx context.Context, id uint64, req config.Request) {
 		}
 	}
 
+	adapter := e.adapter()
 	resolveCtx, cancel := context.WithTimeout(ctx, 8*time.Second)
-	built, err := config.BuildWith(resolveCtx, req, e.opts.Resolve, e.adapter())
+	built, err := config.BuildWith(resolveCtx, req, e.opts.Resolve, adapter)
 	cancel()
 	if err != nil {
 		fail(ReasonConfig, err)
@@ -252,7 +275,7 @@ func (e *Engine) run(ctx context.Context, id uint64, req config.Request) {
 		// the group, so a bad standby door cannot keep the user offline.
 		e.opts.Logs.Printf("[engine] door group refused, trying the chosen door alone: %v", err)
 		single := config.Request{Link: req.Link, DNS: req.DNS}
-		if built, err = config.BuildWith(ctx, single, e.opts.Resolve, e.adapter()); err == nil {
+		if built, err = config.BuildWith(ctx, single, e.opts.Resolve, adapter); err == nil {
 			inst, err = startInstance(built.Config)
 		}
 	}
@@ -269,11 +292,24 @@ func (e *Engine) run(ctx context.Context, id uint64, req config.Request) {
 	}
 	e.opts.Logs.Printf("[engine] doors answered in %v", took.Round(time.Millisecond))
 
+	var release func()
 	if e.opts.Capture {
+		if ctx.Err() != nil {
+			// Replaced or disconnected while the doors were checked: no
+			// adapter for an attempt nobody waits for.
+			_ = inst.Close()
+			return
+		}
 		if err := addInbound(inst, built.Tun); err != nil {
 			_ = inst.Close()
 			fail(ReasonAdapter, err)
 			return
+		}
+		if e.opts.Guard != nil {
+			if release, err = e.opts.Guard(adapter); err != nil {
+				release = nil
+				e.opts.Logs.Printf("[engine] the tunnel runs without its filters: %v", err)
+			}
 		}
 	}
 
@@ -282,9 +318,12 @@ func (e *Engine) run(ctx context.Context, id uint64, req config.Request) {
 	if e.attempt != id {
 		// Disconnected or replaced while starting.
 		_ = inst.Close()
+		if release != nil {
+			release()
+		}
 		return
 	}
-	e.inst, e.doors = inst, built.Doors
+	e.inst, e.doors, e.release = inst, built.Doors, release
 	e.setLocked(Connected, "", "")
 }
 
@@ -307,16 +346,21 @@ func (e *Engine) stop(reason string) Status {
 		e.cancel = nil
 	}
 	e.attempt++
-	inst := e.inst
+	inst, release := e.inst, e.release
 	wasUp := inst != nil
-	e.inst, e.doors = nil, nil
+	e.inst, e.doors, e.release = nil, nil, nil
 	if inst != nil {
 		e.setLocked(Disconnecting, "", "")
 	}
 	e.mu.Unlock()
 
+	// The filters go after the adapter, so nothing is sent around the
+	// tunnel while it is still there.
 	if inst != nil {
 		_ = inst.Close()
+	}
+	if release != nil {
+		release()
 	}
 
 	e.mu.Lock()

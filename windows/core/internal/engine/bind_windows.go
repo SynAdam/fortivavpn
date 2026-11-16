@@ -99,6 +99,19 @@ func (b *WindowsBinder) refresh() {
 	}
 
 	b.mu.Lock()
+	// While a tunnel is up, a network that is gone for a moment (Wi-Fi
+	// roaming, a cable out, a PC waking up) leaves the last interface in
+	// place rather than none. A socket bound to an interface that is down
+	// fails; an unbound one follows the tunnel's routes back into the
+	// tunnel, and the core then carries its own traffic round and round.
+	if b.active {
+		if index4 == 0 {
+			index4, network = b.index4, b.network
+		}
+		if index6 == 0 {
+			index6 = b.index6
+		}
+	}
 	changed := index4 != b.index4 || index6 != b.index6
 	b.index4, b.index6, b.network = index4, index6, network
 	notify := changed && b.active && b.onChange != nil
@@ -187,10 +200,20 @@ func (b *WindowsBinder) Control(network, address string, c syscall.RawConn) erro
 			binary.BigEndian.PutUint32(be[:], index4)
 			sockErr = windows.SetsockoptInt(windows.Handle(fd), windows.IPPROTO_IP, ipUnicastIf, int(*(*uint32)(unsafe.Pointer(&be[0]))))
 		case "tcp6", "udp6":
-			if index6 == 0 {
-				return
+			if index6 != 0 {
+				sockErr = windows.SetsockoptInt(windows.Handle(fd), windows.IPPROTO_IPV6, ipv6UnicastIf, int(index6))
 			}
-			sockErr = windows.SetsockoptInt(windows.Handle(fd), windows.IPPROTO_IPV6, ipv6UnicastIf, int(index6))
+			// An IPv6 socket is also an IPv4 one unless it is IPv6 only, and
+			// its IPv4 traffic follows IP_UNICAST_IF. The core's UDP dials
+			// are such sockets: Go opens "udp" on 0.0.0.0 as IPv6 and calls
+			// it "udp6" here. Unbound, their IPv4 went into the tunnel and
+			// came back to the core, round and round. An IPv6-only socket
+			// refuses the option, which is then not needed.
+			if index4 != 0 && sockErr == nil {
+				var be [4]byte
+				binary.BigEndian.PutUint32(be[:], index4)
+				_ = windows.SetsockoptInt(windows.Handle(fd), windows.IPPROTO_IP, ipUnicastIf, int(*(*uint32)(unsafe.Pointer(&be[0]))))
+			}
 		}
 	})
 	if err != nil {

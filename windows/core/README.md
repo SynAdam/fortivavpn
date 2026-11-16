@@ -44,8 +44,13 @@ lookups sent through the tunnel. The differences:
   and the system blocks IPv6 for tunnelled apps. Windows does neither, so a
   PC with native IPv6 would send it around the tunnel. The adapter gets a
   unique local IPv6 address, which also makes Windows prefer IPv4 while the
-  tunnel is up, and anything that still arrives over IPv6 is refused at once
-  so the app falls back instead of waiting.
+  tunnel is up, and a filter refuses IPv6 into the tunnel when a program
+  connects (see "Filters" below), so the program tries IPv4 at once.
+- **Lookups go only through the tunnel.** Android's system sends every
+  lookup to the VPN's resolver. Windows asks the resolvers of every network
+  at the same time and takes the first answer, which is usually the
+  physical network's own, so a filter refuses lookups anywhere but the
+  tunnel.
 - **Nothing depends on the core's process-wide tables.** Every Xray instance
   overwrites two of them when it starts: the resolver dialers use for a host
   name, and the outbounds a `dialerProxy` is looked up in. Android runs its
@@ -69,6 +74,22 @@ lookups sent through the tunnel. The differences:
 - **One log sink for the whole process.** Instances are started without Xray's
   log module, because each one would otherwise install itself as the process's
   only log handler and a door check would take the tunnel's log down with it.
+
+## Filters
+
+Once the adapter is up, the engine's `Guard` ([`internal/engine/guard_windows.go`](internal/engine/guard_windows.go))
+puts Windows Filtering Platform filters on it ([`internal/firewall`](internal/firewall)):
+
+| Filter | Why |
+|---|---|
+| IPv6 into the tunnel is refused when a program connects | The TUN inbound finishes a TCP handshake before the connection is routed. IPv6 then reached the `block` outbound, which wrote a plain-text 403 where the TLS reply should be: the browser saw a connection that worked and a broken page, with nothing to make it try IPv4. That is how Google, Yahoo and Bing failed to open for a user in 2.3.0. |
+| Port 53, UDP and TCP, is refused except through the tunnel and to the PC itself | Windows sends each lookup to every network's resolvers and takes the first answer. On an Iranian network that answer forces SafeSearch on Google and Bing, gives a filtered name the filter's address (IPv6 included, which the sinkhole patch does not cover) and tells the network every name. |
+
+Nothing else is filtered: the local network, printers and the router's page
+stay reachable. The filters are in a dynamic WFP session of their own, so
+Windows removes them when the tunnel closes, when a new connect replaces
+it, and when the process ends, a crash included. A tunnel whose filters
+cannot be added still runs without them, and the log says so.
 
 ## The pipe
 
@@ -142,6 +163,16 @@ curl.exe https://ifconfig.me      # the server's address, not the PC's
 .\fortiva-core.exe uninstall      # without the installer; with it, uninstall Fortiva VPN in Settings
 ```
 
+`internal/engine/e2e_windows_test.go` does most of that on its own: it runs
+the tunnel through a door in the test process, then checks curl and a
+headless Chrome on Google, Bing and Yahoo, that IPv6 is refused at once, that
+lookups go only through the tunnel, and that a disconnect takes everything
+back. It changes the PC's routes, so it runs only with
+`FORTIVA_WINDOWS_E2E=1`, as an administrator. The `windows-e2e.yml`
+workflow runs it on a hosted Windows runner for one commit, given as its
+full SHA. Run it before merging a change to how the Windows tunnel
+connects.
+
 What to look at the first time: that the adapter and its four routes appear
 on connect and are gone after disconnect (and after the process is killed),
 that sites work with Wi-Fi and with Ethernet, that switching between the two
@@ -165,13 +196,24 @@ to `internal/config` or `internal/engine` reaches both platforms, so run
 
 ## Not done yet
 
-- DNS leak protection. Windows may also ask the physical network's resolvers
-  (smart multi-homed name resolution). The tunnel still works, because the
-  sinkhole patch dials a filtered name's answer by its sniffed name, but the
-  question leaks. WireGuard's WFP rules (`wireguard/windows/tunnel/firewall`)
-  block DNS everywhere but the tunnel; they also block the LAN, so they need
-  adapting rather than reusing.
 - Checking that the client of the pipe is the installed app, and that the
-  server of the pipe is the service (pipe-name squatting).
+  server of the pipe is the service (pipe-name squatting). The pipe is open
+  to every signed-in user, and its `logs` and `diagnostics` hold the core's
+  Info lines.
 - An adapter left behind by a crash is reused on the next connect, by name;
   confirm that on the VM.
+- The connect arguments Android takes and the service does not:
+  `doorOutbounds`, the move-back of our own doors behind a community link,
+  `take_slot` and the session fields (`lib/services/vpn_service.dart`,
+  `connect`).
+- A network change re-measures a group of doors only. A single door keeps
+  its connections pinned to the old interface until they time out.
+- The app's reach checks while the tunnel looks stalled run inside the
+  tunnel on Windows, so a dead door reads as "offline". They need a pipe call
+  that runs them on the physical network, as `realPingDetail` does.
+- Each lookup is a UDP session of its own through the door, held for the
+  core's idle time. Android asks the core's resolver instead.
+- Closing the window leaves the tunnel up, with no tray icon, and a second
+  copy of the app can start.
+- The service's stop closes the pipe before the tunnel reports `killed`, so
+  the app files a stop as a plain disconnect.

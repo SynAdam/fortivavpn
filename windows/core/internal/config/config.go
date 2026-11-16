@@ -272,7 +272,7 @@ func BuildWith(ctx context.Context, req Request, resolve Resolver, adapter Adapt
 		// section holds the door hosts and a "domestic" resolver that is the
 		// same address, asked through the tunnel too.
 		Outbounds: outbounds,
-		Routing:   routing(dns),
+		Routing:   routing(dns, adapter),
 	}
 
 	empty := ""
@@ -386,14 +386,21 @@ func dnsServers(requested []string) ([]string, error) {
 }
 
 // routing is Android's rules with its default "white_iran" preset, in its
-// order, and one rule of our own at the end.
-func routing(dns []string) *xray.Routing {
+// order, and two rules of our own: what is sent to the adapter's own network
+// is refused, and so is IPv6, at the end.
+func routing(dns []string, adapter AdapterSpec) *xray.Routing {
 	return &xray.Routing{
 		DomainStrategy: "AsIs",
 		Rules: []xray.Rule{
 			// Windows sends every lookup to the adapter's resolvers, and
 			// those go through the tunnel.
 			{Type: "field", IP: dns, Port: "53", OutboundTag: ProxyTag},
+			// The system's own chatter on the adapter: NetBIOS to its
+			// broadcast address, multicast discovery. As "private" it would
+			// go direct, and a packet sent direct to the adapter's network
+			// comes back into the tunnel: on Windows that loop used up every
+			// socket buffer within seconds and stopped all traffic on the PC.
+			{Type: "field", IP: ownNetwork(adapter), OutboundTag: BlockTag},
 			// QUIC is refused, so browsers fall back to TCP, which the
 			// sniffer can read and the doors carry well.
 			{Type: "field", Network: "udp", Port: "443", OutboundTag: BlockTag},
@@ -411,6 +418,18 @@ func routing(dns []string) *xray.Routing {
 			{Type: "field", IP: []string{"::/0"}, OutboundTag: BlockTag},
 		},
 	}
+}
+
+// ownNetwork is the adapter's own IPv4 networks, multicast and the limited
+// broadcast: addresses nothing on the internet has.
+func ownNetwork(adapter AdapterSpec) []string {
+	var out []string
+	for _, s := range adapter.Address {
+		if p, err := netip.ParsePrefix(s); err == nil && p.Addr().Is4() {
+			out = append(out, p.Masked().String())
+		}
+	}
+	return append(out, "224.0.0.0/4", "255.255.255.255/32")
 }
 
 // Ping is the configuration a door check runs: the door alone, tagged

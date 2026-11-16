@@ -37,6 +37,17 @@ func httpHeaderRequest(paths, hosts []string) *xray.TCPRequest {
 func (l *Link) Outbound(tag string) (*xray.Outbound, error) {
 	stream := &xray.StreamSettings{}
 	host, path := l.params["host"], l.params["path"]
+	// The HTTP Host of a ws, httpupgrade or xhttp door without TLS and
+	// without a host of its own is the address it dials, which for a door
+	// with a name is that name. The tunnel dials the door's looked-up
+	// address instead (config.door), so the name is written in here, or a
+	// CDN in front of the door would get an address for a Host.
+	plainHost := host
+	if plainHost == "" && isDomainName(l.Address) {
+		if security := l.params["security"]; security == "" || security == "none" {
+			plainHost = l.Address
+		}
+	}
 
 	network := l.params["type"]
 	if network == "" {
@@ -74,14 +85,14 @@ func (l *Link) Outbound(tag string) (*xray.Outbound, error) {
 	case "ws", "websocket":
 		stream.Network = "ws"
 		ws := &xray.WSSettings{Path: orSlash(path)}
-		if host != "" {
-			ws.Headers = map[string]string{"Host": host}
+		if plainHost != "" {
+			ws.Headers = map[string]string{"Host": plainHost}
 		}
 		stream.WSSettings = ws
 		sniExt = host
 	case "httpupgrade":
 		stream.Network = "httpupgrade"
-		stream.HTTPUpgradeSettings = &xray.HTTPUpgradeSettings{Path: orSlash(path), Host: host}
+		stream.HTTPUpgradeSettings = &xray.HTTPUpgradeSettings{Path: orSlash(path), Host: plainHost}
 		sniExt = host
 	case "xhttp", "splithttp":
 		stream.Network = "xhttp"
@@ -91,7 +102,7 @@ func (l *Link) Outbound(tag string) (*xray.Outbound, error) {
 		}
 		stream.XHTTPSettings = &xray.XHTTPSettings{
 			Path:  orSlash(path),
-			Host:  host,
+			Host:  plainHost,
 			Mode:  l.params["mode"],
 			Extra: extra,
 		}

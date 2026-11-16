@@ -27,6 +27,11 @@ import (
 )
 
 func TestMain(m *testing.M) {
+	// A test built for another PC, as the Windows e2e workflow builds them,
+	// is told where the routing data is.
+	if dir := os.Getenv("XRAY_LOCATION_ASSET"); dir != "" {
+		os.Exit(m.Run())
+	}
 	assets, err := filepath.Abs("../../.assets")
 	if err != nil {
 		panic(err)
