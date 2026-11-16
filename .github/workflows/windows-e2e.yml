@@ -100,7 +100,8 @@ jobs:
           $failed = 0
           foreach ($test in Get-ChildItem *.test.exe | Sort-Object Name) {
             "== $($test.Name)"
-            & $test.FullName -test.v -test.timeout 12m
+            # Quoted: PowerShell splits -test.v at the dot for a program.
+            & $test.FullName '-test.v' '-test.timeout=12m'
             if ($LASTEXITCODE -ne 0) { $failed++ }
           }
           if ($failed) { exit 1 }
