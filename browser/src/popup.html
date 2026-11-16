@@ -9,50 +9,108 @@
 <body>
   <main>
     <header>
-      <img src="icons/on-32.png" width="28" height="28" alt="">
-      <span class="brand">Fortiva VPN</span>
+      <span class="brand">Fortiva <span>VPN</span></span>
+      <!-- The language sits in the header, as in the app: someone who opens
+           the popup in a language they cannot read fixes it from here. The
+           select covers the button, so the browser's own list opens. -->
+      <label class="lang">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M3 12h18M12 3c2.5 2.7 3.8 5.7 3.8 9s-1.3 6.3-3.8 9c-2.5-2.7-3.8-5.7-3.8-9S9.5 5.7 12 3z"/></svg>
+        <span id="languageName"></span>
+        <svg class="down" viewBox="0 0 24 24" aria-hidden="true"><path d="m7 10 5 5 5-5"/></svg>
+        <select id="languageSelect"></select>
+      </label>
     </header>
 
     <section class="hero">
-      <button id="power" class="power" type="button" aria-describedby="status">
-        <svg viewBox="0 0 24 24" width="40" height="40" aria-hidden="true">
-          <path d="M12 3v8" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"/>
-          <path d="M6.3 6.8a8 8 0 1 0 11.4 0" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"/>
-        </svg>
+      <!-- The app's shield (lib/widgets/power_button.dart), drawn from the
+           same pictures: the helmet's eyes show the connection. -->
+      <button id="power" class="power" type="button" data-state="off" data-face="off" aria-describedby="status message">
+        <span class="art" aria-hidden="true">
+          <span class="halo"></span>
+          <span class="ripple"><span></span></span>
+          <span class="body">
+            <img class="shield" src="hero/shield.webp" alt="" draggable="false">
+            <span class="glow"></span>
+            <span class="eyes"></span>
+            <span class="sweep glow-sweep"><i></i></span>
+            <span class="sweep eyes-sweep"><i></i></span>
+            <span class="flash glow-flash"></span>
+            <span class="flash eyes-flash"></span>
+          </span>
+        </span>
       </button>
       <p id="status" class="status" role="status" aria-live="polite"></p>
-      <p id="location" class="muted"></p>
+      <p id="location" class="where" hidden></p>
       <p id="message" class="message" hidden></p>
     </section>
 
-    <label class="language place" id="locationRow" hidden>
-      <span id="locationLabel"></span>
-      <select id="locationSelect"></select>
-    </label>
+    <button id="placeRow" class="row" type="button" aria-haspopup="dialog" hidden>
+      <span class="icon" id="placeIcon"></span>
+      <span class="label" id="placeLabel"></span>
+      <span class="value" id="placeValue"></span>
+      <svg class="chev" viewBox="0 0 24 24" aria-hidden="true"><path d="m9 6 6 6-6 6"/></svg>
+    </button>
 
-    <section class="card" id="quota" hidden>
-      <p id="quotaLine"></p>
+    <section class="card quota" id="quota" hidden>
+      <div class="line">
+        <span id="quotaLine"></span>
+        <span id="quotaReset" class="muted"></span>
+      </div>
       <div class="bar" id="bar" hidden><div id="barFill"></div></div>
-      <p id="quotaReset" class="muted"></p>
     </section>
 
+    <button id="codeRow" class="row" type="button" aria-haspopup="dialog">
+      <span class="icon">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="8" cy="12" r="4"/><path d="M12 12h9M18 12v3M21 12v2"/></svg>
+      </span>
+      <span class="label"><b id="codeRowTitle"></b><small id="codeRowSub"></small></span>
+      <svg class="chev" viewBox="0 0 24 24" aria-hidden="true"><path d="m9 6 6 6-6 6"/></svg>
+    </button>
+
+    <!-- In Chrome the note opens the browser's page for this extension, where
+         private windows are allowed; Firefox lets no extension open it. -->
+    <button id="private" class="notice" type="button" hidden>
+      <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 3l18 18"/><path d="M10.6 5.1Q11.3 5 12 5c5 0 9 4.5 10 7-.4 1-1.2 2.3-2.3 3.5M6.6 6.6C4.6 8 3.3 10 2 12c1 2.5 5 7 10 7 1.6 0 3.1-.4 4.4-1.1"/><path d="M9.9 9.9a3 3 0 0 0 4.2 4.2"/></svg>
+      <span><span id="privateText"></span><svg class="out" viewBox="0 0 24 24" aria-hidden="true"><path d="M14 4h6v6"/><path d="M20 4l-9 9"/><path d="M18 14v5a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1V7a1 1 0 0 1 1-1h5"/></svg></span>
+    </button>
+
     <p id="note" class="note"></p>
-    <p id="private" class="note private" hidden></p>
-
-    <details id="codeBox" class="card">
-      <summary id="codeTitle"></summary>
-      <form id="codeForm" autocomplete="off">
-        <input id="code" type="text" spellcheck="false" autocapitalize="characters" maxlength="64">
-        <button id="codeApply" type="submit"></button>
-      </form>
-      <p id="codeResult" class="muted" hidden></p>
-    </details>
-
-    <label class="language">
-      <span id="languageLabel"></span>
-      <select id="languageSelect"></select>
-    </label>
   </main>
+
+  <div id="toast" class="toast" role="status" aria-live="polite" hidden></div>
+
+  <!-- Choose a location: Automatic and each location the backend offers. -->
+  <dialog id="placeSheet" class="sheet" aria-labelledby="placeTitle">
+    <div class="inner">
+      <div class="head">
+        <h2 id="placeTitle"></h2>
+        <button class="x" type="button" data-close>
+          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 6l12 12M18 6 6 18"/></svg>
+        </button>
+      </div>
+      <div id="placeList" class="places"></div>
+    </div>
+  </dialog>
+
+  <!-- Enter a code: a Premium key or a gift code, as the app's dialog. -->
+  <dialog id="codeSheet" class="sheet" aria-labelledby="codeTitle">
+    <form id="codeForm" class="inner" autocomplete="off" novalidate>
+      <div class="head">
+        <h2 id="codeTitle"></h2>
+        <button class="x" type="button" data-close>
+          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 6l12 12M18 6 6 18"/></svg>
+        </button>
+      </div>
+      <p id="codeSubtitle" class="muted"></p>
+      <input id="code" type="text" dir="ltr" spellcheck="false" autocapitalize="characters" autocomplete="off" maxlength="40" aria-describedby="codeResult">
+      <p id="codeResult" class="result" hidden></p>
+      <div class="actions">
+        <button id="codeCancel" class="btn quiet" type="button" data-close></button>
+        <button id="codeApply" class="btn primary" type="submit" disabled></button>
+      </div>
+    </form>
+  </dialog>
+
   <script type="module" src="popup.js"></script>
 </body>
 </html>

@@ -124,12 +124,22 @@ export function outOfData(quota) {
 export class Controller {
   // env: {store: {get(keys), set(obj)}, proxy: {full(proxies),
   // probe(proxy), clear(), controlledByOther()}, api: Api,
-  // health(): Promise<boolean>, info: {version, model, os, language(),
+  // health(signal): Promise<boolean> (false once signal aborts),
+  // info: {version, model, os, language(),
   // shareTechnical(): Promise<boolean>}, now(): ms}
   constructor(env) {
     this.env = env;
     this.now = env.now || Date.now;
     this.busy = null;
+    // Aborted when the person turns it off. A connect or a recovery under
+    // way sees it between its steps and ends, and the check it is waiting
+    // for is cut short (health's signal), so a stop lands in a moment, not
+    // after every proxy's check. disconnect makes a new one once it runs.
+    this.stop = new AbortController();
+  }
+
+  get stopping() {
+    return this.stop.signal.aborted;
   }
 
   // One change at a time: a click and an alarm can arrive together.
@@ -201,8 +211,9 @@ export class Controller {
     const failed = [];
     const { ordered, chosenLocation } = await this.env.store.get(['ordered', 'chosenLocation']);
     for (const p of arrange(proxies, { id, ordered: ordered === true, chosen: chosenLocation || '' })) {
+      if (this.stopping) break;
       await this.useRoute({ mode: 'probe', proxies: [p] });
-      (await this.env.health() ? passed : failed).push(p);
+      (await this.env.health(this.stop.signal) ? passed : failed).push(p);
     }
     return { passed, failed };
   }
@@ -210,9 +221,10 @@ export class Controller {
   // switchTo checks each of candidates and turns on the full rules with
   // the ones that passed first and the others after them. It reports
   // whether any passed; when none did, the last check's rules are left on.
+  // After a stop it turns nothing on: the stop clears the rules next.
   async switchTo(id, candidates) {
     const { passed, failed } = await this.rank(id, candidates);
-    if (!passed.length) return false;
+    if (!passed.length || this.stopping) return false;
     await this.useRoute({ mode: 'full', proxies: [...passed, ...failed] });
     await this.env.store.set({ status: Status.ON, error: '', misses: 0 });
     return true;
@@ -231,6 +243,9 @@ export class Controller {
     await this.useRoute(OFF_ROUTE);
     const id = await this.deviceId();
     await this.register(id);
+    // A stop asked meanwhile: the disconnect waiting behind this connect
+    // turns everything off.
+    if (this.stopping) return this.snapshot();
 
     let cfg = null;
     let proxies;
@@ -249,9 +264,11 @@ export class Controller {
         return this.snapshot();
       }
     }
+    if (this.stopping) return this.snapshot();
     if (!proxies.length) return this.noProxies(cfg.quota);
 
     if (!(await this.switchTo(id, proxies))) {
+      if (this.stopping) return this.snapshot();
       await this.useRoute(OFF_ROUTE);
       await this.env.store.set({ status: Status.FAILED, error: cfg ? 'unreachable' : 'network' });
       return this.snapshot();
@@ -277,8 +294,12 @@ export class Controller {
     return this.snapshot();
   }
 
+  // disconnect turns it off. It is asked at once, also while a connect or a
+  // check runs (stop), and runs right after that ends.
   disconnect() {
+    this.stop.abort();
     return this.serial(async () => {
+      this.stop = new AbortController();
       await this.useRoute(OFF_ROUTE);
       await this.env.store.set({ wanted: false, status: Status.OFF, error: '', misses: 0 });
       return this.snapshot();
@@ -378,6 +399,7 @@ export class Controller {
       // Out of reach: the proxies in use are all there is to check.
     }
     if (await this.switchTo(s.deviceId, candidates)) return;
+    if (this.stopping) return;
     const misses = (s.misses || 0) + 1;
     if (!reached && misses < MISSES && used.length) {
       // Neither the backend nor a proxy answers, so the network itself may
@@ -423,6 +445,7 @@ export class Controller {
     // None of the proxies in use is left: the new ones are checked first.
     await this.env.store.set({ status: Status.CONNECTING, lastTryAt: this.now() });
     if (!(await this.switchTo(id, fresh))) {
+      if (this.stopping) return false;
       await this.useRoute({ mode: 'full', proxies: used.length ? used : fresh });
       await this.env.store.set({ status: Status.ON });
     }
@@ -453,14 +476,25 @@ export class Controller {
     return cfg;
   }
 
-  // The quota for the popup, fresh from the backend when it can be had.
+  // The allowance and the locations for the popup, fresh from the backend
+  // when they can be had. The popup asks each time it opens. On a new
+  // install that is before any connect: this makes the device id and
+  // registers the browser, so the popup shows the allowance and the
+  // locations from the first time it opens, as the app's first screen does.
+  // Until 2026-11-16 it waited for the first connect, and the popup showed
+  // neither.
   refreshQuota() {
     return this.serial(async () => {
       const s = await this.read();
-      if (!s.deviceId || s.status === Status.CONNECTING) return this.snapshot();
+      if (s.status === Status.CONNECTING) return this.snapshot();
+      const id = await this.deviceId();
       try {
-        if (s.status === Status.ON) await this.refreshWhileOn(s.deviceId);
-        else await this.fetchConfigs(s.deviceId);
+        if (s.status === Status.ON) {
+          await this.refreshWhileOn(id);
+        } else {
+          await this.register(id);
+          await this.fetchConfigs(id);
+        }
       } catch {
         // The popup shows what it had.
       }

@@ -201,7 +201,7 @@ async function statusIs(want, timeout) {
 }
 
 const popup = await context.newPage();
-await popup.setViewportSize({ width: 340, height: 600 });
+await popup.setViewportSize({ width: 360, height: 600 });
 // The refresh the popup sends when it opens is slow, as from Iran, so the
 // click below waits behind it.
 backend.delay = 2500;
@@ -228,7 +228,9 @@ await popup.click('#power');
 // The connect waits behind the refresh; the popup keeps showing it.
 await new Promise((r) => setTimeout(r, 1500));
 if ((await text('#status')) !== 'Connecting') fail(`while a connect waited its turn, the popup said ${await text('#status')}`);
-if (!(await popup.isDisabled('#power'))) fail('while a connect waited its turn, the button could be pressed again');
+// As in the app, a click while connecting stops the connect.
+if ((await popup.getAttribute('#power', 'aria-label')) !== 'Disconnect') fail('while connecting, the button does not stop the connect');
+if ((await popup.getAttribute('#power', 'data-face')) !== 'connecting') fail(`while connecting, the shield shows ${await popup.getAttribute('#power', 'data-face')}`);
 
 try {
   await Promise.race([held, new Promise((_, no) => setTimeout(no, 30000))]);
@@ -243,6 +245,7 @@ if (good.tunnels.includes('example.com:443') || bad.tunnels.includes('example.co
 letCheckThrough();
 
 await statusIs('Connected', 30000);
+if ((await popup.getAttribute('#power', 'data-face')) !== 'on') fail(`connected, the shield shows ${await popup.getAttribute('#power', 'data-face')}`);
 if (bad.tunnels.join() !== 'www.gstatic.com:443') fail(`the 502 proxy saw ${JSON.stringify(bad.tunnels)}`);
 if (!good.tunnels.includes('www.gstatic.com:443')) fail(`the check did not go through the good proxy: ${good.tunnels}`);
 if ((await text('#location')) !== 'Location: Test server') fail(`location: ${await text('#location')}`);
@@ -313,6 +316,29 @@ await popup.waitForSelector('html[dir="rtl"]');
 const fa = await text('#status');
 if (shots) await popup.screenshot({ path: join(shots, 'popup-off-fa.png'), fullPage: true });
 if (fa !== 'وصل نیست' && !/[؀-ۿ]/.test(fa)) fail(`the Persian popup says ${fa}`);
+
+// A new install: the popup's first open shows the allowance and the
+// location before any connect, and turns nothing on. Until 2026-11-16 it
+// showed neither, and an empty location list.
+const registered = registers.length;
+backend.outOfData = false;
+await worker.evaluate((base) => chrome.storage.local.clear().then(() => chrome.storage.local.set({ apiBase: base })), apiBase);
+backend.delay = 1500;
+await popup.reload();
+await statusIs('Not connected', 10000);
+if (await popup.isHidden('#placeRow')) fail('while the first answer was on its way, the location row was not there');
+if (!(await popup.$('#placeValue .skeleton'))) fail('while the first answer was on its way, the location row had no placeholder');
+try {
+  await popup.waitForFunction(() => /20\.0 GB of 20\.0 GB left/.test(document.querySelector('#quotaLine').textContent), null, { timeout: 15000 });
+} catch {
+  fail(`a new install shows no allowance: ${await text('#quotaLine')}`);
+}
+if ((await text('#placeValue')) !== 'Test server') fail(`a new install's location row says ${await text('#placeValue')}`);
+const fresh = await stored();
+if (!/^[0-9a-f-]{36}$/.test(fresh.deviceId || '')) fail(`a new install made no device id: ${fresh.deviceId}`);
+if (registers.length !== registered + 1 || registers.at(-1).device_id !== fresh.deviceId) fail('a new install did not register on its first open');
+if (fresh.wanted || fresh.status === 'on' || (fresh.route && fresh.route.mode !== 'off')) fail(`the first open turned something on: ${JSON.stringify({ wanted: fresh.wanted, status: fresh.status, route: fresh.route })}`);
+if (shots) await popup.screenshot({ path: join(shots, 'popup-new-install-en.png'), fullPage: true });
 
 await context.close();
 good.server.close();

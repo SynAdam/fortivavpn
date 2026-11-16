@@ -1,8 +1,9 @@
 # Fortiva for browsers
 
-A browser extension for Chrome, Edge, Brave, Opera and Firefox. One button
-connects the browser through Fortiva; the popup shows the allowance, takes a
-Premium code and offers the app's 18 languages. Only the browser's own
+A browser extension for Chrome, Edge, Brave, Opera and Firefox. One button,
+the app's shield, connects the browser through Fortiva; the popup shows the
+location and the allowance, takes a Premium code and offers the app's 18
+languages. Only the browser's own
 traffic goes through Fortiva. The Windows app covers every app on a PC.
 
 ## How it connects
@@ -15,6 +16,13 @@ cannot run Xray or speak VLESS. So:
    one HTTPS proxy per server (`host`, `port`, `label`) and this browser's
    credentials, and the allowance in the same shape `/configs/dedicated`
    sends it.
+
+   The popup asks for them each time it opens, a new install's first open
+   included. That is when a new install makes its device id and registers,
+   so the popup shows the allowance and the locations before any connect,
+   as the app's first screen does (`refreshQuota` in `src/core.js`). Until
+   2026-11-16 a new install asked nothing before its first connect, and its
+   popup showed neither.
 2. Each server runs a small HTTPS proxy (`edge/webproxy` in the backend
    repository). For each request it opens a VLESS connection to the
    server's own Xray, on an inbound that listens only on the server itself,
@@ -34,8 +42,13 @@ cannot run Xray or speak VLESS. So:
    the backend while it connects go direct, never through proxies it used
    before.
 
-   The popup's "Choose a location" lists Automatic and each location the
-   backend offers (the proxies' `label`), when there are at least two. A
+   The popup's location row opens "Choose a location": Automatic and each
+   location the backend offers (the proxies' `label`), when there are at
+   least two. With one, the row only names it. A label is read as the app
+   reads its own links, `Fortiva {flag} {city}`, and shows as the city and
+   the country in the person's language, "Helsinki, Finland" (`placeName`
+   in `src/view.js`), with the flag where the system draws flags. Windows
+   draws none, so there it shows the country's code. A
    chosen location's proxies go first and the others stay after them, so a
    chosen location that fails still leaves a way through. Choosing one
    while connected connects again with it first. The choice is kept in
@@ -63,8 +76,8 @@ cannot run Xray or speak VLESS. So:
 5. When no proxy passes, it turns the proxies off: at once when the
    backend answered, and after a second failed check when the backend was
    out of reach too. While the proxies are off, the browser uses its normal
-   network. The popup says Not connected and why, with an amber ring round
-   the button. The extension tries again five minutes later, with each
+   network. The popup says Not connected and why, and the shield's eyes
+   turn amber. The extension tries again five minutes later, with each
    proxy on its own first, until the button stops the tries. When the
    backend answered with no proxy because no server takes browsers yet, it
    waits as long as the answer's `refresh_after_s` says (an hour), and never
@@ -93,6 +106,42 @@ Iranian sites, every name under `.ir`, and local and private addresses go
 direct, as the app sends them direct: they work without Fortiva and should
 not use the allowance. The list is `src/direct-domains.js`, made from the
 same routing data the app ships.
+
+## The popup
+
+The button is the app's shield (`lib/widgets/power_button.dart`), drawn
+from the app's own pictures in `assets/hero` (`tool/hero_art.py`), which
+`build.mjs` copies into the build. The helmet's eyes show the connection
+as in the app: dark while off, a steel light that sweeps from eye to eye
+while connecting, green with a halo once a proxy carried the check, amber
+while it failed and tries again by itself, red while another extension
+holds the proxy setting, and the shield greyed while the allowance is used
+up (`faceOf` in `src/view.js`). A connect the person watched land flashes
+the eyes and sends a wave of green from the shield. With reduced motion
+there is no sweep and no wave.
+
+A click while connecting stops the connect, as a tap does in the app. The
+connect sees the stop between its steps, and the check under way ends at
+once (`stop` in `src/core.js`), so nothing is turned on after it. Until
+2026-11-16 the button was disabled while connecting, and a connect over
+several dead proxies could only be waited out. The second click of a
+double click is left out.
+
+Under the button are the location row, the allowance, and "Enter a code",
+which opens a sheet with the app's code field: letters, digits, dashes and
+spaces, up to 32, in capitals, with Persian and Arabic digits made Latin
+(`cleanCode`). The language is in the header, as in the app. While the
+first answer is on its way, the location and the allowance show
+placeholders; when the backend cannot be reached, they are left out.
+
+In Chrome, the note on private windows opens the browser's page for this
+extension (`chrome://extensions/?id=...`), where they are allowed. Firefox
+lets no extension open `about:addons`, so there the note only says where to
+go.
+
+The popup fits the 600 pixels a browser gives a popup in every language and
+state but one: in Russian, while another extension holds the proxy setting
+and private windows are not allowed, it is 10 pixels taller and scrolls.
 
 ## Chrome and Firefox
 
@@ -141,7 +190,8 @@ answers false.
 
 To Fortiva's backend:
 
-- A device id that the extension makes at random the first time. It is
+- A device id that the extension makes at random the first time the popup
+  opens or the browser connects. It is
   this browser's account with Fortiva and its password on the proxies. It
   says nothing about the person or the computer.
 - The extension's own version, with every call.
@@ -192,8 +242,10 @@ browser/
   src/direct-domains.js  the Iranian sites that go direct
   src/i18n.js            languages, digits and amounts
   src/popup.*            the popup
+  src/view.js            what the popup shows, apart from any page (tested in Node)
   messages/<lang>.json   the extension's own strings
   icons/                 toolbar icons, drawn by tool/icons.py from the app icon
+                         (the popup's shield is ../assets/hero, copied at build)
   tool/                  strings.mjs, icons.py, direct-domains.mjs
   test/                  unit tests (node --test; firefox.test.mjs runs background.js
                          with a fake Firefox), test/e2e/chrome.mjs and
@@ -238,7 +290,10 @@ carries the pages and got its credentials, and that WebRTC is kept to the
 proxies while on and let go when off. Then it checks the amber button
 after every proxy failed, a used-up allowance found as soon as the proxy
 refuses, the note on private windows, that no events are sent, and the
-popup in Persian. It needs Playwright and its Chromium (`npx playwright install
+popup in Persian. While connecting, the button must offer to stop. Last,
+it clears the storage as for a new install and checks that the popup's
+first open shows the allowance and the location, with a placeholder while
+the answer is on its way, and turns nothing on. It needs Playwright and its Chromium (`npx playwright install
 chromium`); `PLAYWRIGHT` and `CHROMIUM` point it at copies installed
 elsewhere, and `SCREENSHOTS=<dir>` keeps pictures of the popup.
 
@@ -254,11 +309,34 @@ password dialog, also for a page in another tab whose request the proxy
 refuses only after the proxies were turned off. Without `ownsProxy`,
 Firefox shows the dialog there. The same case in Chrome is checked only
 by `test/chrome.test.mjs`: Chrome gives up on a proxy connection held that
-long by itself.
+long by itself. The popup's first open asks the backend, and the test can
+point the extension at its fake backend only from the popup, so the test
+profile sends `api.fortivavpn.com` to this computer
+(`network.dns.localDomains`), and the test fails if that first open
+registered anywhere.
 `FIREFOX`, `GECKODRIVER` and `SELENIUM` name the Firefox program,
 geckodriver and selenium-webdriver's `index.js`. The file's header says
 where to get each, and none of them has to be installed for the whole
-system. It has passed on Firefox 140.0, the least version, and on 160.0.
+system. It has passed on Firefox 140.0, the least version, on 149.0.2 and
+on 160.0.
+
+## Not done yet
+
+What the app has and the extension does not, besides what a browser cannot
+do (it cannot run Xray or speak VLESS, see "How it connects"):
+
+- Invite codes: entering a friend's code, and the invite screen with the
+  data a person's invites earn. The code sheet takes Premium keys and gift
+  codes only (`/billing/redeem`).
+- Buying Premium. The extension takes a key bought elsewhere.
+- Support: the app's support chat and its contact button.
+- The team's messages (the app's bell).
+- A way in while the backend is out of reach on a new install. The app has
+  relays and fallback hosts built in (`lib/api/built_in.dart`); the
+  extension needs the backend direct until its first answer.
+- Reporting how connects go. The backend reads `/devices/{id}/events` as a
+  phone's, so browsers need reporting of their own first (see "What the
+  extension sends").
 
 ## Publishing
 

@@ -278,7 +278,12 @@ const apiBase = `http://127.0.0.1:${api.address().port}`;
 // --- the browser --------------------------------------------------------------
 const options = new firefox.Options()
   .setBinary(process.env.FIREFOX)
-  .setPreference('extensions.webextensions.uuids', JSON.stringify({ [ADDON_ID]: UUID }));
+  .setPreference('extensions.webextensions.uuids', JSON.stringify({ [ADDON_ID]: UUID }))
+  // The popup asks the backend each time it opens, a new install's first
+  // open included, and the test can point the extension at its fake backend
+  // only from the popup. Until then the real one must be out of reach: its
+  // name goes to this computer, where nothing answers on 443.
+  .setPreference('network.dns.localDomains', 'api.fortivavpn.com');
 if (!process.env.HEADED) options.addArguments('-headless');
 // Without system access, WebDriver may not open or drive an extension's
 // pages (moz-extension://), and may not reach Firefox's own code, which
@@ -404,6 +409,11 @@ async function run() {
   if (granted.data_collection.includes('technicalAndInteraction')) fail('technical data was granted without the person allowing it');
   if (!granted.origins.includes('<all_urls>')) fail(`the host permission was not granted: ${JSON.stringify(granted)}`);
 
+  // The first open could reach no backend, so it registered nowhere. Its
+  // refresh has ended once the placeholders are gone.
+  if (!(await waitFor(async () => !(await inPopup(() => !!document.querySelector('.skeleton'))), 30000))) fail('the first open never finished its refresh');
+  const first = await inPopup(() => browser.storage.local.get(null));
+  if (first.registeredVersion) fail(`the popup's first open registered with a backend before the test set one: ${JSON.stringify(first)}`);
   await inPopup((values) => browser.storage.local.set(values), { apiBase, deviceId: DEVICE });
   // The refresh the popup sends when it opens is slow, as from Iran, so the
   // click below waits behind it.
@@ -431,7 +441,8 @@ async function run() {
   // The connect waits behind the refresh; the popup keeps showing it.
   await new Promise((r) => setTimeout(r, 1500));
   if ((await text('#status')) !== 'Connecting') fail(`while a connect waited its turn, the popup said ${await text('#status')}`);
-  if ((await attr('#power', 'disabled')) === null) fail('while a connect waited its turn, the button could be pressed again');
+  // As in the app, a click while connecting stops the connect.
+  if ((await attr('#power', 'aria-label')) !== 'Disconnect') fail('while connecting, the button does not stop the connect');
 
   try {
     await Promise.race([held, new Promise((_, no) => setTimeout(no, 30000))]);

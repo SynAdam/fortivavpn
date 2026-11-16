@@ -68,15 +68,21 @@ export const manifests = {
   })(),
 };
 
+// The pictures of the popup's shield are the app's own (assets/hero, drawn
+// by tool/hero_art.py), so the button looks the same on every platform.
+export const HERO = ['shield.webp', 'eyes.png', 'glow.png', 'halo.png'];
+
 rmSync(dist, { recursive: true, force: true });
 for (const [name, manifest] of Object.entries(manifests)) {
   const out = join(dist, name);
   mkdirSync(join(out, 'icons'), { recursive: true });
+  mkdirSync(join(out, 'hero'), { recursive: true });
   for (const file of readdirSync(join(here, 'src'))) {
     if (file === 'manifest.json') continue;
     cpSync(join(here, 'src', file), join(out, file));
   }
   cpSync(join(here, 'icons'), join(out, 'icons'), { recursive: true });
+  for (const file of HERO) cpSync(join(root, 'assets', 'hero', file), join(out, 'hero', file));
   cpSync(join(root, 'LICENSE'), join(out, 'LICENSE'));
   writeFileSync(join(out, 'manifest.json'), JSON.stringify(manifest, null, 2) + '\n');
   const zip = join(dist, `fortiva-browser-${version}-${name}.zip`);

@@ -599,3 +599,108 @@ test('choosing a location while off only keeps it for the next connect', async (
   assert.equal(w.configCalls, calls);
   assert.equal((await w.controller.connect()).location, 'Finland');
 });
+
+// Runs the event loop until cond holds, as a background's awaits would.
+async function until(cond) {
+  for (let i = 0; i < 200 && !cond(); i++) await new Promise((r) => setTimeout(r, 0));
+  assert.ok(cond(), 'never happened');
+}
+
+test('the popup\'s first open registers the browser and shows the allowance and the locations, with nothing turned on', async () => {
+  const w = world({ proxies: [DE, FI1] });
+  const snap = await w.controller.refreshQuota();
+  assert.deepEqual(w.calls, ['register', 'configs']);
+  // Direct: nothing was on yet.
+  assert.deepEqual(w.via, ['off', 'off']);
+  assert.match(w.data.deviceId, /^[0-9a-f-]{36}$/);
+  assert.equal(w.registered[0].device_id, w.data.deviceId);
+  assert.equal(snap.status, Status.OFF);
+  assert.deepEqual(snap.quota, QUOTA);
+  assert.deepEqual(snap.locations, ['Germany', 'Finland']);
+  assert.equal(w.fulls, 0);
+  assert.deepEqual(w.checks, []);
+  // The next open asks for the allowance again, and registers no more.
+  await w.controller.refreshQuota();
+  assert.deepEqual(w.calls, ['register', 'configs', 'configs']);
+  // A connect after it uses the same device.
+  const id = w.data.deviceId;
+  assert.equal((await w.controller.connect()).status, Status.ON);
+  assert.equal(w.data.deviceId, id);
+  assert.equal(w.registered.length, 1);
+});
+
+test('the first open with the backend out of reach shows nothing it does not have', async () => {
+  const w = world();
+  w.answer = () => new ApiError(0, 'network');
+  const snap = await w.controller.refreshQuota();
+  assert.equal(snap.status, Status.OFF);
+  assert.equal(snap.quota, null);
+  assert.deepEqual(snap.locations, []);
+});
+
+test('a stop during a connect lands at once: the check under way ends and nothing is turned on', async () => {
+  const w = world({ proxies: [A, B] });
+  // Each check lasts until it is cut short, as a proxy that never answers.
+  let checks = 0;
+  w.env.health = (signal) => new Promise((resolve) => {
+    checks++;
+    signal.addEventListener('abort', () => resolve(false), { once: true });
+  });
+  const connecting = w.controller.connect();
+  await until(() => checks === 1);
+  assert.equal((await w.controller.snapshot()).status, Status.CONNECTING);
+  const [, off] = await Promise.all([connecting, w.controller.disconnect()]);
+  assert.equal(off.status, Status.OFF);
+  assert.equal(off.wanted, false);
+  // The second proxy was never checked, and the full rules never went on.
+  assert.equal(checks, 1);
+  assert.equal(w.fulls, 0);
+  assert.equal(w.applied, null);
+  assert.equal(w.route.mode, 'off');
+  // The tries do not start again by themselves.
+  w.clock += 60 * 60 * 1000;
+  await w.controller.tick();
+  assert.equal((await w.controller.snapshot()).status, Status.OFF);
+});
+
+test('a stop during the backend call ends the connect before any check, and the next connect works', async () => {
+  const w = world({ proxies: [A, B] });
+  let answer;
+  const held = new Promise((r) => (answer = r));
+  const plain = w.env.api.browserConfigs;
+  w.env.api.browserConfigs = async (id) => {
+    await held;
+    return plain(id);
+  };
+  const connecting = w.controller.connect();
+  await until(() => w.registered.length === 1);
+  const off = w.controller.disconnect();
+  answer();
+  await Promise.all([connecting, off]);
+  assert.equal((await off).status, Status.OFF);
+  assert.deepEqual(w.checks, []);
+  assert.equal(w.fulls, 0);
+  // A stop is for the connect it stopped, not the next one.
+  w.env.api.browserConfigs = plain;
+  assert.equal((await w.controller.connect()).status, Status.ON);
+});
+
+test('a stop while a check finds the connection gone turns it off, not to a failure', async () => {
+  const w = world({ proxies: [A, B] });
+  await w.controller.connect();
+  let checks = 0;
+  w.env.health = (signal) => new Promise((resolve) => {
+    checks++;
+    // The check through the full rules fails at once; the checks of each
+    // proxy on its own hang until they are cut short.
+    if (checks === 1) resolve(false);
+    else signal.addEventListener('abort', () => resolve(false), { once: true });
+  });
+  w.clock += 3 * 60 * 1000;
+  const ticking = w.controller.tick();
+  await until(() => checks === 2);
+  const off = await Promise.all([ticking, w.controller.disconnect()]).then(([, s]) => s);
+  assert.equal(off.status, Status.OFF);
+  assert.equal(off.error, '');
+  assert.equal(w.route.mode, 'off');
+});

@@ -33,6 +33,7 @@ export const FROM_APP = [
   'redeemInvalid', 'redeemUnknown', 'redeemExpired', 'redeemRevoked',
   'redeemExhausted', 'redeemRateLimited', 'redeemUnavailable',
   'redeemNetwork', 'redeemFailed', 'redeemPromoNoAmount', 'premiumNowOn',
+  'redeemSubtitle', 'redeemCancel', 'myServersMoved', 'settings', 'close',
 ];
 
 const placeholders = (s) => [...s.matchAll(/\{(\w+)\}/g)].map((m) => m[1]).sort().join(',');

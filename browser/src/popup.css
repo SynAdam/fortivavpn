@@ -1,88 +1,379 @@
-/* The app's dark palette (lib/core/design_system.dart). */
+/* The app's dark palette and motion (lib/core/design_system.dart). */
 :root {
   --canvas: #0e1318;
+  --surface-low: #161b21;
   --surface: #1b2127;
   --surface-high: #232930;
+  --surface-highest: #2c3239;
   --hairline: #252b31;
+  --outline-variant: #30363c;
   --outline: #5c636a;
   --text: #edf0f3;
   --text-2: #b7bfc6;
   --text-3: #949ca3;
   --brand: #c8452b;
+  --brand-hover: #d65233;
   --brand-bright: #f26b4a;
   --protected: #6cd5b3;
+  --protected-bright: #9ae6cc;
   --protected-deep: #2e9c7c;
   --warning: #f0be67;
+  --warning-container: #33280f;
+  --error: #f37287;
+  --steel-highlight: #eef0f1;
+  --steel-light: #cdd1d6;
+  /* AppMotion.slow and Easing.emphasizedDecelerate. */
+  --look: 350ms cubic-bezier(0.05, 0.7, 0.1, 1);
   color-scheme: dark;
 }
 
 * { box-sizing: border-box; }
 
+/* Author rules such as display: flex outrank the hidden attribute. Before
+   this rule, the empty location row of a new install showed. */
+[hidden] { display: none !important; }
+
+html { background: var(--canvas); }
+
 body {
   margin: 0;
-  width: 340px;
+  width: 360px;
   background: var(--canvas);
   color: var(--text);
   font: 14px/1.45 system-ui, -apple-system, "Segoe UI", Roboto, "Noto Sans", "Noto Sans Arabic", Tahoma, sans-serif;
+  -webkit-font-smoothing: antialiased;
 }
 
-main { padding: 16px; display: flex; flex-direction: column; gap: 12px; }
+main { padding: 8px 14px 10px; display: flex; flex-direction: column; gap: 7px; }
 
-header { display: flex; align-items: center; gap: 8px; }
-.brand { font-weight: 650; letter-spacing: 0.01em; }
+svg { fill: none; stroke: currentColor; stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; }
 
-.hero { display: flex; flex-direction: column; align-items: center; gap: 6px; padding: 8px 0 4px; text-align: center; }
+/* --- header ----------------------------------------------------------------- */
 
+header { display: flex; align-items: center; justify-content: space-between; gap: 8px; min-height: 32px; }
+.brand { font-size: 15px; font-weight: 700; letter-spacing: 0.01em; white-space: nowrap; }
+.brand span { color: var(--text-3); font-weight: 600; }
+
+.lang {
+  position: relative;
+  display: inline-flex; align-items: center; gap: 6px;
+  max-width: 62%; height: 32px; padding: 0 8px 0 10px;
+  border-radius: 16px; border: 1px solid var(--hairline); background: var(--surface);
+  color: var(--text-2); font-size: 13px; cursor: pointer;
+}
+[dir="rtl"] .lang { padding: 0 10px 0 8px; }
+.lang:hover { background: var(--surface-high); }
+.lang:focus-within { outline: 2px solid var(--steel-light); outline-offset: 2px; }
+.lang svg { width: 16px; height: 16px; flex: none; }
+.lang .down { width: 14px; height: 14px; color: var(--text-3); }
+#languageName { overflow: hidden; white-space: nowrap; text-overflow: ellipsis; }
+/* Over the whole button, unseen: a click opens the browser's own list. */
+.lang select { position: absolute; inset: 0; width: 100%; height: 100%; opacity: 0; cursor: pointer; font: inherit; }
+
+/* --- the shield --------------------------------------------------------------- */
+
+.hero { display: flex; flex-direction: column; align-items: center; text-align: center; }
+
+/* The button is the square that takes the click. The pictures share one
+   canvas, the shield with room round it for the halo (tool/hero_art.py), so
+   they reach past the square above and below. Sizes follow _Art in
+   lib/widgets/power_button.dart: the shield's height is 94% of the side. */
 .power {
-  width: 112px; height: 112px; border-radius: 50%;
-  border: 2px solid var(--outline);
-  background: var(--surface);
-  color: var(--text-2);
-  display: grid; place-items: center;
+  --side: 120px;
+  --halo: rgb(205 209 214 / 0);
+  --glow: rgb(205 209 214 / 0);
+  --eyes: rgb(205 209 214 / 0);
+  --sweep: 0;
+  --muted: 0;
+  position: relative;
+  width: var(--side); height: var(--side);
+  margin: 9px 0 5px; padding: 0;
+  border: 0; border-radius: 50%; background: none;
+  cursor: pointer; -webkit-tap-highlight-color: transparent;
+}
+.power:focus-visible { outline: none; }
+.power:focus-visible::after {
+  content: ""; position: absolute; inset: -4px;
+  border-radius: 50%; border: 2px solid var(--steel-light);
+}
+
+.power .art {
+  position: absolute; left: 50%; top: 50%;
+  width: calc(var(--side) * 0.94 * 912 / 908);
+  height: calc(var(--side) * 0.94 * 1128 / 908);
+  transform: translate(-50%, -50%);
+  /* The release springs back with a small overshoot, as in the app. */
+  transition: transform 0.35s cubic-bezier(0.34, 1.56, 0.64, 1);
+  pointer-events: none;
+}
+.power:hover .art { transform: translate(-50%, -50%) scale(1.02); }
+.power:active .art { transform: translate(-50%, -50%) scale(0.95); transition: transform 0.1s cubic-bezier(0.2, 0, 0, 1); }
+
+.art > span, .body > *, .ripple > span { position: absolute; inset: 0; }
+.body { isolation: isolate; transform-origin: 50% 50%; }
+.shield {
+  display: block; width: 100%; height: 100%;
+  user-select: none; -webkit-user-drag: none;
+  filter: grayscale(var(--muted)) brightness(calc(1 - 0.35 * var(--muted)));
+  transition: filter var(--look);
+}
+
+/* The light pictures are white masks, tinted with the color of the face. */
+.halo, .ripple > span, .glow, .eyes, .sweep, .flash {
+  -webkit-mask-size: 100% 100%; mask-size: 100% 100%;
+  -webkit-mask-repeat: no-repeat; mask-repeat: no-repeat;
+}
+.halo, .ripple > span { -webkit-mask-image: url(hero/halo.png); mask-image: url(hero/halo.png); }
+.glow, .glow-sweep, .glow-flash { -webkit-mask-image: url(hero/glow.png); mask-image: url(hero/glow.png); }
+.eyes, .eyes-sweep, .eyes-flash { -webkit-mask-image: url(hero/eyes.png); mask-image: url(hero/eyes.png); }
+
+.halo { background-color: var(--halo); transition: background-color var(--look); }
+/* The eyes' light adds, as light does. */
+.glow { background-color: var(--glow); mix-blend-mode: plus-lighter; transition: background-color var(--look); }
+.eyes { background-color: var(--eyes); transition: background-color var(--look); }
+
+/* While connecting, a steel light sweeps from eye to eye and back, slow at
+   each end and quickest between the eyes. The spot is the app's (88 of the
+   canvas's pixels round), moved along the line of _Art.along. */
+.sweep { opacity: var(--sweep); mix-blend-mode: plus-lighter; transition: opacity var(--look); }
+.sweep i {
+  position: absolute; left: 0; top: 0;
+  width: 19.3%; height: 15.6%;
+  border-radius: 50%;
+  transform: translate(128.24%, 267.1%);
+  animation: sweep 2.4s infinite;
+  animation-play-state: paused;
+}
+.power[data-face="connecting"] .sweep i { animation-play-state: running; }
+.glow-sweep i { background: radial-gradient(closest-side, rgb(238 240 241 / 1), rgb(238 240 241 / 0.8) 50%, rgb(238 240 241 / 0)); }
+.eyes-sweep i { background: radial-gradient(closest-side, #fff, rgb(255 255 255 / 0.8) 50%, rgb(255 255 255 / 0)); }
+@keyframes sweep {
+  0% { transform: translate(128.24%, 267.1%); animation-timing-function: cubic-bezier(0.12, 0, 0.39, 0); }
+  25% { transform: translate(208.81%, 288.69%); animation-timing-function: cubic-bezier(0.61, 1, 0.88, 1); }
+  50% { transform: translate(289.38%, 267.1%); animation-timing-function: cubic-bezier(0.12, 0, 0.39, 0); }
+  75% { transform: translate(208.81%, 288.69%); animation-timing-function: cubic-bezier(0.61, 1, 0.88, 1); }
+  100% { transform: translate(128.24%, 267.1%); }
+}
+
+/* The faces (_Look.of in the app). Green only once a proxy carried the
+   check. */
+.power[data-face="connecting"] {
+  --halo: rgb(205 209 214 / 0.06);
+  --glow: rgb(238 240 241 / 0.24);
+  --eyes: rgb(238 240 241 / 0.42);
+  --sweep: 1;
+}
+.power[data-face="waiting"] {
+  --halo: rgb(240 190 103 / 0.14);
+  --glow: rgb(240 190 103 / 0.6);
+  --eyes: rgb(251 237 212 / 0.9);
+}
+.power[data-face="failed"] {
+  --halo: rgb(243 114 135 / 0.14);
+  --glow: rgb(243 114 135 / 0.6);
+  --eyes: rgb(252 216 221 / 0.9);
+}
+.power[data-face="spent"] { --muted: 1; }
+.power[data-face="on"] {
+  --halo: rgb(108 213 179 / 0.42);
+  --glow: rgb(108 213 179 / 1);
+  --eyes: rgb(214 243 234 / 1);
+}
+
+/* The moment a connect the person watched lands: the eyes flash on, a wave
+   of green leaves the shield, and the shield pops (700 ms, as in the app). */
+.ripple { opacity: 0; }
+.ripple > span { background-color: var(--protected); mix-blend-mode: plus-lighter; opacity: 0; }
+.flash { opacity: 0; }
+.glow-flash { background-color: var(--protected-bright); mix-blend-mode: plus-lighter; }
+.eyes-flash { background-color: #fff; }
+.power.celebrate .body { animation: pop 0.7s; }
+.power.celebrate .ripple { animation: ripple-grow 0.7s cubic-bezier(0.215, 0.61, 0.355, 1) both; }
+.power.celebrate .ripple > span { animation: ripple-fade 0.7s ease-in both; }
+.power.celebrate .glow-flash { animation: flash-glow 0.7s ease-out both; }
+.power.celebrate .eyes-flash { animation: flash-eyes 0.7s ease-out both; }
+@keyframes pop {
+  0% { transform: scale(1); animation-timing-function: ease-out; }
+  22.86% { transform: scale(1.04); animation-timing-function: ease-in-out; }
+  57.14%, 100% { transform: scale(1); }
+}
+@keyframes ripple-grow { from { opacity: 1; transform: scale(1); } to { opacity: 1; transform: scale(1.22); } }
+@keyframes ripple-fade { from { opacity: 0.6; } to { opacity: 0; } }
+@keyframes flash-glow { from { opacity: 0.9; } to { opacity: 0; } }
+@keyframes flash-eyes { from { opacity: 1; } to { opacity: 0; } }
+
+@media (prefers-reduced-motion: reduce) {
+  /* No sweep: both eyes evenly lit instead, at half the light. */
+  .sweep i {
+    animation: none; transform: none; border-radius: 0; opacity: 0.5;
+    left: 24.75%; top: 41.68%; width: 50.39%; height: 18.97%;
+  }
+  .glow-sweep i { background: var(--steel-highlight); }
+  .eyes-sweep i { background: #fff; }
+  .power .art, .shield, .halo, .glow, .eyes, .sweep { transition: none; }
+  .power:hover .art, .power:active .art { transform: translate(-50%, -50%); }
+}
+
+.status { margin: 0; font-size: 17px; font-weight: 650; line-height: 1.35; }
+.status[data-face="on"] { color: var(--protected); }
+.where { margin: 2px 0 0; display: inline-flex; align-items: center; gap: 6px; color: var(--text-2); font-size: 13px; }
+.where .flag { font-size: 15px; line-height: 1; }
+.message { margin: 4px 0 0; color: var(--text-2); font-size: 13px; line-height: 1.4; }
+.message[data-tone="warning"] { color: var(--warning); }
+.message[data-tone="error"] { color: var(--error); }
+
+/* --- rows and cards ---------------------------------------------------------- */
+
+.row {
+  display: flex; align-items: center; gap: 12px;
+  width: 100%; min-height: 44px; padding: 6px 10px;
+  border-radius: 12px; border: 1px solid var(--hairline); background: var(--surface);
+  color: var(--text); font: inherit; text-align: start;
   cursor: pointer;
-  transition: border-color 0.2s, color 0.2s, box-shadow 0.2s;
+  transition: background-color 0.15s, border-color 0.15s;
 }
-.power:hover { border-color: var(--text-3); }
-.power:focus-visible { outline: 2px solid var(--brand-bright); outline-offset: 3px; }
-.power[data-state="on"] { border-color: var(--protected); color: var(--protected); box-shadow: 0 0 0 6px rgba(108, 213, 179, 0.12); }
-/* Not connected, and trying again by itself until the button turns it off. */
-.power[data-state="waiting"] { border-color: var(--warning); color: var(--warning); box-shadow: 0 0 0 6px rgba(240, 190, 103, 0.12); }
-.power[data-state="connecting"] { border-color: var(--brand-bright); color: var(--brand-bright); animation: pulse 1.4s ease-in-out infinite; }
-.power:disabled { cursor: default; }
-@keyframes pulse { 50% { box-shadow: 0 0 0 8px rgba(242, 107, 74, 0.14); } }
-@media (prefers-reduced-motion: reduce) { .power[data-state="connecting"] { animation: none; } }
-
-.status { margin: 6px 0 0; font-size: 16px; font-weight: 600; }
-.status[data-state="on"] { color: var(--protected); }
-.muted { margin: 0; color: var(--text-3); font-size: 13px; }
-.message { margin: 4px 0 0; color: var(--brand-bright); font-size: 13px; }
-
-.card { background: var(--surface); border: 1px solid var(--hairline); border-radius: 12px; padding: 12px; }
-.card p { margin: 0; }
-
-.bar { height: 6px; border-radius: 3px; background: var(--surface-high); margin: 8px 0 6px; overflow: hidden; }
-.bar > div { height: 100%; background: var(--protected-deep); }
-
-.note { margin: 0; color: var(--text-3); font-size: 12px; text-align: center; }
-.note.private { color: var(--warning); }
-
-summary { cursor: pointer; color: var(--text-2); }
-form { display: flex; gap: 8px; margin-top: 10px; }
-input, select {
-  flex: 1; min-width: 0;
-  background: var(--surface-high); color: var(--text);
-  border: 1px solid var(--outline); border-radius: 8px; padding: 8px 10px; font: inherit;
+.row:hover:not(:disabled) { background: var(--surface-high); }
+.row:focus-visible { outline: 2px solid var(--steel-light); outline-offset: 2px; }
+.row:disabled { cursor: default; }
+.row:disabled .value, .row:disabled .chev { opacity: 0.55; }
+.row[aria-disabled="true"] { cursor: default; }
+.row[aria-disabled="true"]:hover { background: var(--surface); }
+.icon {
+  display: grid; place-items: center; flex: none;
+  width: 30px; height: 30px; border-radius: 50%;
+  background: var(--surface-high); color: var(--steel-light);
+  font-size: 17px; line-height: 1;
 }
-input:focus, select:focus { outline: 2px solid var(--brand-bright); outline-offset: 1px; }
-button[type="submit"] {
-  background: var(--brand); color: #fff; border: 0; border-radius: 8px; padding: 8px 14px; font: inherit; font-weight: 600; cursor: pointer;
+.icon svg { width: 18px; height: 18px; }
+.icon .code { font-size: 11px; font-weight: 700; letter-spacing: 0.04em; color: var(--text-2); }
+.row .label { flex: 1; min-width: 0; color: var(--text-2); font-size: 13.5px; line-height: 1.35; }
+.row .label b { display: block; color: var(--text); font-weight: 600; }
+.row .label small { display: block; overflow: hidden; white-space: nowrap; text-overflow: ellipsis; color: var(--text-3); font-size: 12px; line-height: 1.35; }
+.row .value { max-width: 58%; overflow: hidden; white-space: nowrap; text-overflow: ellipsis; font-weight: 600; }
+.chev { flex: none; width: 18px; height: 18px; color: var(--text-3); }
+[dir="rtl"] .chev { transform: scaleX(-1); }
+
+.card { padding: 9px 12px; border-radius: 12px; border: 1px solid var(--hairline); background: var(--surface); }
+/* The reset goes under the amount when both do not fit on one line. */
+.quota .line { display: flex; flex-wrap: wrap; align-items: baseline; justify-content: space-between; gap: 0 10px; }
+#quotaLine { font-weight: 600; }
+#quotaReset { flex: none; font-size: 12px; }
+.quota[data-spent] #quotaLine { color: var(--error); }
+.bar { height: 6px; margin-top: 8px; overflow: hidden; border-radius: 3px; background: var(--surface-high); }
+.bar > div { height: 100%; border-radius: 3px; background: var(--protected-deep); transition: width var(--look); }
+
+.muted { margin: 0; color: var(--text-3); }
+
+/* What is being fetched the first time the popup opens. */
+.skeleton {
+  display: inline-block; height: 0.85em; vertical-align: -0.05em;
+  border-radius: 4px;
+  background: linear-gradient(90deg, var(--surface-high) 25%, var(--surface-highest) 50%, var(--surface-high) 75%);
+  background-size: 200% 100%;
+  animation: shimmer 1.3s linear infinite;
 }
-button[type="submit"]:disabled { opacity: 0.6; cursor: default; }
-#codeResult { margin-top: 8px; }
+@keyframes shimmer { from { background-position: 100% 0; } to { background-position: -100% 0; } }
+@media (prefers-reduced-motion: reduce) { .skeleton { animation: none; } }
 
-.language { display: flex; align-items: center; justify-content: space-between; gap: 12px; color: var(--text-3); font-size: 13px; }
-.language select { flex: 0 1 auto; padding: 6px 8px; }
-.place { color: var(--text-2, inherit); font-size: 14px; }
-.place select { max-width: 62%; }
+.notice {
+  display: flex; align-items: flex-start; gap: 10px;
+  width: 100%; padding: 8px 10px 8px 12px;
+  border-radius: 12px; border: 1px solid rgb(240 190 103 / 0.2); background: rgb(240 190 103 / 0.07);
+  color: var(--warning); font: inherit; font-size: 12px; line-height: 1.4; text-align: start;
+  cursor: pointer;
+}
+.notice:hover:not(:disabled) { background: rgb(240 190 103 / 0.12); }
+.notice:focus-visible { outline: 2px solid var(--warning); outline-offset: 2px; }
+.notice:disabled { cursor: default; }
+.notice:disabled .out { display: none; }
+.notice > span { flex: 1; min-width: 0; }
+.notice > svg { flex: none; width: 17px; height: 17px; margin-top: 1px; }
+/* In the line, after the words, so the words keep the width. */
+.notice .out { display: inline-block; width: 13px; height: 13px; margin: 0 0 -2px 4px; }
+[dir="rtl"] .notice .out { margin: 0 4px -2px 0; transform: scaleX(-1); }
 
-[dir="rtl"] body, body[dir="rtl"] { text-align: right; }
+.note { margin: 0; color: var(--text-3); font-size: 11.5px; line-height: 1.35; text-align: center; }
+
+.toast {
+  position: fixed; left: 16px; right: 16px; bottom: 12px; z-index: 10;
+  padding: 10px 14px; border-radius: 10px;
+  background: var(--surface-highest); color: var(--text);
+  box-shadow: 0 8px 24px rgb(0 0 0 / 0.45);
+  font-size: 13px; text-align: center;
+  animation: rise 0.25s cubic-bezier(0.05, 0.7, 0.1, 1);
+}
+@keyframes rise { from { opacity: 0; transform: translateY(12px); } }
+
+/* --- sheets -------------------------------------------------------------------- */
+
+.sheet {
+  margin: auto 0 0; padding: 0;
+  width: 100%; max-width: 100%; max-height: calc(100% - 28px);
+  border: 0; border-top: 1px solid var(--outline-variant); border-radius: 16px 16px 0 0;
+  background: var(--surface); color: var(--text);
+}
+.sheet[open] { animation: rise 0.25s cubic-bezier(0.05, 0.7, 0.1, 1); }
+.sheet::backdrop { background: rgb(4 7 10 / 0.62); }
+.sheet .inner { display: flex; flex-direction: column; gap: 10px; padding: 12px 16px 16px; }
+.head { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
+.head h2 { margin: 0; font-size: 16px; font-weight: 650; }
+.x {
+  display: grid; place-items: center; flex: none;
+  width: 32px; height: 32px; margin-inline-end: -6px;
+  border: 0; border-radius: 50%; background: transparent; color: var(--text-3); cursor: pointer;
+}
+.x:hover { background: var(--surface-high); color: var(--text); }
+.x:focus-visible { outline: 2px solid var(--steel-light); outline-offset: 1px; }
+.x svg { width: 18px; height: 18px; stroke-width: 2; }
+
+.places { display: flex; flex-direction: column; gap: 4px; max-height: 360px; overflow-y: auto; margin: 0 -6px; padding: 2px 6px; }
+.place {
+  display: flex; align-items: center; gap: 12px;
+  width: 100%; min-height: 48px; padding: 6px 10px;
+  border-radius: 10px; border: 1px solid transparent; background: transparent;
+  color: var(--text); font: inherit; text-align: start; cursor: pointer;
+}
+.place:hover { background: var(--surface-high); }
+.place:focus-visible { outline: 2px solid var(--steel-light); outline-offset: -2px; }
+.place[aria-current="true"] { background: var(--surface-high); border-color: var(--outline-variant); }
+.place[aria-current="true"] .icon { background: var(--surface-highest); }
+.place .name { flex: 1; min-width: 0; }
+.place .tick { flex: none; width: 18px; height: 18px; color: var(--protected); stroke-width: 2.2; visibility: hidden; }
+.place[aria-current="true"] .tick { visibility: visible; }
+
+/* Read by a screen reader, not seen. */
+.sr { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
+
+#code {
+  width: 100%; height: 48px; padding: 0 12px;
+  border-radius: 10px; border: 1px solid var(--outline); background: var(--surface-low);
+  color: var(--text); text-align: center;
+  font: 600 17px/1 ui-monospace, "SF Mono", Menlo, Consolas, "Liberation Mono", monospace;
+  letter-spacing: 2px;
+}
+#code::placeholder { color: var(--text-3); font: 400 14px/1 system-ui, -apple-system, "Segoe UI", Roboto, "Noto Sans", Tahoma, sans-serif; letter-spacing: 0; }
+#code:focus { outline: none; border-color: var(--brand-bright); box-shadow: 0 0 0 3px rgb(242 107 74 / 0.18); }
+#code[aria-invalid="true"] { border-color: var(--error); }
+.result { margin: 0; font-size: 13px; }
+.result[data-tone="error"] { color: var(--error); }
+.actions { display: flex; justify-content: flex-end; gap: 8px; margin-top: 2px; }
+.btn {
+  position: relative; min-width: 88px; height: 40px; padding: 0 16px;
+  border: 0; border-radius: 10px;
+  font: inherit; font-weight: 600; cursor: pointer;
+}
+.btn:focus-visible { outline: 2px solid var(--steel-light); outline-offset: 2px; }
+.btn.primary { background: var(--brand); color: #fff; }
+.btn.primary:hover:not(:disabled) { background: var(--brand-hover); }
+.btn.primary:disabled { background: var(--surface-highest); color: var(--text-3); cursor: default; }
+.btn.quiet { background: transparent; color: var(--text-2); }
+.btn.quiet:hover { background: var(--surface-high); }
+/* While the code is sent: a spinner in place of the word. */
+.btn.busy { color: transparent !important; }
+.btn.busy::after {
+  content: ""; position: absolute; left: 50%; top: 50%;
+  width: 16px; height: 16px; margin: -8px 0 0 -8px;
+  border-radius: 50%; border: 2px solid rgb(255 255 255 / 0.35); border-top-color: #fff;
+  animation: spin 0.8s linear infinite;
+}
+@keyframes spin { to { transform: rotate(360deg); } }

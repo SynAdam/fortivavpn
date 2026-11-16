@@ -230,9 +230,16 @@ if (firefox) {
 // through it (pac.js probePacScript, firefoxAnswer).
 const PROBE = `https://${PROBE_HOST}/generate_204`;
 
-async function health() {
+// stop is core.js's signal for a stop the person asked for: it ends the
+// check at once rather than after its 12 seconds.
+async function health(stop) {
   const ctrl = new AbortController();
   const timer = setTimeout(() => ctrl.abort(), 12000);
+  const end = () => ctrl.abort();
+  if (stop) {
+    if (stop.aborted) return false;
+    stop.addEventListener('abort', end, { once: true });
+  }
   try {
     const res = await fetch(PROBE, { cache: 'no-store', credentials: 'omit', signal: ctrl.signal });
     return res.status === 204 || res.status === 200;
@@ -240,6 +247,7 @@ async function health() {
     return false;
   } finally {
     clearTimeout(timer);
+    if (stop) stop.removeEventListener('abort', end);
   }
 }
 
