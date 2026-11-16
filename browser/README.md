@@ -262,10 +262,23 @@ system. It has passed on Firefox 140.0, the least version, and on 160.0.
 
 ## Publishing
 
-Nothing is published yet. Each store needs its own account and its own
-review: the Chrome Web Store (also serves Brave and Opera), Microsoft Edge
-Add-ons and Firefox Add-ons. Upload `fortiva-browser-<version>-chrome.zip`
-to the first two and `-firefox.zip` to the third. The Firefox data
+The extension is published on the Chrome Web Store, which also serves
+Brave and Opera:
+<https://chromewebstore.google.com/detail/opmbgchifnghmfdacglecdagbflbcdha>
+(item ID `opmbgchifnghmfdacglecdagbflbcdha`).
+
+It is also published on Firefox Add-ons:
+<https://addons.mozilla.org/firefox/addon/fortiva-vpn/> (add-on ID
+`3126941`). Mozilla's automated review approved version 2.3.0 on
+2026-11-15. A person at Mozilla may still review it later and ask for
+changes.
+
+The extension is not on Microsoft Edge Add-ons.
+
+Each store needs its own account and its own review: the Chrome Web
+Store, Microsoft Edge Add-ons and Firefox Add-ons. Upload
+`fortiva-browser-<version>-chrome.zip` to the first two and
+`-firefox.zip` to the third. The Firefox data
 collection list above must be confirmed first. Firefox signs the
 extension during review; until then it loads only as a temporary add-on.
 
