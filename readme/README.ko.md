@@ -9,6 +9,8 @@
 <p align="center">
   <a href="https://play.google.com/store/apps/details?id=com.vpn.fortivavpn&amp;hl=ko&amp;referrer=utm_source%3Dgithub"><img src="https://img.shields.io/badge/Google%20Play-install-C8452B?style=flat-square&amp;labelColor=0E1318" alt="Google Play"></a>
   <a href="https://fortivavpn.com/apk"><img src="https://img.shields.io/badge/APK-download-C8452B?style=flat-square&amp;labelColor=0E1318" alt="APK 다운로드"></a>
+  <a href="https://chromewebstore.google.com/detail/opmbgchifnghmfdacglecdagbflbcdha"><img src="https://img.shields.io/badge/Chrome%20Web%20Store-add-C8452B?style=flat-square&amp;labelColor=0E1318" alt="Chrome Web Store"></a>
+  <a href="https://addons.mozilla.org/firefox/addon/fortiva-vpn/"><img src="https://img.shields.io/badge/Firefox%20Add--ons-add-C8452B?style=flat-square&amp;labelColor=0E1318" alt="Firefox Add-ons"></a>
   <a href="https://t.me/fortivavpn"><img src="https://img.shields.io/badge/Telegram-fortivavpn-C8452B?style=flat-square&amp;labelColor=0E1318" alt="Telegram 채널"></a>
   <a href="https://github.com/SynAdam/fortivavpn/tags"><img src="https://img.shields.io/github/v/tag/SynAdam/fortivavpn?sort=semver&amp;label=release&amp;color=C8452B&amp;style=flat-square&amp;labelColor=0E1318" alt="최신 릴리스"></a>
   <a href="../LICENSE"><img src="https://img.shields.io/badge/licence-GPL--3.0-C8452B?style=flat-square&amp;labelColor=0E1318" alt="라이선스: GPL-3.0"></a>
@@ -29,6 +31,7 @@ Fortiva는 일반 VPN이 연결되지 않는 네트워크를 위해 만들어졌
 
 - **APK (휴대폰 및 Android TV용):** [직접 다운로드](https://fortivavpn.com/apk)하거나 이 저장소의 [Releases](https://github.com/SynAdam/fortivavpn/releases/latest) 페이지에서 받으세요. [Lite APK](https://fortivavpn.com/apk/lite)는 32비트 휴대폰용으로 크기가 더 작으며, 대부분의 64비트 휴대폰에서도 실행됩니다.
 - **Windows 10 및 11:** [설치 파일을 직접 다운로드](https://fortivavpn.com/windows)하거나 이 저장소의 [Releases](https://github.com/SynAdam/fortivavpn/releases) 페이지에서 받으세요. 설치 파일에 서명이 없어서 실행 전에 Windows가 경고를 표시할 수 있습니다. 이때는 "More info"를 선택한 다음 "Run anyway"를 선택하세요.
+- **브라우저 확장 프로그램:** Chrome, Brave, Opera는 [Chrome Web Store](https://chromewebstore.google.com/detail/opmbgchifnghmfdacglecdagbflbcdha), Firefox는 [Firefox Add-ons](https://addons.mozilla.org/firefox/addon/fortiva-vpn/). 브라우저만 Fortiva를 거치고, 컴퓨터의 다른 앱은 평소 인터넷을 사용합니다.
 - **Google Play:** [Fortiva VPN](https://play.google.com/store/apps/details?id=com.vpn.fortivavpn&hl=ko&referrer=utm_source%3Dgithub)
 - **웹사이트:** [fortivavpn.com/ko/](https://fortivavpn.com/ko/)
 - **Telegram:** 소식과 새 버전은 저희 영어 채널 [t.me/fortivavpn](https://t.me/fortivavpn)에 게시됩니다.

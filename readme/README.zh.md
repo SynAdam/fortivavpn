@@ -9,6 +9,8 @@
 <p align="center">
   <a href="https://play.google.com/store/apps/details?id=com.vpn.fortivavpn&amp;hl=zh-CN&amp;referrer=utm_source%3Dgithub"><img src="https://img.shields.io/badge/Google%20Play-install-C8452B?style=flat-square&amp;labelColor=0E1318" alt="Google Play"></a>
   <a href="https://fortivavpn.com/apk"><img src="https://img.shields.io/badge/APK-download-C8452B?style=flat-square&amp;labelColor=0E1318" alt="下载 APK"></a>
+  <a href="https://chromewebstore.google.com/detail/opmbgchifnghmfdacglecdagbflbcdha"><img src="https://img.shields.io/badge/Chrome%20Web%20Store-add-C8452B?style=flat-square&amp;labelColor=0E1318" alt="Chrome Web Store"></a>
+  <a href="https://addons.mozilla.org/firefox/addon/fortiva-vpn/"><img src="https://img.shields.io/badge/Firefox%20Add--ons-add-C8452B?style=flat-square&amp;labelColor=0E1318" alt="Firefox Add-ons"></a>
   <a href="https://t.me/fortivavpn_zh"><img src="https://img.shields.io/badge/Telegram-fortivavpn__zh-C8452B?style=flat-square&amp;labelColor=0E1318" alt="Telegram 频道"></a>
   <a href="https://github.com/SynAdam/fortivavpn/tags"><img src="https://img.shields.io/github/v/tag/SynAdam/fortivavpn?sort=semver&amp;label=release&amp;color=C8452B&amp;style=flat-square&amp;labelColor=0E1318" alt="最新版本"></a>
   <a href="../LICENSE"><img src="https://img.shields.io/badge/licence-GPL--3.0-C8452B?style=flat-square&amp;labelColor=0E1318" alt="许可证：GPL-3.0"></a>
@@ -29,6 +31,7 @@ Fortiva 专为普通 VPN 连不上的网络而设计。服务器已内置在应�
 
 - **APK 安装包（手机和 Android TV 通用）：** [直接下载](https://fortivavpn.com/apk)，或在本仓库的 [Releases](https://github.com/SynAdam/fortivavpn/releases/latest) 页面下载。[Lite 版 APK](https://fortivavpn.com/apk/lite) 体积更小，适用于 32 位手机，也能在大多数 64 位手机上运行。
 - **Windows 10 和 11：** [直接下载](https://fortivavpn.com/windows)安装程序，或在本仓库的 [Releases](https://github.com/SynAdam/fortivavpn/releases) 页面下载。安装程序没有数字签名，因此 Windows 可能会在运行前发出警告，此时请点击 More info，再点击 Run anyway。
+- **浏览器扩展：** Chrome、Brave 和 Opera 请使用 [Chrome Web Store](https://chromewebstore.google.com/detail/opmbgchifnghmfdacglecdagbflbcdha)，Firefox 请使用 [Firefox Add-ons](https://addons.mozilla.org/firefox/addon/fortiva-vpn/)。只有浏览器经过 Fortiva，电脑上的其他应用照常使用您的网络。
 - **Google Play：** [Fortiva VPN](https://play.google.com/store/apps/details?id=com.vpn.fortivavpn&hl=zh-CN&referrer=utm_source%3Dgithub)
 - **网站：** [fortivavpn.com/zh-hans/](https://fortivavpn.com/zh-hans/)
 - **Telegram：** 新闻和新版本会发布在我们的中文频道 [t.me/fortivavpn_zh](https://t.me/fortivavpn_zh)。

@@ -9,6 +9,8 @@
 <p align="center">
   <a href="https://play.google.com/store/apps/details?id=com.vpn.fortivavpn&amp;hl=hi&amp;referrer=utm_source%3Dgithub"><img src="https://img.shields.io/badge/Google%20Play-install-C8452B?style=flat-square&amp;labelColor=0E1318" alt="Google Play"></a>
   <a href="https://fortivavpn.com/apk"><img src="https://img.shields.io/badge/APK-download-C8452B?style=flat-square&amp;labelColor=0E1318" alt="APK डाउनलोड करें"></a>
+  <a href="https://chromewebstore.google.com/detail/opmbgchifnghmfdacglecdagbflbcdha"><img src="https://img.shields.io/badge/Chrome%20Web%20Store-add-C8452B?style=flat-square&amp;labelColor=0E1318" alt="Chrome Web Store"></a>
+  <a href="https://addons.mozilla.org/firefox/addon/fortiva-vpn/"><img src="https://img.shields.io/badge/Firefox%20Add--ons-add-C8452B?style=flat-square&amp;labelColor=0E1318" alt="Firefox Add-ons"></a>
   <a href="https://t.me/fortivavpn_hi"><img src="https://img.shields.io/badge/Telegram-fortivavpn__hi-C8452B?style=flat-square&amp;labelColor=0E1318" alt="Telegram चैनल"></a>
   <a href="https://github.com/SynAdam/fortivavpn/tags"><img src="https://img.shields.io/github/v/tag/SynAdam/fortivavpn?sort=semver&amp;label=release&amp;color=C8452B&amp;style=flat-square&amp;labelColor=0E1318" alt="नवीनतम रिलीज़"></a>
   <a href="../LICENSE"><img src="https://img.shields.io/badge/licence-GPL--3.0-C8452B?style=flat-square&amp;labelColor=0E1318" alt="लाइसेंस: GPL-3.0"></a>
@@ -29,6 +31,7 @@ Fortiva उन नेटवर्क के लिए बना है जहा
 
 - **APK (फ़ोन और Android TV के लिए):** [सीधे डाउनलोड करें](https://fortivavpn.com/apk), या इस रिपॉज़िटरी के [Releases](https://github.com/SynAdam/fortivavpn/releases/latest) पेज से लें। [Lite APK](https://fortivavpn.com/apk/lite) का डाउनलोड छोटा है। यह 32-bit फ़ोन के लिए है और ज़्यादातर 64-bit फ़ोन पर भी चलता है।
 - **Windows 10 और 11:** [इंस्टॉलर सीधे डाउनलोड करें](https://fortivavpn.com/windows), या इस रिपॉज़िटरी के [Releases](https://github.com/SynAdam/fortivavpn/releases) पेज से लें। इंस्टॉलर साइन नहीं किया गया है, इसलिए चलने से पहले Windows चेतावनी दिखा सकता है। ऐसा हो तो More info चुनें, फिर Run anyway चुनें।
+- **ब्राउज़र एक्सटेंशन:** Chrome, Brave और Opera के लिए [Chrome Web Store](https://chromewebstore.google.com/detail/opmbgchifnghmfdacglecdagbflbcdha), Firefox के लिए [Firefox Add-ons](https://addons.mozilla.org/firefox/addon/fortiva-vpn/)। सिर्फ़ ब्राउज़र Fortiva से होकर चलता है, कंप्यूटर के बाकी ऐप आपका सामान्य इंटरनेट इस्तेमाल करते हैं।
 - **Google Play:** [Fortiva VPN](https://play.google.com/store/apps/details?id=com.vpn.fortivavpn&hl=hi&referrer=utm_source%3Dgithub)
 - **वेबसाइट:** [fortivavpn.com/hi/](https://fortivavpn.com/hi/)
 - **Telegram:** ख़बरें और नए वर्शन हमारे हिन्दी चैनल पर पोस्ट होते हैं, [t.me/fortivavpn_hi](https://t.me/fortivavpn_hi)।

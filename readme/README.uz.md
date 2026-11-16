@@ -9,6 +9,8 @@
 <p align="center">
   <a href="https://play.google.com/store/apps/details?id=com.vpn.fortivavpn&amp;hl=uz&amp;referrer=utm_source%3Dgithub"><img src="https://img.shields.io/badge/Google%20Play-install-C8452B?style=flat-square&amp;labelColor=0E1318" alt="Google Play"></a>
   <a href="https://fortivavpn.com/apk"><img src="https://img.shields.io/badge/APK-download-C8452B?style=flat-square&amp;labelColor=0E1318" alt="APK faylini yuklab olish"></a>
+  <a href="https://chromewebstore.google.com/detail/opmbgchifnghmfdacglecdagbflbcdha"><img src="https://img.shields.io/badge/Chrome%20Web%20Store-add-C8452B?style=flat-square&amp;labelColor=0E1318" alt="Chrome Web Store"></a>
+  <a href="https://addons.mozilla.org/firefox/addon/fortiva-vpn/"><img src="https://img.shields.io/badge/Firefox%20Add--ons-add-C8452B?style=flat-square&amp;labelColor=0E1318" alt="Firefox Add-ons"></a>
   <a href="https://t.me/fortivavpn_uz"><img src="https://img.shields.io/badge/Telegram-fortivavpn__uz-C8452B?style=flat-square&amp;labelColor=0E1318" alt="Telegram kanali"></a>
   <a href="https://github.com/SynAdam/fortivavpn/tags"><img src="https://img.shields.io/github/v/tag/SynAdam/fortivavpn?sort=semver&amp;label=release&amp;color=C8452B&amp;style=flat-square&amp;labelColor=0E1318" alt="Eng soʻnggi reliz"></a>
   <a href="../LICENSE"><img src="https://img.shields.io/badge/licence-GPL--3.0-C8452B?style=flat-square&amp;labelColor=0E1318" alt="Litsenziya: GPL-3.0"></a>
@@ -29,6 +31,7 @@ Ilova 18 tilda mavjud, jumladan oʻzbek tilida.
 
 - **APK (telefonlar va Android TV uchun):** [toʻgʻridan-toʻgʻri yuklab oling](https://fortivavpn.com/apk) yoki bu repozitoriyning [Releases](https://github.com/SynAdam/fortivavpn/releases/latest) sahifasidan oling. [Lite APK](https://fortivavpn.com/apk/lite) hajmi kichikroq, u 32-bitli telefonlar uchun moʻljallangan va koʻpchilik 64-bitli telefonlarda ham ishlaydi.
 - **Windows 10 va 11:** [oʻrnatish faylini toʻgʻridan-toʻgʻri yuklab oling](https://fortivavpn.com/windows) yoki bu repozitoriyning [Releases](https://github.com/SynAdam/fortivavpn/releases) sahifasidan oling. Oʻrnatish fayli imzolanmagan, shuning uchun Windows uni ishga tushirishdan oldin ogohlantirishi mumkin: avval «More info»ni, keyin «Run anyway»ni tanlang.
+- **Brauzer kengaytmasi:** Chrome, Brave va Opera uchun [Chrome Web Store](https://chromewebstore.google.com/detail/opmbgchifnghmfdacglecdagbflbcdha), Firefox uchun [Firefox Add-ons](https://addons.mozilla.org/firefox/addon/fortiva-vpn/). Fortiva orqali faqat brauzer ishlaydi, kompyuterdagi boshqa ilovalar oddiy internetdan foydalanadi.
 - **Google Play:** [Fortiva VPN](https://play.google.com/store/apps/details?id=com.vpn.fortivavpn&hl=uz&referrer=utm_source%3Dgithub)
 - **Veb-sayt:** [fortivavpn.com/uz/](https://fortivavpn.com/uz/)
 - **Telegram:** yangiliklar va yangi versiyalar oʻzbek tilidagi kanalimizda eʼlon qilinadi: [t.me/fortivavpn_uz](https://t.me/fortivavpn_uz).

@@ -5,7 +5,7 @@
 <p align="center">
   <a href="https://github.com/SynAdam/fortivavpn/tags"><img alt="Latest release" src="https://img.shields.io/github/v/tag/SynAdam/fortivavpn?sort=semver&style=flat-square&label=release&labelColor=1B2127&color=6CD5B3"></a>
   <a href="LICENSING.md"><img alt="Licence: GPL-3.0" src="https://img.shields.io/badge/licence-GPL--3.0-C8452B?style=flat-square&labelColor=1B2127"></a>
-  <img alt="Platforms: Android, Android TV, iOS and Windows" src="https://img.shields.io/badge/platforms-Android%20%7C%20Android%20TV%20%7C%20iOS%20%7C%20Windows-30363C?style=flat-square&labelColor=1B2127">
+  <img alt="Platforms: Android, Android TV, iOS, Windows, Chrome and Firefox" src="https://img.shields.io/badge/platforms-Android%20%7C%20Android%20TV%20%7C%20iOS%20%7C%20Windows%20%7C%20Chrome%20%7C%20Firefox-30363C?style=flat-square&labelColor=1B2127">
   <img alt="Built with Flutter" src="https://img.shields.io/badge/Flutter-3.38-02569B?style=flat-square&logo=flutter&logoColor=white&labelColor=1B2127">
   <img alt="18 languages" src="https://img.shields.io/badge/languages-18-30363C?style=flat-square&labelColor=1B2127">
 </p>
@@ -15,6 +15,8 @@
 <p align="center">
   <a href="https://play.google.com/store/apps/details?id=com.vpn.fortivavpn&amp;referrer=utm_source%3Dgithub"><img alt="Get it on Google Play" src="https://img.shields.io/badge/Get_it_on_Google_Play-C8452B?style=for-the-badge&logo=googleplay&logoColor=white"></a>
   <a href="https://fortivavpn.com/apk"><img alt="Download the APK" src="https://img.shields.io/badge/Download_the_APK-1B2127?style=for-the-badge&logo=android&logoColor=6CD5B3"></a>
+  <a href="https://chromewebstore.google.com/detail/opmbgchifnghmfdacglecdagbflbcdha"><img alt="Chrome Web Store" src="https://img.shields.io/badge/Chrome_Web_Store-1B2127?style=for-the-badge&logo=googlechrome&logoColor=white"></a>
+  <a href="https://addons.mozilla.org/firefox/addon/fortiva-vpn/"><img alt="Firefox Add-ons" src="https://img.shields.io/badge/Firefox_Add--ons-1B2127?style=for-the-badge&logo=firefoxbrowser&logoColor=white"></a>
   <a href="https://t.me/fortivavpn"><img alt="Telegram channel" src="https://img.shields.io/badge/Telegram-1B2127?style=for-the-badge&logo=telegram&logoColor=white"></a>
 </p>
 
@@ -95,6 +97,7 @@ links at the top.
 | **Android TV** | The same app and APK as on phones | [`android/`](android/) |
 | **iOS** | Build it from source | [`ios/`](ios/) |
 | **Windows** 10 and 11 | The installer from [fortivavpn.com/windows](https://fortivavpn.com/windows) or from this repository's [Releases](https://github.com/SynAdam/fortivavpn/releases). It is not signed, so Windows may warn before it runs: choose More info, then Run anyway. | [`windows/`](windows/) |
+| **Browsers**: Chrome, Brave, Opera and Firefox | The extension from the [Chrome Web Store](https://chromewebstore.google.com/detail/opmbgchifnghmfdacglecdagbflbcdha) for Chrome, Brave and Opera, or from [Firefox Add-ons](https://addons.mozilla.org/firefox/addon/fortiva-vpn/). Only the browser goes through Fortiva: other apps on the computer use your normal internet. | [`browser/`](browser/) |
 
 New versions are announced on Telegram, in [English](https://t.me/fortivavpn), [Arabic](https://t.me/fortivavpn_ar), [Chinese](https://t.me/fortivavpn_zh), [Hindi](https://t.me/fortivavpn_hi), [Indonesian](https://t.me/fortivavpn_id), [Persian](https://t.me/fortiva_vpn), [Portuguese](https://t.me/fortivavpn_pt), [Russian](https://t.me/fortivavpn_ru), [Spanish](https://t.me/fortivavpn_es), [Turkish](https://t.me/fortivavpn_tr), [Ukrainian](https://t.me/fortivavpn_ua), [Urdu](https://t.me/fortivavpn_ur), [Uzbek](https://t.me/fortivavpn_uz) and [Vietnamese](https://t.me/fortivavpn_vi). Before you install an APK
 from anywhere else, [check that it is ours](#check-a-download).

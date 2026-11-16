@@ -9,6 +9,8 @@
 <p align="center">
   <a href="https://play.google.com/store/apps/details?id=com.vpn.fortivavpn&amp;hl=vi&amp;referrer=utm_source%3Dgithub"><img src="https://img.shields.io/badge/Google%20Play-install-C8452B?style=flat-square&amp;labelColor=0E1318" alt="Google Play"></a>
   <a href="https://fortivavpn.com/apk"><img src="https://img.shields.io/badge/APK-download-C8452B?style=flat-square&amp;labelColor=0E1318" alt="Tải APK"></a>
+  <a href="https://chromewebstore.google.com/detail/opmbgchifnghmfdacglecdagbflbcdha"><img src="https://img.shields.io/badge/Chrome%20Web%20Store-add-C8452B?style=flat-square&amp;labelColor=0E1318" alt="Chrome Web Store"></a>
+  <a href="https://addons.mozilla.org/firefox/addon/fortiva-vpn/"><img src="https://img.shields.io/badge/Firefox%20Add--ons-add-C8452B?style=flat-square&amp;labelColor=0E1318" alt="Firefox Add-ons"></a>
   <a href="https://t.me/fortivavpn_vi"><img src="https://img.shields.io/badge/Telegram-fortivavpn__vi-C8452B?style=flat-square&amp;labelColor=0E1318" alt="Kênh Telegram"></a>
   <a href="https://github.com/SynAdam/fortivavpn/tags"><img src="https://img.shields.io/github/v/tag/SynAdam/fortivavpn?sort=semver&amp;label=release&amp;color=C8452B&amp;style=flat-square&amp;labelColor=0E1318" alt="Bản phát hành mới nhất"></a>
   <a href="../LICENSE"><img src="https://img.shields.io/badge/licence-GPL--3.0-C8452B?style=flat-square&amp;labelColor=0E1318" alt="Giấy phép: GPL-3.0"></a>
@@ -29,6 +31,7 @@ Fortiva được xây dựng cho những mạng mà các VPN thông thường kh
 
 - **APK (cho điện thoại và Android TV):** [tải trực tiếp](https://fortivavpn.com/apk), hoặc từ trang [Releases](https://github.com/SynAdam/fortivavpn/releases/latest) của kho mã nguồn này. [APK Lite](https://fortivavpn.com/apk/lite) là bản có dung lượng nhỏ hơn dành cho điện thoại 32-bit, và cũng chạy được trên hầu hết điện thoại 64-bit.
 - **Windows 10 và 11:** [tải trực tiếp trình cài đặt](https://fortivavpn.com/windows), hoặc từ trang [Releases](https://github.com/SynAdam/fortivavpn/releases) của kho mã nguồn này. Trình cài đặt chưa được ký số, nên Windows có thể cảnh báo trước khi chạy: hãy chọn More info, rồi chọn Run anyway.
+- **Tiện ích mở rộng cho trình duyệt:** [Chrome Web Store](https://chromewebstore.google.com/detail/opmbgchifnghmfdacglecdagbflbcdha) cho Chrome, Brave và Opera, [Firefox Add-ons](https://addons.mozilla.org/firefox/addon/fortiva-vpn/) cho Firefox. Chỉ trình duyệt đi qua Fortiva, các ứng dụng khác trên máy tính vẫn dùng mạng bình thường.
 - **Google Play:** [Fortiva VPN](https://play.google.com/store/apps/details?id=com.vpn.fortivavpn&hl=vi&referrer=utm_source%3Dgithub)
 - **Trang web:** [fortivavpn.com/vi/](https://fortivavpn.com/vi/)
 - **Telegram:** tin tức và phiên bản mới được đăng trên kênh tiếng Việt của chúng tôi, [t.me/fortivavpn_vi](https://t.me/fortivavpn_vi).

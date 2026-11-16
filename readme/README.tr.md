@@ -9,6 +9,8 @@
 <p align="center">
   <a href="https://play.google.com/store/apps/details?id=com.vpn.fortivavpn&amp;hl=tr&amp;referrer=utm_source%3Dgithub"><img src="https://img.shields.io/badge/Google%20Play-install-C8452B?style=flat-square&amp;labelColor=0E1318" alt="Google Play"></a>
   <a href="https://fortivavpn.com/apk"><img src="https://img.shields.io/badge/APK-download-C8452B?style=flat-square&amp;labelColor=0E1318" alt="APK'yı indirin"></a>
+  <a href="https://chromewebstore.google.com/detail/opmbgchifnghmfdacglecdagbflbcdha"><img src="https://img.shields.io/badge/Chrome%20Web%20Store-add-C8452B?style=flat-square&amp;labelColor=0E1318" alt="Chrome Web Store"></a>
+  <a href="https://addons.mozilla.org/firefox/addon/fortiva-vpn/"><img src="https://img.shields.io/badge/Firefox%20Add--ons-add-C8452B?style=flat-square&amp;labelColor=0E1318" alt="Firefox Add-ons"></a>
   <a href="https://t.me/fortivavpn_tr"><img src="https://img.shields.io/badge/Telegram-fortivavpn__tr-C8452B?style=flat-square&amp;labelColor=0E1318" alt="Telegram kanalı"></a>
   <a href="https://github.com/SynAdam/fortivavpn/tags"><img src="https://img.shields.io/github/v/tag/SynAdam/fortivavpn?sort=semver&amp;label=release&amp;color=C8452B&amp;style=flat-square&amp;labelColor=0E1318" alt="Son sürüm"></a>
   <a href="../LICENSE"><img src="https://img.shields.io/badge/licence-GPL--3.0-C8452B?style=flat-square&amp;labelColor=0E1318" alt="Lisans: GPL-3.0"></a>
@@ -29,6 +31,7 @@ Uygulama, Türkçe dahil 18 dilde kullanılabilir.
 
 - **APK (telefonlar ve Android TV için):** [doğrudan indirin](https://fortivavpn.com/apk) ya da bu deponun [Releases](https://github.com/SynAdam/fortivavpn/releases/latest) sayfasından alın. [Lite APK](https://fortivavpn.com/apk/lite), 32 bit telefonlar için daha küçük bir dosyadır ve çoğu 64 bit telefonda da çalışır.
 - **Windows 10 ve 11:** [yükleyiciyi doğrudan indirin](https://fortivavpn.com/windows) ya da bu deponun [Releases](https://github.com/SynAdam/fortivavpn/releases) sayfasından alın. Yükleyici imzalı değildir, bu yüzden Windows çalıştırmadan önce uyarı verebilir: More info'ya, ardından Run anyway'e tıklayın.
+- **Tarayıcı uzantısı:** Chrome, Brave ve Opera için [Chrome Web Store](https://chromewebstore.google.com/detail/opmbgchifnghmfdacglecdagbflbcdha), Firefox için [Firefox Add-ons](https://addons.mozilla.org/firefox/addon/fortiva-vpn/). Fortiva üzerinden yalnızca tarayıcı geçer, bilgisayardaki diğer uygulamalar normal internetinizi kullanır.
 - **Google Play:** [Fortiva VPN](https://play.google.com/store/apps/details?id=com.vpn.fortivavpn&hl=tr&referrer=utm_source%3Dgithub)
 - **Web sitesi:** [fortivavpn.com/tr/](https://fortivavpn.com/tr/)
 - **Telegram:** haberler ve yeni sürümler Türkçe kanalımızda paylaşılır: [t.me/fortivavpn_tr](https://t.me/fortivavpn_tr).

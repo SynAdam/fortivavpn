@@ -9,6 +9,8 @@
 <p align="center">
   <a href="https://play.google.com/store/apps/details?id=com.vpn.fortivavpn&amp;hl=ru&amp;referrer=utm_source%3Dgithub"><img src="https://img.shields.io/badge/Google%20Play-install-C8452B?style=flat-square&amp;labelColor=0E1318" alt="Google Play"></a>
   <a href="https://fortivavpn.com/apk"><img src="https://img.shields.io/badge/APK-download-C8452B?style=flat-square&amp;labelColor=0E1318" alt="Скачать APK"></a>
+  <a href="https://chromewebstore.google.com/detail/opmbgchifnghmfdacglecdagbflbcdha"><img src="https://img.shields.io/badge/Chrome%20Web%20Store-add-C8452B?style=flat-square&amp;labelColor=0E1318" alt="Chrome Web Store"></a>
+  <a href="https://addons.mozilla.org/firefox/addon/fortiva-vpn/"><img src="https://img.shields.io/badge/Firefox%20Add--ons-add-C8452B?style=flat-square&amp;labelColor=0E1318" alt="Firefox Add-ons"></a>
   <a href="https://t.me/fortivavpn_ru"><img src="https://img.shields.io/badge/Telegram-fortivavpn__ru-C8452B?style=flat-square&amp;labelColor=0E1318" alt="Канал в Telegram"></a>
   <a href="https://github.com/SynAdam/fortivavpn/tags"><img src="https://img.shields.io/github/v/tag/SynAdam/fortivavpn?sort=semver&amp;label=release&amp;color=C8452B&amp;style=flat-square&amp;labelColor=0E1318" alt="Последняя версия"></a>
   <a href="../LICENSE"><img src="https://img.shields.io/badge/licence-GPL--3.0-C8452B?style=flat-square&amp;labelColor=0E1318" alt="Лицензия: GPL-3.0"></a>
@@ -29,6 +31,7 @@ Fortiva создан для сетей, в которых обычные VPN н�
 
 - **APK (для телефонов и Android TV):** [скачайте напрямую](https://fortivavpn.com/apk) или со страницы [Releases](https://github.com/SynAdam/fortivavpn/releases/latest) этого репозитория. [APK Lite](https://fortivavpn.com/apk/lite) меньше по размеру. Он рассчитан на 32-битные телефоны и работает также на большинстве 64-битных.
 - **Windows 10 и 11:** [скачайте установщик напрямую](https://fortivavpn.com/windows) или со страницы [Releases](https://github.com/SynAdam/fortivavpn/releases) этого репозитория. Установщик не подписан, поэтому перед запуском Windows может показать предупреждение: выберите More info, затем Run anyway.
+- **Расширение для браузера:** [Chrome Web Store](https://chromewebstore.google.com/detail/opmbgchifnghmfdacglecdagbflbcdha) для Chrome, Brave и Opera и [Firefox Add-ons](https://addons.mozilla.org/firefox/addon/fortiva-vpn/) для Firefox. Через Fortiva идёт только браузер, остальные приложения на компьютере используют обычный интернет.
 - **Google Play:** [Fortiva VPN](https://play.google.com/store/apps/details?id=com.vpn.fortivavpn&hl=ru&referrer=utm_source%3Dgithub)
 - **Сайт:** [fortivavpn.com/ru/](https://fortivavpn.com/ru/)
 - **Telegram:** новости и новые версии публикуются в нашем русскоязычном канале, [t.me/fortivavpn_ru](https://t.me/fortivavpn_ru).

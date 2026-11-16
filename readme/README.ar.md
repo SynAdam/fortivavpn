@@ -9,6 +9,8 @@
 <p align="center">
   <a href="https://play.google.com/store/apps/details?id=com.vpn.fortivavpn&amp;hl=ar&amp;referrer=utm_source%3Dgithub"><img src="https://img.shields.io/badge/Google%20Play-install-C8452B?style=flat-square&amp;labelColor=0E1318" alt="Google Play"></a>
   <a href="https://fortivavpn.com/apk"><img src="https://img.shields.io/badge/APK-download-C8452B?style=flat-square&amp;labelColor=0E1318" alt="تنزيل ملف APK"></a>
+  <a href="https://chromewebstore.google.com/detail/opmbgchifnghmfdacglecdagbflbcdha"><img src="https://img.shields.io/badge/Chrome%20Web%20Store-add-C8452B?style=flat-square&amp;labelColor=0E1318" alt="Chrome Web Store"></a>
+  <a href="https://addons.mozilla.org/firefox/addon/fortiva-vpn/"><img src="https://img.shields.io/badge/Firefox%20Add--ons-add-C8452B?style=flat-square&amp;labelColor=0E1318" alt="Firefox Add-ons"></a>
   <a href="https://t.me/fortivavpn_ar"><img src="https://img.shields.io/badge/Telegram-fortivavpn__ar-C8452B?style=flat-square&amp;labelColor=0E1318" alt="قناة Telegram"></a>
   <a href="https://github.com/SynAdam/fortivavpn/tags"><img src="https://img.shields.io/github/v/tag/SynAdam/fortivavpn?sort=semver&amp;label=release&amp;color=C8452B&amp;style=flat-square&amp;labelColor=0E1318" alt="أحدث إصدار"></a>
   <a href="../LICENSE"><img src="https://img.shields.io/badge/licence-GPL--3.0-C8452B?style=flat-square&amp;labelColor=0E1318" alt="الرخصة: GPL-3.0"></a>
@@ -31,6 +33,7 @@ Fortiva VPN تطبيق VPN مجاني لهواتف Android وأجهزة Android 
 
 - **ملف APK (للهواتف و Android TV):** [نزّله مباشرة](https://fortivavpn.com/apk)، أو من صفحة [Releases](https://github.com/SynAdam/fortivavpn/releases/latest) في هذا المستودع. ملف [APK Lite](https://fortivavpn.com/apk/lite) أصغر حجمًا، وهو للهواتف ذات 32 بت ويعمل أيضًا على معظم هواتف 64 بت.
 - **Windows 10 و 11:** [نزّل ملف التثبيت مباشرة](https://fortivavpn.com/windows)، أو من صفحة [Releases](https://github.com/SynAdam/fortivavpn/releases) في هذا المستودع. ملف التثبيت غير موقّع رقميًا، لذلك قد يعرض Windows تحذيرًا قبل تشغيله. عندها اختر More info ثم Run anyway.
+- **إضافة المتصفح:** [Chrome Web Store](https://chromewebstore.google.com/detail/opmbgchifnghmfdacglecdagbflbcdha) لمتصفحات Chrome وBrave وOpera، و[Firefox Add-ons](https://addons.mozilla.org/firefox/addon/fortiva-vpn/) لمتصفح Firefox. يمر المتصفح وحده عبر Fortiva، وتستخدم التطبيقات الأخرى على الكمبيوتر الإنترنت العادي.
 - **Google Play:** [Fortiva VPN](https://play.google.com/store/apps/details?id=com.vpn.fortivavpn&hl=ar&referrer=utm_source%3Dgithub)
 - **الموقع الإلكتروني:** [fortivavpn.com/ar-ae/](https://fortivavpn.com/ar-ae/)
 - **Telegram:** ننشر الأخبار والإصدارات الجديدة في قناتنا باللغة العربية، [t.me/fortivavpn_ar](https://t.me/fortivavpn_ar).

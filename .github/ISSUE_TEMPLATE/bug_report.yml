@@ -31,6 +31,8 @@ body:
         - Website
         - Telegram
         - GitHub Releases
+        - Chrome Web Store
+        - Firefox Add-ons
     validations:
       required: true
   - type: dropdown
@@ -42,12 +44,14 @@ body:
         - Android TV
         - iPhone or iPad
         - Windows
+        - Browser extension
     validations:
       required: true
   - type: input
     id: device
     attributes:
       label: Device and system version
+      description: For the browser extension, the browser and its version.
       placeholder: Samsung A54, Android 14
   - type: input
     id: network

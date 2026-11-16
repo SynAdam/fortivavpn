@@ -9,6 +9,8 @@
 <p align="center">
   <a href="https://play.google.com/store/apps/details?id=com.vpn.fortivavpn&amp;hl=fa&amp;referrer=utm_source%3Dgithub"><img src="https://img.shields.io/badge/Google%20Play-install-C8452B?style=flat-square&amp;labelColor=0E1318" alt="گوگل پلی"></a>
   <a href="https://fortivavpn.com/apk"><img src="https://img.shields.io/badge/APK-download-C8452B?style=flat-square&amp;labelColor=0E1318" alt="دانلود فایل APK"></a>
+  <a href="https://chromewebstore.google.com/detail/opmbgchifnghmfdacglecdagbflbcdha"><img src="https://img.shields.io/badge/Chrome%20Web%20Store-add-C8452B?style=flat-square&amp;labelColor=0E1318" alt="Chrome Web Store"></a>
+  <a href="https://addons.mozilla.org/firefox/addon/fortiva-vpn/"><img src="https://img.shields.io/badge/Firefox%20Add--ons-add-C8452B?style=flat-square&amp;labelColor=0E1318" alt="Firefox Add-ons"></a>
   <a href="https://t.me/fortiva_vpn"><img src="https://img.shields.io/badge/Telegram-fortiva__vpn-C8452B?style=flat-square&amp;labelColor=0E1318" alt="کانال تلگرام"></a>
   <a href="https://github.com/SynAdam/fortivavpn/tags"><img src="https://img.shields.io/github/v/tag/SynAdam/fortivavpn?sort=semver&amp;label=release&amp;color=C8452B&amp;style=flat-square&amp;labelColor=0E1318" alt="آخرین نسخه"></a>
   <a href="../LICENSE"><img src="https://img.shields.io/badge/licence-GPL--3.0-C8452B?style=flat-square&amp;labelColor=0E1318" alt="مجوز: GPL-3.0"></a>
@@ -31,6 +33,7 @@
 
 - **فایل APK، برای گوشی و اندروید TV:** با [لینک مستقیم دانلود](https://fortivavpn.com/apk)، یا از بخش [Releases](https://github.com/SynAdam/fortivavpn/releases/latest) همین مخزن. [فایل APK سبک](https://fortivavpn.com/apk/lite) حجم کمتری دارد و برای گوشی‌های ۳۲ بیتی است. روی بیشتر گوشی‌های ۶۴ بیتی هم اجرا می‌شود.
 - **ویندوز ۱۰ و ۱۱:** فایل نصب با [لینک مستقیم دانلود](https://fortivavpn.com/windows)، یا از بخش [Releases](https://github.com/SynAdam/fortivavpn/releases) همین مخزن. فایل نصب امضای دیجیتال ندارد، پس ویندوز شاید پیش از اجرا هشدار بدهد. در این حالت More info و بعد Run anyway را بزنید.
+- **افزونه‌ی مرورگر:** [Chrome Web Store](https://chromewebstore.google.com/detail/opmbgchifnghmfdacglecdagbflbcdha) برای کروم، بریو و اپرا، و [Firefox Add-ons](https://addons.mozilla.org/firefox/addon/fortiva-vpn/) برای فایرفاکس. فقط مرورگر از فورتیوا می‌گذرد و برنامه‌های دیگر کامپیوتر از اینترنت عادی استفاده می‌کنند.
 - **گوگل پلی:** [فورتیوا VPN](https://play.google.com/store/apps/details?id=com.vpn.fortivavpn&hl=fa&referrer=utm_source%3Dgithub)
 - **سایت:** [fortivavpn.com/fa/](https://fortivavpn.com/fa/)
 - **تلگرام:** خبرها و نسخه‌های تازه در کانال فارسی ما، [t.me/fortiva_vpn](https://t.me/fortiva_vpn)، منتشر می‌شوند.

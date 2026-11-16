@@ -9,6 +9,8 @@
 <p align="center">
   <a href="https://play.google.com/store/apps/details?id=com.vpn.fortivavpn&amp;hl=uk&amp;referrer=utm_source%3Dgithub"><img src="https://img.shields.io/badge/Google%20Play-install-C8452B?style=flat-square&amp;labelColor=0E1318" alt="Google Play"></a>
   <a href="https://fortivavpn.com/apk"><img src="https://img.shields.io/badge/APK-download-C8452B?style=flat-square&amp;labelColor=0E1318" alt="Завантажити APK"></a>
+  <a href="https://chromewebstore.google.com/detail/opmbgchifnghmfdacglecdagbflbcdha"><img src="https://img.shields.io/badge/Chrome%20Web%20Store-add-C8452B?style=flat-square&amp;labelColor=0E1318" alt="Chrome Web Store"></a>
+  <a href="https://addons.mozilla.org/firefox/addon/fortiva-vpn/"><img src="https://img.shields.io/badge/Firefox%20Add--ons-add-C8452B?style=flat-square&amp;labelColor=0E1318" alt="Firefox Add-ons"></a>
   <a href="https://t.me/fortivavpn_ua"><img src="https://img.shields.io/badge/Telegram-fortivavpn__ua-C8452B?style=flat-square&amp;labelColor=0E1318" alt="Канал у Telegram"></a>
   <a href="https://github.com/SynAdam/fortivavpn/tags"><img src="https://img.shields.io/github/v/tag/SynAdam/fortivavpn?sort=semver&amp;label=release&amp;color=C8452B&amp;style=flat-square&amp;labelColor=0E1318" alt="Останній реліз"></a>
   <a href="../LICENSE"><img src="https://img.shields.io/badge/licence-GPL--3.0-C8452B?style=flat-square&amp;labelColor=0E1318" alt="Ліцензія: GPL-3.0"></a>
@@ -29,6 +31,7 @@ Fortiva створено для мереж, де звичайні VPN не мо�
 
 - **APK (для телефонів та Android TV):** [завантажте напряму](https://fortivavpn.com/apk) або зі сторінки [Releases](https://github.com/SynAdam/fortivavpn/releases/latest) цього репозиторію. [Lite APK](https://fortivavpn.com/apk/lite) менший за розміром. Він призначений для 32-бітних телефонів, але працює й на більшості 64-бітних.
 - **Windows 10 і 11:** [завантажте інсталятор напряму](https://fortivavpn.com/windows) або зі сторінки [Releases](https://github.com/SynAdam/fortivavpn/releases) цього репозиторію. Інсталятор не підписаний, тому Windows може показати попередження перед запуском: виберіть More info, а потім Run anyway.
+- **Розширення для браузера:** [Chrome Web Store](https://chromewebstore.google.com/detail/opmbgchifnghmfdacglecdagbflbcdha) для Chrome, Brave і Opera та [Firefox Add-ons](https://addons.mozilla.org/firefox/addon/fortiva-vpn/) для Firefox. Через Fortiva йде лише браузер, інші застосунки користуються звичайним інтернетом.
 - **Google Play:** [Fortiva VPN](https://play.google.com/store/apps/details?id=com.vpn.fortivavpn&hl=uk&referrer=utm_source%3Dgithub)
 - **Вебсайт:** [fortivavpn.com/uk/](https://fortivavpn.com/uk/)
 - **Telegram:** новини та нові версії публікуються в нашому українському каналі, [t.me/fortivavpn_ua](https://t.me/fortivavpn_ua).

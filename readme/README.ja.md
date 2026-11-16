@@ -9,6 +9,8 @@
 <p align="center">
   <a href="https://play.google.com/store/apps/details?id=com.vpn.fortivavpn&amp;hl=ja&amp;referrer=utm_source%3Dgithub"><img src="https://img.shields.io/badge/Google%20Play-install-C8452B?style=flat-square&amp;labelColor=0E1318" alt="Google Play"></a>
   <a href="https://fortivavpn.com/apk"><img src="https://img.shields.io/badge/APK-download-C8452B?style=flat-square&amp;labelColor=0E1318" alt="APK をダウンロード"></a>
+  <a href="https://chromewebstore.google.com/detail/opmbgchifnghmfdacglecdagbflbcdha"><img src="https://img.shields.io/badge/Chrome%20Web%20Store-add-C8452B?style=flat-square&amp;labelColor=0E1318" alt="Chrome Web Store"></a>
+  <a href="https://addons.mozilla.org/firefox/addon/fortiva-vpn/"><img src="https://img.shields.io/badge/Firefox%20Add--ons-add-C8452B?style=flat-square&amp;labelColor=0E1318" alt="Firefox Add-ons"></a>
   <a href="https://t.me/fortivavpn"><img src="https://img.shields.io/badge/Telegram-fortivavpn-C8452B?style=flat-square&amp;labelColor=0E1318" alt="Telegram チャンネル"></a>
   <a href="https://github.com/SynAdam/fortivavpn/tags"><img src="https://img.shields.io/github/v/tag/SynAdam/fortivavpn?sort=semver&amp;label=release&amp;color=C8452B&amp;style=flat-square&amp;labelColor=0E1318" alt="最新リリース"></a>
   <a href="../LICENSE"><img src="https://img.shields.io/badge/licence-GPL--3.0-C8452B?style=flat-square&amp;labelColor=0E1318" alt="ライセンス：GPL-3.0"></a>
@@ -29,6 +31,7 @@ Fortiva は、一般的な VPN がつながらないネットワーク向けに�
 
 - **APK（スマホと Android TV 用）：** [直接ダウンロード](https://fortivavpn.com/apk)するか、このリポジトリの [Releases](https://github.com/SynAdam/fortivavpn/releases/latest) ページから入手してください。[Lite 版 APK](https://fortivavpn.com/apk/lite) はファイルサイズが小さく、32 ビットのスマホ向けです。ほとんどの 64 ビットのスマホでも動作します。
 - **Windows 10 と 11：** [インストーラーを直接ダウンロード](https://fortivavpn.com/windows)するか、このリポジトリの [Releases](https://github.com/SynAdam/fortivavpn/releases) ページから入手してください。インストーラーには署名がないため、実行前に Windows が警告を表示することがあります。その場合は More info を選び、続けて Run anyway を選んでください。
+- **ブラウザ拡張機能：** Chrome、Brave、Opera は [Chrome Web Store](https://chromewebstore.google.com/detail/opmbgchifnghmfdacglecdagbflbcdha)、Firefox は [Firefox Add-ons](https://addons.mozilla.org/firefox/addon/fortiva-vpn/)。Fortiva を通るのはブラウザだけで、パソコンのほかのアプリは通常のインターネットを使います。
 - **Google Play：** [Fortiva VPN](https://play.google.com/store/apps/details?id=com.vpn.fortivavpn&hl=ja&referrer=utm_source%3Dgithub)
 - **ウェブサイト：** [fortivavpn.com](https://fortivavpn.com)
 - **Telegram：** お知らせと新しいバージョンは、Fortiva の英語チャンネル [t.me/fortivavpn](https://t.me/fortivavpn) で公開しています。

@@ -9,6 +9,8 @@
 <p align="center">
   <a href="https://play.google.com/store/apps/details?id=com.vpn.fortivavpn&amp;hl=es&amp;referrer=utm_source%3Dgithub"><img src="https://img.shields.io/badge/Google%20Play-install-C8452B?style=flat-square&amp;labelColor=0E1318" alt="Google Play"></a>
   <a href="https://fortivavpn.com/apk"><img src="https://img.shields.io/badge/APK-download-C8452B?style=flat-square&amp;labelColor=0E1318" alt="Descargar el APK"></a>
+  <a href="https://chromewebstore.google.com/detail/opmbgchifnghmfdacglecdagbflbcdha"><img src="https://img.shields.io/badge/Chrome%20Web%20Store-add-C8452B?style=flat-square&amp;labelColor=0E1318" alt="Chrome Web Store"></a>
+  <a href="https://addons.mozilla.org/firefox/addon/fortiva-vpn/"><img src="https://img.shields.io/badge/Firefox%20Add--ons-add-C8452B?style=flat-square&amp;labelColor=0E1318" alt="Firefox Add-ons"></a>
   <a href="https://t.me/fortivavpn_es"><img src="https://img.shields.io/badge/Telegram-fortivavpn__es-C8452B?style=flat-square&amp;labelColor=0E1318" alt="Canal de Telegram"></a>
   <a href="https://github.com/SynAdam/fortivavpn/tags"><img src="https://img.shields.io/github/v/tag/SynAdam/fortivavpn?sort=semver&amp;label=release&amp;color=C8452B&amp;style=flat-square&amp;labelColor=0E1318" alt="Última versión"></a>
   <a href="../LICENSE"><img src="https://img.shields.io/badge/licence-GPL--3.0-C8452B?style=flat-square&amp;labelColor=0E1318" alt="Licencia: GPL-3.0"></a>
@@ -29,6 +31,7 @@ La app está disponible en 18 idiomas, incluido el español.
 
 - **APK (para teléfonos y Android TV):** [descárgalo directamente](https://fortivavpn.com/apk), o desde la página [Releases](https://github.com/SynAdam/fortivavpn/releases/latest) de este repositorio. El [APK Lite](https://fortivavpn.com/apk/lite) es una descarga más pequeña para teléfonos de 32 bits, y también funciona en la mayoría de los de 64 bits.
 - **Windows 10 y 11:** [descarga el instalador directamente](https://fortivavpn.com/windows), o desde la página [Releases](https://github.com/SynAdam/fortivavpn/releases) de este repositorio. El instalador no está firmado, así que Windows puede mostrar una advertencia antes de ejecutarlo: elige More info y luego Run anyway.
+- **Extensión para el navegador:** [Chrome Web Store](https://chromewebstore.google.com/detail/opmbgchifnghmfdacglecdagbflbcdha) para Chrome, Brave y Opera, y [Firefox Add-ons](https://addons.mozilla.org/firefox/addon/fortiva-vpn/) para Firefox. Solo el navegador pasa por Fortiva; las demás apps siguen usando tu conexión normal.
 - **Google Play:** [Fortiva VPN](https://play.google.com/store/apps/details?id=com.vpn.fortivavpn&hl=es&referrer=utm_source%3Dgithub)
 - **Sitio web:** [fortivavpn.com/es/](https://fortivavpn.com/es/)
 - **Telegram:** las noticias y las nuevas versiones se publican en nuestro canal en español, [t.me/fortivavpn_es](https://t.me/fortivavpn_es).
