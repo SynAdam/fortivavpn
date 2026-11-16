@@ -1,0 +1,2 @@
+- On Windows, Google, Bing and Yahoo open again while you are connected.
+- On Windows, a short Wi-Fi drop no longer leaves you connected with nothing loading.
