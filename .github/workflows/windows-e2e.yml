@@ -1,0 +1,115 @@
+# Runs the Windows tunnel's end-to-end test on a real Windows PC, a hosted
+# runner, at one commit of the source repository. The test starts the
+# tunnel with its Wintun adapter and its filters, connects through a door it
+# runs itself, and checks what programs on that PC get: pages in a real
+# browser, IPv6, and where lookups go. Nothing else runs Windows code on
+# Windows, so a change to how the Windows tunnel connects is tried here
+# before it is merged.
+#
+# Only by hand, with a commit's full SHA. A SHA, not a branch, because a
+# fetch prints the name it fetches, and the names of our branches stay ours.
+# It publishes nothing and holds no key but the read-only one for the source.
+name: Windows e2e
+
+on:
+  workflow_dispatch:
+    inputs:
+      ref:
+        description: The commit of the source repository to test, as its full SHA
+        required: true
+
+permissions:
+  contents: read
+
+concurrency:
+  group: windows-e2e-${{ inputs.ref }}
+  cancel-in-progress: true
+
+jobs:
+  build:
+    name: build the tests for Windows
+    if: github.repository == 'SynAdam/fortivavpn'
+    runs-on: ubuntu-26.04
+    timeout-minutes: 20
+    env:
+      REF: ${{ inputs.ref }}
+      SOURCE_REPOSITORY: ${{ secrets.SOURCE_REPOSITORY }}
+    steps:
+      - name: check the commit
+        run: |
+          [[ "$REF" =~ ^[0-9a-f]{40}$ ]] || { echo "Not a full commit SHA: $REF"; exit 1; }
+          [ -n "$SOURCE_REPOSITORY" ] || { echo "The secret SOURCE_REPOSITORY is not set."; exit 1; }
+
+      - name: check out the source repository at the commit
+        uses: actions/checkout@v7
+        with:
+          repository: ${{ env.SOURCE_REPOSITORY }}
+          ref: ${{ inputs.ref }}
+          ssh-key: ${{ secrets.SOURCE_DEPLOY_KEY }}
+          persist-credentials: false
+          lfs: false
+
+      - uses: actions/setup-go@v5
+        with:
+          go-version-file: windows/core/go.mod
+          cache: false
+
+      # stage.sh stages the patched Xray-core, the routing data and Wintun,
+      # each checked against its pin. The tests cross-compile like the
+      # service does, so the Windows job needs no Go.
+      - name: stage and build
+        working-directory: windows/core
+        run: |
+          ./stage.sh
+          out="$GITHUB_WORKSPACE/e2e"
+          mkdir -p "$out"
+          for pkg in $(go list ./... | grep -E '/internal/(engine|firewall)$'); do
+            GOOS=windows GOARCH=amd64 go test -c -o "$out/$(basename "$pkg").test.exe" "$pkg"
+          done
+          cp .assets/geoip.dat .assets/geosite.dat .assets/wintun/amd64/wintun.dll "$out/"
+          ls -l "$out"
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: e2e
+          path: e2e/
+          retention-days: 1
+          if-no-files-found: error
+
+  test:
+    name: run on Windows
+    needs: build
+    runs-on: windows-2022
+    timeout-minutes: 20
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          name: e2e
+          path: e2e
+
+      # The runner's account is an administrator, which the adapter and the
+      # filters need, as the service has them as LocalSystem. Wintun loads
+      # from the folder of the program that uses it.
+      - name: end-to-end test
+        shell: pwsh
+        working-directory: e2e
+        env:
+          FORTIVA_WINDOWS_E2E: '1'
+        run: |
+          $env:XRAY_LOCATION_ASSET = (Get-Location).Path
+          $failed = 0
+          foreach ($test in Get-ChildItem *.test.exe | Sort-Object Name) {
+            "== $($test.Name)"
+            & $test.FullName -test.v -test.timeout 12m
+            if ($LASTEXITCODE -ne 0) { $failed++ }
+          }
+          if ($failed) { exit 1 }
+
+      - name: the adapter and the filters are gone
+        if: always()
+        shell: pwsh
+        run: |
+          Get-NetAdapter -IncludeHidden | Format-Table Name, InterfaceDescription, Status
+          if (Get-NetAdapter -Name Fortiva -IncludeHidden -ErrorAction SilentlyContinue) {
+            throw 'the Fortiva adapter is still there after the test'
+          }
