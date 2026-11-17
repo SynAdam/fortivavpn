@@ -1,0 +1,62 @@
+# Moves the APK files of a release tag to its GitHub Release, once Google
+# Play gives the version to everyone.
+#
+# The release workflow publishes a tag's page without its APK files and keeps
+# them, with the full page, in a draft that only this repository's token
+# sees (tool/public_sync.py --hold-apks). The bot reads Google Play; when the
+# version is live there, it asks the backend, which starts this workflow for
+# the tag. It can also be started by hand. tool/public_sync.py --release-held
+# checks each file against the SHA256SUMS held with it, attaches them to the
+# page, gives the page its full text, makes it the latest release when it is
+# the newest, and deletes the draft. A second run changes nothing.
+#
+# It builds nothing and needs no key: the files were built and signed by the
+# release workflow, in its environment.
+name: APK files
+
+on:
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: The release tag, such as v2.4.2, that Google Play gives to everyone
+        required: true
+
+permissions:
+  contents: write
+
+concurrency:
+  group: apks-${{ inputs.tag }}
+  cancel-in-progress: false
+
+jobs:
+  release:
+    name: move the held APK files to the release
+    if: github.repository == 'SynAdam/fortivavpn'
+    runs-on: ubuntu-26.04
+    timeout-minutes: 20
+    env:
+      TAG: ${{ inputs.tag }}
+      SOURCE_REPOSITORY: ${{ secrets.SOURCE_REPOSITORY }}
+    steps:
+      - name: check the tag
+        run: |
+          [[ "$TAG" =~ ^v[0-9]+\.[0-9]+\.[0-9]+$ ]] || { echo "Not a release tag: $TAG"; exit 1; }
+
+      # The tools as main has them.
+      - name: check out the source repository's main
+        uses: actions/checkout@v7
+        with:
+          repository: ${{ env.SOURCE_REPOSITORY }}
+          ref: refs/heads/main
+          ssh-key: ${{ secrets.SOURCE_DEPLOY_KEY }}
+          persist-credentials: false
+          lfs: false
+
+      - uses: actions/setup-python@v7
+        with:
+          python-version: '3.14'
+
+      - name: move the APK files to the release
+        env:
+          PUBLIC_PUSH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: python3 tool/public_sync.py "$TAG" --push --in-actions --release-held

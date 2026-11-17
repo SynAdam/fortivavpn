@@ -1,5 +1,9 @@
 # Builds the two APKs of a release tag, signs them with the upload key,
-# checks them, and publishes the tag's GitHub Release with them.
+# checks them, and publishes the tag's GitHub Release without them: the APK
+# files wait, with the full page, in a draft that only this repository's
+# token sees, until Google Play gives the version to everyone. Then the APK
+# workflow (apks.yml) moves them to the page. The page is public at once, so
+# the desktop builds can be attached to it before then.
 #
 # The mirror workflow starts it for each release tag it brings here. It can
 # also be started by hand for a tag that is here already, such as after a run
@@ -123,4 +127,4 @@ jobs:
         env:
           PUBLIC_PUSH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           PUSH: ${{ inputs.publish && '--push' || '' }}
-        run: python3 tool/public_sync.py "$TAG" $PUSH --in-actions --assets "build/release-${TAG#v}"
+        run: python3 tool/public_sync.py "$TAG" $PUSH --in-actions --hold-apks --assets "build/release-${TAG#v}"
