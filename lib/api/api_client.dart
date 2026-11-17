@@ -38,8 +38,8 @@ class ApiConfig {
   /// The running build's build number, such as `56`.
   static String? appBuild;
 
-  /// `android`, `ios` or `windows`, as the device registration names the
-  /// platform.
+  /// `android`, `ios`, `windows` or `macos`, as the device registration
+  /// names the platform.
   static String? appPlatform;
 
   /// Read the running build once, at startup, for [headers].
@@ -55,6 +55,8 @@ class ApiConfig {
         ? 'ios'
         : Platform.isWindows
         ? 'windows'
+        : Platform.isMacOS
+        ? 'macos'
         : null;
     try {
       final info = await PackageInfo.fromPlatform();

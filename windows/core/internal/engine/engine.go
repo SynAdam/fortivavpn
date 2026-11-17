@@ -20,6 +20,7 @@ import (
 
 	"github.com/fortiva/fortiva-vpn-clients/windows/core/internal/config"
 	"github.com/fortiva/fortiva-vpn-clients/windows/core/internal/control"
+	"github.com/fortiva/fortiva-vpn-clients/windows/core/internal/xray"
 )
 
 // State is where the tunnel is. The strings are the ones the app's status
@@ -82,6 +83,21 @@ type Binder interface {
 // still runs, without them, and the log says so.
 type Guard func(adapter config.AdapterSpec) (release func(), err error)
 
+// Host does what the system needs around a capturing tunnel that the core's
+// TUN inbound does not do itself. On macOS it points the system's resolvers
+// at the tunnel and refuses IPv6 (host_darwin.go); Windows and the router
+// have none.
+type Host interface {
+	// Up runs once the TUN inbound is in, before the tunnel is reported
+	// connected, with the resolvers the tunnel carries. It runs again when
+	// the network changes, so it must be safe to repeat.
+	Up(dns []string) error
+	// Down undoes Up. It runs whenever a capturing tunnel ends or fails, and
+	// once when the core starts, for whatever a killed run left behind. With
+	// nothing to undo it does nothing.
+	Down() error
+}
+
 // Options configure an Engine.
 type Options struct {
 	// Capture adds the TUN inbound once a door works. Without it the tunnel
@@ -93,7 +109,9 @@ type Options struct {
 	Binder Binder
 	// Guard is nil where the tunnel needs no rules of the system's.
 	Guard Guard
-	Logs  *LogSink
+	// Host is nil where the TUN inbound does everything itself.
+	Host Host
+	Logs *LogSink
 	// VerifyURLs are fetched through the doors, in order, until one answers.
 	VerifyURLs []string
 	// VerifyTimeout bounds each of them. The app gives a whole connect 20
@@ -122,6 +140,8 @@ type Engine struct {
 	done    chan struct{}
 	attempt uint64
 	cancel  context.CancelFunc
+	// dns is what the running tunnel gave Host.Up, for NetworkChanged.
+	dns []string
 }
 
 // New returns an engine with no tunnel.
@@ -253,6 +273,9 @@ func (e *Engine) run(ctx context.Context, id uint64, req config.Request) {
 		e.mu.Lock()
 		defer e.mu.Unlock()
 		if e.attempt == id {
+			// A connect that replaced a running tunnel leaves what its Host.Up
+			// did; with no tunnel now, that goes too.
+			e.hostDownLocked()
 			e.setLocked(Failed, reason, err.Error())
 		}
 	}
@@ -323,8 +346,33 @@ func (e *Engine) run(ctx context.Context, id uint64, req config.Request) {
 		}
 		return
 	}
+	// Under the lock, so a disconnect cannot run its Host.Down before this
+	// Up and leave the system pointed at a tunnel that is gone.
+	if e.opts.Capture && e.opts.Host != nil {
+		var dns []string
+		if tun, ok := built.Tun.Settings.(xray.TunSettings); ok {
+			dns = tun.DNS
+		}
+		// A tunnel without them still carries traffic, so this is no
+		// failure; the log says what is missing.
+		if err := e.opts.Host.Up(dns); err != nil {
+			e.opts.Logs.Printf("[engine] the system could not be set up for the tunnel: %v", err)
+		}
+		e.dns = dns
+	}
 	e.inst, e.doors, e.release = inst, built.Doors, release
 	e.setLocked(Connected, "", "")
+}
+
+// hostDownLocked undoes Host.Up. e.mu must be held.
+func (e *Engine) hostDownLocked() {
+	if !e.opts.Capture || e.opts.Host == nil {
+		return
+	}
+	e.dns = nil
+	if err := e.opts.Host.Down(); err != nil {
+		e.opts.Logs.Printf("[engine] the system could not be put back after the tunnel: %v", err)
+	}
 }
 
 // Disconnect closes the tunnel, or abandons one that is starting. Closing
@@ -365,6 +413,9 @@ func (e *Engine) stop(reason string) Status {
 
 	e.mu.Lock()
 	defer e.mu.Unlock()
+	// Whether or not a tunnel was up: a connect that replaced one and was
+	// still starting leaves what the old one's Host.Up did.
+	e.hostDownLocked()
 	if !wasUp {
 		reason = ""
 	}
@@ -377,9 +428,18 @@ func (e *Engine) stop(reason string) Status {
 // NetworkChanged tells a door group to measure its doors again: what it knew
 // about them on the previous network no longer applies. Android does the
 // same when the phone moves to another network.
+//
+// Host.Up runs again too: on macOS a network that appears while the tunnel
+// is up (an iPhone over USB, a new adapter) is a network service whose
+// resolvers have not been pointed at the tunnel yet.
 func (e *Engine) NetworkChanged() {
 	e.mu.Lock()
 	group := e.inst != nil && len(e.doors) > 1
+	if e.inst != nil && e.opts.Capture && e.opts.Host != nil {
+		if err := e.opts.Host.Up(e.dns); err != nil {
+			e.opts.Logs.Printf("[engine] the new network could not be set up for the tunnel: %v", err)
+		}
+	}
 	e.mu.Unlock()
 	if group {
 		autoselect.KickAll()

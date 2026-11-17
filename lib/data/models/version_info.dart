@@ -179,7 +179,7 @@ class PlatformVersion {
   }
 }
 
-/// Version info for both platforms
+/// Version info for every platform
 class VersionInfo {
   final PlatformVersion ios;
   final PlatformVersion android;
@@ -188,10 +188,19 @@ class VersionInfo {
   /// Windows build is offered no update.
   final PlatformVersion? windows;
 
-  const VersionInfo({required this.ios, required this.android, this.windows});
+  /// The same for macOS.
+  final PlatformVersion? macos;
+
+  const VersionInfo({
+    required this.ios,
+    required this.android,
+    this.windows,
+    this.macos,
+  });
 
   factory VersionInfo.fromJson(Map<String, dynamic> json) {
     final windows = json['windows'];
+    final macos = json['macos'];
     return VersionInfo(
       ios: PlatformVersion.fromJson(json['ios'] as Map<String, dynamic>),
       android: PlatformVersion.fromJson(
@@ -199,6 +208,9 @@ class VersionInfo {
       ),
       windows: windows is Map<String, dynamic>
           ? PlatformVersion.fromJson(windows)
+          : null,
+      macos: macos is Map<String, dynamic>
+          ? PlatformVersion.fromJson(macos)
           : null,
     );
   }
@@ -208,6 +220,7 @@ class VersionInfo {
       'ios': ios.toJson(),
       'android': android.toJson(),
       if (windows case final windows?) 'windows': windows.toJson(),
+      if (macos case final macos?) 'macos': macos.toJson(),
     };
   }
 }

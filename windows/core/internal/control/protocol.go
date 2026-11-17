@@ -59,7 +59,7 @@ func Errorf(code, format string, args ...any) *Error {
 	return &Error{Code: code, Message: fmt.Sprintf(format, args...)}
 }
 
-// Error codes shared with the app (lib/services/windows_tunnel.dart).
+// Error codes shared with the app (lib/services/desktop_tunnel.dart).
 const (
 	CodeBadRequest     = "BAD_REQUEST"     // the request could not be read
 	CodeUnknownMethod  = "UNKNOWN_METHOD"  // the service does not have this call

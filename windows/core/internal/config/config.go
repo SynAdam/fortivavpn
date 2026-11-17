@@ -103,6 +103,20 @@ var RouterAdapter = AdapterSpec{
 	Routes:  Adapter.Routes,
 }
 
+// MacAdapter is the utun interface of the macOS build. The core names a
+// utun "utunN" and nothing else, so the engine fills Name with a free
+// number at each connect (engine.MacAdapter). On macOS the core takes the
+// first IPv4 prefix as the point-to-point pair (10.10.14.1 the far end,
+// 10.10.14.2 the Mac) and gives the interface a link-local IPv6 address of
+// its own. The tunnel carries IPv4 alone: IPv6 is refused in the routing
+// table while it is up (engine/host_darwin.go), as on the router, where
+// routing it in made the core answer every IPv6 connection with an HTTP 403.
+var MacAdapter = AdapterSpec{
+	MTU:     1500,
+	Address: Adapter.Address,
+	Routes:  Adapter.Routes,
+}.WithoutIPv6()
+
 // WithoutIPv6 is a with only its IPv4 addresses and routes. A Linux kernel
 // refuses an IPv6 address on an interface that has IPv6 turned off, and the
 // TUN inbound then fails to start.

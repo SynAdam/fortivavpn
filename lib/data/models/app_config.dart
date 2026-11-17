@@ -358,10 +358,19 @@ class ForceUpdate {
   /// Windows build is offered no update.
   final PlatformVersion? windows;
 
-  const ForceUpdate({required this.ios, required this.android, this.windows});
+  /// The same for macOS.
+  final PlatformVersion? macos;
+
+  const ForceUpdate({
+    required this.ios,
+    required this.android,
+    this.windows,
+    this.macos,
+  });
 
   factory ForceUpdate.fromJson(Map<String, dynamic> json) {
     final windows = json['windows'];
+    final macos = json['macos'];
     return ForceUpdate(
       ios: PlatformVersion.fromJson(json['ios'] as Map<String, dynamic>),
       android: PlatformVersion.fromJson(
@@ -369,6 +378,9 @@ class ForceUpdate {
       ),
       windows: windows is Map<String, dynamic>
           ? PlatformVersion.fromJson(windows)
+          : null,
+      macos: macos is Map<String, dynamic>
+          ? PlatformVersion.fromJson(macos)
           : null,
     );
   }
@@ -378,6 +390,7 @@ class ForceUpdate {
       'ios': ios.toJson(),
       'android': android.toJson(),
       if (windows case final windows?) 'windows': windows.toJson(),
+      if (macos case final macos?) 'macos': macos.toJson(),
     };
   }
 }

@@ -1,5 +1,6 @@
 import 'dart:io';
 
+import '../core/desktop_core.dart';
 import 'vless_link.dart';
 
 /// Asks the core to send the TLS hello in small, spaced-out TCP segments.
@@ -65,14 +66,15 @@ class TlsFragment {
 
   /// [uri] with the fragment parameter added, or unchanged.
   ///
-  /// Only on Android and Windows, whose cores read the parameter (Windows
-  /// splits the hello inside the door's own connection, windows/core/README.md).
+  /// Only on Android and the desktops, whose cores read the parameter (the
+  /// desktop core splits the hello inside the door's own connection,
+  /// windows/core/README.md).
   /// Only for TLS: a
   /// Reality handshake is a borrowed site's and works as it is. A link that
   /// already names a fragment keeps its own.
   static String apply(String uri, {String? spec, bool? android}) {
     final wanted = (spec ?? TlsFragment.spec).trim();
-    if (!(android ?? (Platform.isAndroid || Platform.isWindows))) return uri;
+    if (!(android ?? (Platform.isAndroid || DesktopCore.active))) return uri;
     if (!usable(wanted)) return uri;
     if (!uri.startsWith('vless://') || VlessLink.security(uri) != 'tls') {
       return uri;

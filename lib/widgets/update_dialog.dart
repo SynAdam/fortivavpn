@@ -7,6 +7,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 
 import '../api/api_client.dart';
 import '../core/design_system.dart';
+import '../core/desktop_core.dart';
 import '../core/form_factor.dart';
 import '../core/state/connect_flow.dart';
 import '../core/state/dedicated_state.dart';
@@ -137,6 +138,7 @@ class UpdateDialog {
     String? currentVersion,
     bool? android,
     bool? windows,
+    bool? macos,
     bool? googleSigned,
     Future<void> Function(Uri url)? open,
   }) async {
@@ -144,16 +146,21 @@ class UpdateDialog {
     _checking = true;
     try {
       // Passed in by tests, which run on none of these platforms. Windows
-      // reads its own numbers; anything else that is not iOS reads the
-      // Android ones, as it always has.
+      // and macOS read their own numbers; anything else that is not iOS
+      // reads the Android ones, as it always has.
       final isWindows = windows ?? (android == null && Platform.isWindows);
-      final isAndroid = !isWindows && (android ?? !Platform.isIOS);
+      final isMacOS =
+          !isWindows && (macos ?? (android == null && DesktopCore.isMacOS));
+      final isAndroid = !isWindows && !isMacOS && (android ?? !Platform.isIOS);
       final platform = isWindows
           ? rules.windows
+          : isMacOS
+          ? rules.macos
           : isAndroid
           ? rules.android
           : rules.ios;
-      // A backend that does not know Windows yet has nothing to offer it.
+      // A backend that does not know Windows or macOS yet has nothing to
+      // offer it.
       if (platform == null) return;
 
       // Passed in by tests. In the app it comes from the running build,

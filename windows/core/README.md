@@ -4,6 +4,10 @@ The tunnel of the Windows client: one Go executable that runs as a Windows
 service, carries the PC's traffic through Fortiva's doors, and takes its
 orders from the app over a named pipe. The app itself never runs elevated.
 
+The same executable is the macOS client's tunnel, run by launchd on a utun
+interface ([`macos/README.md`](../../macos/README.md)), and the router
+build's (below).
+
 | | |
 |---|---|
 | Core | [Xray-core](https://github.com/XTLS/Xray-core) (MPL-2.0) with [`android/core/patches`](../../android/core/patches), the same source and patches Android ships |
@@ -142,7 +146,10 @@ Windows build, move that module here with `GOFLAGS= go get` and
 
 On macOS or Linux, `go build ./cmd/fortiva-core && ./fortiva-core run -assets .assets`
 serves the same pipe calls on `/tmp/fortiva-tunnel.sock`, without capturing
-anything, and `./fortiva-core call <method> '<json>'` drives it.
+anything, and `./fortiva-core call <method> '<json>'` drives it. On macOS
+under `sudo` it captures, as the macOS client's daemon does
+([`macos/README.md`](../../macos/README.md#building-and-trying-it));
+`./build.sh macos` builds that core.
 
 ## Trying it on Windows
 

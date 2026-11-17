@@ -1,6 +1,6 @@
-import 'dart:io';
-
 import 'package:flutter/foundation.dart';
+
+import '../core/desktop_core.dart';
 
 /// Which links from the public list, or from the backend's candidates, the
 /// app can dial and test.
@@ -22,10 +22,11 @@ class SharedLink {
   static bool? windowsOverride;
 
   /// The schemes the core can dial and the delay test can read. The
-  /// Windows core reads vless links only (windows/core/internal/link), so
-  /// there a link of another kind would fail every test and every dial.
+  /// desktop core (Windows and macOS) reads vless links only
+  /// (windows/core/internal/link), so there a link of another kind would
+  /// fail every test and every dial.
   static Set<String> get usableSchemes =>
-      (windowsOverride ?? Platform.isWindows) ? const {'vless'} : _allSchemes;
+      (windowsOverride ?? DesktopCore.active) ? const {'vless'} : _allSchemes;
 
   /// The scheme of [uri], lower-cased, or empty when it has none.
   static String scheme(String uri) {

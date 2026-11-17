@@ -2,6 +2,7 @@ import 'dart:io';
 
 import 'package:flutter/foundation.dart';
 
+import '../core/desktop_core.dart';
 import '../data/models/server.dart';
 import 'shared_link.dart';
 import 'vless_link.dart';
@@ -86,12 +87,12 @@ class StandbyDoors {
     bool ipv6 = true,
     Set<String> closed = const {},
   }) {
-    // Windows' core holds a door group as Android's does: the same
+    // The desktop core holds a door group as Android's does: the same
     // autoselect outbound, built from the same connect arguments.
     final onAndroid =
         android ??
         androidOverride ??
-        (Platform.isAndroid || Platform.isWindows);
+        (Platform.isAndroid || DesktopCore.active);
     if (!enabled || !onAndroid) return const [];
     if (dialled.door == null) return const [];
 
@@ -141,7 +142,7 @@ class StandbyDoors {
     final onAndroid =
         android ??
         androidOverride ??
-        (Platform.isAndroid || Platform.isWindows);
+        (Platform.isAndroid || DesktopCore.active);
     if (!enabled || !onAndroid || count == null || count <= 0) {
       return const [];
     }

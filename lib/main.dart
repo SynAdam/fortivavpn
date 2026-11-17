@@ -9,7 +9,9 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
 import 'core/design_system.dart';
+import 'core/desktop_core.dart';
 import 'core/form_factor.dart';
+import 'services/desktop_tunnel.dart';
 import 'core/state/apn_guide.dart';
 import 'core/state/billing_state.dart';
 import 'core/state/server_state.dart';
@@ -73,6 +75,11 @@ void main() async {
   // Before the first request, so every call to the backend says which
   // build sent it. A quick platform call that never throws.
   await ApiConfig.readAppBuild();
+
+  // On macOS the tunnel is a launchd daemon the app adds itself; adding it
+  // now, not awaited, gets macOS's one question out of the way before the
+  // first connect. Nothing elsewhere.
+  if (DesktopCore.isMacOS) unawaited(DesktopTunnel.instance.prepareService());
 
   // Before the first request too, so every upload try from launch on is in
   // the log. See DeliveryLog.

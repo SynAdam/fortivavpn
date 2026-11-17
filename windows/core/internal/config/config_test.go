@@ -406,3 +406,19 @@ func TestAPlainHTTPDoorKeepsItsNameAsTheHost(t *testing.T) {
 		}
 	}
 }
+
+// The macOS tunnel carries IPv4 alone; IPv6 is refused in the routing
+// table instead (engine/host_darwin.go). An IPv6 route into the utun would
+// get every IPv6 connection answered with an HTTP 403, as on the router.
+func TestMacAdapterCarriesIPv4Only(t *testing.T) {
+	for _, list := range [][]string{MacAdapter.Address, MacAdapter.Routes} {
+		for _, s := range list {
+			if p := netip.MustParsePrefix(s); !p.Addr().Is4() {
+				t.Errorf("MacAdapter holds IPv6 %s", s)
+			}
+		}
+	}
+	if len(MacAdapter.Routes) != 2 || MacAdapter.Address[0] != "10.10.14.1/30" {
+		t.Errorf("MacAdapter = %+v, want Windows's IPv4 address and both IPv4 halves", MacAdapter)
+	}
+}

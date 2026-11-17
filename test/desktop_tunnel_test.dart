@@ -5,7 +5,7 @@ import 'dart:io';
 import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:fortiva_vpn/services/tunnel_pipe.dart';
-import 'package:fortiva_vpn/services/windows_tunnel.dart';
+import 'package:fortiva_vpn/services/desktop_tunnel.dart';
 
 /// A stand-in for the Windows tunnel service: the same protocol
 /// (windows/core/internal/control), served on a Unix socket, answering from
@@ -108,14 +108,14 @@ void main() {
     });
   });
 
-  group('WindowsTunnel', () {
+  group('DesktopTunnel', () {
     test(
       'connect sends the doors, and the DNS screen\'s resolvers as a list',
       () async {
         service = await FakeService.start(
           (method, params) => {'seq': 1, 'state': 'connecting'},
         );
-        final tunnel = WindowsTunnel(pipe: UnixSocketPipe(service.path));
+        final tunnel = DesktopTunnel(pipe: UnixSocketPipe(service.path));
         final result = await tunnel.method.invokeMethod('connect', {
           'link': 'vless://a',
           'alternates': ['vless://b'],
@@ -139,7 +139,7 @@ void main() {
       'connect without standby doors or resolvers sends only the link',
       () async {
         service = await FakeService.start((m, p) => {'seq': 1});
-        final tunnel = WindowsTunnel(pipe: UnixSocketPipe(service.path));
+        final tunnel = DesktopTunnel(pipe: UnixSocketPipe(service.path));
         await tunnel.method.invokeMethod('connect', {'link': 'vless://a'});
         expect(service.requests.single['params'], {'link': 'vless://a'});
       },
@@ -151,7 +151,7 @@ void main() {
         service = await FakeService.start(
           (m, p) => throw const TunnelCallException('INVALID_LINK', 'no'),
         );
-        final tunnel = WindowsTunnel(pipe: UnixSocketPipe(service.path));
+        final tunnel = DesktopTunnel(pipe: UnixSocketPipe(service.path));
         expect(
           tunnel.method.invokeMethod('connect', {'link': 'vmess://x'}),
           throwsA(
@@ -167,7 +167,7 @@ void main() {
 
     test('no service is a PlatformException the user can read', () async {
       service = await FakeService.start((m, p) => null);
-      final tunnel = WindowsTunnel(
+      final tunnel = DesktopTunnel(
         pipe: UnixSocketPipe('${service.path}-missing'),
       );
       expect(
@@ -194,7 +194,7 @@ void main() {
           _ => null,
         },
       );
-      final channel = WindowsTunnel(pipe: UnixSocketPipe(service.path)).method;
+      final channel = DesktopTunnel(pipe: UnixSocketPipe(service.path)).method;
       expect(await channel.invokeMethod<int>('realPing', {'link': 'l'}), 120);
       expect(service.requests.last['params'], {'link': 'l'});
       final detail = await channel.invokeMethod<Map<Object?, Object?>>(
@@ -214,7 +214,7 @@ void main() {
     test('getStatus answers in the mobile platforms\' words', () async {
       var status = <String, Object?>{'seq': 3, 'state': 'connected'};
       service = await FakeService.start((m, p) => status);
-      final channel = WindowsTunnel(pipe: UnixSocketPipe(service.path)).method;
+      final channel = DesktopTunnel(pipe: UnixSocketPipe(service.path)).method;
       expect(await channel.invokeMethod<String>('getStatus'), 'connected');
       status = {'seq': 4, 'state': 'disconnected', 'reason': 'killed'};
       expect(
@@ -225,15 +225,15 @@ void main() {
 
     test('a failure carries no reason, which the app would file as a drop', () {
       expect(
-        WindowsTunnel.statusLine({'state': 'failed', 'reason': 'verify'}),
+        DesktopTunnel.statusLine({'state': 'failed', 'reason': 'verify'}),
         'failed',
       );
-      expect(WindowsTunnel.statusLine(null), 'disconnected');
+      expect(DesktopTunnel.statusLine(null), 'disconnected');
     });
 
     test('Android-only calls are missing, as they are on iOS', () async {
       service = await FakeService.start((m, p) => null);
-      final channel = WindowsTunnel(pipe: UnixSocketPipe(service.path)).method;
+      final channel = DesktopTunnel(pipe: UnixSocketPipe(service.path)).method;
       for (final method in [
         'testConnection',
         'localSocks',
@@ -252,7 +252,7 @@ void main() {
 
     test('installId and throughputSample are answered on the PC', () async {
       service = await FakeService.start((m, p) => null);
-      final channel = WindowsTunnel(
+      final channel = DesktopTunnel(
         pipe: UnixSocketPipe(service.path),
         installId: () async => 'machine-guid',
         throughputSample: (bytes, capMs) async => {'bytes': bytes, 'ms': capMs},
@@ -271,7 +271,7 @@ void main() {
     test('a throughput call without its sizes gets no sample', () async {
       service = await FakeService.start((m, p) => null);
       var sampled = false;
-      final channel = WindowsTunnel(
+      final channel = DesktopTunnel(
         pipe: UnixSocketPipe(service.path),
         throughputSample: (bytes, capMs) async => sampled = true,
       ).method;
@@ -294,7 +294,7 @@ void main() {
         if (!await pending.moveNext()) return {'seq': params['after']};
         return pending.current;
       });
-      final tunnel = WindowsTunnel(pipe: UnixSocketPipe(service.path));
+      final tunnel = DesktopTunnel(pipe: UnixSocketPipe(service.path));
       final lines = <String>[];
       final sub = tunnel.status.receiveBroadcastStream().listen(
         (line) => lines.add(line as String),
@@ -322,7 +322,7 @@ void main() {
 
     test('a service that goes away is a disconnect, said once', () async {
       service = await FakeService.start((m, p) => null);
-      final tunnel = WindowsTunnel(
+      final tunnel = DesktopTunnel(
         pipe: UnixSocketPipe('${service.path}-missing'),
         retryDelay: const Duration(milliseconds: 20),
       );
@@ -345,7 +345,7 @@ void main() {
         }
         return {'seq': params['after']};
       });
-      final tunnel = WindowsTunnel(pipe: UnixSocketPipe(service.path));
+      final tunnel = DesktopTunnel(pipe: UnixSocketPipe(service.path));
       final lines = <String>[];
       final sub = tunnel.status.receiveBroadcastStream().listen(
         (line) => lines.add(line as String),

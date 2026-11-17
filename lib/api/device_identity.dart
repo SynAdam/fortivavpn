@@ -54,8 +54,13 @@ class DeviceIdentity {
   /// and anything still on the old backend is migrated to the plugin's
   /// own ciphers the first time it is read. Passing it now would only
   /// stop the next upgrade compiling.
+  ///
+  /// On macOS the login keychain, not the data protection one, which only
+  /// an app with a provisioning profile may use; the Developer ID app has
+  /// none (macos/README.md).
   static const FlutterSecureStorage _secure = FlutterSecureStorage(
     iOptions: IOSOptions(accessibility: KeychainAccessibility.first_unlock),
+    mOptions: MacOsOptions(usesDataProtectionKeychain: false),
   );
 
   String? _cached;

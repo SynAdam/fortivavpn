@@ -220,7 +220,7 @@ void main() {
 
   test('every native door test in lib goes through PingService', () {
     // A test sent from anywhere else would build a core with no splitter.
-    // windows_tunnel.dart only forwards the call to the Windows service.
+    // desktop_tunnel.dart only forwards the call to the desktop service.
     final senders = <String>[];
     for (final f in Directory('lib').listSync(recursive: true)) {
       if (f is! File || !f.path.endsWith('.dart')) continue;
@@ -230,8 +230,8 @@ void main() {
       }
     }
     expect(senders..sort(), [
+      'lib/services/desktop_tunnel.dart',
       'lib/services/ping_service.dart',
-      'lib/services/windows_tunnel.dart',
     ]);
   });
 }

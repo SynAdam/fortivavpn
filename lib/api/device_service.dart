@@ -64,6 +64,7 @@ class DeviceService {
     if (Platform.isIOS) return 'ios';
     if (Platform.isAndroid) return 'android';
     if (Platform.isWindows) return 'windows';
+    if (Platform.isMacOS) return 'macos';
     return 'unknown';
   }
 

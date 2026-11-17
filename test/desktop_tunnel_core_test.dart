@@ -3,21 +3,21 @@ import 'dart:io';
 import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:fortiva_vpn/services/tunnel_pipe.dart';
-import 'package:fortiva_vpn/services/windows_tunnel.dart';
+import 'package:fortiva_vpn/services/desktop_tunnel.dart';
 
 /// The Windows bridge against a real core, to catch the app and the service
 /// drifting apart. Opt-in, because it needs the core running:
 ///
 ///   cd windows/core && ./stage.sh && go build ./cmd/fortiva-core
 ///   ./fortiva-core run -assets .assets &
-///   FORTIVA_CORE_SOCKET=/tmp/fortiva-tunnel.sock flutter test test/windows_tunnel_core_test.dart
+///   FORTIVA_CORE_SOCKET=/tmp/fortiva-tunnel.sock flutter test test/desktop_tunnel_core_test.dart
 void main() {
   final socket = Platform.environment['FORTIVA_CORE_SOCKET'];
 
   test(
     'the bridge and the core agree on every call',
     () async {
-      final tunnel = WindowsTunnel(pipe: UnixSocketPipe(socket!));
+      final tunnel = DesktopTunnel(pipe: UnixSocketPipe(socket!));
       final client = TunnelClient(UnixSocketPipe(socket));
       final channel = tunnel.method;
 

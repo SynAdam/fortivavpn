@@ -1,4 +1,4 @@
-//go:build !windows
+//go:build !windows && !darwin
 
 // Package service runs fortiva-core under the Windows service manager. On the
 // platforms the core is developed on there is no service; "fortiva-core run"
