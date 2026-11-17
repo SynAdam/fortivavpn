@@ -14,11 +14,12 @@ other projects and their licences.
 | --- | --- |
 | Android, for phones and Android TV | GPL-3.0-or-later, with the additional terms below |
 | Windows | GPL-3.0-or-later, with the additional terms below |
+| macOS | GPL-3.0-or-later, with the additional terms below |
 | iOS | Proprietary, see [The iOS build](#the-ios-build) |
 
-### The Android and Windows builds
+### The Android, Windows and macOS builds
 
-The Android and Windows apps are free software: you can redistribute them
+The Android, Windows and macOS apps are free software: you can redistribute them
 and/or modify them under the terms of the GNU General Public License as
 published by the Free Software Foundation, either version 3 of the License,
 or (at your option) any later version, with the additional terms below.
@@ -28,7 +29,7 @@ WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
 FOR A PARTICULAR PURPOSE. See the GNU General Public License in
 [LICENSE](LICENSE) for more details.
 
-Both builds contain code under GPL-3.0:
+All three builds contain code under GPL-3.0:
 
 - **Android.** The native layer under
   `android/app/src/main/java/com/vpn/fortivavpn/` is a fork of
@@ -42,10 +43,13 @@ Both builds contain code under GPL-3.0:
   [sing](https://github.com/SagerNet/sing) and
   [sing-shadowsocks](https://github.com/SagerNet/sing-shadowsocks). Both are
   GPL-3.0-or-later.
+- **macOS.** The tunnel service in the app, `Contents/MacOS/fortiva-core`,
+  is the same program as the Windows one, built from `windows/core/` for
+  macOS (`macos/`), so it links the same code.
 
 ### The source of each release
 
-The source of each release of the Android and Windows apps is published at
+The source of each release of the Android, Windows and macOS apps is published at
 https://github.com/SynAdam/fortivavpn, and each release is tagged `vX.Y.Z`
 there. Its history starts at version 2.2.0. At each release it gets one
 commit for each change made since the previous release. Google Play,
@@ -89,7 +93,7 @@ that conflict.
 `lib/` is compiled into every build. NimusAI holds the copyright of its own
 code in `lib/`, of the first-party Swift under `ios/` and of the first-party
 Go under `windows/core/`. It licenses `lib/` under GPL-3.0-or-later as part
-of the Android and Windows builds, and under the proprietary terms above as
+of the Android, Windows and macOS builds, and under the proprietary terms above as
 part of the iOS build. A copyright holder may license its own work in more
 than one way, and the two grants do not conflict. Outside contributions come
 under the terms in [CONTRIBUTING.md](CONTRIBUTING.md), which let NimusAI ship
@@ -99,10 +103,11 @@ them in every build.
 
 | Folder | What it holds | Licence |
 | --- | --- | --- |
-| `lib/` | The Flutter app, shared by every build | GPL-3.0-or-later in the Android and Windows builds. The iOS terms in the iOS build. |
+| `lib/` | The Flutter app, shared by every build | GPL-3.0-or-later in the Android, Windows and macOS builds. The iOS terms in the iOS build. |
 | `test/` | Tests of `lib/` | GPL-3.0-or-later |
 | `android/` | The Android app: its native layer, its core and its store text | GPL-3.0-or-later. Files from other projects keep their own licence, such as the Xray-core patches in `android/core/patches/` (MPL-2.0). |
 | `windows/` | The Windows app: its runner, its tunnel service (`windows/core/`) and its installer | GPL-3.0-or-later. Wintun keeps its own licence. |
+| `macos/` | The macOS app: its runner, the launchd daemon that runs the tunnel service from `windows/core/`, and its release script | GPL-3.0-or-later |
 | `ios/` | The iOS app | The iOS terms. Components from other projects keep their own licence. |
 | `assets/` | Fonts, images and the app icon | The fonts keep their own licence, the SIL Open Font License 1.1. The rest is GPL-3.0-or-later, and the logo also falls under the additional terms below. |
 | `web/` | Flutter's web files. No web build is released. | GPL-3.0-or-later |

@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+	<!-- No App Sandbox: the app reaches the tunnel's daemon over its socket
+	     in /var/run, which a sandboxed app cannot open, and Fortiva for
+	     macOS is a Developer ID app, which needs no sandbox (macos/README.md). -->
+	<!-- The Dart VM compiles at run time in debug and profile builds. -->
+	<key>com.apple.security.cs.allow-jit</key>
+	<true/>
+</dict>
+</plist>

@@ -5,7 +5,7 @@
 <p align="center">
   <a href="https://github.com/SynAdam/fortivavpn/tags"><img alt="Latest release" src="https://img.shields.io/github/v/tag/SynAdam/fortivavpn?sort=semver&style=flat-square&label=release&labelColor=1B2127&color=6CD5B3"></a>
   <a href="LICENSING.md"><img alt="Licence: GPL-3.0" src="https://img.shields.io/badge/licence-GPL--3.0-C8452B?style=flat-square&labelColor=1B2127"></a>
-  <img alt="Platforms: Android, Android TV, iOS, Windows, Chrome and Firefox" src="https://img.shields.io/badge/platforms-Android%20%7C%20Android%20TV%20%7C%20iOS%20%7C%20Windows%20%7C%20Chrome%20%7C%20Firefox-30363C?style=flat-square&labelColor=1B2127">
+  <img alt="Platforms: Android, Android TV, iOS, Windows, macOS, Chrome and Firefox" src="https://img.shields.io/badge/platforms-Android%20%7C%20Android%20TV%20%7C%20iOS%20%7C%20Windows%20%7C%20macOS%20%7C%20Chrome%20%7C%20Firefox-30363C?style=flat-square&labelColor=1B2127">
   <img alt="Built with Flutter" src="https://img.shields.io/badge/Flutter-3.38-02569B?style=flat-square&logo=flutter&logoColor=white&labelColor=1B2127">
   <img alt="18 languages" src="https://img.shields.io/badge/languages-18-30363C?style=flat-square&labelColor=1B2127">
 </p>
@@ -97,6 +97,7 @@ links at the top.
 | **Android TV** | The same app and APK as on phones | [`android/`](android/) |
 | **iOS** | Build it from source | [`ios/`](ios/) |
 | **Windows** 10 and 11 | The installer from [fortivavpn.com/windows](https://fortivavpn.com/windows) or from this repository's [Releases](https://github.com/SynAdam/fortivavpn/releases). It is not signed, so Windows may warn before it runs: choose More info, then Run anyway. | [`windows/`](windows/) |
+| **macOS** 13 (Ventura) and newer, Apple silicon and Intel | The disk image from [fortivavpn.com/macos](https://fortivavpn.com/macos) or from this repository's [Releases](https://github.com/SynAdam/fortivavpn/releases). It is signed and notarized by Apple. Drag Fortiva VPN to Applications; the first time, allow it once in System Settings, General, Login Items. | [`macos/`](macos/README.md) |
 | **Browsers**: Chrome, Brave, Opera and Firefox | The extension from the [Chrome Web Store](https://chromewebstore.google.com/detail/opmbgchifnghmfdacglecdagbflbcdha) for Chrome, Brave and Opera, or from [Firefox Add-ons](https://addons.mozilla.org/firefox/addon/fortiva-vpn/). Only the browser goes through Fortiva: other apps on the computer use your normal internet. | [`browser/`](browser/) |
 
 New versions are announced on Telegram, in [English](https://t.me/fortivavpn), [Arabic](https://t.me/fortivavpn_ar), [Chinese](https://t.me/fortivavpn_zh), [Hindi](https://t.me/fortivavpn_hi), [Indonesian](https://t.me/fortivavpn_id), [Persian](https://t.me/fortiva_vpn), [Portuguese](https://t.me/fortivavpn_pt), [Russian](https://t.me/fortivavpn_ru), [Spanish](https://t.me/fortivavpn_es), [Turkish](https://t.me/fortivavpn_tr), [Ukrainian](https://t.me/fortivavpn_ua), [Urdu](https://t.me/fortivavpn_ur), [Uzbek](https://t.me/fortivavpn_uz) and [Vietnamese](https://t.me/fortivavpn_vi). Before you install an APK
@@ -134,9 +135,11 @@ flowchart TB
     channel --> android
     channel --> ios
     channel --> windows
+    channel --> macos
     android["<b>Android</b><br/>V2RayVpnService<br/>libv2ray.aar (Xray-core)<br/>libtun2socks"]
     ios["<b>iOS</b><br/>NEPacketTunnelProvider<br/>LibXray<br/>hev-socks5-tunnel"]
     windows["<b>Windows</b><br/>fortiva-core.exe, a service:<br/>Xray-core with its TUN<br/>inbound on Wintun"]
+    macos["<b>macOS</b><br/>fortiva-core, a launchd daemon:<br/>Xray-core with its TUN<br/>inbound on a utun"]
 ```
 
 On first launch the app registers the device with the backend, with no
@@ -148,7 +151,7 @@ Android's native layer is derived from
 [v2rayNG](https://github.com/2dust/v2rayNG). The cores are built from pinned
 sources: see [`CORE-MAINTENANCE.md`](CORE-MAINTENANCE.md),
 [`android/core/`](android/core/README.md), [`ios/core/`](ios/core/README.md)
-and [`windows/core/`](windows/core/README.md).
+and [`windows/core/`](windows/core/README.md), which the macOS app uses too.
 
 ## Build from source
 
@@ -203,6 +206,11 @@ See [`windows/core/README.md`](windows/core/README.md) for the tunnel service
 and [`windows/installer/`](windows/installer/) for the installer.
 `flutter build windows` builds the app.
 
+### macOS
+
+See [`macos/README.md`](macos/README.md). `flutter build macos` builds the
+app, with the tunnel service from `windows/core/` in it.
+
 ### How releases are built
 
 Each release is built from its tagged commit with Flutter 3.38.7:
@@ -244,6 +252,12 @@ A release with a Windows installer also carries
 `Get-FileHash FortivaVPN-X.Y.Z-windows-setup.exe` in PowerShell. It prints
 the hash in capital letters; apart from that it must be the same as the one
 in that file.
+
+A release with a Mac disk image carries `FortivaVPN-X.Y.Z-macos.dmg.sha256`
+the same way. On a Mac, run `shasum -a 256 FortivaVPN-X.Y.Z-macos.dmg`; it
+must print the hash in that file. `spctl -a -t open --context
+context:primary-signature -v FortivaVPN-X.Y.Z-macos.dmg` must say
+"accepted" and "Notarized Developer ID".
 
 The app from Google Play is signed by Google Play's app signing key, not by
 our upload key. Its certificate has this SHA-256 fingerprint:
@@ -324,12 +338,12 @@ project.
 
 ## Licence
 
-- **The Android and Windows builds are GPL-3.0.** Both contain GPL-3.0 code
-  from other projects. [LICENSE](LICENSE) is the licence text.
+- **The Android, Windows and macOS builds are GPL-3.0.** All three contain
+  GPL-3.0 code from other projects. [LICENSE](LICENSE) is the licence text.
 - **The iOS build** contains no GPL code and is not licensed for
   redistribution.
 - **The shared Flutter code** (`lib/`) is licensed under GPL-3.0 as part of
-  the Android and Windows builds.
+  the Android, Windows and macOS builds.
 
 [LICENSING.md](LICENSING.md) says which licence each build and each folder
 is under. [THIRD-PARTY-NOTICES.md](THIRD-PARTY-NOTICES.md) lists every

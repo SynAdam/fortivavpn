@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<!--
+  The tunnel's launchd daemon. embed_tunnel.sh puts this file in the app at
+  Contents/Library/LaunchDaemons, and the app registers it with
+  SMAppService.daemon (Runner/TunnelDaemon.swift). Once the person allows
+  it in System Settings, launchd runs the core as root and starts it again
+  if it ends, which is how a core killed with the tunnel up puts the Mac
+  back (windows/core/internal/engine/host_darwin.go).
+-->
+<plist version="1.0">
+<dict>
+	<key>Label</key>
+	<string>com.vpn.fortivavpn.tunnel</string>
+	<key>BundleProgram</key>
+	<string>Contents/MacOS/fortiva-core</string>
+	<key>ProgramArguments</key>
+	<array>
+		<string>fortiva-core</string>
+		<string>service</string>
+	</array>
+	<key>AssociatedBundleIdentifiers</key>
+	<array>
+		<string>com.vpn.fortivavpn</string>
+	</array>
+	<key>RunAtLoad</key>
+	<true/>
+	<key>KeepAlive</key>
+	<true/>
+	<key>ProcessType</key>
+	<string>Interactive</string>
+</dict>
+</plist>

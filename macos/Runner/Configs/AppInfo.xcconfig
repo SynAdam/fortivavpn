@@ -1,0 +1,11 @@
+// Application-level settings for the Runner target.
+
+// The application's name, which is also the bundle's name ("Fortiva VPN.app").
+PRODUCT_NAME = Fortiva VPN
+
+// The same identifier as the Android and iOS apps. The tunnel's launchd
+// daemon names it in AssociatedBundleIdentifiers.
+PRODUCT_BUNDLE_IDENTIFIER = com.vpn.fortivavpn
+
+// The copyright displayed in application information
+PRODUCT_COPYRIGHT = Copyright © 2026 NimusAI. All rights reserved.
